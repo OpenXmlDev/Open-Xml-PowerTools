@@ -1,0 +1,29 @@
+*.exe
+*.pdb
+*.cache
+**/Libs/OpenXmlPowerTools.dll
+!Libs/DocumentFormat.OpenXml.dll
+!Libs/System.IO.Packaging.dll
+
+# output files from the OpenXmlPowerTools examples
+**/DocumentAssembler/AssembledDoc.docx
+**/DocumentAssembler01/AssembledDoc.docx
+**/ChartUpdater01/Updated-Chart*
+**/FormattingAssembler01/*out.docx
+**/HtmlConverter01/*.html
+**/HtmlConverter01/*_files
+**/TextReplacer01/*out*
+**/SpreadsheetWriter01/Test1.xlsx
+**/SpreadsheetWriter02/Test2.xlsx
+
+*.suo
+*.user
+*conflicted*
+*FileListAbsolute.txt
+*Settings.settings
+[Bb]in/
+[Oo]bj/
+
+# NuGet Packages
+*.nupkg
+**/packages/*
