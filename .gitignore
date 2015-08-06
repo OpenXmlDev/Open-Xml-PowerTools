@@ -1,9 +1,7 @@
 *.exe
 *.pdb
 *.cache
-**/Libs/OpenXmlPowerTools.dll
-!Libs/DocumentFormat.OpenXml.dll
-!Libs/System.IO.Packaging.dll
+*.dll
 
 # output files from the OpenXmlPowerTools examples
 **/DocumentAssembler/AssembledDoc.docx
@@ -15,6 +13,9 @@
 **/TextReplacer01/*out*
 **/SpreadsheetWriter01/Test1.xlsx
 **/SpreadsheetWriter02/Test2.xlsx
+**/PivotTables01/NewPivot.xlsx
+**/PivotTables01/QuarterlyPivot.xlsx
+**/PivotTables01/QuarterlyUnitSalesWithPivot.xlsx
 
 *.suo
 *.user

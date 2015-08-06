@@ -1,0 +1,18 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Customer>
+  <CustomerID>1</CustomerID>
+  <Name>Cheryl</Name>
+  <HighValueCustomer>True</HighValueCustomer>
+  <Orders>
+    <Order>
+      <ProductDescription>Unicycle</ProductDescription>
+      <Quantity>3</Quantity>
+      <OrderDate>9/5/2001</OrderDate>
+    </Order>
+    <Order>
+      <ProductDescription>Tricycle</ProductDescription>
+      <Quantity>3</Quantity>
+      <OrderDate>8/6/2000</OrderDate>
+    </Order>
+  </Orders>
+</Customer>
