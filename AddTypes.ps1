@@ -19,8 +19,8 @@ Version: 3.0.0
 ***************************************************************************#>
 
 $assemblies = (
-  "$PSScriptRoot\..\..\..\Open-Xml-Sdk\DocumentFormat.OpenXml\bin\debug\DocumentFormat.OpenXml.dll",
-  "$PSScriptRoot\..\..\..\Open-Xml-Sdk\DocumentFormat.OpenXml\bin\debug\System.IO.Packaging.dll",
+  "$PSScriptRoot\..\Open-Xml-Sdk\DocumentFormat.OpenXml\bin\debug\DocumentFormat.OpenXml.dll",
+  "$PSScriptRoot\..\Open-Xml-Sdk\DocumentFormat.OpenXml\bin\debug\System.IO.Packaging.dll",
   "System.Xml.Linq, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089",
   "System.Xml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089",
   "System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a",
@@ -65,6 +65,6 @@ $sources = @(
     "$PSScriptRoot\OpenXmlPowerTools\ScalarTypes.cs"
 )
 
-Add-Type -Path "$PSScriptRoot\..\..\..\Open-Xml-Sdk\DocumentFormat.OpenXml\bin\debug\DocumentFormat.OpenXml.dll"
-Add-Type -Path "$PSScriptRoot\..\..\..\Open-Xml-Sdk\DocumentFormat.OpenXml\bin\debug\System.IO.Packaging.dll"
+Add-Type -Path "$PSScriptRoot\..\Open-Xml-Sdk\DocumentFormat.OpenXml\bin\debug\DocumentFormat.OpenXml.dll"
+Add-Type -Path "$PSScriptRoot\..\Open-Xml-Sdk\DocumentFormat.OpenXml\bin\debug\System.IO.Packaging.dll"
 Add-Type -ReferencedAssemblies $assemblies -Path $sources -OutputAssembly "$PSScriptRoot\OpenXmlPowerTools.dll"
