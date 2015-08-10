@@ -28,7 +28,7 @@ We are happy to announce the release of the Open XML PowerTools Version 4.0.  Th
 - SpreadsheetWriter module, which enables writing simple code to generate an XLSX file.  You can optionally use a streaming approach that can write spreadsheets with hundreds of thousands of rows, with good performance.
 - Many xUnit tests which validate the functionality in Open-Xml-PowerTools.
 - New PowerShell Cmdlet: Complete-DocxTemplateFromXml, which populates a template document from XML
-- New PowerShell Cmdlet: Out-Xlsx, which produces an XLSX from a PowerShell object pipeline.
+- New PowerShell Cmdlet: Out-Xlsx, which produces an XLSX from a PowerShell object pipeline.  Similar in functionality to Out-GridView.
 
 Build Instructions
 ==================
@@ -38,9 +38,13 @@ Open-Xml-PowerTools using [Visual Studio 2015 Community Edition](https://www.vis
 
 Visual Studio 2013 works as well.  Make sure that you have **Update 4 for Visual Studio 2013**.  Previous versions of Visual Studio 2013 do not work.
 
-[![Installing, Building, and Running Open-Xml-PowerTools 4.0](http://img.youtube.com/vi/60w-yPDSQD0)/0.jpg)](https://www.youtube.com/watch?v=60w-yPDSQD0)
+You can use Visual Studio 2012 to build the Open-Xml-Sdk and Open-Xml-PowerTools libraries and run the examples.  The xUnit tests do not work with Visual Studio 2012.
 
-In order to build Open-Xml-PowerTools 4.0, you need to git and build the Open-Xml-Sdk.  The projects are set up expecting that
+The following video walks through the process building Open-Xml-PowerTools:
+
+[Installing, Building, and Running Open-Xml-PowerTools 4.0](https://www.youtube.com/watch?v=60w-yPDSQD0)
+
+In order to build Open-Xml-PowerTools 4.0, you need to retrieve both the Open-Xml-Sdk and the Open-Xml-PowerTools repos from GitHub.  The projects are set up expecting that
 the Open-Xml-Sdk repo and the Open-Xml-PowerTools repo are siblings to each other in the file system.  The Open-Xml-PowerTools projects
 look for the Open-Xml-Sdk in a directory with that exact name (Open-Xml-Sdk).
 
@@ -53,17 +57,17 @@ If you don't care about the Open-Xml-PowerTools Cmdlets, then you can put the tw
 siblings to each other.
 
 The short form of the installation instructions are:
-1. Make sure you are running PowerShell 3.0 or later
-2. If necessary, set your execution policy.  Run PowerShell as administrator and Set-ExecutionPolicy Unrestricted (or RemoteSigned)
-3. cd ~/Documents/WindowsPowerShell/Modules
-4. git clone https://github.com/OfficeDev/Open-Xml-Sdk
-5. git clone https://github.com/OfficeDev/Open-Xml-PowerTools
-6. Using Visual Studio, open Open-Xml-Sdk/Open-XML-SDK.sln
-7. Build the solution.  To validate the build, open the Test Explorer (pick TEST -> Windows -> Test Explorer from the menu).  Click Run All.
-8. To start using the Open-Xml-PowerTools Cmdlets, in PowerShell, Import-Module Open-Xml-PowerTools
-9. Using Visual Studio, open Open-Xml-PowerTools/OpenXmlPowerToolsExamples.sln
-10. Build the solution.  To validate the build, open the Test Explorer.  Click Run All.
-11. To run an example, set the example as the startup project, and press F5.
+- Make sure you are running PowerShell 3.0 or later
+- If necessary, set your execution policy.  Run PowerShell as administrator and Set-ExecutionPolicy Unrestricted (or RemoteSigned)
+- cd ~/Documents/WindowsPowerShell/Modules
+- git clone https://github.com/OfficeDev/Open-Xml-Sdk
+- git clone https://github.com/OfficeDev/Open-Xml-PowerTools
+- Using Visual Studio, open Open-Xml-Sdk/Open-XML-SDK.sln
+- Build the solution.  To validate the build, open the Test Explorer (pick TEST -> Windows -> Test Explorer from the menu).  Click Run All.
+- To start using the Open-Xml-PowerTools Cmdlets, in PowerShell, Import-Module Open-Xml-PowerTools
+- Using Visual Studio, open Open-Xml-PowerTools/OpenXmlPowerToolsExamples.sln
+- Build the solution.  To validate the build, open the Test Explorer.  Click Run All.
+- To run an example, set the example as the startup project, and press F5.
 
 Change Log
 ==========
