@@ -2,17 +2,17 @@
 ===================
 The Open XML PowerTools provides guidance and example code for programming with Open XML
 Documents (DOCX, XLSX, and PPTX).  It is based on, and extends the functionality
-in the Open XML SDK (https://github.com/OfficeDev/Open-XML-SDK).
+of the [Open XML SDK](https://github.com/OfficeDev/Open-XML-SDK).
 
 It supports scenarios such as:
 - Splitting DOCX/PPTX files into multiple files.
 - Combining multiple DOCX/PPTX files into a single file.
 - Populating content in template DOCX files with data from XML.
 - High-fidelity conversion of DOCX to HTML.
+- Searching and replacing content in DOCX/PPTX using regular expressions.
 - Managing tracked-revisions, including detecting tracked revisions, and accepting tracked revisions.
 - Updating Charts in DOCX/PPTX files, including updating cached data, as well as the embedded XLSX.
 - Retrieving metrics from DOCX files, including the hierarchy of styles used, the languages used, and the fonts used.
-- Searching and replacing content in DOCX/PPTX using regular expressions.
 - Writing XLSX files using far simpler code than directly writing the markup, including a streaming approach that
   enables writing XLSX files with millions of rows.
 
@@ -25,36 +25,45 @@ News
 We are happy to announce the release of the Open XML PowerTools Version 4.0.  There are lots of new features in 4.0, including:
 - Renaming the project and the PowerShell module to Open-Xml-PowerTools, to be consistent with the Open-Xml-Sdk.
 - DocumentAssembler module, which enables populating a template DOCX with data from an XML file.
-- SpreadsheetWriter module, which enables writing far simpler code to generate an XLSX file, and enables a streaming approach.
-- Many xUnit tests!!!, which will enable a far nimbler process for accepting contributes to PowerTools via Git pull requests.
+- SpreadsheetWriter module, which enables writing simple code to generate an XLSX file.  You can optionally use a streaming approach that can write spreadsheets with hundreds of thousands of rows, with good performance.
+- Many xUnit tests which validate the functionality in Open-Xml-PowerTools.
 - New PowerShell Cmdlet: Complete-DocxTemplateFromXml, which populates a template document from XML
-- New PowerShell Cmdlet: Out-Xlsx, which produces an 
+- New PowerShell Cmdlet: Out-Xlsx, which produces an XLSX from a PowerShell object pipeline.
 
 Build Instructions
 ==================
 
-To use the PowerShell Cmdlets, you need not install Visual Studio.  The following video shows how to install and use PowerTools
-so that you can use the Cmdlets:
+For this release, you need Visual Studio 2013 or 2015 installed.  The following video shows gitting and building the Open-Xml-Sdk and
+Open-Xml-PowerTools using [Visual Studio 2015 Community Edition](https://www.visualstudio.com/en-us/products/visual-studio-community-vs.aspx), which is free.
 
-<insert video here>
+Visual Studio 2013 works as well.  Make sure that you have **Update 4 for Visual Studio 2013**.  Previous versions of Visual Studio 2013 do not work.
+
+[![Installing, Building, and Running Open-Xml-PowerTools 4.0](http://img.youtube.com/vi/60w-yPDSQD0)/0.jpg)](https://www.youtube.com/watch?v=60w-yPDSQD0)
+
+In order to build Open-Xml-PowerTools 4.0, you need to git and build the Open-Xml-Sdk.  The projects are set up expecting that
+the Open-Xml-Sdk repo and the Open-Xml-PowerTools repo are siblings to each other in the file system.  The Open-Xml-PowerTools projects
+look for the Open-Xml-Sdk in a directory with that exact name (Open-Xml-Sdk).
+
+If you want to use the Open-Xml-PowerTools Cmdlets, one easy way to do this is to put both the Open-Xml-Sdk and the Open-Xml-PowerTools repos in
+the ~/Documents/WindowsPowerShell/Modules directory.  PowerShell by default looks for modules in this directory, so if we place these repos in this
+directory, after building the Open-Xml-Sdk, we can import the Open-Xml-PowerTools module and start using the Cmdlets.  If the WindowsPowerShell/Modules directory
+doesn't exist, you can create it.
+
+If you don't care about the Open-Xml-PowerTools Cmdlets, then you can put the two repos into any directory you like, so long as you make them
+siblings to each other.
 
 The short form of the installation instructions are:
-1)  Make sure you are running PowerShell 3.0 or later
-2)  If necessary, run PowerShell as administrator, Set-ExecutionPolicy Unrestricted (or RemoteSigned)
-3)  Clone Open-Xml-PowerTools to %HOMEDRIVE%/%HOMEUSER%/Documents/WindowsPowerShell/Modules/Open-Xml-PowerTools
-4)  Import the module in PowerShell:  Import-Module Open-Xml-PowerTools
-
-To build the library, you must have some version of Visual Studio
-installed.  Visual Studio Community Edition will work just fine:
-https://www.visualstudio.com/en-us/products/visual-studio-community-vs.aspx
-
-To build the Open XML SDK:
-- clone the repo at https://github.com/OfficeDev/Open-XML-SDK
-- Start a Visual Studio command prompt, and check into the directory that contains the repo
-- Use MSBUILD to build the SDK  (C:> MSBUILD Open-Xml-Sdk.sln)
-- In your program that uses the Open XML SDK, add references to the newly built libraries in bin/Debug
-
-Instead of using MSBUILD, you can also open the solution using Visual Studio and build it.
+1. Make sure you are running PowerShell 3.0 or later
+2. If necessary, set your execution policy.  Run PowerShell as administrator and Set-ExecutionPolicy Unrestricted (or RemoteSigned)
+3. cd ~/Documents/WindowsPowerShell/Modules
+4. git clone https://github.com/OfficeDev/Open-Xml-Sdk
+5. git clone https://github.com/OfficeDev/Open-Xml-PowerTools
+6. Using Visual Studio, open Open-Xml-Sdk/Open-XML-SDK.sln
+7. Build the solution.  To validate the build, open the Test Explorer (pick TEST -> Windows -> Test Explorer from the menu).  Click Run All.
+8. To start using the Open-Xml-PowerTools Cmdlets, in PowerShell, Import-Module Open-Xml-PowerTools
+9. Using Visual Studio, open Open-Xml-PowerTools/OpenXmlPowerToolsExamples.sln
+10. Build the solution.  To validate the build, open the Test Explorer.  Click Run All.
+11. To run an example, set the example as the startup project, and press F5.
 
 Change Log
 ==========
@@ -146,13 +155,19 @@ Version 3.1.00 : November 13, 2014
 Version 3.0.00 : October 29, 2014
 - New release of cmdlets that are written as 'Advanced Functions' instead of in C#.
 
-Procedures for enhancing OxPt
------------------------------
-There are a variety of things to do when adding a new CmdLet to OxPt:
-- Write the new CmdLet.  Put it in OxPtCmdlets
-- Modify OxPt.psm1
-    Call the new Cmdlet script to make the function available
-    Modify Export-ModuleMember function to export the Cmdlet and any aliases
+Procedures for enhancing Open-Xml-PowerTools
+--------------------------------------------
+There are a variety of things to do when adding a new CmdLet to Open-Xml-PowerTools:
+- Write the new CmdLet.  Put it in the Cmdlets directory
+- Modify Open-Xml-PowerTools.psm1
+  - Call the new Cmdlet script to make the function available
+  - Modify Export-ModuleMember function to export the Cmdlet and any aliases
 - Update Readme.txt, describing the enhancement
-- Add a new test to Test-OxPtCmdlets.ps1
-- Update Downloads page on CodePlex
+- Add a new test to Test-OpenXmlPowerToolsCmdlets.ps1
+
+Procedures for enhancing the core C# modules
+- Modify the code
+- Write xUnit tests
+- Write an example if necessary
+- Run xUnit tests on VS2015 Community Edition
+- Run xUnit tests on VS2013 Update 4
