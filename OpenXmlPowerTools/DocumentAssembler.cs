@@ -153,11 +153,53 @@ namespace OpenXmlPowerTools
             }
         }
 
+        private static List<string> s_AliasList = new List<string>()
+        {
+            "Content",
+            "Table",
+            "Repeat",
+            "EndRepeat",
+            "Conditional",
+            "EndConditional",
+        };
+
         private static object TransformToMetadata(XNode node, XElement data, TemplateError te)
         {
             XElement element = node as XElement;
             if (element != null)
             {
+                if (element.Name == W.sdt)
+                {
+                    var alias = (string)element.Elements(W.sdtPr).Elements(W.alias).Attributes(W.val).FirstOrDefault();
+                    if (s_AliasList.Contains(alias))
+                    {
+                        var ccContents = element
+                            .DescendantsTrimmed(W.txbxContent)
+                            .Where(e => e.Name == W.t)
+                            .Select(t => (string)t)
+                            .StringConcatenate()
+                            .Trim();
+                        XElement xml = TransformXmlTextToMetadata(te, ccContents);
+                        if (xml.Name == W.p || xml.Name == W.r)  // this means there was an error processing the XML.
+                        {
+                            if (element.Parent.Name == W.p)
+                                return xml.Elements(W.r);
+                            return xml;
+                        }
+                        if (xml.Name.LocalName != alias)
+                        {
+                            if (element.Parent.Name == W.p)
+                                return CreateRunErrorMessage("Error: Content control alias does not match to metadata element name", te);
+                            else
+                                return CreateParaErrorMessage("Error: Content control alias does not match to metadata element name", te);
+                        }
+                        xml.Add(element.Elements(W.sdtContent).Elements());
+                        return xml;
+                    }
+                    return new XElement(element.Name,
+                        element.Attributes(),
+                        element.Nodes().Select(n => TransformToMetadata(n, data, te)));
+                }
                 if (element.Name == W.p)
                 {
                     var paraContents = element
@@ -170,18 +212,9 @@ namespace OpenXmlPowerTools
                     if (paraContents.StartsWith("<#") && paraContents.EndsWith("#>") && occurances == 1)
                     {
                         var xmlText = paraContents.Substring(2, paraContents.Length - 4).Trim();
-                        XElement xml;
-                        try
-                        {
-                            xml = XElement.Parse(xmlText);
-                        }
-                        catch (XmlException e)
-                        {
-                            return CreateParaErrorMessage("XmlException: " + e.Message, te);
-                        }
-                        string schemaError = ValidatePerSchema(xml);
-                        if (schemaError != null)
-                            return CreateParaErrorMessage("Schema Validation Error: " + schemaError, te);
+                        XElement xml = TransformXmlTextToMetadata(te, xmlText);
+                        if (xml.Name == W.p || xml.Name == W.r)
+                            return xml;
                         xml.Add(element);
                         return xml;
                     }
@@ -259,6 +292,23 @@ namespace OpenXmlPowerTools
                     element.Nodes().Select(n => TransformToMetadata(n, data, te)));
             }
             return node;
+        }
+
+        private static XElement TransformXmlTextToMetadata(TemplateError te, string xmlText)
+        {
+            XElement xml;
+            try
+            {
+                xml = XElement.Parse(xmlText);
+            }
+            catch (XmlException e)
+            {
+                return CreateParaErrorMessage("XmlException: " + e.Message, te);
+            }
+            string schemaError = ValidatePerSchema(xml);
+            if (schemaError != null)
+                return CreateParaErrorMessage("Schema Validation Error: " + schemaError, te);
+            return xml;
         }
 
         private class RunReplacementInfo
@@ -407,8 +457,8 @@ namespace OpenXmlPowerTools
             {
                 if (element.Name == PA.Content)
                 {
-                    XElement para = element.Element(W.p);
-                    XElement run = element.Element(W.r);
+                    XElement para = element.Descendants(W.p).FirstOrDefault();
+                    XElement run = element.Descendants(W.r).FirstOrDefault();
 
                     IEnumerable<XObject> selectedData;
                     string xPath = (string)element.Attribute(PA.Select);

@@ -50,6 +50,9 @@ namespace OpenXmlPowerTools.Tests
         [InlineData("DA032-TooMuchDataForConditional.docx", "DA-TooMuchDataForConditional.xml", true)]
         [InlineData("DA033-ConditionalOnAttribute.docx", "DA-ConditionalOnAttribute.xml", false)]
         [InlineData("DA034-HeaderFooter.docx", "DA-Data.xml", false)]
+        [InlineData("DA100-TemplateDocument.docx", "DA-Data.xml", false)]
+        [InlineData("DA101-TemplateDocument.docx", "DA-Data.xml", true)]
+        [InlineData("DA102-TemplateDocument.docx", "DA-Data.xml", true)]
         
         public void DA101_DocumentAssembler(string templateDocumentName, string dataFileName, bool templateError)
         {
@@ -72,13 +75,14 @@ namespace OpenXmlPowerTools.Tests
                     OpenXmlValidator v = new OpenXmlValidator();
                     var valErrors = v.Validate(wDoc).Where(ve => !s_ExpectedErrors.Contains(ve.Description));
 
-#if false
+#if true
                     StringBuilder sb = new StringBuilder();
                     foreach (var item in valErrors.Select(r => r.Description).OrderBy(t => t).Distinct())
 	                {
 		                sb.Append(item).Append(Environment.NewLine);
 	                }
                     string z = sb.ToString();
+                    Console.WriteLine(z);
 #endif
 
                     Assert.Equal(0, valErrors.Count());
