@@ -18,7 +18,11 @@ using Xunit;
 using Word = Microsoft.Office.Interop.Word;
 #endif
 
+#if X64
+namespace OpenXmlPowerTools.Tests.X64
+#else
 namespace OpenXmlPowerTools.Tests
+#endif
 {
     public class HtmlConverterTests
     {

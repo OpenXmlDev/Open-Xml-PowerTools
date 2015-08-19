@@ -5,7 +5,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+#if X64
+namespace OpenXmlPowerTools.Tests.X64
+#else
 namespace OpenXmlPowerTools.Tests
+#endif
 {
     public class TestUtil
     {
