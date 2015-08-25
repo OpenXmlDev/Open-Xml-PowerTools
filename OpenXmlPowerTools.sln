@@ -7,6 +7,15 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenXmlPowerTools", "OpenXm
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenXmlPowerTools.Tests", "OpenXmlPowerTools.Tests\OpenXmlPowerTools.Tests.csproj", "{B1328B70-33B8-40E0-A729-38C34D659B5C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenXmlPowerTools.64", "OpenXmlPowerTools.64\OpenXmlPowerTools.64.csproj", "{5827D0F3-24F9-4505-9B6D-90179BCE47D9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenXmlPowerTools.Tests.64", "OpenXmlPowerTools.Tests.64\OpenXmlPowerTools.Tests.64.csproj", "{290C473F-DEB5-4E74-9AC2-D061127E91E5}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{52773938-A005-44B7-9BD7-C40BD1E930AE}"
+	ProjectSection(SolutionItems) = preProject
+		.nuget\packages.config = .nuget\packages.config
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +30,14 @@ Global
 		{B1328B70-33B8-40E0-A729-38C34D659B5C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B1328B70-33B8-40E0-A729-38C34D659B5C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B1328B70-33B8-40E0-A729-38C34D659B5C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5827D0F3-24F9-4505-9B6D-90179BCE47D9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5827D0F3-24F9-4505-9B6D-90179BCE47D9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5827D0F3-24F9-4505-9B6D-90179BCE47D9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5827D0F3-24F9-4505-9B6D-90179BCE47D9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{290C473F-DEB5-4E74-9AC2-D061127E91E5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{290C473F-DEB5-4E74-9AC2-D061127E91E5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{290C473F-DEB5-4E74-9AC2-D061127E91E5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{290C473F-DEB5-4E74-9AC2-D061127E91E5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

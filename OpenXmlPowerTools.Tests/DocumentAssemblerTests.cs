@@ -13,7 +13,11 @@ using DocumentFormat.OpenXml.Validation;
 using OpenXmlPowerTools;
 using Xunit;
 
+#if X64
+namespace OpenXmlPowerTools.Tests.X64
+#else
 namespace OpenXmlPowerTools.Tests
+#endif
 {
     public class DocumentAssemblerTests
     {

@@ -11,7 +11,14 @@ using DocumentFormat.OpenXml.Packaging;
 using OpenXmlPowerTools;
 using Xunit;
 
+// to run the X64 tests:
+// packages\xunit.runner.console.2.0.0\tools\xunit.console OpenXmlPowerTools.Tests.64\bin\Debug\OpenXmlPowerTools.Tests.dll
+
+#if X64
+namespace OpenXmlPowerTools.Tests.X64
+#else
 namespace OpenXmlPowerTools.Tests
+#endif
 {
     public class ChartUpdaterTests
     {

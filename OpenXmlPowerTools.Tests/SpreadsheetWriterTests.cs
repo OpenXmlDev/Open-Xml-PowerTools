@@ -12,7 +12,11 @@ using DocumentFormat.OpenXml.Validation;
 using Sw = OpenXmlPowerTools;
 using Xunit;
 
+#if X64
+namespace OpenXmlPowerTools.Tests.X64
+#else
 namespace OpenXmlPowerTools.Tests
+#endif
 {
     public class SpreadsheetWriterTests
     {
