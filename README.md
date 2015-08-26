@@ -30,13 +30,26 @@ We are happy to announce the release of the Open XML PowerTools Version 4.0.  Th
 - New PowerShell Cmdlet: Complete-DocxTemplateFromXml, which populates a template document from XML
 - New PowerShell Cmdlet: Out-Xlsx, which produces an XLSX from a PowerShell object pipeline.  Similar in functionality to Out-GridView.
 
+Open-Xml-PowerTools Content
+===========================
+
+There is a lot of content about Open-Xml-PowerTools at the [Open-Xml-PowerTools Resource Center at OpenXmlDeveloper.org](http://openxmldeveloper.org/wiki/w/wiki/powertools-for-open-xml.aspx)
+
+See:
+- [DocumentBuilder Resource Center](http://openxmldeveloper.org/wiki/w/wiki/documentbuilder.aspx)
+- [PresentationBuilder Resource Center](http://openxmldeveloper.org/wiki/w/wiki/presentationbuilder.aspx)
+- [HtmlConverter Resource Center](http://openxmldeveloper.org/wiki/w/wiki/htmlconverter.aspx)
+- [Introduction to DocumentAssembler](https://www.youtube.com/watch?v=9QqzCgfqA2Y)
+- [Contributing to Open-Xml-PowerTools via GitHub](https://www.youtube.com/watch?v=Ii7z9L6Dkko)
+- [Gitting, Building, and Installing Open-Xml-PowerTools](https://www.youtube.com/watch?v=60w-yPDSQD0)
+
 Build Instructions
 ==================
 
 For this release, you need Visual Studio 2013 or 2015 installed.  The following video shows gitting and building the Open-Xml-Sdk and
 Open-Xml-PowerTools using [Visual Studio 2015 Community Edition](https://www.visualstudio.com/en-us/products/visual-studio-community-vs.aspx), which is free.
 
-Visual Studio 2013 works as well.  Make sure that you have **Update 4 for Visual Studio 2013**.  Previous versions of Visual Studio 2013 do not work.
+If you are using Visual Studio 2013, make sure that you have **Update 4 for Visual Studio 2013**.  Previous versions of Visual Studio 2013 do not work.
 
 You can use Visual Studio 2012 to build the Open-Xml-Sdk and Open-Xml-PowerTools libraries and run the examples.  The xUnit tests do not work with Visual Studio 2012.
 
