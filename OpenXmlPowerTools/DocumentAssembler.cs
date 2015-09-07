@@ -171,14 +171,16 @@ namespace OpenXmlPowerTools
                 if (element.Name == W.sdt)
                 {
                     var alias = (string)element.Elements(W.sdtPr).Elements(W.alias).Attributes(W.val).FirstOrDefault();
-                    if (s_AliasList.Contains(alias))
+                    if (alias == null || alias == "" || s_AliasList.Contains(alias))
                     {
                         var ccContents = element
                             .DescendantsTrimmed(W.txbxContent)
                             .Where(e => e.Name == W.t)
                             .Select(t => (string)t)
                             .StringConcatenate()
-                            .Trim();
+                            .Trim()
+                            .Replace('“', '"')
+                            .Replace('”', '"');
                         XElement xml = TransformXmlTextToMetadata(te, ccContents);
                         if (xml.Name == W.p || xml.Name == W.r)  // this means there was an error processing the XML.
                         {
@@ -186,12 +188,12 @@ namespace OpenXmlPowerTools
                                 return xml.Elements(W.r);
                             return xml;
                         }
-                        if (xml.Name.LocalName != alias)
+                        if (alias != null && xml.Name.LocalName != alias)
                         {
                             if (element.Parent.Name == W.p)
-                                return CreateRunErrorMessage("Error: Content control alias does not match to metadata element name", te);
+                                return CreateRunErrorMessage("Error: Content control alias does not match metadata element name", te);
                             else
-                                return CreateParaErrorMessage("Error: Content control alias does not match to metadata element name", te);
+                                return CreateParaErrorMessage("Error: Content control alias does not match metadata element name", te);
                         }
                         xml.Add(element.Elements(W.sdtContent).Elements());
                         return xml;
