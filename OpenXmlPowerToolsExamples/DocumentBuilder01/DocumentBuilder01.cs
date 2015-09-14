@@ -13,6 +13,10 @@ namespace DocumentBuilderExample
     {
         static void Main(string[] args)
         {
+            var n = DateTime.Now;
+            var tempDi = new DirectoryInfo(string.Format("ExampleOutput-{0:00}-{1:00}-{2:00}-{3:00}{4:00}{5:00}", n.Year - 2000, n.Month, n.Day, n.Hour, n.Minute, n.Second));
+            tempDi.Create();
+
             string source1 = "../../Source1.docx";
             string source2 = "../../Source2.docx";
             string source3 = "../../Source3.docx";
@@ -23,7 +27,7 @@ namespace DocumentBuilderExample
             {
                 new Source(new WmlDocument(source1), 5, 10, true),
             };
-            DocumentBuilder.BuildDocument(sources, "Out1.docx");
+            DocumentBuilder.BuildDocument(sources, Path.Combine(tempDi.FullName, "Out1.docx"));
 
             // Create new document from paragraph 1, and paragraphs 5 through end of Source3.docx.
             // This effectively 'deletes' paragraphs 2-4
@@ -32,7 +36,7 @@ namespace DocumentBuilderExample
                 new Source(new WmlDocument(source3), 0, 1, false),
                 new Source(new WmlDocument(source3), 4, false),
             };
-            DocumentBuilder.BuildDocument(sources, "Out2.docx");
+            DocumentBuilder.BuildDocument(sources, Path.Combine(tempDi.FullName, "Out2.docx"));
 
             // Create a new document that consists of the entirety of Source1.docx and Source2.docx.  Use
             // the section information (headings and footers) from source1.
@@ -41,7 +45,7 @@ namespace DocumentBuilderExample
                 new Source(new WmlDocument(source1), true),
                 new Source(new WmlDocument(source2), false),
             };
-            DocumentBuilder.BuildDocument(sources, "Out3.docx");
+            DocumentBuilder.BuildDocument(sources, Path.Combine(tempDi.FullName, "Out3.docx"));
 
             // Create a new document that consists of the entirety of Source1.docx and Source2.docx.  Use
             // the section information (headings and footers) from source2.
@@ -50,7 +54,7 @@ namespace DocumentBuilderExample
                 new Source(new WmlDocument(source1), false),
                 new Source(new WmlDocument(source2), true),
             };
-            DocumentBuilder.BuildDocument(sources, "Out4.docx");
+            DocumentBuilder.BuildDocument(sources, Path.Combine(tempDi.FullName, "Out4.docx"));
 
             // Create a new document that consists of the first 5 paragraphs of Source1.docx and the first
             // five paragraphs of Source2.docx.  This example returns a new WmlDocument, when you then can
@@ -61,8 +65,8 @@ namespace DocumentBuilderExample
                 new Source(new WmlDocument(source2), 0, 5, true),
             };
             WmlDocument out5 = DocumentBuilder.BuildDocument(sources);
-            out5.SaveAs("Out5.docx");  // save it to the file system, but we could just as easily done something
-            // else with it.
+            out5.SaveAs(Path.Combine(tempDi.FullName, "Out5.docx"));  // save it to the file system, but we could just as easily done something
+                                                                      // else with it.
         }
     }
 }

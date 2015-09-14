@@ -12,29 +12,23 @@ namespace OpenXmlPowerTools
     {
         static void Main(string[] args)
         {
-            var deleteList = Directory.GetFiles("../../", "Updated-*.docx");
-            foreach (var df in deleteList)
-            {
-                FileInfo dfi = new FileInfo(df);
-                dfi.Delete();
-            }
+            var n = DateTime.Now;
+            var tempDi = new DirectoryInfo(string.Format("ExampleOutput-{0:00}-{1:00}-{2:00}-{3:00}{4:00}{5:00}", n.Year - 2000, n.Month, n.Day, n.Hour, n.Minute, n.Second));
+            tempDi.Create();
 
-            deleteList = Directory.GetFiles("../../", "Updated-*.pptx");
-            foreach (var df in deleteList)
-            {
-                FileInfo dfi = new FileInfo(df);
-                dfi.Delete();
-            }
+            var sourceDi = new DirectoryInfo("../../");
+            foreach (var file in sourceDi.GetFiles("*.docx"))
+                File.Copy(file.FullName, Path.Combine(tempDi.FullName, file.Name));
+            foreach (var file in sourceDi.GetFiles("*.pptx"))
+                File.Copy(file.FullName, Path.Combine(tempDi.FullName, file.Name));
 
-            var fileList = Directory.GetFiles("../../", "*.docx")/*.Where(f => f.Contains("Chart-Embedded-Xlsx-01"))*/;
+            var fileList = Directory.GetFiles(tempDi.FullName, "*.docx");
             foreach (var file in fileList)
             {
                 var fi = new FileInfo(file);
                 Console.WriteLine(fi.Name);
-                var newFileName = "../../Updated-" + fi.Name;
-                var fi2 = new FileInfo(newFileName);
-                if (fi2.Exists)
-                    fi2.Delete();
+                var newFileName = "Updated-" + fi.Name;
+                var fi2 = new FileInfo(Path.Combine(tempDi.FullName, newFileName));
                 File.Copy(fi.FullName, fi2.FullName);
 
                 using (var wDoc = WordprocessingDocument.Open(fi2.FullName, true))
@@ -172,15 +166,13 @@ namespace OpenXmlPowerTools
                 }
             }
 
-            fileList = Directory.GetFiles("../../", "*.pptx");
+            fileList = Directory.GetFiles(tempDi.FullName, "*.pptx");
             foreach (var file in fileList)
             {
                 var fi = new FileInfo(file);
                 Console.WriteLine(fi.Name);
-                var newFileName = "../../Updated-" + fi.Name;
-                var fi2 = new FileInfo(newFileName);
-                if (fi2.Exists)
-                    fi2.Delete();
+                var newFileName = "Updated-" + fi.Name;
+                var fi2 = new FileInfo(Path.Combine(tempDi.FullName, newFileName));
                 File.Copy(fi.FullName, fi2.FullName);
 
                 using (var pDoc = PresentationDocument.Open(fi2.FullName, true))

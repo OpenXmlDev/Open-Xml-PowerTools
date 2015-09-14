@@ -1,6 +1,6 @@
 ﻿/***************************************************************************
 
-Copyright (c) Microsoft Corporation 2012-2014.
+Copyright (c) Microsoft Corporation 2012-2015.
 
 This code is licensed using the Microsoft Public License (Ms-PL).  The text of the license can be found here:
 
@@ -572,6 +572,7 @@ namespace OpenXmlPowerTools
                     if (numberOfLeaderChars < 0)
                         numberOfLeaderChars = 0;
                     span = new XElement(Xhtml.span,
+                        new XAttribute(XNamespace.Xml + "space", "preserve"),
                         " " + "".PadRight(numberOfLeaderChars, leaderChar[0]) + " ");
                     style.Add("margin", "0 0 0 0");
                     style.Add("padding", "0 0 0 0");
@@ -582,7 +583,7 @@ namespace OpenXmlPowerTools
                 }
                 else
                 {
-                    span = new XElement(Xhtml.span, " ");
+                    span = new XElement(Xhtml.span, new XAttribute(XNamespace.Xml + "space", "preserve"), " ");
                     style.Add("margin", "0 0 0 0");
                     style.Add("padding", "0 0 0 0");
                     style.Add("width", string.Format(NumberFormatInfo.InvariantInfo, "{0:0.00}in", tabWidth));
@@ -609,7 +610,7 @@ namespace OpenXmlPowerTools
                             else
                                 span = new XElement(Xhtml.span, new XEntity("#x200e")); // LRM
 #else
-                span = new XElement(Xhtml.span, new XEntity("nbsp"));
+                span = new XElement(Xhtml.span, new XEntity("#x00a0"));
 #endif
                 style.Add("margin", string.Format(NumberFormatInfo.InvariantInfo, "0 0 0 {0:0.00}in", tabWidth));
                 style.Add("padding", "0 0 0 0");
@@ -683,6 +684,13 @@ namespace OpenXmlPowerTools
             // invalid in HTML5.
             paragraph.Elements(Xhtml.span).Where(e => e.IsEmpty).Remove();
 
+            foreach (var span in paragraph.Elements(Xhtml.span).ToList())
+            {
+                var v = span.Value;
+                if (v.Length > 0 && (char.IsWhiteSpace(v[0]) || char.IsWhiteSpace(v[v.Length - 1])) && span.Attribute(XNamespace.Xml + "space") == null)
+                    span.Add(new XAttribute(XNamespace.Xml + "space", "preserve"));
+            }
+
             while (HasStyleSeparator(element))
             {
                 element = element.ElementsAfterSelf(W.p).FirstOrDefault();
@@ -690,8 +698,11 @@ namespace OpenXmlPowerTools
 
                 elementName = Xhtml.span;
                 isBidi = IsBidi(element);
-                var span = ConvertParagraph(wordDoc, settings, element, elementName,
+                var span = (XElement)ConvertParagraph(wordDoc, settings, element, elementName,
                     suppressTrailingWhiteSpace, currentMarginLeft, isBidi);
+                var v = span.Value;
+                if (v.Length > 0 && (char.IsWhiteSpace(v[0]) || char.IsWhiteSpace(v[v.Length - 1])) && span.Attribute(XNamespace.Xml + "space") == null)
+                    span.Add(new XAttribute(XNamespace.Xml + "space", "preserve"));
                 paragraph.Add(span);
             }
 
@@ -3205,36 +3216,6 @@ namespace OpenXmlPowerTools
         }
 
         #endregion
-    }
-
-    [SuppressMessage("ReSharper", "InconsistentNaming")]
-    [SuppressMessage("ReSharper", "UnusedMember.Global")]
-    public static class Xhtml
-    {
-        public static readonly XNamespace xhtml = "http://www.w3.org/1999/xhtml";
-        public static readonly XName a = xhtml + "a";
-        public static readonly XName b = xhtml + "b";
-        public static readonly XName body = xhtml + "body";
-        public static readonly XName br = xhtml + "br";
-        public static readonly XName div = xhtml + "div";
-        public static readonly XName h1 = xhtml + "h1";
-        public static readonly XName h2 = xhtml + "h2";
-        public static readonly XName head = xhtml + "head";
-        public static readonly XName html = xhtml + "html";
-        public static readonly XName i = xhtml + "i";
-        public static readonly XName img = xhtml + "img";
-        public static readonly XName meta = xhtml + "meta";
-        public static readonly XName p = xhtml + "p";
-        public static readonly XName s = xhtml + "s";
-        public static readonly XName span = xhtml + "span";
-        public static readonly XName style = xhtml + "style";
-        public static readonly XName sub = xhtml + "sub";
-        public static readonly XName sup = xhtml + "sup";
-        public static readonly XName table = xhtml + "table";
-        public static readonly XName td = xhtml + "td";
-        public static readonly XName title = xhtml + "title";
-        public static readonly XName tr = xhtml + "tr";
-        public static readonly XName u = xhtml + "u";
     }
 
     public static class HtmlConverterExtensions

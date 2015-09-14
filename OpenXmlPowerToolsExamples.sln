@@ -31,8 +31,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MetricsGetter01", "OpenXmlP
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenXmlRegex01", "OpenXmlPowerToolsExamples\OpenXmlRegex01\OpenXmlRegex01.csproj", "{4330D46F-6703-4BA2-844D-177F722C0820}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenXmlRegex02", "OpenXmlPowerToolsExamples\OpenXmlRegex02\OpenXmlRegex02.csproj", "{8875EA42-4DDA-4DC6-AD54-742F3A859DEF}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PivotTables01", "OpenXmlPowerToolsExamples\PivotTables01\PivotTables01.csproj", "{6785A554-BBBB-480C-8E4D-9FE90DD91A46}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PresentationBuilder01", "OpenXmlPowerToolsExamples\PresentationBuilder01\PresentationBuilder01.csproj", "{A4128935-B707-4D56-B924-27910EC92664}"
@@ -58,6 +56,17 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenXmlPowerTools.Tests", "OpenXmlPowerTools.Tests\OpenXmlPowerTools.Tests.csproj", "{B1328B70-33B8-40E0-A729-38C34D659B5C}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DocumentAssembler02", "OpenXmlPowerToolsExamples\DocumentAssembler02\DocumentAssembler02.csproj", "{D6DFAC7C-82F4-4318-A9F0-6450D2945D96}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HtmlToWmlConverter01", "OpenXmlPowerToolsExamples\HtmlToWmlConverter01\HtmlToWmlConverter01.csproj", "{9E194D13-F5A0-4430-8F87-D74326457385}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DocumentAssembler03", "OpenXmlPowerToolsExamples\DocumentAssembler03\DocumentAssembler03.csproj", "{214F0E80-D2E3-4E19-A3FC-2BE15B3906B0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HtmlToWmlConverter02", "OpenXmlPowerToolsExamples\HtmlToWmlConverter02\HtmlToWmlConverter02.csproj", "{1E75CB7D-2A4A-4B03-80A9-7B7D59B18BB4}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{669B5F06-D45D-46F3-B974-E96CE3CF84B5}"
+	ProjectSection(SolutionItems) = preProject
+		.nuget\packages.config = .nuget\packages.config
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -121,10 +130,6 @@ Global
 		{4330D46F-6703-4BA2-844D-177F722C0820}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4330D46F-6703-4BA2-844D-177F722C0820}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4330D46F-6703-4BA2-844D-177F722C0820}.Release|Any CPU.Build.0 = Release|Any CPU
-		{8875EA42-4DDA-4DC6-AD54-742F3A859DEF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{8875EA42-4DDA-4DC6-AD54-742F3A859DEF}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{8875EA42-4DDA-4DC6-AD54-742F3A859DEF}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{8875EA42-4DDA-4DC6-AD54-742F3A859DEF}.Release|Any CPU.Build.0 = Release|Any CPU
 		{6785A554-BBBB-480C-8E4D-9FE90DD91A46}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{6785A554-BBBB-480C-8E4D-9FE90DD91A46}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6785A554-BBBB-480C-8E4D-9FE90DD91A46}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -177,6 +182,18 @@ Global
 		{D6DFAC7C-82F4-4318-A9F0-6450D2945D96}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D6DFAC7C-82F4-4318-A9F0-6450D2945D96}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D6DFAC7C-82F4-4318-A9F0-6450D2945D96}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9E194D13-F5A0-4430-8F87-D74326457385}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9E194D13-F5A0-4430-8F87-D74326457385}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9E194D13-F5A0-4430-8F87-D74326457385}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9E194D13-F5A0-4430-8F87-D74326457385}.Release|Any CPU.Build.0 = Release|Any CPU
+		{214F0E80-D2E3-4E19-A3FC-2BE15B3906B0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{214F0E80-D2E3-4E19-A3FC-2BE15B3906B0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{214F0E80-D2E3-4E19-A3FC-2BE15B3906B0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{214F0E80-D2E3-4E19-A3FC-2BE15B3906B0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1E75CB7D-2A4A-4B03-80A9-7B7D59B18BB4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1E75CB7D-2A4A-4B03-80A9-7B7D59B18BB4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1E75CB7D-2A4A-4B03-80A9-7B7D59B18BB4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1E75CB7D-2A4A-4B03-80A9-7B7D59B18BB4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

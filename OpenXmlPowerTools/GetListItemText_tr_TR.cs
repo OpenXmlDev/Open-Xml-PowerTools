@@ -1,6 +1,6 @@
 ﻿/***************************************************************************
 
-Copyright (c) Microsoft Corporation 2012-2013.
+Copyright (c) Microsoft Corporation 2012-2015.
 
 This code is licensed using the Microsoft Public License (Ms-PL).  The text of the license can be found here:
 
@@ -14,9 +14,6 @@ Coordinator: Eric White
 Blog: http://www.ericwhite.com
 Twitter: @EricWhiteDev
 Email: eric@ericwhite.com
-
-Version: 2.6.03
- * Initial implementation of Turkish
 
 ***************************************************************************/
 

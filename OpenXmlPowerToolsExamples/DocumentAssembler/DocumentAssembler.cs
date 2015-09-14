@@ -49,7 +49,7 @@ namespace OpenXmlPowerTools
             if (templateError)
             {
                 Console.WriteLine("Errors in template.");
-                Console.WriteLine("See AssembledDoc.docx to determine the errors in the template.");
+                Console.WriteLine("See {0} to determine the errors in the template.", assembledDoc.Name);
             }
 
             wmlAssembledDoc.SaveAs(assembledDoc.FullName);

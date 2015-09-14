@@ -14,6 +14,10 @@ namespace PresentationBuilder02
     {
         static void Main(string[] args)
         {
+            var n = DateTime.Now;
+            var tempDi = new DirectoryInfo(string.Format("ExampleOutput-{0:00}-{1:00}-{2:00}-{3:00}{4:00}{5:00}", n.Year - 2000, n.Month, n.Day, n.Hour, n.Minute, n.Second));
+            tempDi.Create();
+
             string presentation = "../../Presentation1.pptx";
             string hiddenPresentation = "../../HiddenPresentation.pptx";
 
@@ -72,7 +76,7 @@ namespace PresentationBuilder02
             }
 
             // we now have a PmlDocument (which is essentially a byte array) that can be saved as necessary.
-            modifiedCombinedPresentation.SaveAs("Modified.pptx");
+            modifiedCombinedPresentation.SaveAs(Path.Combine(tempDi.FullName, "Modified.pptx"));
         }
     }
 }

@@ -20,7 +20,7 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>TRACE;DEBUG;DO_CONVERSION_VIA_WORD</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;DO_CONVERSION_VIA_WORD;USE_HTMLAGILITYPACK</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
@@ -37,7 +37,8 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\Open-Xml-SDK\DocumentFormat.OpenXml\bin\Debug\DocumentFormat.OpenXml.dll</HintPath>
     </Reference>
-    <Reference Include="HtmlAgilityPack">
+    <Reference Include="HtmlAgilityPack, Version=1.3.9.1, Culture=neutral, PublicKeyToken=bd319b19eaf3b43a, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\HtmlAgilityPack\HtmlAgilityPack.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Office.Interop.Word, Version=14.0.0.0, Culture=neutral, PublicKeyToken=71e9bce111e9429c, processorArchitecture=MSIL">
@@ -71,11 +72,19 @@
     <Compile Include="..\OpenXmlPowerTools.Tests\HtmlConverterTests.cs">
       <Link>HtmlConverterTests.cs</Link>
     </Compile>
+    <Compile Include="..\OpenXmlPowerTools.Tests\HtmlToWmlConverterTests.cs">
+      <Link>HtmlToWmlConverterTests.cs</Link>
+    </Compile>
+    <Compile Include="..\OpenXmlPowerTools.Tests\HtmlToWmlReadAsXElement.cs">
+      <Link>HtmlToWmlReadAsXElement.cs</Link>
+    </Compile>
     <Compile Include="..\OpenXmlPowerTools.Tests\TestUtil.cs">
       <Link>TestUtil.cs</Link>
     </Compile>
+    <Compile Include="HtmlToWmlConverterTests2.cs" />
     <Compile Include="ListItemRetrieverTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="WordAutomationUtilities.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

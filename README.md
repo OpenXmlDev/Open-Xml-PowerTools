@@ -8,7 +8,8 @@ It supports scenarios such as:
 - Splitting DOCX/PPTX files into multiple files.
 - Combining multiple DOCX/PPTX files into a single file.
 - Populating content in template DOCX files with data from XML.
-- High-fidelity conversion of DOCX to HTML.
+- High-fidelity conversion of DOCX to HTML/CSS.
+- High-fidelity conversion of HTML/CSS to DOCX.
 - Searching and replacing content in DOCX/PPTX using regular expressions.
 - Managing tracked-revisions, including detecting tracked revisions, and accepting tracked revisions.
 - Updating Charts in DOCX/PPTX files, including updating cached data, as well as the embedded XLSX.
@@ -22,13 +23,8 @@ See License.txt in the project root for license information.
 
 News
 ====
-We are happy to announce the release of the Open XML PowerTools Version 4.0.  There are lots of new features in 4.0, including:
-- Renaming the project and the PowerShell module to Open-Xml-PowerTools, to be consistent with the Open-Xml-Sdk.
-- DocumentAssembler module, which enables populating a template DOCX with data from an XML file.
-- SpreadsheetWriter module, which enables writing simple code to generate an XLSX file.  You can optionally use a streaming approach that can write spreadsheets with hundreds of thousands of rows, with good performance.
-- Many xUnit tests which validate the functionality in Open-Xml-PowerTools.
-- New PowerShell Cmdlet: Complete-DocxTemplateFromXml, which populates a template document from XML
-- New PowerShell Cmdlet: Out-Xlsx, which produces an XLSX from a PowerShell object pipeline.  Similar in functionality to Out-GridView.
+We are happy to announce the release of the Open XML PowerTools Version 4.1.  The big new feature in 4.1 is HtmlToWmlConverter.cs, which is a module that implements a fairly high-fidelity
+conversion of HTML that is formatted with CSS into cannonical WordprocessingML (DOCX).
 
 Open-Xml-PowerTools Content
 ===========================
@@ -85,6 +81,10 @@ The short form of the installation instructions are:
 Change Log
 ==========
 
+Version 4.1.0 : September 27, 2015
+- New HtmlToWmlConverter module
+- HtmlConverter generates non breaking spaces as #00a0 unicode charater, not &nbsp; entity.
+
 Version 4.0.0 : August 6, 2015
 - New DocumentAssember module
 - New SpreadsheetWriter module
@@ -93,6 +93,7 @@ Version 4.0.0 : August 6, 2015
 - Enhance DocumentBuilder: add option to discard headers / footers from section (but keep layout of section)
 - Fix RevisionAccepter: deal with w:moveTo immediately before a table
 - New test document library in the TestFiles directory
+- XUnit tests
 - Cleaned up build system
 - Build using the open source Open-Xml-SDK and the new System.IO.Packaging by default
 - Back port to .NET 3.5

@@ -1,0 +1,32 @@
+
+<HTML>
+<HEAD>
+<TITLE>Examples of margins, padding, and borders</TITLE>
+<style type='text/css'>
+    UL {
+    background: yellow;
+    margin: 12px 12px 12px 12px;
+    padding: 3px 3px 3px 3px;
+    }
+    LI {
+    color: white;                  
+    background: blue;              
+    margin: 12px 12px 12px 12px;
+    padding: 12px 0px 12px 12px;   
+    list-style: none;              
+    }
+    LI.withborder {
+    border-style: dashed;
+    border-width: thin;        
+    border-color: lime;
+    }
+</style>
+</HEAD>
+<BODY>
+<UL>
+    <li>First element of list</li>
+    <li class='withborder'>Second element of list is a bit longer to illustrate wrapping.</li>
+</UL>
+<P>todo this doesn't work properly in Word - the list-style: none is not working.  also margins dont work properly.</P>
+</BODY>
+</HTML>

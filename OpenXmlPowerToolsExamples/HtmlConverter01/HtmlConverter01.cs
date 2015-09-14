@@ -23,13 +23,17 @@ class HtmlConverterHelper
 {
     static void Main(string[] args)
     {
+        var n = DateTime.Now;
+        var tempDi = new DirectoryInfo(string.Format("ExampleOutput-{0:00}-{1:00}-{2:00}-{3:00}{4:00}{5:00}", n.Year - 2000, n.Month, n.Day, n.Hour, n.Minute, n.Second));
+        tempDi.Create();
+
         /*
          * This example loads each document into a byte array, then into a memory stream, so that the document can be opened for writing without
          * modifying the source document.
          */
         foreach (var file in Directory.GetFiles("../../", "*.docx"))
         {
-            ConvertToHtml(file, "../../");
+            ConvertToHtml(file, tempDi.FullName);
         }
     }
 
@@ -111,12 +115,15 @@ class HtmlConverterHelper
                         {
                             imageInfo.Bitmap.Save(imageFileName, imageFormat);
                         }
-                        catch (ExternalException)
+                        catch (System.Runtime.InteropServices.ExternalException)
                         {
                             return null;
                         }
+                        string imageSource = localDirInfo.Name + "/image" +
+                            imageCounter.ToString() + "." + extension;
+
                         XElement img = new XElement(Xhtml.img,
-                            new XAttribute(NoNamespace.src, imageFileName),
+                            new XAttribute(NoNamespace.src, imageSource),
                             imageInfo.ImgStyleAttribute,
                             imageInfo.AltText != null ?
                                 new XAttribute(NoNamespace.alt, imageInfo.AltText) : null);

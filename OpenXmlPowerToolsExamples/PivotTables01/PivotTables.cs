@@ -15,9 +15,13 @@ namespace ExamplePivotTables
     {
         static void Main(string[] args)
         {
+            var n = DateTime.Now;
+            var tempDi = new DirectoryInfo(string.Format("ExampleOutput-{0:00}-{1:00}-{2:00}-{3:00}{4:00}{5:00}", n.Year - 2000, n.Month, n.Day, n.Hour, n.Minute, n.Second));
+            tempDi.Create();
+
             // Update an existing pivot table
             FileInfo qs = new FileInfo("../../QuarterlySales.xlsx");
-            FileInfo qsu = new FileInfo("../../QuarterlyPivot.xlsx");
+            FileInfo qsu = new FileInfo(Path.Combine(tempDi.FullName, "QuarterlyPivot.xlsx"));
 
             int row = 1;
             using (OpenXmlMemoryStreamDocument streamDoc = new OpenXmlMemoryStreamDocument(
@@ -421,7 +425,7 @@ namespace ExamplePivotTables
                     WorksheetAccessor.AddDataValue(doc, pivot, "Amount");
                     WorksheetAccessor.AddPivotAxis(doc, pivot, "Region", WorksheetAccessor.PivotAxis.Page);
                 }
-                streamDoc.GetModifiedSmlDocument().SaveAs("../../NewPivot.xlsx");
+                streamDoc.GetModifiedSmlDocument().SaveAs(Path.Combine(tempDi.FullName, "NewPivot.xlsx"));
             }
 
 
@@ -445,7 +449,7 @@ namespace ExamplePivotTables
                     WorksheetAccessor.AddDataValue(doc, pivot, "Unit Price");
                     WorksheetAccessor.AddPivotAxis(doc, pivot, "Region", WorksheetAccessor.PivotAxis.Page);
                 }
-                streamDoc.GetModifiedSmlDocument().SaveAs("../../QuarterlyUnitSalesWithPivot.xlsx");
+                streamDoc.GetModifiedSmlDocument().SaveAs(Path.Combine(tempDi.FullName, "QuarterlyUnitSalesWithPivot.xlsx"));
             }
         }
     }

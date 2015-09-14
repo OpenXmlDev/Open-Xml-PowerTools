@@ -1,0 +1,3 @@
+Example output files are in a DateTime stamped directory in ./bin/debug.  The directory name is ExampleOutput-yy-mm-dd-hhmmss.
+
+If you are building in release mode, they will, of course, be in ./bin/release.

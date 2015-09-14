@@ -11,10 +11,12 @@ class FieldRetriever01
 {
     static void Main(string[] args)
     {
+        var n = DateTime.Now;
+        var tempDi = new DirectoryInfo(string.Format("ExampleOutput-{0:00}-{1:00}-{2:00}-{3:00}{4:00}{5:00}", n.Year - 2000, n.Month, n.Day, n.Hour, n.Minute, n.Second));
+        tempDi.Create();
+
         var docWithFooter = new FileInfo("../../DocWithFooter1.docx");
-        var scrubbedDocument = new FileInfo("DocWithFooterScrubbed1.docx");
-        if (scrubbedDocument.Exists)
-            scrubbedDocument.Delete();
+        var scrubbedDocument = new FileInfo(Path.Combine(tempDi.FullName, "DocWithFooterScrubbed1.docx"));
         File.Copy(docWithFooter.FullName, scrubbedDocument.FullName);
         using (WordprocessingDocument wDoc = WordprocessingDocument.Open(scrubbedDocument.FullName, true))
         {
@@ -22,9 +24,7 @@ class FieldRetriever01
         }
 
         docWithFooter = new FileInfo("../../DocWithFooter2.docx");
-        scrubbedDocument = new FileInfo("DocWithFooterScrubbed2.docx");
-        if (scrubbedDocument.Exists)
-            scrubbedDocument.Delete();
+        scrubbedDocument = new FileInfo(Path.Combine(tempDi.FullName, "DocWithFooterScrubbed2.docx"));
         File.Copy(docWithFooter.FullName, scrubbedDocument.FullName);
         using (WordprocessingDocument wDoc = WordprocessingDocument.Open(scrubbedDocument.FullName, true))
         {

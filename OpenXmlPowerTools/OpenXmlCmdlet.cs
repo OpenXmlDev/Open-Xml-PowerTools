@@ -1,6 +1,6 @@
 /***************************************************************************
 
-Copyright (c) Microsoft Corporation 2012-2014.
+Copyright (c) Microsoft Corporation 2012-2015.
 
 This code is licensed using the Microsoft Public License (Ms-PL).  The text of the license can be found here:
 
