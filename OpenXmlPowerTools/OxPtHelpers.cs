@@ -375,7 +375,7 @@ AAsACwDBAgAAbCwAAAAA";
                     if (pageTitle == null)
                         pageTitle = fi.FullName;
 
-                    HtmlConverterSettings settings = new HtmlConverterSettings()
+                    WmlToHtmlConverterSettings settings = new WmlToHtmlConverterSettings()
                     {
                         PageTitle = pageTitle,
                         FabricateCssClasses = true,
@@ -437,7 +437,7 @@ AAsACwDBAgAAbCwAAAAA";
                             return img;
                         }
                     };
-                    XElement html = HtmlConverter.ConvertToHtml(wDoc, settings);
+                    XElement html = WmlToHtmlConverter.ConvertToHtml(wDoc, settings);
 
                     // Note: the xhtml returned by ConvertToHtmlTransform contains objects of type
                     // XEntity.  PtOpenXmlUtil.cs define the XEntity class.  See

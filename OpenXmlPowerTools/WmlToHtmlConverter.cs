@@ -63,9 +63,55 @@ namespace OpenXmlPowerTools
     public partial class WmlDocument
     {
         [SuppressMessage("ReSharper", "UnusedMember.Global")]
+        public XElement ConvertToHtml(WmlToHtmlConverterSettings htmlConverterSettings)
+        {
+            return WmlToHtmlConverter.ConvertToHtml(this, htmlConverterSettings);
+        }
+
+        [SuppressMessage("ReSharper", "UnusedMember.Global")]
         public XElement ConvertToHtml(HtmlConverterSettings htmlConverterSettings)
         {
-            return HtmlConverter.ConvertToHtml(this, htmlConverterSettings);
+            WmlToHtmlConverterSettings settings = new WmlToHtmlConverterSettings(htmlConverterSettings);
+            return WmlToHtmlConverter.ConvertToHtml(this, settings);
+        }
+    }
+
+    [SuppressMessage("ReSharper", "FieldCanBeMadeReadOnly.Global")]
+    public class WmlToHtmlConverterSettings
+    {
+        public string PageTitle;
+        public string CssClassPrefix;
+        public bool FabricateCssClasses;
+        public string GeneralCss;
+        public string AdditionalCss;
+        public bool RestrictToSupportedLanguages;
+        public bool RestrictToSupportedNumberingFormats;
+        public Dictionary<string, Func<string, int, string, string>> ListItemImplementations;
+        public Func<ImageInfo, XElement> ImageHandler;
+
+        public WmlToHtmlConverterSettings()
+        {
+            PageTitle = "";
+            CssClassPrefix = "pt-";
+            FabricateCssClasses = true;
+            GeneralCss = "span { white-space: pre-wrap; }";
+            AdditionalCss = "";
+            RestrictToSupportedLanguages = false;
+            RestrictToSupportedNumberingFormats = false;
+            ListItemImplementations = ListItemRetrieverSettings.DefaultListItemTextImplementations;
+        }
+
+        public WmlToHtmlConverterSettings(HtmlConverterSettings htmlConverterSettings)
+        {
+            PageTitle = htmlConverterSettings.PageTitle;
+            CssClassPrefix = htmlConverterSettings.CssClassPrefix;
+            FabricateCssClasses = htmlConverterSettings.FabricateCssClasses;
+            GeneralCss = htmlConverterSettings.GeneralCss;
+            AdditionalCss = htmlConverterSettings.AdditionalCss;
+            RestrictToSupportedLanguages = htmlConverterSettings.RestrictToSupportedLanguages;
+            RestrictToSupportedNumberingFormats = htmlConverterSettings.RestrictToSupportedNumberingFormats;
+            ListItemImplementations = htmlConverterSettings.ListItemImplementations;
+            ImageHandler = htmlConverterSettings.ImageHandler;
         }
     }
 
@@ -95,6 +141,21 @@ namespace OpenXmlPowerTools
         }
     }
 
+    public static class HtmlConverter
+    {
+        public static XElement ConvertToHtml(WmlDocument wmlDoc, HtmlConverterSettings htmlConverterSettings)
+        {
+            WmlToHtmlConverterSettings settings = new WmlToHtmlConverterSettings(htmlConverterSettings);
+            return WmlToHtmlConverter.ConvertToHtml(wmlDoc, settings);
+        }
+
+        public static XElement ConvertToHtml(WordprocessingDocument wDoc, HtmlConverterSettings htmlConverterSettings)
+        {
+            WmlToHtmlConverterSettings settings = new WmlToHtmlConverterSettings(htmlConverterSettings);
+            return WmlToHtmlConverter.ConvertToHtml(wDoc, settings);
+        }
+    }
+
     [SuppressMessage("ReSharper", "NotAccessedField.Global")]
     [SuppressMessage("ReSharper", "UnusedMember.Global")]
     public class ImageInfo
@@ -109,9 +170,9 @@ namespace OpenXmlPowerTools
         public const int EmusPerCm = 360000;
     }
 
-    public static class HtmlConverter
+    public static class WmlToHtmlConverter
     {
-        public static XElement ConvertToHtml(WmlDocument doc, HtmlConverterSettings htmlConverterSettings)
+        public static XElement ConvertToHtml(WmlDocument doc, WmlToHtmlConverterSettings htmlConverterSettings)
         {
             using (OpenXmlMemoryStreamDocument streamDoc = new OpenXmlMemoryStreamDocument(doc))
             {
@@ -122,7 +183,7 @@ namespace OpenXmlPowerTools
             }
         }
 
-        public static XElement ConvertToHtml(WordprocessingDocument wordDoc, HtmlConverterSettings htmlConverterSettings)
+        public static XElement ConvertToHtml(WordprocessingDocument wordDoc, WmlToHtmlConverterSettings htmlConverterSettings)
         {
             RevisionAccepter.AcceptRevisions(wordDoc);
             SimplifyMarkupSettings simplifyMarkupSettings = new SimplifyMarkupSettings
@@ -240,7 +301,7 @@ namespace OpenXmlPowerTools
             }
         }
 
-        private static void ReifyStylesAndClasses(HtmlConverterSettings htmlConverterSettings, XElement xhtml)
+        private static void ReifyStylesAndClasses(WmlToHtmlConverterSettings htmlConverterSettings, XElement xhtml)
         {
             if (htmlConverterSettings.FabricateCssClasses)
             {
@@ -346,7 +407,7 @@ namespace OpenXmlPowerTools
         }
 
         private static object ConvertToHtmlTransform(WordprocessingDocument wordDoc,
-            HtmlConverterSettings settings, XNode node,
+            WmlToHtmlConverterSettings settings, XNode node,
             bool suppressTrailingWhiteSpace,
             decimal currentMarginLeft)
         {
@@ -500,7 +561,7 @@ namespace OpenXmlPowerTools
             return null;
         }
 
-        private static object ProcessHyperlinkToBookmark(WordprocessingDocument wordDoc, HtmlConverterSettings settings, XElement element)
+        private static object ProcessHyperlinkToBookmark(WordprocessingDocument wordDoc, WmlToHtmlConverterSettings settings, XElement element)
         {
             var style = new Dictionary<string, string>();
             var a = new XElement(Xhtml.a,
@@ -647,7 +708,7 @@ namespace OpenXmlPowerTools
             };
         }
 
-        private static object ProcessContentControl(WordprocessingDocument wordDoc, HtmlConverterSettings settings,
+        private static object ProcessContentControl(WordprocessingDocument wordDoc, WmlToHtmlConverterSettings settings,
             XElement element, decimal currentMarginLeft)
         {
             var relevantAncestors = element.Ancestors().TakeWhile(a => a.Name != W.txbxContent);
@@ -666,7 +727,7 @@ namespace OpenXmlPowerTools
         // transformed to h:span elements rather than h:p elements and added to
         // the element (e.g., h:h2) created from the w:p element having the (first)
         // style separator (i.e., a w:specVanish element).
-        private static object ProcessParagraph(WordprocessingDocument wordDoc, HtmlConverterSettings settings,
+        private static object ProcessParagraph(WordprocessingDocument wordDoc, WmlToHtmlConverterSettings settings,
             XElement element, bool suppressTrailingWhiteSpace, decimal currentMarginLeft)
         {
             // Ignore this paragraph if the previous paragraph has a style separator.
@@ -709,7 +770,7 @@ namespace OpenXmlPowerTools
             return paragraph;
         }
 
-        private static object ProcessTable(WordprocessingDocument wordDoc, HtmlConverterSettings settings, XElement element, decimal currentMarginLeft)
+        private static object ProcessTable(WordprocessingDocument wordDoc, WmlToHtmlConverterSettings settings, XElement element, decimal currentMarginLeft)
         {
             var style = new Dictionary<string, string>();
             style.AddIfMissing("border-collapse", "collapse");
@@ -779,7 +840,7 @@ namespace OpenXmlPowerTools
         }
 
         [SuppressMessage("ReSharper", "PossibleNullReferenceException")]
-        private static object ProcessTableCell(WordprocessingDocument wordDoc, HtmlConverterSettings settings, XElement element)
+        private static object ProcessTableCell(WordprocessingDocument wordDoc, WmlToHtmlConverterSettings settings, XElement element)
         {
             var style = new Dictionary<string, string>();
             XAttribute colSpan = null;
@@ -865,7 +926,7 @@ namespace OpenXmlPowerTools
             return cell;
         }
 
-        private static object ProcessTableRow(WordprocessingDocument wordDoc, HtmlConverterSettings settings, XElement element,
+        private static object ProcessTableRow(WordprocessingDocument wordDoc, WmlToHtmlConverterSettings settings, XElement element,
             decimal currentMarginLeft)
         {
             var style = new Dictionary<string, string>();
@@ -924,7 +985,7 @@ namespace OpenXmlPowerTools
                 : null;
         }
 
-        private static object CreateSectionDivs(WordprocessingDocument wordDoc, HtmlConverterSettings settings, XElement element)
+        private static object CreateSectionDivs(WordprocessingDocument wordDoc, WmlToHtmlConverterSettings settings, XElement element)
         {
             // note: when building a paging html converter, need to attend to new sections with page breaks here.
             // This code conflates adjacent sections if they have identical formatting, which is not an issue
@@ -1021,7 +1082,7 @@ namespace OpenXmlPowerTools
          *
          */
 
-        private static object ConvertParagraph(WordprocessingDocument wordDoc, HtmlConverterSettings settings,
+        private static object ConvertParagraph(WordprocessingDocument wordDoc, WmlToHtmlConverterSettings settings,
             XElement paragraph, XName elementName, bool suppressTrailingWhiteSpace, decimal currentMarginLeft, bool isBidi)
         {
             var style = DefineParagraphStyle(paragraph, elementName, suppressTrailingWhiteSpace, currentMarginLeft, isBidi);
@@ -1070,7 +1131,7 @@ namespace OpenXmlPowerTools
             return paraElement;
         }
 
-        private static List<object> TransformElementsPrecedingTab(WordprocessingDocument wordDoc, HtmlConverterSettings settings,
+        private static List<object> TransformElementsPrecedingTab(WordprocessingDocument wordDoc, WmlToHtmlConverterSettings settings,
             List<XElement> elementsPrecedingTab, XElement firstTabRun)
         {
             var tabWidth = firstTabRun != null
@@ -1330,7 +1391,7 @@ namespace OpenXmlPowerTools
          *
          */
 
-        private static object ConvertRun(WordprocessingDocument wordDoc, HtmlConverterSettings settings, XElement run)
+        private static object ConvertRun(WordprocessingDocument wordDoc, WmlToHtmlConverterSettings settings, XElement run)
         {
             var rPr = run.Element(W.rPr);
             if (rPr == null)
@@ -2551,7 +2612,7 @@ namespace OpenXmlPowerTools
             return currentSection;
         }
 
-        private static object CreateBorderDivs(WordprocessingDocument wordDoc, HtmlConverterSettings settings, IEnumerable<XElement> elements)
+        private static object CreateBorderDivs(WordprocessingDocument wordDoc, WmlToHtmlConverterSettings settings, IEnumerable<XElement> elements)
         {
             return elements.GroupAdjacent(e =>
                 {
@@ -2606,7 +2667,7 @@ namespace OpenXmlPowerTools
             .ToList();
         }
 
-        private static IEnumerable<object> GroupAndVerticallySpaceNumberedParagraphs(WordprocessingDocument wordDoc, HtmlConverterSettings settings,
+        private static IEnumerable<object> GroupAndVerticallySpaceNumberedParagraphs(WordprocessingDocument wordDoc, WmlToHtmlConverterSettings settings,
             IEnumerable<XElement> elements, decimal currentMarginLeft)
         {
             var grouped = elements
@@ -2982,7 +3043,7 @@ namespace OpenXmlPowerTools
             return false;
         }
 
-        private static object ConvertContentThatCanContainFields(WordprocessingDocument wordDoc, HtmlConverterSettings settings,
+        private static object ConvertContentThatCanContainFields(WordprocessingDocument wordDoc, WmlToHtmlConverterSettings settings,
             IEnumerable<XElement> elements)
         {
             var grouped = elements

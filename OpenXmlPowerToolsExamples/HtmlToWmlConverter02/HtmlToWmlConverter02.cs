@@ -119,7 +119,7 @@ namespace OpenXmlPowerTools
                     }
 
                     // TODO: Determine max-width from size of content area.
-                    HtmlConverterSettings settings = new HtmlConverterSettings()
+                    WmlToHtmlConverterSettings settings = new WmlToHtmlConverterSettings()
                     {
                         AdditionalCss = "body { margin: 1cm auto; max-width: 20cm; padding: 0; }",
                         PageTitle = pageTitle,
@@ -181,7 +181,7 @@ namespace OpenXmlPowerTools
                             return img;
                         }
                     };
-                    XElement htmlElement = HtmlConverter.ConvertToHtml(wDoc, settings);
+                    XElement htmlElement = WmlToHtmlConverter.ConvertToHtml(wDoc, settings);
 
                     // Produce HTML document with <!DOCTYPE html > declaration to tell the browser
                     // we are using HTML5.

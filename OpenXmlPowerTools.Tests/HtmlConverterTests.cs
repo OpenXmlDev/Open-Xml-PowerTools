@@ -197,7 +197,7 @@ namespace OxPt
                     if (pageTitle == null)
                         pageTitle = sourceDocx.FullName;
 
-                    HtmlConverterSettings settings = new HtmlConverterSettings()
+                    WmlToHtmlConverterSettings settings = new WmlToHtmlConverterSettings()
                     {
                         PageTitle = pageTitle,
                         FabricateCssClasses = true,
@@ -259,7 +259,7 @@ namespace OxPt
                             return img;
                         }
                     };
-                    XElement html = HtmlConverter.ConvertToHtml(wDoc, settings);
+                    XElement html = WmlToHtmlConverter.ConvertToHtml(wDoc, settings);
 
                     // Note: the xhtml returned by ConvertToHtmlTransform contains objects of type
                     // XEntity.  PtOpenXmlUtil.cs define the XEntity class.  See
@@ -291,7 +291,7 @@ namespace OxPt
                     if (pageTitle == null)
                         pageTitle = sourceDocx.FullName;
 
-                    HtmlConverterSettings settings = new HtmlConverterSettings()
+                    WmlToHtmlConverterSettings settings = new WmlToHtmlConverterSettings()
                     {
                         PageTitle = pageTitle,
                         FabricateCssClasses = false,
@@ -352,7 +352,7 @@ namespace OxPt
                             return img;
                         }
                     };
-                    XElement html = HtmlConverter.ConvertToHtml(wDoc, settings);
+                    XElement html = WmlToHtmlConverter.ConvertToHtml(wDoc, settings);
 
                     // Note: the xhtml returned by ConvertToHtmlTransform contains objects of type
                     // XEntity.  PtOpenXmlUtil.cs define the XEntity class.  See

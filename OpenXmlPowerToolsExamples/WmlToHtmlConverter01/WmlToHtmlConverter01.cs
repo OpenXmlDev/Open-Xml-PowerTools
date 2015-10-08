@@ -9,19 +9,6 @@ http://www.microsoft.com/resources/sharedsource/licensingbasics/publiclicense.ms
 
 ***************************************************************************/
 
-/***************************************************************************
- * IMPORTANT NOTE:
- * 
- * With versions 4.1 and later, the name of the HtmlConverter class has been
- * changed to WmlToHtmlConverter, to make it orthogonal with HtmlToWmlConverter.
- * 
- * There are thin wrapper classes, HtmlConverter, and HtmlConverterSettings,
- * which maintain backwards compat for code that uses the old name.
- * 
- * Other than the name change of the classes themselves, the functionality
- * in WmlToHtmlConverter is identical to the old HtmlConverter class.
-***************************************************************************/
-
 using System;
 using System.Drawing.Imaging;
 using System.IO;
@@ -32,7 +19,7 @@ using System.Xml.Linq;
 using DocumentFormat.OpenXml.Packaging;
 using OpenXmlPowerTools;
 
-class HtmlConverterHelper
+class WmlToHtmlConverterHelper
 {
     static void Main(string[] args)
     {
@@ -77,11 +64,11 @@ class HtmlConverterHelper
                 var part = wDoc.CoreFilePropertiesPart;
                 if (part != null)
                 {
-                    pageTitle = (string) part.GetXDocument().Descendants(DC.title).FirstOrDefault() ?? fi.FullName;
+                    pageTitle = (string)part.GetXDocument().Descendants(DC.title).FirstOrDefault() ?? fi.FullName;
                 }
 
                 // TODO: Determine max-width from size of content area.
-                HtmlConverterSettings settings = new HtmlConverterSettings()
+                WmlToHtmlConverterSettings settings = new WmlToHtmlConverterSettings()
                 {
                     AdditionalCss = "body { margin: 1cm auto; max-width: 20cm; padding: 0; }",
                     PageTitle = pageTitle,
@@ -143,7 +130,7 @@ class HtmlConverterHelper
                         return img;
                     }
                 };
-                XElement htmlElement = HtmlConverter.ConvertToHtml(wDoc, settings);
+                XElement htmlElement = WmlToHtmlConverter.ConvertToHtml(wDoc, settings);
 
                 // Produce HTML document with <!DOCTYPE html > declaration to tell the browser
                 // we are using HTML5.
