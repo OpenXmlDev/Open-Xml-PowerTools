@@ -70,6 +70,7 @@
     <Compile Include="HtmlToWmlCssApplier.cs" />
     <Compile Include="HtmlToWmlCssParser.cs" />
     <Compile Include="MetricsGetter.cs" />
+    <Compile Include="TestUtil.cs" />
     <Compile Include="WmlToHtmlConverter.cs" />
     <Compile Include="ListItemRetriever.cs" />
     <Compile Include="MarkupSimplifier.cs" />

@@ -83,9 +83,6 @@
     <Compile Include="..\OpenXmlPowerTools\GetListItemText_zh_CN.cs">
       <Link>GetListItemText_zh_CN.cs</Link>
     </Compile>
-    <Compile Include="..\OpenXmlPowerTools\HtmlConverter.cs">
-      <Link>HtmlConverter.cs</Link>
-    </Compile>
     <Compile Include="..\OpenXmlPowerTools\ListItemRetriever.cs">
       <Link>ListItemRetriever.cs</Link>
     </Compile>
@@ -145,6 +142,9 @@
     </Compile>
     <Compile Include="..\OpenXmlPowerTools\WmlDocument.cs">
       <Link>WmlDocument.cs</Link>
+    </Compile>
+    <Compile Include="..\OpenXmlPowerTools\WmlToHtmlConverter.cs">
+      <Link>WmlToHtmlConverter.cs</Link>
     </Compile>
     <Compile Include="..\OpenXmlPowerTools\WorksheetAccessor.cs">
       <Link>WorksheetAccessor.cs</Link>

@@ -23,7 +23,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace OxPt
+namespace OpenXmlPowerTools
 {
     public class TestUtil
     {
@@ -60,26 +60,4 @@ namespace OxPt
             }
         }
     }
-
-#if false
-    class TestUtil
-    {
-        public static DirectoryInfo SourceDir = new DirectoryInfo("../../../TestFiles/");
-        public static DirectoryInfo TempDir = null;
-
-        public static void TempDirSetup()
-        {
-            if (TempDir == null)
-            {
-                var homeDrive = Environment.GetEnvironmentVariable("HOMEDRIVE");
-                var homePath = Environment.GetEnvironmentVariable("HOMEPATH");
-                var now = DateTime.Now;
-                var tempDirName = String.Format("OxPt-Test-{0:00}-{1:00}-{2:00}-{3:00}{4:00}{5:00}", now.Year - 2000, now.Month, now.Day, now.Hour, now.Minute, now.Second);
-                TempDir = new DirectoryInfo(Path.Combine(homeDrive, homePath, "Documents", tempDirName));
-                TempDir.Create();
-            }
-        }
-
-    }
-#endif
 }

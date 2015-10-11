@@ -109,7 +109,7 @@ namespace OxPt
                     }
                 }
             };
-            var outXlsx = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, "SW001-Simple.xlsx"));
+            var outXlsx = new FileInfo(Path.Combine(Sw.TestUtil.TempDir.FullName, "SW001-Simple.xlsx"));
             Sw.SpreadsheetWriter.Write(outXlsx.FullName, wb);
             Validate(outXlsx);
         }
@@ -317,7 +317,7 @@ namespace OxPt
                     }
                 }
             };
-            var outXlsx = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, "SW002-DataTypes.xlsx"));
+            var outXlsx = new FileInfo(Path.Combine(Sw.TestUtil.TempDir.FullName, "SW002-DataTypes.xlsx"));
             Sw.SpreadsheetWriter.Write(outXlsx.FullName, wb);
             Validate(outXlsx);
         }

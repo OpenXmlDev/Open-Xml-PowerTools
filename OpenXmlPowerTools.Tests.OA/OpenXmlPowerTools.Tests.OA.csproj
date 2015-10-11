@@ -20,7 +20,7 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>TRACE;DEBUG;DO_CONVERSION_VIA_WORD;USE_HTMLAGILITYPACK</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;USE_HTMLAGILITYPACK</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
@@ -77,9 +77,6 @@
     </Compile>
     <Compile Include="..\OpenXmlPowerTools.Tests\HtmlToWmlReadAsXElement.cs">
       <Link>HtmlToWmlReadAsXElement.cs</Link>
-    </Compile>
-    <Compile Include="..\OpenXmlPowerTools.Tests\TestUtil.cs">
-      <Link>TestUtil.cs</Link>
     </Compile>
     <Compile Include="HtmlToWmlConverterTests2.cs" />
     <Compile Include="ListItemRetrieverTests.cs" />
