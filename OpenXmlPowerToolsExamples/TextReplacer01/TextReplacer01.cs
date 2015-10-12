@@ -10,24 +10,25 @@ class TestPmlTextReplacer
 {
     static void Main(string[] args)
     {
-        File.Delete("../../Test01out.pptx");
-        File.Copy("../../Test01.pptx", "../../Test01out.pptx");
+        var n = DateTime.Now;
+        var tempDi = new DirectoryInfo(string.Format("ExampleOutput-{0:00}-{1:00}-{2:00}-{3:00}{4:00}{5:00}", n.Year - 2000, n.Month, n.Day, n.Hour, n.Minute, n.Second));
+        tempDi.Create();
+
+        File.Copy("../../Test01.pptx", Path.Combine(tempDi.FullName, "Test01out.pptx"));
         using (PresentationDocument pDoc =
-            PresentationDocument.Open("../../Test01out.pptx", true))
+            PresentationDocument.Open(Path.Combine(tempDi.FullName, "Test01out.pptx"), true))
         {
             TextReplacer.SearchAndReplace(pDoc, "Hello", "Goodbye", true);
         }
-        File.Delete("../../Test02out.pptx");
-        File.Copy("../../Test02.pptx", "../../Test02out.pptx");
+        File.Copy("../../Test02.pptx", Path.Combine(tempDi.FullName, "Test02out.pptx"));
         using (PresentationDocument pDoc =
-            PresentationDocument.Open("../../Test02out.pptx", true))
+            PresentationDocument.Open(Path.Combine(tempDi.FullName, "Test02out.pptx"), true))
         {
             TextReplacer.SearchAndReplace(pDoc, "Hello", "Goodbye", true);
         }
-        File.Delete("../../Test03out.pptx");
-        File.Copy("../../Test03.pptx", "../../Test03out.pptx");
+        File.Copy("../../Test03.pptx", Path.Combine(tempDi.FullName, "Test03out.pptx"));
         using (PresentationDocument pDoc =
-            PresentationDocument.Open("../../Test03out.pptx", true))
+            PresentationDocument.Open(Path.Combine(tempDi.FullName, "Test03out.pptx"), true))
         {
             TextReplacer.SearchAndReplace(pDoc, "Hello", "Goodbye", false);
         }

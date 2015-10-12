@@ -1,0 +1,17 @@
+<html>
+<head>
+<style type="text/css">
+body {
+  font-size: 24px;
+  text-indent: 3em;
+}
+h1 { font-size: 12px }
+</style>
+</head>
+<body>
+    <h1>Html Heading</h1>
+    <p>body text indent is 3em of 24px.  h1 inherits.  Its text indent is also the same - it inherits the computed value.
+       However, it is interesting. IE9 recomputes 3em * 12px indent for h1.  Word computes 3em * 12px indent for h1, and 3em * 24px for p.
+       Neither word nor IE are correct.  My conversion, and chrome are correct.</p>
+</body>
+</html>

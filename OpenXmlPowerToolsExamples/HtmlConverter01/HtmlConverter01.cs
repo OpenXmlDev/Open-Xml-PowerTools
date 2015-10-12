@@ -9,6 +9,19 @@ http://www.microsoft.com/resources/sharedsource/licensingbasics/publiclicense.ms
 
 ***************************************************************************/
 
+/***************************************************************************
+ * IMPORTANT NOTE:
+ * 
+ * With versions 4.1 and later, the name of the HtmlConverter class has been
+ * changed to WmlToHtmlConverter, to make it orthogonal with HtmlToWmlConverter.
+ * 
+ * There are thin wrapper classes, HtmlConverter, and HtmlConverterSettings,
+ * which maintain backwards compat for code that uses the old name.
+ * 
+ * Other than the name change of the classes themselves, the functionality
+ * in WmlToHtmlConverter is identical to the old HtmlConverter class.
+***************************************************************************/
+
 using System;
 using System.Drawing.Imaging;
 using System.IO;
@@ -23,13 +36,17 @@ class HtmlConverterHelper
 {
     static void Main(string[] args)
     {
+        var n = DateTime.Now;
+        var tempDi = new DirectoryInfo(string.Format("ExampleOutput-{0:00}-{1:00}-{2:00}-{3:00}{4:00}{5:00}", n.Year - 2000, n.Month, n.Day, n.Hour, n.Minute, n.Second));
+        tempDi.Create();
+
         /*
          * This example loads each document into a byte array, then into a memory stream, so that the document can be opened for writing without
          * modifying the source document.
          */
         foreach (var file in Directory.GetFiles("../../", "*.docx"))
         {
-            ConvertToHtml(file, "../../");
+            ConvertToHtml(file, tempDi.FullName);
         }
     }
 
@@ -111,12 +128,15 @@ class HtmlConverterHelper
                         {
                             imageInfo.Bitmap.Save(imageFileName, imageFormat);
                         }
-                        catch (ExternalException)
+                        catch (System.Runtime.InteropServices.ExternalException)
                         {
                             return null;
                         }
+                        string imageSource = localDirInfo.Name + "/image" +
+                            imageCounter.ToString() + "." + extension;
+
                         XElement img = new XElement(Xhtml.img,
-                            new XAttribute(NoNamespace.src, imageFileName),
+                            new XAttribute(NoNamespace.src, imageSource),
                             imageInfo.ImgStyleAttribute,
                             imageInfo.AltText != null ?
                                 new XAttribute(NoNamespace.alt, imageInfo.AltText) : null);

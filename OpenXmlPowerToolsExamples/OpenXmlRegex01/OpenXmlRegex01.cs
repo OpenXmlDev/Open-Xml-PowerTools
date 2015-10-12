@@ -12,10 +12,12 @@ class OpenXmlRegexExample
 {
     static void Main(string[] args)
     {
+        var n = DateTime.Now;
+        var tempDi = new DirectoryInfo(string.Format("ExampleOutput-{0:00}-{1:00}-{2:00}-{3:00}{4:00}{5:00}", n.Year - 2000, n.Month, n.Day, n.Hour, n.Minute, n.Second));
+        tempDi.Create();
+
         var sourceDoc = new FileInfo("../../TestDocument.docx");
-        var newDoc = new FileInfo("Modified.docx");
-        if (newDoc.Exists)
-            newDoc.Delete();
+        var newDoc = new FileInfo(Path.Combine(tempDi.FullName, "Modified.docx"));
         File.Copy(sourceDoc.FullName, newDoc.FullName);
         using (WordprocessingDocument wDoc = WordprocessingDocument.Open(newDoc.FullName, true))
         {
@@ -130,9 +132,7 @@ class OpenXmlRegexExample
         }
 
         var sourcePres = new FileInfo("../../TestPresentation.pptx");
-        var newPres = new FileInfo("Modified.pptx");
-        if (newPres.Exists)
-            newPres.Delete();
+        var newPres = new FileInfo(Path.Combine(tempDi.FullName, "Modified.pptx"));
         File.Copy(sourcePres.FullName, newPres.FullName);
         using (PresentationDocument pDoc = PresentationDocument.Open(newPres.FullName, true))
         {

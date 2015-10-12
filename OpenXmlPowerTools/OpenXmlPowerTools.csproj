@@ -65,8 +65,13 @@
     <Compile Include="GetListItemText_sv_SE.cs" />
     <Compile Include="GetListItemText_tr_TR.cs" />
     <Compile Include="GetListItemText_zh_CN.cs" />
+    <Compile Include="HtmlToWmlConverter.cs" />
+    <Compile Include="HtmlToWmlConverterCore.cs" />
+    <Compile Include="HtmlToWmlCssApplier.cs" />
+    <Compile Include="HtmlToWmlCssParser.cs" />
     <Compile Include="MetricsGetter.cs" />
-    <Compile Include="HtmlConverter.cs" />
+    <Compile Include="TestUtil.cs" />
+    <Compile Include="WmlToHtmlConverter.cs" />
     <Compile Include="ListItemRetriever.cs" />
     <Compile Include="MarkupSimplifier.cs" />
     <Compile Include="OpenXmlCmdlet.cs" />

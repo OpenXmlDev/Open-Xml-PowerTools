@@ -11,6 +11,10 @@ namespace ExamplePresentatonBuilder01
     {
         static void Main(string[] args)
         {
+            var n = DateTime.Now;
+            var tempDi = new DirectoryInfo(string.Format("ExampleOutput-{0:00}-{1:00}-{2:00}-{3:00}{4:00}{5:00}", n.Year - 2000, n.Month, n.Day, n.Hour, n.Minute, n.Second));
+            tempDi.Create();
+
             string source1 = "../../Contoso.pptx";
             string source2 = "../../Companies.pptx";
             string source3 = "../../Customer Content.pptx";
@@ -31,14 +35,14 @@ namespace ExamplePresentatonBuilder01
                 new SlideSource(sourceDoc, 9, 3, false),  // Content slides
                 new SlideSource(sourceDoc, 13, 1, false),  // Closing summary
             };
-            PresentationBuilder.BuildPresentation(sources, "Out1.pptx");
+            PresentationBuilder.BuildPresentation(sources, Path.Combine(tempDi.FullName, "Out1.pptx"));
 
             sources = new List<SlideSource>()
             {
                 new SlideSource(new PmlDocument(source2), 2, 1, true),  // Choose company
                 new SlideSource(new PmlDocument(source3), false),       // Content
             };
-            PresentationBuilder.BuildPresentation(sources, "Out2.pptx");
+            PresentationBuilder.BuildPresentation(sources, Path.Combine(tempDi.FullName, "Out2.pptx"));
 
             sources = new List<SlideSource>()
             {
@@ -46,7 +50,7 @@ namespace ExamplePresentatonBuilder01
                 new SlideSource(new PmlDocument(source5), true),
                 new SlideSource(new PmlDocument(source6), true),
             };
-            PresentationBuilder.BuildPresentation(sources, "Out3.pptx");
+            PresentationBuilder.BuildPresentation(sources, Path.Combine(tempDi.FullName, "Out3.pptx"));
 
             sources = new List<SlideSource>()
             {
@@ -54,7 +58,7 @@ namespace ExamplePresentatonBuilder01
                 new SlideSource(new PmlDocument(contoso2), true),
                 new SlideSource(new PmlDocument(contoso3), true),
             };
-            PresentationBuilder.BuildPresentation(sources, "Out4.pptx");
+            PresentationBuilder.BuildPresentation(sources, Path.Combine(tempDi.FullName, "Out4.pptx"));
         }
     }
 }

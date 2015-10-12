@@ -1,4 +1,22 @@
-﻿using System;
+﻿/***************************************************************************
+
+Copyright (c) Microsoft Corporation 2012-2015.
+
+This code is licensed using the Microsoft Public License (Ms-PL).  The text of the license can be found here:
+
+http://www.microsoft.com/resources/sharedsource/licensingbasics/publiclicense.mspx
+
+Published at http://OpenXmlDeveloper.org
+Resource Center and Documentation: http://openxmldeveloper.org/wiki/w/wiki/powertools-for-open-xml.aspx
+
+Developer: Eric White
+Blog: http://www.ericwhite.com
+Twitter: @EricWhiteDev
+Email: eric@ericwhite.com
+
+***************************************************************************/
+
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
@@ -11,16 +29,9 @@ using DocumentFormat.OpenXml.Packaging;
 using OpenXmlPowerTools;
 using Xunit;
 
-// to run the X64 tests:
-// packages\xunit.runner.console.2.0.0\tools\xunit.console OpenXmlPowerTools.Tests.64\bin\Debug\OpenXmlPowerTools.Tests.dll
-
-#if X64
-namespace OpenXmlPowerTools.Tests.X64
-#else
-namespace OpenXmlPowerTools.Tests
-#endif
+namespace OxPt
 {
-    public class ChartUpdaterTests
+    public class CuTests
     {
         [Theory]
         [InlineData("CU001-Chart-Cached-Data-01.docx")]
@@ -45,9 +56,9 @@ namespace OpenXmlPowerTools.Tests
         [InlineData("CU018-Chart-Cached-Data-41.pptx")]
         [InlineData("CU019-Chart-Embedded-Xlsx-41.pptx")]
 
-        public void CU001_ChartUpdater(string chartFileName)
+        public void CU001(string name)
         {
-            FileInfo templateFile = new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, chartFileName));
+            FileInfo templateFile = new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, name));
 
             if (templateFile.Extension.ToLower() == ".docx")
             {

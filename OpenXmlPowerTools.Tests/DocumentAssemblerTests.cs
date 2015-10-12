@@ -1,4 +1,22 @@
-﻿using System;
+﻿/***************************************************************************
+
+Copyright (c) Microsoft Corporation 2012-2015.
+
+This code is licensed using the Microsoft Public License (Ms-PL).  The text of the license can be found here:
+
+http://www.microsoft.com/resources/sharedsource/licensingbasics/publiclicense.mspx
+
+Published at http://OpenXmlDeveloper.org
+Resource Center and Documentation: http://openxmldeveloper.org/wiki/w/wiki/powertools-for-open-xml.aspx
+
+Developer: Eric White
+Blog: http://www.ericwhite.com
+Twitter: @EricWhiteDev
+Email: eric@ericwhite.com
+
+***************************************************************************/
+
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
@@ -13,13 +31,9 @@ using DocumentFormat.OpenXml.Validation;
 using OpenXmlPowerTools;
 using Xunit;
 
-#if X64
-namespace OpenXmlPowerTools.Tests.X64
-#else
-namespace OpenXmlPowerTools.Tests
-#endif
+namespace OxPt
 {
-    public class DocumentAssemblerTests
+    public class DaTests
     {
         [Theory]
         [InlineData("DA001-TemplateDocument.docx", "DA-Data.xml", false)]
@@ -90,16 +104,16 @@ namespace OpenXmlPowerTools.Tests
         [InlineData("DA233-ConditionalOnAttribute.docx", "DA-ConditionalOnAttribute.xml", false)]
         [InlineData("DA234-HeaderFooter.docx", "DA-Data.xml", false)]
         
-        public void DA101_DocumentAssembler(string templateDocumentName, string dataFileName, bool templateError)
+        public void DA101(string name, string data, bool err)
         {
-            FileInfo templateDocx = new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, templateDocumentName));
-            FileInfo dataFile = new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, dataFileName));
+            FileInfo templateDocx = new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, name));
+            FileInfo dataFile = new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, data));
 
             WmlDocument wmlTemplate = new WmlDocument(templateDocx.FullName);
-            XElement data = XElement.Load(dataFile.FullName);
+            XElement xmldata = XElement.Load(dataFile.FullName);
 
             bool returnedTemplateError;
-            WmlDocument afterAssembling = DocumentAssembler.AssembleDocument(wmlTemplate, data, out returnedTemplateError);
+            WmlDocument afterAssembling = DocumentAssembler.AssembleDocument(wmlTemplate, xmldata, out returnedTemplateError);
             var assembledDocx = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, templateDocx.Name.Replace(".docx", "-processed-by-DocumentAssembler.docx")));
             afterAssembling.SaveAs(assembledDocx.FullName);
 
@@ -125,40 +139,40 @@ namespace OpenXmlPowerTools.Tests
                 }
             }
 
-            Assert.Equal(templateError, returnedTemplateError);
+            Assert.Equal(err, returnedTemplateError);
         }
 
         [Theory]
         [InlineData("DA024-TrackedRevisions.docx", "DA-Data.xml", true)]
-        public void DA102_Throws(string templateDocumentName, string dataFileName, bool templateError)
+        public void DA102_Throws(string name, string data, bool err)
         {
-            FileInfo templateDocx = new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, templateDocumentName));
-            FileInfo dataFile = new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, dataFileName));
+            FileInfo templateDocx = new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, name));
+            FileInfo dataFile = new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, data));
 
             WmlDocument wmlTemplate = new WmlDocument(templateDocx.FullName);
-            XElement data = XElement.Load(dataFile.FullName);
+            XElement xmldata = XElement.Load(dataFile.FullName);
 
             bool returnedTemplateError;
             WmlDocument afterAssembling;
             Assert.Throws<OpenXmlPowerToolsException>(() =>
                 {
-                    afterAssembling = DocumentAssembler.AssembleDocument(wmlTemplate, data, out returnedTemplateError);
+                    afterAssembling = DocumentAssembler.AssembleDocument(wmlTemplate, xmldata, out returnedTemplateError);
                 });
         }
 
         [Theory]
         [InlineData("DA025-TemplateDocument.docx", "DA-Data.xml", false)]
-        public void DA103_UseXmlDocument(string templateDocumentName, string dataFileName, bool templateError)
+        public void DA103_UseXmlDocument(string name, string data, bool err)
         {
-            FileInfo templateDocx = new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, templateDocumentName));
-            FileInfo dataFile = new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, dataFileName));
+            FileInfo templateDocx = new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, name));
+            FileInfo dataFile = new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, data));
 
             WmlDocument wmlTemplate = new WmlDocument(templateDocx.FullName);
-            XmlDocument data = new XmlDocument();
-            data.Load(dataFile.FullName);
+            XmlDocument xmldata = new XmlDocument();
+            xmldata.Load(dataFile.FullName);
 
             bool returnedTemplateError;
-            WmlDocument afterAssembling = DocumentAssembler.AssembleDocument(wmlTemplate, data, out returnedTemplateError);
+            WmlDocument afterAssembling = DocumentAssembler.AssembleDocument(wmlTemplate, xmldata, out returnedTemplateError);
             var assembledDocx = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, templateDocx.Name.Replace(".docx", "-processed-by-DocumentAssembler.docx")));
             afterAssembling.SaveAs(assembledDocx.FullName);
 
@@ -173,7 +187,7 @@ namespace OpenXmlPowerTools.Tests
                 }
             }
 
-            Assert.Equal(templateError, returnedTemplateError);
+            Assert.Equal(err, returnedTemplateError);
         }
 
         private static List<string> s_ExpectedErrors = new List<string>()
