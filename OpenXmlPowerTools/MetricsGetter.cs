@@ -71,9 +71,13 @@ namespace OpenXmlPowerTools
                     ms.Write(wmlDoc.DocumentByteArray, 0, wmlDoc.DocumentByteArray.Length);
                     using (WordprocessingDocument document = WordprocessingDocument.Open(ms, true))
                     {
-                        if (RevisionAccepter.HasTrackedRevisions(document))
+                        bool hasTrackedRevisions = RevisionAccepter.HasTrackedRevisions(document);
+                        if (hasTrackedRevisions)
                             RevisionAccepter.AcceptRevisions(document);
-                        return GetWmlMetrics(wmlDoc.FileName, false, document, settings);
+                        XElement metrics1 = GetWmlMetrics(wmlDoc.FileName, false, document, settings);
+                        if (hasTrackedRevisions)
+                            metrics1.Add(new XElement(H.RevisionTracking, new XAttribute(H.Val, true)));
+                        return metrics1;
                     }
                 }
             }
@@ -94,9 +98,13 @@ namespace OpenXmlPowerTools
                         ms.Write(wmlDoc.DocumentByteArray, 0, wmlDoc.DocumentByteArray.Length);
                         using (WordprocessingDocument document = WordprocessingDocument.Open(ms, true))
                         {
-                            if (RevisionAccepter.HasTrackedRevisions(document))
+                            bool hasTrackedRevisions = RevisionAccepter.HasTrackedRevisions(document);
+                            if (hasTrackedRevisions)
                                 RevisionAccepter.AcceptRevisions(document);
-                            return GetWmlMetrics(wmlDoc.FileName, true, document, settings);
+                            XElement metrics2 = GetWmlMetrics(wmlDoc.FileName, true, document, settings);
+                            if (hasTrackedRevisions)
+                                metrics2.Add(new XElement(H.RevisionTracking, new XAttribute(H.Val, true)));
+                            return metrics2;
                         }
                     }
                 }
@@ -280,9 +288,6 @@ namespace OpenXmlPowerTools
 
             metrics.Add(new XElement(H.ElementCount, new XAttribute(H.Val, elementCount)));
             metrics.Add(new XElement(H.AverageParagraphLength, new XAttribute(H.Val, (int)((double)textCount / (double)paragraphCount))));
-
-            if (RevisionAccepter.HasTrackedRevisions(wDoc))
-                metrics.Add(new XElement(H.RevisionTracking, new XAttribute(H.Val, true)));
 
             if (wDoc.GetAllParts().Any(part => part.ContentType == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
                 metrics.Add(new XElement(H.EmbeddedXlsx, new XAttribute(H.Val, true)));
