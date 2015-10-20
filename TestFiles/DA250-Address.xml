@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Customer>
+    <FullNames>Mr David Jones &amp; Mrs Jane Jones</FullNames>
+	<OrderValue>2300</OrderValue>
+    <CorrespondenceAddress>
+    <AddressOne>46 Park View</AddressOne>
+    <AddressTwo>Leeds</AddressTwo>
+    <AddressThree>West Yorkshire</AddressThree>
+    <AddressFour />
+    <AddressFive />
+    <PostCode>LS1 4AR</PostCode>
+  </CorrespondenceAddress>
+</Customer>

@@ -659,29 +659,41 @@ namespace OpenXmlPowerTools
                 {
                     IEnumerable<XObject> selectedData;
                     string xPath = (string)element.Attribute(PA.Select);
-	                try
+                    object xPathSelectResult;
+                    try
 	                {
-		                selectedData = ((IEnumerable)data.XPathEvaluate(xPath)).Cast<XObject>();
+	                    xPathSelectResult = data.XPathEvaluate(xPath);
 	                }
-                    catch (XPathException e)
+	                catch (XPathException e)
                     {
                         return CreateParaErrorMessage("XPathException: " + e.Message, templateError);
                     }
-                    if (!selectedData.Any())
-                    {
-                        return CreateParaErrorMessage(string.Format("Conditional XPath expression ({0}) returned no results", xPath), templateError);
-                    }
-                    else if (selectedData.Count() > 1)
-                    {
-                        return CreateParaErrorMessage(string.Format("Conditional XPath expression ({0}) returned more than one node", xPath), templateError);
-                    }
+                  
                     var match = (string)element.Attribute(PA.Match);
                     string testValue = null;
-                    XObject selectedDatum = selectedData.First();
-                    if (selectedDatum is XElement)
-                        testValue = ((XElement)selectedDatum).Value;
-                    else if (selectedDatum is XAttribute)
-                        testValue = ((XAttribute)selectedDatum).Value;
+
+                    if (xPathSelectResult is IEnumerable)
+                    {
+                        selectedData = ((IEnumerable) xPathSelectResult).Cast<XObject>();
+                        if (!selectedData.Any())
+                        {
+                            return CreateParaErrorMessage(string.Format("Conditional XPath expression ({0}) returned no results", xPath), templateError);
+                        }
+                        if (selectedData.Count() > 1)
+                        {
+                            return CreateParaErrorMessage(string.Format("Conditional XPath expression ({0}) returned more than one node", xPath), templateError);
+                        }
+                        XObject selectedDatum = selectedData.First();
+                        if (selectedDatum is XElement)
+                            testValue = ((XElement) selectedDatum).Value;
+                        else if (selectedDatum is XAttribute)
+                            testValue = ((XAttribute) selectedDatum).Value;
+                    }
+                    else
+                    {
+                        testValue = xPathSelectResult.ToString();
+                    }
+                   
                     if (testValue == match)
                     {
                         var content = element.Elements().Select(e => ContentReplacementTransform(e, data, templateError));
