@@ -78,7 +78,6 @@ namespace OxPt
         [InlineData("DA205-SelectRowData-NoData.docx", "DA-Data.xml", true)]
         [InlineData("DA206-SelectTestValue-NoData.docx", "DA-Data.xml", true)]
         [InlineData("DA207-SelectRepeatingData-NoData.docx", "DA-Data.xml", true)]
-        [InlineData("DA208-TableElementWithNoTable.docx", "DA-Data.xml", true)]
         [InlineData("DA209-InvalidXPath.docx", "DA-Data.xml", true)]
         [InlineData("DA210-InvalidXml.docx", "DA-Data.xml", true)]
         [InlineData("DA211-SchemaError.docx", "DA-Data.xml", true)]
