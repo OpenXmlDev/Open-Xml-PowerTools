@@ -672,7 +672,7 @@ namespace OpenXmlPowerTools
                     var match = (string)element.Attribute(PA.Match);
                     string testValue = null;
 
-                    if (xPathSelectResult is IEnumerable)
+                    if ((xPathSelectResult is IEnumerable) && !(xPathSelectResult is string))
                     {
                         selectedData = ((IEnumerable) xPathSelectResult).Cast<XObject>();
                         if (!selectedData.Any())
