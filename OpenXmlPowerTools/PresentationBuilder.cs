@@ -159,6 +159,13 @@ namespace OpenXmlPowerTools
             mainPart.Declaration.Standalone = "yes";
             mainPart.Declaration.Encoding = "UTF-8";
             output.PresentationPart.PutXDocument();
+
+            using (OpenXmlMemoryStreamDocument streamDoc = new OpenXmlMemoryStreamDocument(sources[0].PmlDocument))
+            using (PresentationDocument doc = streamDoc.GetPresentationDocument())
+            {
+                CopyStartingParts(doc, output);
+            }
+
             int sourceNum = 0;
             SlideMasterPart currentMasterPart = null;
             foreach (SlideSource source in sources)
@@ -202,6 +209,43 @@ namespace OpenXmlPowerTools
                 }
                 else if (part.Annotation<XDocument>() != null)
                     part.PutXDocument();
+            }
+        }
+
+        private static void CopyStartingParts(PresentationDocument sourceDocument, PresentationDocument newDocument)
+        {
+            // A Core File Properties part does not have implicit or explicit relationships to other parts.
+            CoreFilePropertiesPart corePart = sourceDocument.CoreFilePropertiesPart;
+            if (corePart != null && corePart.GetXDocument().Root != null)
+            {
+                newDocument.AddCoreFilePropertiesPart();
+                XDocument newXDoc = newDocument.CoreFilePropertiesPart.GetXDocument();
+                newXDoc.Declaration.Standalone = "yes";
+                newXDoc.Declaration.Encoding = "UTF-8";
+                XDocument sourceXDoc = corePart.GetXDocument();
+                newXDoc.Add(sourceXDoc.Root);
+            }
+
+            // An application attributes part does not have implicit or explicit relationships to other parts.
+            ExtendedFilePropertiesPart extPart = sourceDocument.ExtendedFilePropertiesPart;
+            if (extPart != null)
+            {
+                OpenXmlPart newPart = newDocument.AddExtendedFilePropertiesPart();
+                XDocument newXDoc = newDocument.ExtendedFilePropertiesPart.GetXDocument();
+                newXDoc.Declaration.Standalone = "yes";
+                newXDoc.Declaration.Encoding = "UTF-8";
+                newXDoc.Add(extPart.GetXDocument().Root);
+            }
+
+            // An custom file properties part does not have implicit or explicit relationships to other parts.
+            CustomFilePropertiesPart customPart = sourceDocument.CustomFilePropertiesPart;
+            if (customPart != null)
+            {
+                newDocument.AddCustomFilePropertiesPart();
+                XDocument newXDoc = newDocument.CustomFilePropertiesPart.GetXDocument();
+                newXDoc.Declaration.Standalone = "yes";
+                newXDoc.Declaration.Encoding = "UTF-8";
+                newXDoc.Add(customPart.GetXDocument().Root);
             }
         }
 
