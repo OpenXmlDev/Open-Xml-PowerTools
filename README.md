@@ -53,7 +53,7 @@ The following video walks through the process building Open-Xml-PowerTools:
 
 [Installing, Building, and Running Open-Xml-PowerTools 4.0](https://www.youtube.com/watch?v=60w-yPDSQD0)
 
-In order to build Open-Xml-PowerTools 4.0, you need to retrieve both the Open-Xml-Sdk and the Open-Xml-PowerTools repos from GitHub.  The projects are set up expecting that
+In order to build Open-Xml-PowerTools 4.0 and later, you need to retrieve both the Open-Xml-Sdk and the Open-Xml-PowerTools repos from GitHub.  The projects are set up expecting that
 the Open-Xml-Sdk repo and the Open-Xml-PowerTools repo are siblings to each other in the file system.  The Open-Xml-PowerTools projects
 look for the Open-Xml-Sdk in a directory with that exact name (Open-Xml-Sdk).
 
@@ -80,6 +80,11 @@ The short form of the installation instructions are:
 
 Change Log
 ==========
+
+Version 4.1.1 : October 21, 2015
+- Fix to AddTypes.ps1 to compile WmlToHtmlConverter.cs instead of HtmlConverter.cs
+- Fix to MettricsGetter.ps1 to correctly report whether a document contains tracked revisions
+- Added some unit tests for PresentationBuilder
 
 Version 4.1.0 : September 27, 2015
 - New HtmlToWmlConverter module
