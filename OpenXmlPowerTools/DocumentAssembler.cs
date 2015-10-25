@@ -26,6 +26,7 @@ using System.Xml;
 using System.Xml.Linq;
 using System.Xml.XPath;
 using System.Xml.Schema;
+using DocumentFormat.OpenXml.Office.CustomUI;
 using DocumentFormat.OpenXml.Packaging;
 using OpenXmlPowerTools;
 using System.Collections;
@@ -583,6 +584,7 @@ namespace OpenXmlPowerTools
                         return CreateParaErrorMessage("Table Select returned no data", templateError);
                     XElement table = element.Element(W.tbl);
                     XElement protoRow = table.Elements(W.tr).Skip(1).FirstOrDefault();
+                    var footerRows = table.Elements(W.tr).Skip(2).Select( x => new XElement(x));
                     if (protoRow == null)
                         return CreateParaErrorMessage(string.Format("Table does not contain a prototype row"), templateError);
                     protoRow.Descendants(W.bookmarkStart).Remove();
@@ -600,9 +602,13 @@ namespace OpenXmlPowerTools
                                         XElement cellRun = paragraph.Elements(W.r).FirstOrDefault();
                                         string xPath = paragraph.Value;
                                         IEnumerable<XObject> selectedData;
+                                        object xPathSelectResult;
+                                        string newValue = null;
                                         try
                                         {
-                                            selectedData = ((IEnumerable)d.XPathEvaluate(xPath)).Cast<XObject>();
+                                            //support some cells in the table may not have an xpath expression.
+                                            if (String.IsNullOrWhiteSpace(xPath)) xPathSelectResult = String.Empty;
+                                            else xPathSelectResult = d.XPathEvaluate(xPath);
                                         }
                                         catch (XPathException e)
                                         {
@@ -614,45 +620,61 @@ namespace OpenXmlPowerTools
                                             return errorCell;
                                         }
 
-	                                    if (!selectedData.Any())
-	                                    {
-			                                var errorRun = CreateRunErrorMessage(string.Format("XPath expression ({0}) returned no results", xPath), templateError);
-                                            XElement errorCell = new XElement(W.tc,
-                                                tc.Elements().Where(z => z.Name != W.p),
-                                                new XElement(W.p,
-                                                    paragraph.Element(W.pPr),
-                                                    errorRun));
-                                            return errorCell;
-	                                    }
-                                        else if (selectedData.Count() > 1)
+                                        if ((xPathSelectResult is IEnumerable) && !(xPathSelectResult is string))
                                         {
-                                            var errorRun = CreateRunErrorMessage(string.Format("XPath expression ({0}) returned more than one node", xPath), templateError);
-                                            XElement errorCell = new XElement(W.tc,
-                                                tc.Elements().Where(z => z.Name != W.p),
-                                                new XElement(W.p,
-                                                    paragraph.Element(W.pPr),
-                                                    errorRun));
-                                            return errorCell;
+                                            selectedData = ((IEnumerable) xPathSelectResult).Cast<XObject>();
+                                            if (!selectedData.Any())
+                                            {
+                                                var errorRun =
+                                                    CreateRunErrorMessage(
+                                                        string.Format("XPath expression ({0}) returned no results",
+                                                            xPath), templateError);
+                                                XElement errorCell = new XElement(W.tc,
+                                                    tc.Elements().Where(z => z.Name != W.p),
+                                                    new XElement(W.p,
+                                                        paragraph.Element(W.pPr),
+                                                        errorRun));
+                                                return errorCell;
+                                            }
+                                            if (selectedData.Count() > 1)
+                                            {
+                                                var errorRun =
+                                                    CreateRunErrorMessage(
+                                                        string.Format(
+                                                            "XPath expression ({0}) returned more than one node", xPath),
+                                                        templateError);
+                                                XElement errorCell = new XElement(W.tc,
+                                                    tc.Elements().Where(z => z.Name != W.p),
+                                                    new XElement(W.p,
+                                                        paragraph.Element(W.pPr),
+                                                        errorRun));
+                                                return errorCell;
+                                            }
+                                            else
+                                            {
+                                                XObject selectedDatum = selectedData.First();
+                                                if (selectedDatum is XElement)
+                                                    newValue = ((XElement) selectedDatum).Value;
+                                                else if (selectedDatum is XAttribute)
+                                                    newValue = ((XAttribute) selectedDatum).Value;
+                                            }
                                         }
                                         else
                                         {
-                                            string newValue = null;
-                                            XObject selectedDatum = selectedData.First();
-                                            if (selectedDatum is XElement)
-                                                newValue = ((XElement)selectedDatum).Value;
-                                            else if (selectedDatum is XAttribute)
-                                                newValue = ((XAttribute)selectedDatum).Value;
-
-                                            XElement newCell = new XElement(W.tc,
-                                                tc.Elements().Where(z => z.Name != W.p),
-                                                new XElement(W.p,
-                                                    paragraph.Element(W.pPr),
-                                                    new XElement(W.r,
-                                                        cellRun.Element(W.rPr),
-                                                        new XElement(W.t, newValue))));
-                                            return newCell;
+                                            newValue = xPathSelectResult.ToString();
                                         }
-                                    }))));
+
+                                        XElement newCell = new XElement(W.tc,
+                                                   tc.Elements().Where(z => z.Name != W.p),
+                                                   new XElement(W.p,
+                                                       paragraph.Element(W.pPr),
+                                                       new XElement(W.r,
+                                                           cellRun != null ? cellRun.Element(W.rPr) : new XElement(W.rPr),  //if the cell was empty there is no cellrun
+                                                           new XElement(W.t, newValue))));
+                                        return newCell;
+                                    }))),
+                                    footerRows
+                                    );
                     return newTable;
                 }
                 if (element.Name == PA.Conditional)
