@@ -16,11 +16,84 @@ Email: eric@ericwhite.com
 
 ***************************************************************************/
 
+/***************************************************************************
+ * HTML elements handled in this module:
+ * 
+ * a
+ * b
+ * body
+ * caption
+ * div
+ * em
+ * h1, h2, h3, h4, h5, h6, h7, h8
+ * hr
+ * html
+ * i
+ * blockquote
+ * img
+ * li
+ * ol
+ * p
+ * s
+ * span
+ * strong
+ * style
+ * sub
+ * sup
+ * table
+ * tbody
+ * td
+ * th
+ * tr
+ * u
+ * ul
+ * br
+ * tt
+ * code
+ * kbd
+ * samp
+ * pre
+ * 
+ * HTML elements that are handled by recursively processing descedants
+ * 
+ * article
+ * hgroup
+ * nav
+ * section
+ * dd
+ * dl
+ * dt
+ * figure
+ * main
+ * abbr
+ * bdi
+ * bdo
+ * cite
+ * data
+ * dfn
+ * mark
+ * q
+ * rp
+ * rt
+ * ruby
+ * small
+ * time
+ * var
+ * wbr
+ * 
+ * HTML elements ignored in this module
+ * 
+ * head
+ * 
+***************************************************************************/
+
 // need to research all of the html attributes that take effect, such as border="1" and somehow work into the rendering system.
 // note that some of these 'inherit' so need to implement correct logic.
 
-// align='right'
-// dir='RTL'
+// this module has not been fully engineered to work with RTL languages.  This is a pending work item.  There are issues involved,
+// including that there is RTL content in HTML that can't be represented in WordprocessingML, although this probably is rare.
+// The reverse is not true - all RTL WordprocessingML can be represented in HTML, but there is some HTML RTL content that can only
+// be approximated in WordprocessingML.
 
 // have I handled all forms of colors? see GetWmlColorFromExpression in HtmlToWmlCssApplier
 
@@ -108,8 +181,6 @@ namespace OpenXmlPowerTools.HtmlToWml
             html = (XElement)AddPseudoCells(html);
 
             html = (XElement)TransformWhiteSpaceInPreCodeTtKbdSamp(html, false, false);
-            // todo also need to preserve white space in pre, which means refactoring to support this in
-            // GenerateNextExpected and GetDisplayText
 
             CssDocument defaultCssDoc, userCssDoc, authorCssDoc;
             CssApplier.ApplyAllCss(
@@ -826,6 +897,9 @@ namespace OpenXmlPowerTools.HtmlToWml
                 if (element.Name == XhtmlNoNamespace.i)
                     return element.Nodes().Select(n => Transform(n, settings, wDoc, nextExpected, preserveWhiteSpace));
 
+                if (element.Name == XhtmlNoNamespace.blockquote)
+                    return element.Nodes().Select(n => Transform(n, settings, wDoc, nextExpected, preserveWhiteSpace));
+
                 if (element.Name == XhtmlNoNamespace.img)
                 {
                     if (element.Parent.Name == XhtmlNoNamespace.body)
@@ -999,7 +1073,8 @@ namespace OpenXmlPowerTools.HtmlToWml
                 if (element.Name == XhtmlNoNamespace.pre)
                     return GenerateNextExpected(element, settings, wDoc, null, NextExpected.Paragraph, true);
 
-                return null;
+                // if no match up to this point, then just recursively process descendants
+                return element.Nodes().Select(n => Transform(n, settings, wDoc, nextExpected, preserveWhiteSpace));
             }
 
             if (node.Parent.Name != XhtmlNoNamespace.title)
