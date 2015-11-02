@@ -68,7 +68,12 @@ namespace OpenXmlPowerTools
         {
             XDocument xDoc = part.GetXDocument();
 
-            XElement newRootElementWithMetadata = (XElement)TransformToMetadata(xDoc.Root, data, te);
+            var removedBookmarksXDoc = RemoveGoBackBookmarks(xDoc.Root);
+
+            // content controls in cells can surround the W.tc element, so transform so that such content controls are within the cell content
+            XElement normalizedContentControlsInCells = (XElement)NormalizeContentControlsInCells(removedBookmarksXDoc);
+
+            XElement newRootElementWithMetadata = (XElement)TransformToMetadata(normalizedContentControlsInCells, data, te);
 
             NormalizeTablesRepeatAndConditional(newRootElementWithMetadata, te);
             XElement newRootElement = newRootElementWithMetadata;
@@ -79,6 +84,47 @@ namespace OpenXmlPowerTools
             xDoc.Elements().First().ReplaceWith(newRootElement);
             part.PutXDocument();
             return;
+        }
+
+        private static XElement RemoveGoBackBookmarks(XElement xElement)
+        {
+            var cloneXDoc = new XElement(xElement);
+            while (true)
+            {
+                var bm = cloneXDoc.DescendantsAndSelf(W.bookmarkStart).FirstOrDefault(b => (string)b.Attribute(W.name) == "_GoBack");
+                if (bm == null)
+                    break;
+                var id = (string)bm.Attribute(W.id);
+                var endBm = cloneXDoc.DescendantsAndSelf(W.bookmarkEnd).FirstOrDefault(b => (string)b.Attribute(W.id) == id);
+                bm.Remove();
+                endBm.Remove();
+            }
+            return cloneXDoc;
+        }
+
+        // this transform inverts content controls that surround W.tc elements.  After transforming, the W.tc will contain
+        // the content control, which contains the paragraph content of the cell.
+        private static object NormalizeContentControlsInCells(XNode node)
+        {
+            XElement element = node as XElement;
+            if (element != null)
+            {
+                if (element.Name == W.sdt && element.Parent.Name == W.tr)
+                {
+                    var newCell = new XElement(W.tc,
+                        element.Elements(W.tc).Elements(W.tcPr),
+                        new XElement(W.sdt,
+                            element.Elements(W.sdtPr),
+                            element.Elements(W.sdtEndPr),
+                            new XElement(W.sdtContent,
+                                element.Elements(W.sdtContent).Elements(W.tc).Elements().Where(e => e.Name != W.tcPr))));
+                    return newCell;
+                }
+                return new XElement(element.Name,
+                    element.Attributes(),
+                    element.Nodes().Select(n => NormalizeContentControlsInCells(n)));
+            }
+            return node;
         }
 
         // The following method is written using tree modification, not RPFT, because it is easier to write in this fashion.
@@ -157,10 +203,9 @@ namespace OpenXmlPowerTools
                     }
                     metadata.RemoveNodes();
                     var contentBetween = metadata.ElementsAfterSelf().TakeWhile(after => after != matchingEnd).ToList();
-                    contentBetween.DescendantsAndSelf(W.bookmarkStart).Remove();
-                    contentBetween.DescendantsAndSelf(W.bookmarkEnd).Remove();
                     foreach (var item in contentBetween)
                         item.Remove();
+                    contentBetween = contentBetween.Where(n => n.Name != W.bookmarkStart && n.Name != W.bookmarkEnd).ToList();
                     metadata.Add(contentBetween);
                     metadata.Attributes(PA.Depth).Remove();
                     matchingEnd.Remove();
@@ -200,22 +245,28 @@ namespace OpenXmlPowerTools
                             .Trim()
                             .Replace('“', '"')
                             .Replace('”', '"');
-                        XElement xml = TransformXmlTextToMetadata(te, ccContents);
-                        if (xml.Name == W.p || xml.Name == W.r)  // this means there was an error processing the XML.
+                        if (ccContents.StartsWith("<"))
                         {
-                            if (element.Parent.Name == W.p)
-                                return xml.Elements(W.r);
+                            XElement xml = TransformXmlTextToMetadata(te, ccContents);
+                            if (xml.Name == W.p || xml.Name == W.r)  // this means there was an error processing the XML.
+                            {
+                                if (element.Parent.Name == W.p)
+                                    return xml.Elements(W.r);
+                                return xml;
+                            }
+                            if (alias != null && xml.Name.LocalName != alias)
+                            {
+                                if (element.Parent.Name == W.p)
+                                    return CreateRunErrorMessage("Error: Content control alias does not match metadata element name", te);
+                                else
+                                    return CreateParaErrorMessage("Error: Content control alias does not match metadata element name", te);
+                            }
+                            xml.Add(element.Elements(W.sdtContent).Elements());
                             return xml;
                         }
-                        if (alias != null && xml.Name.LocalName != alias)
-                        {
-                            if (element.Parent.Name == W.p)
-                                return CreateRunErrorMessage("Error: Content control alias does not match metadata element name", te);
-                            else
-                                return CreateParaErrorMessage("Error: Content control alias does not match metadata element name", te);
-                        }
-                        xml.Add(element.Elements(W.sdtContent).Elements());
-                        return xml;
+                        return new XElement(element.Name,
+                            element.Attributes(),
+                            element.Nodes().Select(n => TransformToMetadata(n, data, te)));
                     }
                     return new XElement(element.Name,
                         element.Attributes(),
@@ -584,7 +635,13 @@ namespace OpenXmlPowerTools
                         return CreateParaErrorMessage("Table Select returned no data", templateError);
                     XElement table = element.Element(W.tbl);
                     XElement protoRow = table.Elements(W.tr).Skip(1).FirstOrDefault();
-                    var footerRows = table.Elements(W.tr).Skip(2).Select( x => new XElement(x));
+                    var footerRowsBeforeTransform = table
+                        .Elements(W.tr)
+                        .Skip(2)
+                        .ToList();
+                    var footerRows = footerRowsBeforeTransform
+                        .Select(x => ContentReplacementTransform(x, data, templateError))
+                        .ToList();
                     if (protoRow == null)
                         return CreateParaErrorMessage(string.Format("Table does not contain a prototype row"), templateError);
                     protoRow.Descendants(W.bookmarkStart).Remove();

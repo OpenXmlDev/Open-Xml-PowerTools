@@ -102,8 +102,12 @@ namespace OxPt
         [InlineData("DA232-TooMuchDataForConditional.docx", "DA-TooMuchDataForConditional.xml", true)]
         [InlineData("DA233-ConditionalOnAttribute.docx", "DA-ConditionalOnAttribute.xml", false)]
         [InlineData("DA234-HeaderFooter.docx", "DA-Data.xml", false)]
+        [InlineData("DA235-Crashes.docx", "DA-Content-List.xml", false)]
+        [InlineData("DA236-Page-Num-in-Footer.docx", "DA-Content-List.xml", false)]
         [InlineData("DA250-ConditionalWithRichXPath.docx", "DA250-Address.xml", false)]
         [InlineData("DA251-EnhancedTables.docx", "DA-Data.xml", false)]
+        [InlineData("DA252-Table-With-Sum.docx", "DA-Data.xml", false)]
+        [InlineData("DA253-Table-With-Sum-Run-Level-CC.docx", "DA-Data.xml", false)]
         
         public void DA101(string name, string data, bool err)
         {

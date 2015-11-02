@@ -81,6 +81,14 @@ The short form of the installation instructions are:
 Change Log
 ==========
 
+Version 4.1.3 : November 2, 2015
+- DocumentAssembler: Fix bug associated with duplicate bookmarks.
+- DocumentAssembler: Enable processing of content controls / metadata in footer rows.
+- DocumentAssembler: Avoid processing content controls used for purposes other than the DocumentAssembler template, including page numbers in footers, etc.
+
+Version 4.1.2 : October 31, 2015
+- HtmlToWmlConverter: Handle unknown elements by recursively processing descendants
+
 Version 4.1.1 : October 21, 2015
 - Fix to AddTypes.ps1 to compile WmlToHtmlConverter.cs instead of HtmlConverter.cs
 - Fix to MettricsGetter.ps1 to correctly report whether a document contains tracked revisions
