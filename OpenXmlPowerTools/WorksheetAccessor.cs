@@ -397,7 +397,7 @@ namespace OpenXmlPowerTools
         }
 
         // Converts the column reference string to a column number (e.g. A -> 1, B -> 2)
-        private static int GetColumnNumber(string cellReference)
+        public static int GetColumnNumber(string cellReference)
         {
             int columnNumber = 0;
             foreach (char c in cellReference)

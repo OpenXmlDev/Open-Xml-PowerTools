@@ -68,6 +68,7 @@
     <Compile Include="HtmlToWmlConverterTests.cs" />
     <Compile Include="HtmlToWmlReadAsXElement.cs" />
     <Compile Include="MetricsGetterTests.cs" />
+    <Compile Include="PresentationBuilderTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RevisionAccepterTests.cs" />
     <Compile Include="SpreadsheetWriterTests.cs" />

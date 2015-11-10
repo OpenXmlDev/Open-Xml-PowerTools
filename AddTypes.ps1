@@ -40,7 +40,7 @@ $sources = @(
     "$PSScriptRoot\OpenXmlPowerTools\GetListItemText_sv_SE.cs",
     "$PSScriptRoot\OpenXmlPowerTools\GetListItemText_tr_TR.cs",
     "$PSScriptRoot\OpenXmlPowerTools\GetListItemText_zh_CN.cs",
-    "$PSScriptRoot\OpenXmlPowerTools\HtmlConverter.cs",
+    "$PSScriptRoot\OpenXmlPowerTools\WmlToHtmlConverter.cs",
     "$PSScriptRoot\OpenXmlPowerTools\ListItemRetriever.cs",
     "$PSScriptRoot\OpenXmlPowerTools\MarkupSimplifier.cs",
     "$PSScriptRoot\OpenXmlPowerTools\MetricsGetter.cs",

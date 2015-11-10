@@ -15,4 +15,5 @@
       <OrderDate>8/6/2000</OrderDate>
     </Order>
   </Orders>
+  <TotalQuantity>6</TotalQuantity>
 </Customer>
