@@ -132,7 +132,7 @@ namespace OxPt
                     OpenXmlValidator v = new OpenXmlValidator();
                     var valErrors = v.Validate(wDoc).Where(ve => !s_ExpectedErrors.Contains(ve.Description));
 
-#if true
+#if false
                     StringBuilder sb = new StringBuilder();
                     foreach (var item in valErrors.Select(r => r.Description).OrderBy(t => t).Distinct())
 	                {
