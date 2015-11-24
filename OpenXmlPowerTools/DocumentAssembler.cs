@@ -532,7 +532,6 @@ namespace OpenXmlPowerTools
                     XElement para = element.Descendants(W.p).FirstOrDefault();
                     XElement run = element.Descendants(W.r).FirstOrDefault();
 
-                    IEnumerable<XObject> selectedData;
                     var xPath = (string) element.Attribute(PA.Select);
                     var optionalString = (string) element.Attribute(PA.Optional);
                     bool optional = (optionalString != null && optionalString.ToLower() == "true");
