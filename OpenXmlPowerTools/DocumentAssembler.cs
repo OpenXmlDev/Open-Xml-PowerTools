@@ -543,11 +543,8 @@ namespace OpenXmlPowerTools
                     }
                     catch (XPathException e)
                     {
-                        var errorRun = CreateRunErrorMessage(e.Message, templateError);
-                        if (para != null) return new XElement(W.p, errorRun);
-                        else return errorRun;
+                        return CreateContextErrorMessage(element, "XPathException: " + e.Message, templateError);
                     }
-
 
                     if (para != null)
                     {
@@ -573,10 +570,10 @@ namespace OpenXmlPowerTools
                     }
                     catch (XPathException e)
                     {
-                        return CreateParaErrorMessage("XPathException: " + e.Message, templateError);
+                        return CreateContextErrorMessage(element, "XPathException: " + e.Message, templateError);
                     }
                     if (!repeatingData.Any())
-                        return CreateParaErrorMessage("Repeat: Select returned no data", templateError);
+                        return CreateContextErrorMessage(element, "Repeat: Select returned no data", templateError);
                     var newContent = repeatingData.Select(d =>
                         {
                             var content = element
@@ -597,10 +594,10 @@ namespace OpenXmlPowerTools
                     }
                     catch (XPathException e)
                     {
-                        return CreateParaErrorMessage("XPathException: " + e.Message, templateError);
+                        return CreateContextErrorMessage(element, "XPathException: " + e.Message, templateError);
                     }
                     if (tableData.Count() == 0)
-                        return CreateParaErrorMessage("Table Select returned no data", templateError);
+                        return CreateContextErrorMessage(element, "Table Select returned no data", templateError);
                     XElement table = element.Element(W.tbl);
                     XElement protoRow = table.Elements(W.tr).Skip(1).FirstOrDefault();
                     var footerRowsBeforeTransform = table
@@ -611,7 +608,7 @@ namespace OpenXmlPowerTools
                         .Select(x => ContentReplacementTransform(x, data, templateError))
                         .ToList();
                     if (protoRow == null)
-                        return CreateParaErrorMessage(string.Format("Table does not contain a prototype row"), templateError);
+                        return CreateContextErrorMessage(element, string.Format("Table does not contain a prototype row"), templateError);
                     protoRow.Descendants(W.bookmarkStart).Remove();
                     protoRow.Descendants(W.bookmarkEnd).Remove();
                     XElement newTable = new XElement(W.tbl,
@@ -666,7 +663,7 @@ namespace OpenXmlPowerTools
                     }
 	                catch (XPathException e)
                     {
-                        return CreateParaErrorMessage(e.Message, templateError);
+                        return CreateContextErrorMessage(element, e.Message, templateError);
                     }
                   
                     if (testValue == match)
@@ -681,6 +678,17 @@ namespace OpenXmlPowerTools
                     element.Nodes().Select(n => ContentReplacementTransform(n, data, templateError)));
             }
             return node;
+        }
+
+        private static object CreateContextErrorMessage(XElement element, string errorMessage, TemplateError templateError)
+        {
+            XElement para = element.Descendants(W.p).FirstOrDefault();
+            XElement run = element.Descendants(W.r).FirstOrDefault();
+            var errorRun = CreateRunErrorMessage(errorMessage, templateError);
+            if (para != null)
+                return new XElement(W.p, errorRun);
+            else
+                return errorRun;
         }
 
         private static XElement CreateRunErrorMessage(string errorMessage, TemplateError templateError)
