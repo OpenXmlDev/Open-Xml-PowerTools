@@ -25,6 +25,7 @@ using System.Xml.Linq;
 using OpenXmlPowerTools;
 using OpenXmlPowerTools.HtmlToWml;
 using OpenXmlPowerTools.HtmlToWml.CSS;
+using System.Globalization;
 
 #if false
 Sort:
@@ -1421,7 +1422,7 @@ namespace OpenXmlPowerTools.HtmlToWml
                 return new CssExpression { Terms = new List<CssTerm> { new CssTerm { Value = "auto", Type = OpenXmlPowerTools.HtmlToWml.CSS.CssTermType.String } } };
 
             double decValue;
-            if (!double.TryParse(value, out decValue))
+            if (!double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out decValue))
                 throw new OpenXmlPowerToolsException("value did not parse");
             if (negative)
                 decValue = -decValue;
