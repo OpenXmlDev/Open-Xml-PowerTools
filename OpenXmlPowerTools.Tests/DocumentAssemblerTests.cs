@@ -113,6 +113,7 @@ namespace OxPt
         [InlineData("DA256-NoInvalidDocOnErrorInRun.docx", "DA-Data.xml", true)]
         [InlineData("DA257-OptionalRepeat.docx", "DA-Data.xml", false)]
         [InlineData("DA258-ContentAcceptsCharsAsXPathResult.docx", "DA-Data.xml", false)]
+        [InlineData("DA259-MultiLineContents.docx", "DA-Data.xml", false)]
         
         public void DA101(string name, string data, bool err)
         {
@@ -150,6 +151,21 @@ namespace OxPt
             }
 
             Assert.Equal(err, returnedTemplateError);
+        }
+
+        [Theory]
+        [InlineData("DA259-MultiLineContents.docx", "DA-Data.xml", false)]
+        public void DA259(string name, string data, bool err)
+        {
+            DA101(name, data, err);
+            var assembledDocx = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, name.Replace(".docx", "-processed-by-DocumentAssembler.docx")));
+            WmlDocument afterAssembling = new WmlDocument(assembledDocx.FullName);
+            int brCount = afterAssembling.MainDocumentPart
+                            .Element(W.body)
+                            .Elements(W.p).ElementAt(1)
+                            .Elements(W.r)
+                            .Elements(W.br).Count();
+            Assert.Equal(4, brCount);
         }
 
         [Theory]
