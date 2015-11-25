@@ -110,6 +110,7 @@ namespace OxPt
         [InlineData("DA236-Page-Num-in-Footer.docx", "DA-Content-List.xml", false)]
         [InlineData("DA237-SchemaErrorInRepeat.docx", "DA-Data.xml", true)]
         [InlineData("DA238-SchemaErrorInConditional.docx", "DA-Data.xml", true)]
+        [InlineData("DA239-RunLevelCC-Repeat.docx", "DA-Data.xml", false)]
 
         [InlineData("DA250-ConditionalWithRichXPath.docx", "DA250-Address.xml", false)]
         [InlineData("DA251-EnhancedTables.docx", "DA-Data.xml", false)]
@@ -121,6 +122,10 @@ namespace OxPt
         [InlineData("DA257-OptionalRepeat.docx", "DA-Data.xml", false)]
         [InlineData("DA258-ContentAcceptsCharsAsXPathResult.docx", "DA-Data.xml", false)]
         [InlineData("DA259-MultiLineContents.docx", "DA-Data.xml", false)]
+        [InlineData("DA260-RunLevelRepeat.docx", "DA-Data.xml", false)]
+        [InlineData("DA261-RunLevelConditional.docx", "DA-Data.xml", false)]
+        [InlineData("DA262-ConditionalNotMatch.docx", "DA-Data.xml", false)]
+        [InlineData("DA263-ConditionalNotMatch.docx", "DA-DataSmallCustomer.xml", false)]
         
         public void DA101(string name, string data, bool err)
         {

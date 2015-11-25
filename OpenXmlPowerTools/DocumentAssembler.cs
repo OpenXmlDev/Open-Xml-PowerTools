@@ -74,6 +74,13 @@ namespace OpenXmlPowerTools
             xDocRoot = (XElement)NormalizeContentControlsInCells(xDocRoot);
 
             xDocRoot = (XElement)TransformToMetadata(xDocRoot, data, te);
+
+            // Table might have been placed at run-level, when it should be at block-level, so fix this.
+            // Repeat, EndRepeat, Conditional, EndConditional are allowed at run level, but only if there is a matching pair
+            // if there is only one Repeat, EndRepeat, Conditional, EndConditional, then move to block level.
+            // if there is a matching pair, then is OK.
+            xDocRoot = (XElement)ForceBlockLevel(xDocRoot, te);
+
             NormalizeTablesRepeatAndConditional(xDocRoot, te);
 
             // any EndRepeat, EndConditional that remain are orphans, so replace with an error
@@ -85,6 +92,56 @@ namespace OpenXmlPowerTools
             xDoc.Elements().First().ReplaceWith(xDocRoot);
             part.PutXDocument();
             return;
+        }
+
+        private static XName[] s_MetaToForceToBlock = new XName[] {
+            PA.Conditional,
+            PA.EndConditional,
+            PA.Repeat,
+            PA.EndRepeat,
+            PA.Table,
+        };
+
+        private static object ForceBlockLevel(XNode node, TemplateError te)
+        {
+            XElement element = node as XElement;
+            if (element != null)
+            {
+                if (element.Name == W.p)
+                {
+                    var childMeta = element.Elements().Where(n => s_MetaToForceToBlock.Contains(n.Name)).ToList();
+                    if (childMeta.Count() == 1)
+                    {
+                        var child = childMeta.First();
+                        var meta = new XElement(child.Name,
+                            child.Attributes(),
+                            new XElement(W.p,
+                                element.Attributes(),
+                                element.Elements(W.pPr),
+                                child.Elements()));
+                        return meta;
+                    }
+                    var count = childMeta.Count();
+                    if (count % 2 == 0)
+                    {
+                        if (childMeta.Where(c => c.Name == PA.Repeat).Count() != childMeta.Where(c => c.Name == PA.EndRepeat).Count())
+                            return CreateContextErrorMessage(element, "Error: Mismatch Repeat / EndRepeat at run level", te);
+                        if (childMeta.Where(c => c.Name == PA.Conditional).Count() != childMeta.Where(c => c.Name == PA.EndConditional).Count())
+                            return CreateContextErrorMessage(element, "Error: Mismatch Conditional / EndConditional at run level", te);
+                        return new XElement(element.Name,
+                            element.Attributes(),
+                            element.Nodes().Select(n => ForceBlockLevel(n, te)));
+                    }
+                    else
+                    {
+                        return CreateContextErrorMessage(element, "Error: Invalid metadata at run level", te);
+                    }
+                }
+                return new XElement(element.Name,
+                    element.Attributes(),
+                    element.Nodes().Select(n => ForceBlockLevel(n, te)));
+            }
+            return node;
         }
 
         private static void ProcessOrphanEndRepeatEndConditional(XElement xDocRoot, TemplateError te)
@@ -469,7 +526,8 @@ namespace OpenXmlPowerTools
                                   <xs:element name='Conditional'>
                                     <xs:complexType>
                                       <xs:attribute name='Select' type='xs:string' use='required' />
-                                      <xs:attribute name='Match' type='xs:string' use='required' />
+                                      <xs:attribute name='Match' type='xs:string' use='optional' />
+                                      <xs:attribute name='NotMatch' type='xs:string' use='optional' />
                                     </xs:complexType>
                                   </xs:element>
                                 </xs:schema>",
@@ -522,6 +580,7 @@ namespace OpenXmlPowerTools
             public static XName Select = "Select";
             public static XName Optional = "Optional";
             public static XName Match = "Match";
+            public static XName NotMatch = "NotMatch";
             public static XName Depth = "Depth";
         }
 
@@ -697,6 +756,13 @@ namespace OpenXmlPowerTools
                 {
                     string xPath = (string)element.Attribute(PA.Select);
                     var match = (string)element.Attribute(PA.Match);
+                    var notMatch = (string)element.Attribute(PA.NotMatch);
+
+                    if (match == null && notMatch == null)
+                        return CreateContextErrorMessage(element, "Conditional: Must specify either Match or NotMatch", templateError);
+                    if (match != null && notMatch != null)
+                        return CreateContextErrorMessage(element, "Conditional: Cannot specify both Match and NotMatch", templateError);
+
                     string testValue = null; 
                    
                     try
@@ -708,7 +774,7 @@ namespace OpenXmlPowerTools
                         return CreateContextErrorMessage(element, e.Message, templateError);
                     }
                   
-                    if (testValue == match)
+                    if ((match != null && testValue == match) || (notMatch != null && testValue != notMatch))
                     {
                         var content = element.Elements().Select(e => ContentReplacementTransform(e, data, templateError));
                         return content;
