@@ -79,7 +79,7 @@ namespace OpenXmlPowerTools
             // Repeat, EndRepeat, Conditional, EndConditional are allowed at run level, but only if there is a matching pair
             // if there is only one Repeat, EndRepeat, Conditional, EndConditional, then move to block level.
             // if there is a matching pair, then is OK.
-            xDocRoot = (XElement)ForceBlockLevel(xDocRoot, te);
+            xDocRoot = (XElement)ForceBlockLevelAsAppropriate(xDocRoot, te);
 
             NormalizeTablesRepeatAndConditional(xDocRoot, te);
 
@@ -102,7 +102,7 @@ namespace OpenXmlPowerTools
             PA.Table,
         };
 
-        private static object ForceBlockLevel(XNode node, TemplateError te)
+        private static object ForceBlockLevelAsAppropriate(XNode node, TemplateError te)
         {
             XElement element = node as XElement;
             if (element != null)
@@ -113,6 +113,14 @@ namespace OpenXmlPowerTools
                     if (childMeta.Count() == 1)
                     {
                         var child = childMeta.First();
+                        var otherTextInParagraph = element.Elements(W.r).Elements(W.t).Select(t => (string)t).StringConcatenate().Trim();
+                        if (otherTextInParagraph != "")
+                        {
+                            var newPara = new XElement(element);
+                            var newMeta = newPara.Elements().Where(n => s_MetaToForceToBlock.Contains(n.Name)).First();
+                            newMeta.ReplaceWith(CreateRunErrorMessage("Error: Unmatched metadata can't be in paragraph with other text", te));
+                            return newPara;
+                        }
                         var meta = new XElement(child.Name,
                             child.Attributes(),
                             new XElement(W.p,
@@ -130,7 +138,7 @@ namespace OpenXmlPowerTools
                             return CreateContextErrorMessage(element, "Error: Mismatch Conditional / EndConditional at run level", te);
                         return new XElement(element.Name,
                             element.Attributes(),
-                            element.Nodes().Select(n => ForceBlockLevel(n, te)));
+                            element.Nodes().Select(n => ForceBlockLevelAsAppropriate(n, te)));
                     }
                     else
                     {
@@ -139,7 +147,7 @@ namespace OpenXmlPowerTools
                 }
                 return new XElement(element.Name,
                     element.Attributes(),
-                    element.Nodes().Select(n => ForceBlockLevel(n, te)));
+                    element.Nodes().Select(n => ForceBlockLevelAsAppropriate(n, te)));
             }
             return node;
         }
