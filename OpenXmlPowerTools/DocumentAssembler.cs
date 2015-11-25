@@ -68,22 +68,37 @@ namespace OpenXmlPowerTools
         {
             XDocument xDoc = part.GetXDocument();
 
-            var removedBookmarksXDoc = RemoveGoBackBookmarks(xDoc.Root);
+            var xDocRoot = RemoveGoBackBookmarks(xDoc.Root);
 
             // content controls in cells can surround the W.tc element, so transform so that such content controls are within the cell content
-            XElement normalizedContentControlsInCells = (XElement)NormalizeContentControlsInCells(removedBookmarksXDoc);
+            xDocRoot = (XElement)NormalizeContentControlsInCells(xDocRoot);
 
-            XElement newRootElementWithMetadata = (XElement)TransformToMetadata(normalizedContentControlsInCells, data, te);
+            xDocRoot = (XElement)TransformToMetadata(xDocRoot, data, te);
+            NormalizeTablesRepeatAndConditional(xDocRoot, te);
 
-            NormalizeTablesRepeatAndConditional(newRootElementWithMetadata, te);
-            XElement newRootElement = newRootElementWithMetadata;
+            // any EndRepeat, EndConditional that remain are orphans, so replace with an error
+            ProcessOrphanEndRepeatEndConditional(xDocRoot, te);
 
             // do the actual content replacement
-            newRootElement = (XElement)ContentReplacementTransform(newRootElement, data, te);
+            xDocRoot = (XElement)ContentReplacementTransform(xDocRoot, data, te);
 
-            xDoc.Elements().First().ReplaceWith(newRootElement);
+            xDoc.Elements().First().ReplaceWith(xDocRoot);
             part.PutXDocument();
             return;
+        }
+
+        private static void ProcessOrphanEndRepeatEndConditional(XElement xDocRoot, TemplateError te)
+        {
+            foreach (var element in xDocRoot.Descendants(PA.EndRepeat).ToList())
+            {
+                var error = CreateContextErrorMessage(element, "Error: EndRepeat without matching Repeat", te);
+                element.ReplaceWith(error);
+            }
+            foreach (var element in xDocRoot.Descendants(PA.EndConditional).ToList())
+            {
+                var error = CreateContextErrorMessage(element, "Error: EndConditional without matching Conditional", te);
+                element.ReplaceWith(error);
+            }
         }
 
         private static XElement RemoveGoBackBookmarks(XElement xElement)

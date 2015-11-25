@@ -68,9 +68,13 @@ namespace OxPt
         [InlineData("DA032-TooMuchDataForConditional.docx", "DA-TooMuchDataForConditional.xml", true)]
         [InlineData("DA033-ConditionalOnAttribute.docx", "DA-ConditionalOnAttribute.xml", false)]
         [InlineData("DA034-HeaderFooter.docx", "DA-Data.xml", false)]
+        [InlineData("DA035-SchemaErrorInRepeat.docx", "DA-Data.xml", true)]
+        [InlineData("DA036-SchemaErrorInConditional.docx", "DA-Data.xml", true)]
+
         [InlineData("DA100-TemplateDocument.docx", "DA-Data.xml", false)]
         [InlineData("DA101-TemplateDocument.docx", "DA-Data.xml", true)]
         [InlineData("DA102-TemplateDocument.docx", "DA-Data.xml", true)]
+
         [InlineData("DA201-TemplateDocument.docx", "DA-Data.xml", false)]
         [InlineData("DA202-TemplateDocument.docx", "DA-DataNotHighValueCust.xml", false)]
         [InlineData("DA203-Select-XPathFindsNoData.docx", "DA-Data.xml", true)]
@@ -104,6 +108,9 @@ namespace OxPt
         [InlineData("DA234-HeaderFooter.docx", "DA-Data.xml", false)]
         [InlineData("DA235-Crashes.docx", "DA-Content-List.xml", false)]
         [InlineData("DA236-Page-Num-in-Footer.docx", "DA-Content-List.xml", false)]
+        [InlineData("DA237-SchemaErrorInRepeat.docx", "DA-Data.xml", true)]
+        [InlineData("DA238-SchemaErrorInConditional.docx", "DA-Data.xml", true)]
+
         [InlineData("DA250-ConditionalWithRichXPath.docx", "DA250-Address.xml", false)]
         [InlineData("DA251-EnhancedTables.docx", "DA-Data.xml", false)]
         [InlineData("DA252-Table-With-Sum.docx", "DA-Data.xml", false)]
