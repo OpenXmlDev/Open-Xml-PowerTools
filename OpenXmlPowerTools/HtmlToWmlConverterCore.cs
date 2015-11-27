@@ -803,7 +803,11 @@ namespace OpenXmlPowerTools.HtmlToWml
                         }
                         catch (UriFormatException)
                         {
-                            return null;
+                            XElement rPr = GetRunProperties(element, settings);
+                            XElement run = new XElement(W.r,
+                                    rPr,
+                                    new XElement(W.t, element.Value));
+                            return new[] { run };
                         }
 
                         if (uri != null)
@@ -1018,9 +1022,20 @@ namespace OpenXmlPowerTools.HtmlToWml
                     var hasOtherThanSpansAndParas = element.Descendants().Any(d => d.Name != XhtmlNoNamespace.span && d.Name != XhtmlNoNamespace.p);
                     if (tdText != "" || hasOtherThanSpansAndParas)
                     {
+                        var newElementRaw = new XElement("dummy", element.Nodes().Select(n => Transform(n, settings, wDoc, NextExpected.Paragraph, preserveWhiteSpace)));
+                        var newElements = new XElement("dummy",
+                            newElementRaw
+                            .Elements()
+                            .Select(e =>
+                            {
+                                if (e.Name == W.hyperlink || e.Name == W.r)
+                                    return new XElement(W.p, e);
+                                return e;
+                            }));
+
                         return new XElement(W.tc,
                             GetCellProperties(element),
-                            element.Nodes().Select(n => Transform(n, settings, wDoc, NextExpected.Paragraph, preserveWhiteSpace)));
+                            newElements.Elements());
                     }
                     else
                     {

@@ -116,6 +116,8 @@ namespace OxPt
         [InlineData("T0410.html")]
         [InlineData("T0420.html")]
         [InlineData("T0430.html")]
+        [InlineData("T0431.html")]
+        [InlineData("T0432.html")]
         [InlineData("T0440.html")]
         [InlineData("T0450.html")]
         [InlineData("T0460.html")]
