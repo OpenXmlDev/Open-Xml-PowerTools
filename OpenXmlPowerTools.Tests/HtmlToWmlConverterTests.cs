@@ -287,6 +287,11 @@ namespace OxPt
         [InlineData("T1690.html")]
         [InlineData("T1700.html")]
         [InlineData("T1710.html")]
+        [InlineData("T1800.html")]
+        [InlineData("T1810.html")]
+        [InlineData("T1820.html")]
+        [InlineData("T1830.html")]
+
         public void HW001(string name)
         {
 #if false

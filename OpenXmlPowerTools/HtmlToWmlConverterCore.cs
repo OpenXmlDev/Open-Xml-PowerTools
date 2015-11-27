@@ -2314,23 +2314,40 @@ namespace OpenXmlPowerTools.HtmlToWml
 
         private static XElement TransformImageToWml(XElement element, HtmlToWmlConverterSettings settings, WordprocessingDocument wDoc)
         {
-            string imageName = (string)element.Attribute(XhtmlNoNamespace.src);
-            Bitmap bmp;
-            try
+            string srcAttribute = (string)element.Attribute(XhtmlNoNamespace.src);
+            byte[] ba = null;
+            Bitmap bmp = null;
+
+            if (srcAttribute.StartsWith("data:"))
             {
-                bmp = new Bitmap(settings.BaseUriForImages + "/" + imageName);
+                var semiIndex = srcAttribute.IndexOf(';');
+                var commaIndex = srcAttribute.IndexOf(',', semiIndex);
+                var base64 = srcAttribute.Substring(commaIndex + 1);
+                ba = Convert.FromBase64String(base64);
+                using (MemoryStream ms = new MemoryStream(ba))
+                {
+                    bmp = new Bitmap(ms);
+                }
             }
-            catch (ArgumentException)
+            else
             {
-                return null;
+                try
+                {
+                    bmp = new Bitmap(settings.BaseUriForImages + "/" + srcAttribute);
+                }
+                catch (ArgumentException)
+                {
+                    return null;
+                }
+                catch (NotSupportedException)
+                {
+                    return null;
+                }
+                MemoryStream ms = new MemoryStream();
+                bmp.Save(ms, bmp.RawFormat);
+                ba = ms.ToArray();
             }
-            catch (NotSupportedException)
-            {
-                return null;
-            }
-            MemoryStream ms = new MemoryStream();
-            bmp.Save(ms, bmp.RawFormat);
-            byte[] ba = ms.ToArray();
+
             MainDocumentPart mdp = wDoc.MainDocumentPart;
             string rId = "R" + Guid.NewGuid().ToString().Replace("-", "");
             ImagePartType ipt = ImagePartType.Png;

@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{396D9209-0D9A-4E61-9471-04C71F6CA6B9}</ProjectGuid>
+    <ProjectGuid>{D4078011-2611-46A7-8A30-55E4AB8FA786}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>WmlToHtmlConverter01</RootNamespace>
-    <AssemblyName>WmlToHtmlConverter01</AssemblyName>
+    <RootNamespace>WmlToHtmlConverter02</RootNamespace>
+    <AssemblyName>WmlToHtmlConverter02</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -34,13 +34,13 @@
   <ItemGroup>
     <Reference Include="DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\Open-Xml-Sdk\DocumentFormat.OpenXml\bin\Debug\DocumentFormat.OpenXml.dll</HintPath>
+      <HintPath>..\..\Open-Xml-Sdk\DocumentFormat.OpenXml\bin\Debug\DocumentFormat.OpenXml.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.IO.Packaging">
-      <HintPath>..\..\..\Open-Xml-Sdk\DocumentFormat.OpenXml\bin\Debug\System.IO.Packaging.dll</HintPath>
+      <HintPath>..\..\Open-Xml-Sdk\DocumentFormat.OpenXml\bin\Debug\System.IO.Packaging.dll</HintPath>
     </Reference>
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -49,14 +49,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="WmlToHtmlConverter01.cs" />
+    <Compile Include="WmlToHtmlConverter02.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\OpenXmlPowerTools\OpenXmlPowerTools.csproj">
+    <ProjectReference Include="..\OpenXmlPowerTools\OpenXmlPowerTools.csproj">
       <Project>{6f957ff3-afcc-4d69-8fbc-71ae21bc45c9}</Project>
       <Name>OpenXmlPowerTools</Name>
     </ProjectReference>

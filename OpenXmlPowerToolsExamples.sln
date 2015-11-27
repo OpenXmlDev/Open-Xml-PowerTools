@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
-VisualStudioVersion = 12.0.31101.0
+VisualStudioVersion = 12.0.21005.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenXmlPowerTools", "OpenXmlPowerTools\OpenXmlPowerTools.csproj", "{6F957FF3-AFCC-4D69-8FBC-71AE21BC45C9}"
 EndProject
@@ -69,6 +69,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{669B5F
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WmlToHtmlConverter01", "OpenXmlPowerToolsExamples\WmlToHtmlConverter01\WmlToHtmlConverter01.csproj", "{396D9209-0D9A-4E61-9471-04C71F6CA6B9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WmlToHtmlConverter02", "WmlToHtmlConverter02\WmlToHtmlConverter02.csproj", "{D4078011-2611-46A7-8A30-55E4AB8FA786}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -200,6 +202,10 @@ Global
 		{396D9209-0D9A-4E61-9471-04C71F6CA6B9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{396D9209-0D9A-4E61-9471-04C71F6CA6B9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{396D9209-0D9A-4E61-9471-04C71F6CA6B9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D4078011-2611-46A7-8A30-55E4AB8FA786}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D4078011-2611-46A7-8A30-55E4AB8FA786}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D4078011-2611-46A7-8A30-55E4AB8FA786}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D4078011-2611-46A7-8A30-55E4AB8FA786}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
