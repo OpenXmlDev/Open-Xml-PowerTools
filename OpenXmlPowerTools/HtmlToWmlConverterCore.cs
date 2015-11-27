@@ -813,6 +813,31 @@ namespace OpenXmlPowerTools.HtmlToWml
                         if (uri != null)
                         {
                             wDoc.MainDocumentPart.AddHyperlinkRelationship(uri, true, rId);
+                            if (element.Element(XhtmlNoNamespace.img) != null)
+                            {
+                                var imageTransformed = element.Nodes().Select(n => Transform(n, settings, wDoc, nextExpected, preserveWhiteSpace)).OfType<XElement>();
+                                var newImageTransformed = imageTransformed
+                                    .Select(i =>
+                                    {
+                                        if (i.Elements(W.drawing).Any())
+                                        {
+                                            var newRun = new XElement(i);
+                                            var docPr = newRun.Elements(W.drawing).Elements(WP.inline).Elements(WP.docPr).FirstOrDefault();
+                                            if (docPr != null)
+                                            {
+                                                var hlinkClick = new XElement(A.hlinkClick,
+                                                    new XAttribute(R.id, rId),
+                                                    new XAttribute(XNamespace.Xmlns + "a", A.a.NamespaceName));
+                                                docPr.Add(hlinkClick);
+                                            }
+                                            return newRun;
+                                        }
+                                        return i;
+                                    })
+                                    .ToList();
+                                return newImageTransformed;
+                            }
+
                             XElement rPr = GetRunProperties(element, settings);
                             XElement hyperlink = new XElement(W.hyperlink,
                                 new XAttribute(R.id, rId),

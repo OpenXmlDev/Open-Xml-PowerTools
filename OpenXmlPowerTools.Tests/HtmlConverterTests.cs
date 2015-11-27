@@ -100,6 +100,7 @@ namespace OxPt
         [InlineData("HC049-Borders.docx")]
         [InlineData("HC050-Shaded-Text-01.docx")]
         [InlineData("HC051-Shaded-Text-02.docx")]
+        [InlineData("HC060-Image-with-Hyperlink.docx")]
         public void HC001(string name)
         {
             FileInfo sourceDocx = new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, name));

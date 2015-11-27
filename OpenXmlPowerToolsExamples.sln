@@ -70,7 +70,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{669B5F
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WmlToHtmlConverter01", "OpenXmlPowerToolsExamples\WmlToHtmlConverter01\WmlToHtmlConverter01.csproj", "{396D9209-0D9A-4E61-9471-04C71F6CA6B9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WmlToHtmlConverter02", "WmlToHtmlConverter02\WmlToHtmlConverter02.csproj", "{D4078011-2611-46A7-8A30-55E4AB8FA786}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WmlToHtmlConverter02", "OpenXmlPowerToolsExamples\WmlToHtmlConverter02\WmlToHtmlConverter02.csproj", "{D4078011-2611-46A7-8A30-55E4AB8FA786}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

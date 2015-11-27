@@ -293,6 +293,8 @@ namespace OxPt
         [InlineData("T1810.html")]
         [InlineData("T1820.html")]
         [InlineData("T1830.html")]
+        [InlineData("T1840.html")]
+        [InlineData("T1850.html")]
 
         public void HW001(string name)
         {
@@ -377,12 +379,6 @@ namespace OxPt
                     File.Copy(file.FullName, destImageDi.FullName + "/" + file.Name);
                 }
             }
-            FileInfo img1Fi = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, "img.png"));
-            FileInfo img2Fi = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, "img2.png"));
-            if (!img1Fi.Exists)
-                File.Copy(Path.Combine(TestUtil.SourceDir.FullName, "img.png"), img1Fi.FullName);
-            if (!img2Fi.Exists)
-                File.Copy(Path.Combine(TestUtil.SourceDir.FullName, "img2.png"), img2Fi.FullName);
 
             HtmlToWmlConverterSettings settings = HtmlToWmlConverter.GetDefaultSettings();
             // image references in HTML files contain the path to the subdir that contains the images, so base URI is the name of the directory

@@ -3114,6 +3114,25 @@ namespace OpenXmlPowerTools
                 .FirstOrDefault(e => e.Name == WP.inline || e.Name == WP.anchor);
             if (containerElement == null) return null;
 
+            string hyperlinkUri = null;
+            var hyperlinkElement = element
+                .Elements(WP.inline)
+                .Elements(WP.docPr)
+                .Elements(A.hlinkClick)
+                .FirstOrDefault();
+            if (hyperlinkElement != null)
+            {
+                var rId = (string)hyperlinkElement.Attribute(R.id);
+                if (rId != null)
+                {
+                    var hyperlinkRel = wordDoc.MainDocumentPart.HyperlinkRelationships.FirstOrDefault(hlr => hlr.Id == rId);
+                    if (hyperlinkRel != null)
+                    {
+                        hyperlinkUri = hyperlinkRel.Uri.ToString();
+                    }
+                }
+            }
+
             var extentCx = (int?)containerElement.Elements(WP.extent)
                 .Attributes(NoNamespace.cx).FirstOrDefault();
             var extentCy = (int?)containerElement.Elements(WP.extent)
@@ -3166,7 +3185,14 @@ namespace OpenXmlPowerTools
                         DrawingElement = element,
                         AltText = altText,
                     };
-                    return imageHandler(imageInfo);
+                    var imgElement2 = imageHandler(imageInfo);
+                    if (hyperlinkUri != null)
+                    {
+                        return new XElement(XhtmlNoNamespace.a,
+                            new XAttribute(XhtmlNoNamespace.href, hyperlinkUri),
+                            imgElement2);
+                    }
+                    return imgElement2;
                 }
 
                 var imageInfo2 = new ImageInfo()
@@ -3176,7 +3202,14 @@ namespace OpenXmlPowerTools
                     DrawingElement = element,
                     AltText = altText,
                 };
-                return imageHandler(imageInfo2);
+                var imgElement = imageHandler(imageInfo2);
+                if (hyperlinkUri != null)
+                {
+                    return new XElement(XhtmlNoNamespace.a,
+                        new XAttribute(XhtmlNoNamespace.href, hyperlinkUri),
+                        imgElement);
+                }
+                return imgElement;
             }
         }
 
