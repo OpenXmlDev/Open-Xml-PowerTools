@@ -71,6 +71,8 @@
     <Compile Include="PresentationBuilderTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RevisionAccepterTests.cs" />
+    <Compile Include="SmlCellFormatterTests.cs" />
+    <Compile Include="SmlToHtmlConverterTests.cs" />
     <Compile Include="SpreadsheetWriterTests.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -16,6 +16,7 @@ It supports scenarios such as:
 - Retrieving metrics from DOCX files, including the hierarchy of styles used, the languages used, and the fonts used.
 - Writing XLSX files using far simpler code than directly writing the markup, including a streaming approach that
   enables writing XLSX files with millions of rows.
+- Extracting data (along with formatting) from spreadsheets.
 
 Copyright (c) Microsoft Corporation 2012-2015
 Licensed under the Microsoft Public License.
@@ -23,8 +24,11 @@ See License.txt in the project root for license information.
 
 News
 ====
-We are happy to announce the release of the Open XML PowerTools Version 4.1.  The big new feature in 4.1 is HtmlToWmlConverter.cs, which is a module that implements a fairly high-fidelity
-conversion of HTML that is formatted with CSS into cannonical WordprocessingML (DOCX).
+We are happy to announce the release of the Open XML PowerTools Version 4.2.  The big new feature in 4.2 is SmlDataRetriever.cs, which is a module that extracts data, along with formatting
+information, from SpreadsheetML files (XLSX, XLSM, etc.)
+
+An smaller module, but equally interesting, is SmlCellFormatter.cs, which takes as arguments the raw value from the cell, and the formatCode, and produces the display text.  The
+SmlDataRetriever module uses SmlCellFormatter to compute the display values.
 
 Open-Xml-PowerTools Content
 ===========================
@@ -80,6 +84,10 @@ The short form of the installation instructions are:
 
 Change Log
 ==========
+
+Version 4.2 : December 11, 2015
+- New SmlDataRetriever module
+- New SmlCellFormatter module
 
 Version 4.1.3 : November 2, 2015
 - DocumentAssembler: Fix bug associated with duplicate bookmarks.

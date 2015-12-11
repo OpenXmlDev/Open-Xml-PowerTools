@@ -22,6 +22,7 @@ using System.Linq;
 using System.Text;
 using System.Xml.Linq;
 using DocumentFormat.OpenXml.Packaging;
+using System.IO;
 
 namespace OpenXmlPowerTools
 {
@@ -30,7 +31,12 @@ namespace OpenXmlPowerTools
         public int Id { get; set; }
         public string TableName { get; set; }
         public string DisplayName { get; set; }
+        public XElement TableStyleInfo { get; set; }
         public string Ref { get; set; }
+        public int LeftColumn { get; set; }
+        public int RightColumn { get; set; }
+        public int TopRow { get; set; }
+        public int BottomRow { get; set; }
         public int? HeaderRowCount { get; set; }
         public int? TotalsRowCount { get; set; }
         public string TableType { get; set; }  // external data query, data in worksheet, or XML data
@@ -49,8 +55,9 @@ namespace OpenXmlPowerTools
                     new TableColumn(this)
                     {
                         Id = (int)c.Attribute("id"),
+                        ColumnNumber = this.LeftColumn + i,
                         Name = (string)c.Attribute("name"),
-                        FormatId = (int?)c.Attribute("dataDxfId"),
+                        DataDxfId = (int?)c.Attribute("dataDxfId"),
                         QueryTableFieldId = (int?)c.Attribute("queryTableFieldId"),
                         UniqueName = (string)c.Attribute("uniqueName"),
                         ColumnIndex = i,
@@ -60,9 +67,9 @@ namespace OpenXmlPowerTools
         public IEnumerable<TableRow> TableRows()
         {
             string refStart = Ref.Split(':').First();
-            int rowStart = Int32.Parse(LocalExtensions.SplitAddress(refStart)[1]);
+            int rowStart = Int32.Parse(XlsxTables.SplitAddress(refStart)[1]);
             string refEnd = Ref.Split(':').ElementAt(1);
-            int rowEnd = Int32.Parse(LocalExtensions.SplitAddress(refEnd)[1]);
+            int rowEnd = Int32.Parse(XlsxTables.SplitAddress(refEnd)[1]);
             int headerRowsCount = HeaderRowCount == null ? 0 : (int)HeaderRowCount;
             int totalRowsCount = TotalsRowCount == null ? 0 : (int)TotalsRowCount;
             return Parent
@@ -83,9 +90,10 @@ namespace OpenXmlPowerTools
     {
         public int Id { get; set; }
         public string Name { get; set; }
-        public int? FormatId { get; set; }  // dataDxfId
+        public int? DataDxfId { get; set; }
         public int? QueryTableFieldId { get; set; }
         public string UniqueName { get; set; }
+        public int ColumnNumber { get; set; }
         public int ColumnIndex { get; set; }
         public Table Parent { get; set; }
         public TableColumn(Table parent) { Parent = parent; }
@@ -107,9 +115,9 @@ namespace OpenXmlPowerTools
                 if (tc == null)
                     throw new Exception("Invalid column name: " + columnName);
                 string[] refs = Parent.Ref.Split(':');
-                string[] startRefs = LocalExtensions.SplitAddress(refs[0]);
-                string columnAddress = (startRefs[0].ColumnAddressToIndex() + tc.ColumnIndex).IndexToColumnAddress();
-                Cell cell = Row.Cells().Where(c => c.ColumnId == columnAddress).FirstOrDefault();
+                string[] startRefs = XlsxTables.SplitAddress(refs[0]);
+                string columnAddress = XlsxTables.IndexToColumnAddress(XlsxTables.ColumnAddressToIndex(startRefs[0]) + tc.ColumnIndex);
+                Cell cell = Row.Cells().Where(c => c.ColumnAddress == columnAddress).FirstOrDefault();
                 if (cell != null)
                 {
                     if (cell.Type == "s")
@@ -258,36 +266,45 @@ namespace OpenXmlPowerTools
         public XElement RowElement { get; set; }
         public string RowId { get; set; }
         public string Spans { get; set; }
-        public IEnumerable<Cell> Cells()
+        public List<Cell> Cells()
         {
             XNamespace s = "http://schemas.openxmlformats.org/spreadsheetml/2006/main";
             SpreadsheetDocument doc = (SpreadsheetDocument)Parent.OpenXmlPackage;
             SharedStringTablePart sharedStringTable = doc.WorkbookPart.SharedStringTablePart;
-            return
-                from cell in this.RowElement.Elements(s + "c")
-                let cellType = (string)cell.Attribute("t")
-                let sharedString = cellType == "s" ?
-                    sharedStringTable
-                    .GetXDocument()
-                    .Root
-                    .Elements(s + "si")
-                    .Skip((int)cell.Element(s + "v"))
-                    .First()
-                    .Descendants(s + "t")
-                    .StringConcatenate(e => (string)e)
-                    : null
-                let column = (string)cell.Attribute("r")
-                select new Cell(this)
-                {
-                    CellElement = cell,
-                    Row = (string)RowElement.Attribute("r"),
-                    Column = column,
-                    ColumnId = column.Split('0', '1', '2', '3', '4', '5', '6', '7', '8', '9').First(),
-                    Type = (string)cell.Attribute("t"),
-                    Formula = (string)cell.Element(s + "f"),
-                    Value = (string)cell.Element(s + "v"),
-                    SharedString = sharedString
-                };
+            IEnumerable<XElement> cells = this.RowElement.Elements(S.c);
+            var r = cells
+                .Select(cell => {
+                    var cellType = (string)cell.Attribute("t");
+                    var sharedString = cellType == "s" ?
+                        sharedStringTable
+                        .GetXDocument()
+                        .Root
+                        .Elements(s + "si")
+                        .Skip((int)cell.Element(s + "v"))
+                        .First()
+                        .Descendants(s + "t")
+                        .StringConcatenate(e => (string)e)
+                        : null;
+                    var column = (string)cell.Attribute("r");
+                    var columnAddress = column.Split('0', '1', '2', '3', '4', '5', '6', '7', '8', '9').First();
+                    var columnIndex = XlsxTables.ColumnAddressToIndex(columnAddress);
+                    var newCell = new Cell(this)
+                    {
+                        CellElement = cell,
+                        Row = (string)RowElement.Attribute("r"),
+                        Column = column,
+                        ColumnAddress = columnAddress,
+                        ColumnIndex = columnIndex,
+                        Type = cellType,
+                        Formula = (string)cell.Element(S.f),
+                        Style = (int?)cell.Attribute("s"),
+                        Value = (string)cell.Element(S.v),
+                        SharedString = sharedString
+                    };
+                    return newCell;
+                });
+            var ra = r.ToList();
+            return ra;
         }
         public WorksheetPart Parent { get; set; }
         public Row(WorksheetPart parent) { Parent = parent; }
@@ -298,16 +315,18 @@ namespace OpenXmlPowerTools
         public XElement CellElement { get; set; }
         public string Row { get; set; }
         public string Column { get; set; }
-        public string ColumnId { get; set; }
+        public string ColumnAddress { get; set; }
+        public int ColumnIndex { get; set; }
         public string Type { get; set; }
         public string Value { get; set; }
         public string Formula { get; set; }
+        public int? Style { get; set; }
         public string SharedString { get; set; }
         public Row Parent { get; set; }
         public Cell(Row parent) { Parent = parent; }
     }
 
-    public static class LocalExtensions
+    public static class XlsxTables
     {
         public static IEnumerable<Table> Tables(this SpreadsheetDocument spreadsheet)
         {
@@ -321,6 +340,7 @@ namespace OpenXmlPowerTools
                         Id = (int)tableDefDoc.Root.Attribute("id"),
                         TableName = (string)tableDefDoc.Root.Attribute("name"),
                         DisplayName = (string)tableDefDoc.Root.Attribute("displayName"),
+                        TableStyleInfo = tableDefDoc.Root.Element(S.tableStyleInfo),
                         Ref = (string)tableDefDoc.Root.Attribute("ref"),
                         TotalsRowCount = (int?)tableDefDoc.Root.Attribute("totalsRowCount"),
                         //HeaderRowCount = (int?)tableDefDoc.Root.Attribute("headerRowCount"),
@@ -328,8 +348,29 @@ namespace OpenXmlPowerTools
                         TableType = (string)tableDefDoc.Root.Attribute("tableType"),
                         TableDefinitionPart = table
                     };
+                    int leftColumn, topRow, rightColumn, bottomRow;
+                    ParseRange(t.Ref, out leftColumn, out topRow, out rightColumn, out bottomRow);
+                    t.LeftColumn = leftColumn;
+                    t.TopRow = topRow;
+                    t.RightColumn = rightColumn;
+                    t.BottomRow = bottomRow;
                     yield return t;
                 }
+        }
+
+        public static void ParseRange(string theRef, out int leftColumn, out int topRow, out int rightColumn, out int bottomRow)
+        {
+            // C5:E7
+            var spl = theRef.Split(':');
+            string refStart = spl.First();
+            var refStartSplit = XlsxTables.SplitAddress(refStart);
+            leftColumn = XlsxTables.ColumnAddressToIndex(refStartSplit[0]);
+            topRow = Int32.Parse(refStartSplit[1]);
+
+            string refEnd = spl.ElementAt(1);
+            var refEndSplit = XlsxTables.SplitAddress(refEnd);
+            rightColumn = XlsxTables.ColumnAddressToIndex(refEndSplit[0]);
+            bottomRow = Int32.Parse(refEndSplit[1]);
         }
 
         public static Table Table(this SpreadsheetDocument spreadsheet,
@@ -341,18 +382,22 @@ namespace OpenXmlPowerTools
         public static IEnumerable<Row> Rows(this WorksheetPart worksheetPart)
         {
             XNamespace s = "http://schemas.openxmlformats.org/spreadsheetml/2006/main";
-            return
-                from row in worksheetPart
-                    .GetXDocument()
-                    .Root
-                    .Element(s + "sheetData")
-                    .Elements(s + "row")
-                select new Row(worksheetPart)
+            var rows = worksheetPart
+                .GetXDocument()
+                .Root
+                .Elements(S.sheetData)
+                .Elements(S.row)
+                .Select(r =>
                 {
-                    RowElement = row,
-                    RowId = (string)row.Attribute("r"),
-                    Spans = (string)row.Attribute("spans")
-                };
+                    var row = new Row(worksheetPart)
+                    {
+                        RowElement = r,
+                        RowId = (string)r.Attribute("r"),
+                        Spans = (string)r.Attribute("spans")
+                    };
+                    return row;
+                });
+            return rows;
         }
 
         public static string[] SplitAddress(string address)
@@ -362,14 +407,14 @@ namespace OpenXmlPowerTools
                 if (address[i] >= '0' && address[i] <= '9')
                     break;
             if (i == address.Length)
-                throw new Exception("Invalid cell address format");
+                throw new FileFormatException("Invalid spreadsheet.  Bad cell address.");
             return new[] {
                 address.Substring(0, i),
                 address.Substring(i)
             };
         }
 
-        public static string IndexToColumnAddress(this int index)
+        public static string IndexToColumnAddress(int index)
         {
             if (index < 26)
             {
@@ -401,7 +446,7 @@ namespace OpenXmlPowerTools
             throw new Exception("Invalid column address");
         }
 
-        public static int ColumnAddressToIndex(this string columnAddress)
+        public static int ColumnAddressToIndex(string columnAddress)
         {
             if (columnAddress.Length == 1)
             {
@@ -427,7 +472,7 @@ namespace OpenXmlPowerTools
                 int i3 = c3 - 'A';
                 return (i1 + 1) * 676 + (i2 + 1) * 26 + i3;
             }
-            throw new Exception("Invalid column address");
+            throw new FileFormatException("Invalid spreadsheet: Invalid column address.");
         }
     }
 }
