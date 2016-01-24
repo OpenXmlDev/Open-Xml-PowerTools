@@ -223,7 +223,7 @@ namespace OpenXmlPowerTools
             }
             if (numFmt == "01, 02, 03, ...")
             {
-                return string.Format("{0:000}", levelNumber);
+                return string.Format("{0:00}", levelNumber);
             }
             if (numFmt == "001, 002, 003, ...")
             {
