@@ -451,7 +451,7 @@ namespace OpenXmlPowerTools
             {
                 try
                 {
-                    return new XElement(Xhtml.a,
+                    var a = new XElement(Xhtml.a,
                         new XAttribute("href",
                             wordDoc.MainDocumentPart
                                 .HyperlinkRelationships
@@ -460,6 +460,9 @@ namespace OpenXmlPowerTools
                             ),
                         element.Elements(W.r).Select(run => ConvertRun(wordDoc, settings, run))
                         );
+                    if (!a.Nodes().Any())
+                        a.Add(new XText(""));
+                    return a;
                 }
                 catch (UriFormatException)
                 {
@@ -567,6 +570,8 @@ namespace OpenXmlPowerTools
             var a = new XElement(Xhtml.a,
                 new XAttribute("href", "#" + (string) element.Attribute(W.anchor)),
                 element.Elements(W.r).Select(run => ConvertRun(wordDoc, settings, run)));
+            if (!a.Nodes().Any())
+                a.Add(new XText(""));
             style.Add("text-decoration", "none");
             a.AddAnnotation(style);
             return a;
@@ -581,6 +586,8 @@ namespace OpenXmlPowerTools
             var a = new XElement(Xhtml.a,
                 new XAttribute("id", name),
                 new XText(""));
+            if (!a.Nodes().Any())
+                a.Add(new XText(""));
             style.Add("text-decoration", "none");
             a.AddAnnotation(style);
             return a;
@@ -3069,9 +3076,16 @@ namespace OpenXmlPowerTools
                         return g.Select(n => ConvertToHtmlTransform(wordDoc, settings, n, false, 0m));
 
                     var content = g.DescendantsAndSelf(W.r).Select(run => ConvertRun(wordDoc, settings, run));
-                    return parsed.Arguments.Length > 0
+                    var a = parsed.Arguments.Length > 0
                         ? new XElement(Xhtml.a, new XAttribute("href", parsed.Arguments[0]), content)
                         : new XElement(Xhtml.a, content);
+                    var a2 = a as XElement;
+                    if (!a2.Nodes().Any())
+                    {
+                        a2.Add(new XText(""));
+                        return a2;
+                    }
+                    return a;
                 })
                 .ToList();
 
