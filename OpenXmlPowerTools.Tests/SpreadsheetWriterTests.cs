@@ -30,6 +30,8 @@ using DocumentFormat.OpenXml.Validation;
 using Sw = OpenXmlPowerTools;
 using Xunit;
 
+#if !ELIDE_XUNIT_TESTS
+
 namespace OxPt
 {
     public class SwTests
@@ -355,3 +357,5 @@ namespace OxPt
         };
     }
 }
+
+#endif

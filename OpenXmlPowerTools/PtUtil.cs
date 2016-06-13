@@ -466,6 +466,21 @@ namespace OpenXmlPowerTools
             }
         }
 
+        public static IEnumerable<TResult> Rollup<TSource, TResult>(
+            this IEnumerable<TSource> source,
+            TResult seed,
+            Func<TSource, TResult, int, TResult> projection)
+        {
+            TResult nextSeed = seed;
+            int index = 0;
+            foreach (TSource src in source)
+            {
+                TResult projectedValue = projection(src, nextSeed, index++);
+                nextSeed = projectedValue;
+                yield return projectedValue;
+            }
+        }
+
         public static IEnumerable<TSource> SequenceAt<TSource>(this TSource[] source, int index)
         {
             int i = index;

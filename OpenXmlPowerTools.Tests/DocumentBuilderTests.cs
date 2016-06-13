@@ -30,6 +30,9 @@ using DocumentFormat.OpenXml.Validation;
 using OpenXmlPowerTools;
 using Xunit;
 
+#if !ELIDE_XUNIT_TESTS
+
+
 namespace OxPt
 {
     public class DbTests
@@ -411,3 +414,4 @@ namespace OxPt
         
     }
 }
+#endif

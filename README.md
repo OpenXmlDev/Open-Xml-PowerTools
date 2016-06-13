@@ -13,22 +13,21 @@ It supports scenarios such as:
 - Searching and replacing content in DOCX/PPTX using regular expressions.
 - Managing tracked-revisions, including detecting tracked revisions, and accepting tracked revisions.
 - Updating Charts in DOCX/PPTX files, including updating cached data, as well as the embedded XLSX.
+- Comparing two DOCX files, producing a DOCX with revision tracking markup, and enabling retrieving a list of revisions.
 - Retrieving metrics from DOCX files, including the hierarchy of styles used, the languages used, and the fonts used.
 - Writing XLSX files using far simpler code than directly writing the markup, including a streaming approach that
   enables writing XLSX files with millions of rows.
 - Extracting data (along with formatting) from spreadsheets.
 
-Copyright (c) Microsoft Corporation 2012-2015
+Copyright (c) Microsoft Corporation 2012-2016
+Portions Copyright (c) Eric White 2016
 Licensed under the Microsoft Public License.
 See License.txt in the project root for license information.
 
 News
 ====
-We are happy to announce the release of the Open XML PowerTools Version 4.2.  The big new feature in 4.2 is SmlDataRetriever.cs, which is a module that extracts data, along with formatting
-information, from SpreadsheetML files (XLSX, XLSM, etc.)
-
-An smaller module, but equally interesting, is SmlCellFormatter.cs, which takes as arguments the raw value from the cell, and the formatCode, and produces the display text.  The
-SmlDataRetriever module uses SmlCellFormatter to compute the display values.
+We are happy to announce the release of the Open XML PowerTools Version 4.3.  The big new feature in 4.3 is WmlComparer.cs, which is a module that compares two DOCX files and
+produces a DOCX with revision tracking markup.  It enables retreiving a list of revisions.
 
 Open-Xml-PowerTools Content
 ===========================
@@ -84,6 +83,9 @@ The short form of the installation instructions are:
 
 Change Log
 ==========
+
+Version 4.3 : June 13, 2016
+- New WmlComparer module
 
 Version 4.2 : December 11, 2015
 - New SmlDataRetriever module

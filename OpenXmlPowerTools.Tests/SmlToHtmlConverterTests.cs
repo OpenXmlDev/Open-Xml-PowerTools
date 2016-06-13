@@ -29,6 +29,8 @@ using DocumentFormat.OpenXml.Packaging;
 using OpenXmlPowerTools;
 using Xunit;
 
+#if !ELIDE_XUNIT_TESTS
+
 namespace OxPt
 {
     public class ShTests
@@ -131,7 +133,7 @@ namespace OxPt
             FileInfo sourceXlsx = new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, name));
 
             var sourceCopiedToDestXlsx = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, sourceXlsx.Name.Replace(".xlsx", "-1-Source.xlsx")));
-            if (! sourceCopiedToDestXlsx.Exists)
+            if (!sourceCopiedToDestXlsx.Exists)
                 File.Copy(sourceXlsx.FullName, sourceCopiedToDestXlsx.FullName);
 
             var dataTemplateFileNameSuffix = string.Format("-2-Generated-XmlData-{0}.xml", range.Replace(":", ""));
@@ -161,7 +163,8 @@ namespace OxPt
             FileInfo sourceXlsx = new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, name));
 
             var sourceCopiedToDestXlsx = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, sourceXlsx.Name.Replace(".xlsx", "-1-Source.xlsx")));
-            File.Copy(sourceXlsx.FullName, sourceCopiedToDestXlsx.FullName);
+            if (!sourceCopiedToDestXlsx.Exists)
+                File.Copy(sourceXlsx.FullName, sourceCopiedToDestXlsx.FullName);
 
             var dataXmlFi = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, sourceXlsx.Name.Replace(".xlsx", "-2-Generated-XmlData.xml")));
             using (SpreadsheetDocument sDoc = SpreadsheetDocument.Open(sourceXlsx.FullName, true))
@@ -198,3 +201,5 @@ namespace OxPt
         }
     }
 }
+
+#endif

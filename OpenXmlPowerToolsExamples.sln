@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
-VisualStudioVersion = 12.0.21005.1
+VisualStudioVersion = 12.0.40629.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenXmlPowerTools", "OpenXmlPowerTools\OpenXmlPowerTools.csproj", "{6F957FF3-AFCC-4D69-8FBC-71AE21BC45C9}"
 EndProject
@@ -73,6 +73,10 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WmlToHtmlConverter02", "OpenXmlPowerToolsExamples\WmlToHtmlConverter02\WmlToHtmlConverter02.csproj", "{D4078011-2611-46A7-8A30-55E4AB8FA786}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SmlDataRetriever01", "OpenXmlPowerToolsExamples\SmlDataRetriever01\SmlDataRetriever01.csproj", "{DCE8EC51-1E58-49A0-82CF-5BE269FA0A9D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WmlComparer01", "OpenXmlPowerToolsExamples\WmlComparer01\WmlComparer01.csproj", "{C9CAA69C-575A-442E-9D8A-69C53B39D72C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WmlComparer02", "OpenXmlPowerToolsExamples\WmlComparer02\WmlComparer02.csproj", "{3D1C46E1-7A9E-4A4B-8D95-68613603DEDF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -212,6 +216,14 @@ Global
 		{DCE8EC51-1E58-49A0-82CF-5BE269FA0A9D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DCE8EC51-1E58-49A0-82CF-5BE269FA0A9D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DCE8EC51-1E58-49A0-82CF-5BE269FA0A9D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C9CAA69C-575A-442E-9D8A-69C53B39D72C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C9CAA69C-575A-442E-9D8A-69C53B39D72C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C9CAA69C-575A-442E-9D8A-69C53B39D72C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C9CAA69C-575A-442E-9D8A-69C53B39D72C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3D1C46E1-7A9E-4A4B-8D95-68613603DEDF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3D1C46E1-7A9E-4A4B-8D95-68613603DEDF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3D1C46E1-7A9E-4A4B-8D95-68613603DEDF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3D1C46E1-7A9E-4A4B-8D95-68613603DEDF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

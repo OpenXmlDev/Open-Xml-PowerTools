@@ -1352,6 +1352,7 @@ namespace OpenXmlPowerTools
                             return a2;
                         });
                     var tr = new XElement(W.tr,
+                        element.Attributes(),
                         groupedCells.Select(g =>
                         {
                             if (g.Key.CollectionType == DeletedCellCollectionType.DeletedCell

@@ -59,5 +59,18 @@ namespace OpenXmlPowerTools
                 }
             }
         }
+
+        public static void NotePad(string str)
+        {
+            var guidName = Guid.NewGuid().ToString().Replace("-", "") + ".txt";
+            var fi = new FileInfo(Path.Combine(TempDir.FullName, guidName));
+            File.WriteAllText(fi.FullName, str);
+            var notepadExe = new FileInfo(@"C:\Program Files (x86)\Notepad++\notepad++.exe");
+            if (!notepadExe.Exists)
+                notepadExe = new FileInfo(@"C:\Program Files\Notepad++\notepad++.exe");
+            if (!notepadExe.Exists)
+                notepadExe = new FileInfo(@"C:\Windows\System32\notepad.exe");
+            ExecutableRunner.RunExecutable(notepadExe.FullName, fi.FullName, TempDir.FullName);
+        }
     }
 }
