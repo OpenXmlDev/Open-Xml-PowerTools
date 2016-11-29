@@ -350,7 +350,7 @@ namespace OpenXmlPowerTools
                                 var newFirstRun = new XElement(W.r,
                                     firstRun.Element(W.rPr),
                                     new XElement(W.t,
-                                        CreateXmlSpacePreserveAttribute(replacement),
+                                        GetXmlSpaceAttribute(replacement),
                                         replacement)); // creates a new run with proper run properties
 
                                 if (firstRun.Parent?.Name == W.ins)
@@ -437,9 +437,9 @@ namespace OpenXmlPowerTools
                         revisionTrackingAuthor, replInfo, coalesceContent)));
         }
 
-        private static XAttribute CreateXmlSpacePreserveAttribute(string text)
+        private static XAttribute GetXmlSpaceAttribute(string value)
         {
-            return (text.Length > 0) && ((text[0] == ' ') || (text[text.Length - 1] == ' '))
+            return (value.Length > 0) && ((value[0] == ' ') || (value[value.Length - 1] == ' '))
                 ? new XAttribute(XNamespace.Xml + "space", "preserve")
                 : null;
         }
@@ -476,10 +476,14 @@ namespace OpenXmlPowerTools
                                 XAttribute dateIns = ce.Attribute(W.date);
                                 XAttribute dateDel = ce.Element(W.del)?.Attribute(W.date);
 
-                                string authorIns = (string)ce.Attribute(W.author) ?? string.Empty;
-                                string dateInsString = dateIns != null ? ((DateTime) dateIns).ToString("s") : string.Empty;
+                                string authorIns = (string) ce.Attribute(W.author) ?? string.Empty;
+                                string dateInsString = dateIns != null
+                                    ? ((DateTime) dateIns).ToString("s")
+                                    : string.Empty;
                                 string authorDel = (string) ce.Element(W.del)?.Attribute(W.author) ?? string.Empty;
-                                string dateDelString = dateDel != null ? ((DateTime)dateDel).ToString("s") : string.Empty;
+                                string dateDelString = dateDel != null
+                                    ? ((DateTime) dateDel).ToString("s")
+                                    : string.Empty;
 
                                 return "Wins" +
                                        authorIns +
@@ -539,7 +543,7 @@ namespace OpenXmlPowerTools
                             .Where(d => (d.Name == W.t) || (d.Name == W.delText))
                             .Select(t => t.Value)
                             .StringConcatenate()).StringConcatenate();
-                    XAttribute xs = CreateXmlSpacePreserveAttribute(textValue);
+                    XAttribute xs = GetXmlSpaceAttribute(textValue);
 
                     if (g.First().Name == W.r)
                         return new XElement(W.r,
@@ -581,7 +585,7 @@ namespace OpenXmlPowerTools
 
             if (element.Name == W.t)
                 return new XElement(W.delText,
-                    CreateXmlSpacePreserveAttribute(element.Value),
+                    GetXmlSpaceAttribute(element.Value),
                     element.Value);
 
             return new XElement(element.Name,
@@ -688,7 +692,7 @@ namespace OpenXmlPowerTools
                                 return (object) g;
 
                             string textValue = g.Select(r => r.Element(A.t)?.Value).StringConcatenate();
-                            XAttribute xs = CreateXmlSpacePreserveAttribute(textValue);
+                            XAttribute xs = GetXmlSpaceAttribute(textValue);
                             return new XElement(A.r,
                                 g.First().Elements(A.rPr),
                                 new XElement(A.t, xs, textValue));
