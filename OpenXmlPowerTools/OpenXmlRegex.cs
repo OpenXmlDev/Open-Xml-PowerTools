@@ -153,11 +153,12 @@ namespace OpenXmlPowerTools
 
                 XElement root = contentList.First().AncestorsAndSelf().Last();
                 int nextId = new[] { 0 }
-                                 .Concat(root.Descendants()
-                                         .Where(d => RevTrackMarkupWithId.Contains(d.Name))
-                                         .Attributes(W.id)
-                                         .Select(a => (int) a)
-                                 ).Max() + 1;
+                                 .Concat(root
+                                     .Descendants()
+                                     .Where(d => RevTrackMarkupWithId.Contains(d.Name))
+                                     .Attributes(W.id)
+                                     .Select(a => (int) a))
+                                 .Max() + 1;
                 IEnumerable<XElement> revTrackingWithoutId = root
                     .DescendantsAndSelf()
                     .Where(d => RevTrackMarkupWithId.Contains(d.Name) && (d.Attribute(W.id) == null));
@@ -269,12 +270,15 @@ namespace OpenXmlPowerTools
                             {
                                 if (replacement != "")
                                 {
+                                    string newTextValue = match.Result(replacement);
                                     var newIns = new XElement(W.ins,
                                         new XAttribute(W.author, revisionTrackingAuthor),
                                         new XAttribute(W.date, DateTime.Now.ToString("s") + "Z"),
                                         new XElement(W.r,
                                             firstRunProperties,
-                                            new XElement(W.t, replacement)));
+                                            new XElement(W.t,
+                                                GetXmlSpaceAttribute(newTextValue),
+                                                newTextValue)));
                                     if (firstRun.Parent?.Name == W.ins)
                                         firstRun.Parent?.AddBeforeSelf(newIns);
                                     else
@@ -347,11 +351,12 @@ namespace OpenXmlPowerTools
                                     else
                                         runToDelete.Remove();
 
+                                string newTextValue = match.Result(replacement);
                                 var newFirstRun = new XElement(W.r,
-                                    firstRun.Element(W.rPr),
+                                    firstRunProperties,
                                     new XElement(W.t,
-                                        GetXmlSpaceAttribute(replacement),
-                                        replacement)); // creates a new run with proper run properties
+                                        GetXmlSpaceAttribute(newTextValue),
+                                        newTextValue)); // creates a new run with proper run properties
 
                                 if (firstRun.Parent?.Name == W.ins)
                                     firstRun.Parent?.ReplaceWith(newFirstRun);
