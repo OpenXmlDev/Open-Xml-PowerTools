@@ -37,6 +37,10 @@ using System.Xml.Linq;
 using System.Collections.Generic;
 using DocumentFormat.OpenXml.Packaging;
 using System.Drawing;
+using DocumentFormat.OpenXml.Wordprocessing;
+using Font = System.Drawing.Font;
+using FontFamily = System.Drawing.FontFamily;
+
 // ReSharper disable InconsistentNaming
 
 namespace OpenXmlPowerTools
@@ -622,6 +626,21 @@ namespace OpenXmlPowerTools
         }
     }
 
+    public static class XmlUtil
+    {
+        public static XAttribute GetXmlSpaceAttribute(string value)
+        {
+            return (value.Length > 0) && ((value[0] == ' ') || (value[value.Length - 1] == ' '))
+                ? new XAttribute(XNamespace.Xml + "space", "preserve")
+                : null;
+        }
+
+        public static XAttribute GetXmlSpaceAttribute(char value)
+        {
+            return value == ' ' ? new XAttribute(XNamespace.Xml + "space", "preserve") : null;
+        }
+    }
+
     public static class WordprocessingMLUtil
     {
         private static HashSet<string> UnknownFonts = new HashSet<string>();
@@ -792,155 +811,185 @@ namespace OpenXmlPowerTools
             return false;
         }
 
-        public static XElement CoalesceAdjacentRunsWithIdenticalFormatting(XElement paragraphWithReplacedRuns)
+        private static readonly List<XName> AdditionalRunContainerNames = new List<XName>
         {
-            var groupedAdjacentRunsWithIdenticalFormatting =
-                paragraphWithReplacedRuns
-                .Elements()
-                .GroupAdjacent(ce =>
-                {
-                    if (ce.Name != W.r && ce.Name != W.ins && ce.Name != W.del)
-                        return "DontConsolidate";
-                    if (ce.Name == W.r)
+            W.w + "bdo",
+            W.customXml,
+            W.dir,
+            W.fldSimple,
+            W.hyperlink,
+            W.moveFrom,
+            W.moveTo,
+            W.sdtContent
+        };
+
+        public static XElement CoalesceAdjacentRunsWithIdenticalFormatting(XElement runContainer)
+        {
+            const string dontConsolidate = "DontConsolidate";
+
+            IEnumerable<IGrouping<string, XElement>> groupedAdjacentRunsWithIdenticalFormatting =
+                runContainer
+                    .Elements()
+                    .GroupAdjacent(ce =>
                     {
-                        if (ce.Elements().Where(e => e.Name != W.rPr).Count() != 1 ||
-                            ce.Element(W.t) == null)
-                            return "DontConsolidate";
-                        if (ce.Element(W.rPr) == null)
-                            return "";
-                        return ce.Element(W.rPr).ToString(SaveOptions.None);
-                    }
-                    if (ce.Name == W.ins)
-                    {
-                        if (ce.Elements(W.del).Any())
+                        if (ce.Name == W.r)
                         {
-                            // for w:ins/w:del/w:r/w:delText
-                            if (ce.Elements(W.del).Elements(W.r).Elements().Where(e => e.Name != W.rPr).Count() != 1 ||
-                                !ce.Elements().Elements().Elements(W.delText).Any())
-                                return "DontConsolidate";
+                            if ((ce.Elements().Count(e => e.Name != W.rPr) != 1) || (ce.Element(W.t) == null))
+                                return dontConsolidate;
 
-                            var authorIns = (string)ce.Attribute(W.author);
-                            if (authorIns == null)
-                                authorIns = "";
-
-                            var dateInsString = "";
-                            var dateIns = ce.Attribute(W.date);
-                            if (dateIns != null)
-                                dateInsString = ((DateTime)dateIns).ToString("s");
-
-                            var authorDel = (string)ce.Element(W.del).Attribute(W.author);
-                            if (authorDel == null)
-                                authorDel = "";
-
-                            var dateDelString = "";
-                            var dateDel = ce.Element(W.del).Attribute(W.date);
-                            if (dateDel != null)
-                                dateDelString = ((DateTime)dateDel).ToString("s");
-
-                            return "Wins" +
-                                authorIns +
-                                dateInsString +
-                                authorDel +
-                                dateDelString +
-                                ce.Elements(W.del).Elements(W.r).Elements(W.rPr).Select(rPr => rPr.ToString(SaveOptions.None)).StringConcatenate();
+                            return ce.Element(W.rPr)?.ToString(SaveOptions.None) ?? "";
                         }
-                        // w:ins/w:r/w:t
-                        if (ce.Elements().Elements().Where(e => e.Name != W.rPr).Count() != 1 ||
-                            !ce.Elements().Elements(W.t).Any())
-                            return "DontConsolidate";
 
-                        var authorIns2 = (string)ce.Attribute(W.author);
-                        if (authorIns2 == null)
-                            authorIns2 = "";
+                        if (ce.Name == W.ins)
+                        {
+                            if (ce.Elements(W.del).Any())
+                            {
+                                // for w:ins/w:del/w:r/w:delText
+                                if ((ce.Elements(W.del).Elements(W.r).Elements().Count(e => e.Name != W.rPr) != 1) ||
+                                    !ce.Elements().Elements().Elements(W.delText).Any())
+                                    return dontConsolidate;
 
-                        var dateInsString2 = "";
-                        var dateIns2 = ce.Attribute(W.date);
-                        if (dateIns2 != null)
-                            dateInsString2 = ((DateTime)dateIns2).ToString("s");
+                                XAttribute dateIns = ce.Attribute(W.date);
+                                XAttribute dateDel = ce.Element(W.del)?.Attribute(W.date);
 
-                        string key = "Wins2" +
-                            authorIns2 +
-                            dateIns2 +
-                            ce.Elements().Elements(W.rPr).Select(rPr => rPr.ToString(SaveOptions.None)).StringConcatenate();
-                        return key;
-                    }
-                    // else ce.Name == W.del
-                    if (ce.Elements(W.r).Elements().Where(e => e.Name != W.rPr).Count() != 1 ||
-                        !ce.Elements().Elements(W.delText).Any())
-                        return "DontConsolidate";
+                                string authorIns = (string) ce.Attribute(W.author) ?? "";
+                                string dateInsString = dateIns != null
+                                    ? ((DateTime) dateIns).ToString("s")
+                                    : string.Empty;
+                                string authorDel = (string) ce.Element(W.del)?.Attribute(W.author) ?? string.Empty;
+                                string dateDelString = dateDel != null
+                                    ? ((DateTime) dateDel).ToString("s")
+                                    : string.Empty;
 
-                    var authorDel2 = (string)ce.Attribute(W.author);
-                    if (authorDel2 == null)
-                        authorDel2 = "";
+                                return "Wins" +
+                                       authorIns +
+                                       dateInsString +
+                                       authorDel +
+                                       dateDelString +
+                                       ce.Elements(W.del)
+                                           .Elements(W.r)
+                                           .Elements(W.rPr)
+                                           .Select(rPr => rPr.ToString(SaveOptions.None))
+                                           .StringConcatenate();
+                            }
 
-                    var dateDelString2 = "";
-                    var dateDel2 = ce.Attribute(W.date);
-                    if (dateDel2 != null)
-                        dateDelString2 = ((DateTime)dateDel2).ToString("s");
+                            // w:ins/w:r/w:t
+                            if ((ce.Elements().Elements().Count(e => e.Name != W.rPr) != 1) ||
+                                !ce.Elements().Elements(W.t).Any())
+                                return dontConsolidate;
 
-                    return "Wdel" +
-                        authorDel2 +
-                        dateDel2 +
-                        ce.Elements(W.r).Elements(W.rPr).Select(rPr => rPr.ToString(SaveOptions.None)).StringConcatenate();
+                            XAttribute dateIns2 = ce.Attribute(W.date);
 
-                });
-            XElement paragraphWithConsolidatedRuns = new XElement(W.p,
-                paragraphWithReplacedRuns.Attributes(),
+                            string authorIns2 = (string) ce.Attribute(W.author) ?? string.Empty;
+                            string dateInsString2 = dateIns2 != null
+                                ? ((DateTime) dateIns2).ToString("s")
+                                : string.Empty;
+
+                            return "Wins2" +
+                                   authorIns2 +
+                                   dateInsString2 +
+                                   ce.Elements()
+                                       .Elements(W.rPr)
+                                       .Select(rPr => rPr.ToString(SaveOptions.None))
+                                       .StringConcatenate();
+                        }
+
+                        if (ce.Name == W.del)
+                        {
+                            if ((ce.Elements(W.r).Elements().Count(e => e.Name != W.rPr) != 1) ||
+                                !ce.Elements().Elements(W.delText).Any())
+                                return dontConsolidate;
+
+                            XAttribute dateDel2 = ce.Attribute(W.date);
+
+                            string authorDel2 = (string) ce.Attribute(W.author) ?? string.Empty;
+                            string dateDelString2 = dateDel2 != null ? ((DateTime) dateDel2).ToString("s") : string.Empty;
+
+                            return "Wdel" +
+                                   authorDel2 +
+                                   dateDelString2 +
+                                   ce.Elements(W.r)
+                                       .Elements(W.rPr)
+                                       .Select(rPr => rPr.ToString(SaveOptions.None))
+                                       .StringConcatenate();
+                        }
+
+                        return dontConsolidate;
+                    });
+
+            var runContainerWithConsolidatedRuns = new XElement(runContainer.Name,
+                runContainer.Attributes(),
                 groupedAdjacentRunsWithIdenticalFormatting.Select(g =>
                 {
-                    if (g.Key == "DontConsolidate")
-                        return (object)g;
-                    string textValue = g.Select(r => r.Descendants().Where(d => d.Name == W.t || d.Name == W.delText).Select(t => t.Value).StringConcatenate()).StringConcatenate();
-                    XAttribute xs = null;
-                    if (textValue.Length > 0 && (textValue[0] == ' ' || textValue[textValue.Length - 1] == ' '))
-                        xs = new XAttribute(XNamespace.Xml + "space", "preserve");
+                    if (g.Key == dontConsolidate)
+                        return (object) g;
+
+                    string textValue = g
+                        .Select(r =>
+                            r.Descendants()
+                                .Where(d => (d.Name == W.t) || (d.Name == W.delText))
+                                .Select(t => t.Value)
+                                .StringConcatenate())
+                        .StringConcatenate();
+                    XAttribute xs = XmlUtil.GetXmlSpaceAttribute(textValue);
+
                     if (g.First().Name == W.r)
                     {
-                        var statusAtt = g.Select(r => r.Descendants(W.t).Take(1).Attributes(PtOpenXml.Status));
-                        var newRun = new XElement(W.r,
+                        IEnumerable<IEnumerable<XAttribute>> statusAtt =
+                            g.Select(r => r.Descendants(W.t).Take(1).Attributes(PtOpenXml.Status));
+                        return new XElement(W.r,
                             g.First().Elements(W.rPr),
                             new XElement(W.t, statusAtt, xs, textValue));
-                        return newRun;
                     }
-                    else if (g.First().Name == W.ins)
+
+                    if (g.First().Name == W.ins)
                     {
                         if (g.First().Elements(W.del).Any())
-                        {
-                            var newIns2 = new XElement(W.ins,
+                            return new XElement(W.ins,
                                 g.First().Attributes(),
                                 new XElement(W.del,
                                     g.First().Elements(W.del).Attributes(),
                                     new XElement(W.r,
                                         g.First().Elements(W.del).Elements(W.r).Elements(W.rPr),
                                         new XElement(W.delText, xs, textValue))));
-                            return newIns2;
-                        }
-                        var newIns = new XElement(W.ins,
+
+                        return new XElement(W.ins,
                             g.First().Attributes(),
                             new XElement(W.r,
                                 g.First().Elements(W.r).Elements(W.rPr),
                                 new XElement(W.t, xs, textValue)));
-                        return newIns;
                     }
-                    else // g.First().Name == W.del
-                    {
-                        var newDel = new XElement(W.del,
+
+                    if (g.First().Name == W.del)
+                        return new XElement(W.del,
                             g.First().Attributes(),
                             new XElement(W.r,
                                 g.First().Elements(W.r).Elements(W.rPr),
                                 new XElement(W.delText, xs, textValue)));
-                        return newDel;
-                    }
+
+                    return g;
                 }));
-            foreach (var txbx in paragraphWithConsolidatedRuns.Descendants(W.txbxContent))
-            {
-                foreach (var txbxPara in txbx.DescendantsTrimmed(W.txbxContent).Where(d => d.Name == W.p))
+
+            // Process w:txbxContent//w:p
+            foreach (XElement txbx in runContainerWithConsolidatedRuns.Descendants(W.txbxContent))
+                foreach (XElement txbxPara in txbx.DescendantsTrimmed(W.txbxContent).Where(d => d.Name == W.p))
                 {
-                    var newPara = CoalesceAdjacentRunsWithIdenticalFormatting(txbxPara);
+                    XElement newPara = CoalesceAdjacentRunsWithIdenticalFormatting(txbxPara);
                     txbxPara.ReplaceWith(newPara);
                 }
+
+            // Process additional run containers.
+            List<XElement> runContainers = runContainerWithConsolidatedRuns
+                .Descendants()
+                .Where(d => AdditionalRunContainerNames.Contains(d.Name))
+                .ToList();
+            foreach (XElement container in runContainers)
+            {
+                XElement newContainer = CoalesceAdjacentRunsWithIdenticalFormatting(container);
+                container.ReplaceWith(newContainer);
             }
-            return paragraphWithConsolidatedRuns;
+
+            return runContainerWithConsolidatedRuns;
         }
 
         private static Dictionary<XName, int> Order_pPr = new Dictionary<XName, int>
@@ -1393,17 +1442,15 @@ namespace OpenXmlPowerTools
 
         public static bool? GetBoolProp(XElement rPr, XName propertyName)
         {
-            if (rPr.Element(propertyName) == null)
-                return null;
             XElement propAtt = rPr.Element(propertyName);
             if (propAtt == null)
                 return null;
+
             XAttribute val = propAtt.Attribute(W.val);
             if (val == null)
                 return true;
-            var s = ((string)val).ToLower();
-            if (s == null)
-                return true;
+
+            string s = ((string) val).ToLower();
             if (s == "1")
                 return true;
             if (s == "0")
@@ -1416,11 +1463,9 @@ namespace OpenXmlPowerTools
                 return true;
             if (s == "off")
                 return false;
-            return (bool)(rPr.Element(propertyName).Attribute(W.val));
+
+            return (bool) propAtt.Attribute(W.val);
         }
-
-
-
     }
 
     public class FieldInfo

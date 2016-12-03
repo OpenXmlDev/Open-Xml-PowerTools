@@ -210,12 +210,13 @@ namespace OpenXmlPowerTools
             if (element.Name == W.p)
             {
                 XElement paragraph = element;
-                string contents = element
+
+                string preliminaryContent = paragraph
                     .DescendantsTrimmed(W.txbxContent)
                     .Where(d => d.Name == W.t)
                     .Select(t => (string) t)
                     .StringConcatenate();
-                if (regex.IsMatch(contents))
+                if (regex.IsMatch(preliminaryContent))
                 {
                     var paragraphWithSplitRuns = new XElement(W.p,
                         paragraph.Attributes(),
@@ -240,165 +241,148 @@ namespace OpenXmlPowerTools
                     MatchCollection matchCollection = regex.Matches(content);
                     replInfo.Count += matchCollection.Count;
 
+                    // Process Match
                     if (replacement == null)
                     {
                         if (callback == null) return paragraph;
 
                         foreach (Match match in matchCollection.Cast<Match>())
                             callback(paragraph, match);
+
+                        return paragraph;
                     }
-                    else
+
+                    // Process Replace
+                    foreach (Match match in matchCollection.Cast<Match>())
                     {
-                        foreach (Match match in matchCollection.Cast<Match>())
+                        if (match.Length == 0) continue;
+                        if ((callback != null) && !callback(paragraph, match)) continue;
+
+                        List<XElement> runCollection = alignedRuns
+                            .Skip(match.Index)
+                            .Take(match.Length)
+                            .ToList();
+
+                        // uses the Skip / Take special semantics of array to implement efficient finding of sub array
+
+                        XElement firstRun = runCollection.First();
+                        XElement firstRunProperties = firstRun.Elements(W.rPr).FirstOrDefault();
+
+                        // save away first run properties
+
+                        if (trackRevisions)
                         {
-                            if (match.Length == 0) continue;
-                            if ((callback != null) && !callback(paragraph, match)) continue;
-
-                            List<XElement> runCollection = alignedRuns
-                                .Skip(match.Index)
-                                .Take(match.Length)
-                                .ToList();
-
-                            // uses the Skip / Take special semantics of array to implement efficient finding of sub array
-
-                            XElement firstRun = runCollection.First();
-                            XElement firstRunProperties = firstRun.Elements(W.rPr).FirstOrDefault();
-
-                            // save away first run properties
-
-                            if (trackRevisions)
+                            if (replacement != "")
                             {
-                                if (replacement != "")
-                                {
-                                    string newTextValue = match.Result(replacement);
-                                    var newIns = new XElement(W.ins,
-                                        new XAttribute(W.author, revisionTrackingAuthor),
-                                        new XAttribute(W.date, DateTime.Now.ToString("s") + "Z"),
-                                        new XElement(W.r,
-                                            firstRunProperties,
-                                            new XElement(W.t,
-                                                GetXmlSpaceAttribute(newTextValue),
-                                                newTextValue)));
-                                    if (firstRun.Parent?.Name == W.ins)
-                                        firstRun.Parent?.AddBeforeSelf(newIns);
-                                    else
-                                        firstRun.AddBeforeSelf(newIns);
-                                }
-
-                                foreach (XElement run in runCollection)
-                                {
-                                    bool isInIns = run.Parent?.Name == W.ins;
-                                    if (isInIns)
-                                    {
-                                        XElement parentIns = run.Parent;
-                                        if ((string) parentIns.Attributes(W.author).FirstOrDefault() ==
-                                            revisionTrackingAuthor)
-                                        {
-                                            List<XElement> parentInsSiblings = parentIns.Parent?
-                                                .Elements()
-                                                .Where(c => c != parentIns)
-                                                .ToList();
-                                            parentIns.Parent?.ReplaceNodes(parentInsSiblings);
-                                        }
-                                        else
-                                        {
-                                            List<XElement> parentInsSiblings = parentIns.Parent?
-                                                .Elements()
-                                                .Select(c => c == parentIns
-                                                    ? new XElement(W.ins,
-                                                        parentIns.Attributes(),
-                                                        new XElement(W.del,
-                                                            new XAttribute(W.author, revisionTrackingAuthor),
-                                                            new XAttribute(W.date, DateTime.Now.ToString("s") + "Z"),
-                                                            parentIns.Elements().Select(TransformToDelText)))
-                                                    : c)
-                                                .ToList();
-                                            parentIns.Parent?.ReplaceNodes(parentInsSiblings);
-                                        }
-
-                                        XAttribute xs = null;
-                                        if (replacement.Length > 0 && (replacement[0] == ' ' || replacement[replacement.Length - 1] == ' '))
-                                            xs = new XAttribute(XNamespace.Xml + "space", "preserve");
-
-                                        var newFirstRun = new XElement(W.r,
-                                            firstRun.Element(W.rPr),
-                                            new XElement(W.t,
-                                                xs,
-                                                replacement)); // creates a new run with proper run properties
-
-                                        if (firstRun.Parent.Name == W.ins)
-                                            firstRun.Parent.ReplaceWith(newFirstRun);
-                                        else
-                                            firstRun.ReplaceWith(newFirstRun);  // finds firstRun in its parent's list of children, unparents firstRun,
-                                        // sets newFirstRun's parent to firstRuns old parent, and inserts in the list
-                                        // of children at the right place.
-                                    }
-                                    else
-                                    {
-                                        var delRun = new XElement(W.del,
-                                            new XAttribute(W.author, revisionTrackingAuthor),
-                                            new XAttribute(W.date, DateTime.Now.ToString("s") + "Z"),
-                                            TransformToDelText(run));
-                                        run.ReplaceWith(delRun);
-                                    }
-                                }
-                            }
-                            else // not tracked revisions
-                            {
-                                foreach (XElement runToDelete in runCollection.Skip(1).ToList())
-                                    if (runToDelete.Parent?.Name == W.ins)
-                                        runToDelete.Parent?.Remove();
-                                    else
-                                        runToDelete.Remove();
-
                                 string newTextValue = match.Result(replacement);
-                                var newFirstRun = new XElement(W.r,
-                                    firstRunProperties,
-                                    new XElement(W.t,
-                                        GetXmlSpaceAttribute(newTextValue),
-                                        newTextValue)); // creates a new run with proper run properties
+                                var newIns = new XElement(W.ins,
+                                    new XAttribute(W.author, revisionTrackingAuthor),
+                                    new XAttribute(W.date, DateTime.Now.ToString("s") + "Z"),
+                                    new XElement(W.r,
+                                        firstRunProperties,
+                                        new XElement(W.t,
+                                            XmlUtil.GetXmlSpaceAttribute(newTextValue),
+                                            newTextValue)));
 
                                 if (firstRun.Parent?.Name == W.ins)
-                                    firstRun.Parent?.ReplaceWith(newFirstRun);
+                                    firstRun.Parent?.AddBeforeSelf(newIns);
                                 else
-                                    firstRun.ReplaceWith(newFirstRun);
+                                    firstRun.AddBeforeSelf(newIns);
+                            }
 
-                                // finds firstRun in its parent's list of children, unparents firstRun,
-
-                                // sets newFirstRun's parent to firstRuns old parent, and inserts in the list
-                                // of children at the right place.
+                            foreach (XElement run in runCollection)
+                            {
+                                bool isInIns = run.Parent?.Name == W.ins;
+                                if (isInIns)
+                                {
+                                    XElement parentIns = run.Parent;
+                                    if ((string) parentIns.Attributes(W.author).FirstOrDefault() ==
+                                        revisionTrackingAuthor)
+                                    {
+                                        List<XElement> parentInsSiblings = parentIns.Parent?
+                                            .Elements()
+                                            .Where(c => c != parentIns)
+                                            .ToList();
+                                        parentIns.Parent?.ReplaceNodes(parentInsSiblings);
+                                    }
+                                    else
+                                    {
+                                        List<XElement> parentInsSiblings = parentIns.Parent?
+                                            .Elements()
+                                            .Select(c => c == parentIns
+                                                ? new XElement(W.ins,
+                                                    parentIns.Attributes(),
+                                                    new XElement(W.del,
+                                                        new XAttribute(W.author, revisionTrackingAuthor),
+                                                        new XAttribute(W.date, DateTime.Now.ToString("s") + "Z"),
+                                                        parentIns.Elements().Select(TransformToDelText)))
+                                                : c)
+                                            .ToList();
+                                        parentIns.Parent?.ReplaceNodes(parentInsSiblings);
+                                    }
+                                }
+                                else
+                                {
+                                    var delRun = new XElement(W.del,
+                                        new XAttribute(W.author, revisionTrackingAuthor),
+                                        new XAttribute(W.date, DateTime.Now.ToString("s") + "Z"),
+                                        TransformToDelText(run));
+                                    run.ReplaceWith(delRun);
+                                }
                             }
                         }
+                        else // not tracked revisions
+                        {
+                            foreach (XElement runToDelete in runCollection.Skip(1).ToList())
+                                if (runToDelete.Parent?.Name == W.ins)
+                                    runToDelete.Parent?.Remove();
+                                else
+                                    runToDelete.Remove();
 
-                        paragraph = coalesceContent
-                            ? WordprocessingMLUtil.CoalesceAdjacentRunsWithIdenticalFormatting(paragraphWithSplitRuns)
-                            : paragraphWithSplitRuns;
+                            string newTextValue = match.Result(replacement);
+                            var newFirstRun = new XElement(W.r,
+                                firstRunProperties,
+                                new XElement(W.t,
+                                    XmlUtil.GetXmlSpaceAttribute(newTextValue),
+                                    newTextValue)); // creates a new run with proper run properties
+
+                            if (firstRun.Parent?.Name == W.ins)
+                                firstRun.Parent?.ReplaceWith(newFirstRun);
+                            else
+                                firstRun.ReplaceWith(newFirstRun);
+
+                            // finds firstRun in its parent's list of children, unparents firstRun,
+
+                            // sets newFirstRun's parent to firstRuns old parent, and inserts in the list
+                            // of children at the right place.
+                        }
                     }
 
-                    return paragraph;
+                    return coalesceContent
+                        ? WordprocessingMLUtil.CoalesceAdjacentRunsWithIdenticalFormatting(paragraphWithSplitRuns)
+                        : paragraphWithSplitRuns;
                 }
 
-                var newEle = new XElement(element.Name,
-                    element.Attributes(),
-                    element.Nodes().Select(n =>
+                var newParagraph = new XElement(W.p,
+                    paragraph.Attributes(),
+                    paragraph.Nodes().Select(n =>
                     {
                         var e = n as XElement;
                         if (e == null) return n;
 
-                        if ((e.Name == W.pPr) || (e.Name == W.rPr))
+                        if (e.Name == W.pPr)
                             return e;
-                        if (((e.Name == W.r) && (e.Element(W.t) != null)) || (e.Element(W.tab) != null))
+                        if (((e.Name == W.r) && e.Elements(W.t).Any()) || e.Elements(W.tab).Any())
                             return e;
-                        if ((e.Name == W.ins) && (e.Element(W.r) != null) && (e.Element(W.r)?.Element(W.t) != null))
+                        if ((e.Name == W.ins) && e.Elements(W.r).Elements(W.t).Any())
                             return e;
 
                         return WmlSearchAndReplaceTransform(e, regex, replacement, callback,
                             trackRevisions, revisionTrackingAuthor, replInfo, coalesceContent);
                     }));
-                if (newEle.Name == W.p)
-                    return coalesceContent ? CoalesceContent(newEle) : newEle;
-
-                return newEle;
+                return coalesceContent
+                    ? WordprocessingMLUtil.CoalesceAdjacentRunsWithIdenticalFormatting(newParagraph) // CoalesceContent(newParagraph)
+                    : newParagraph;
             }
 
             if ((element.Name == W.ins) && element.Elements(W.r).Any())
@@ -408,7 +392,6 @@ namespace OpenXmlPowerTools
                     .Select(n => WmlSearchAndReplaceTransform(n, regex, replacement, callback, trackRevisions,
                         revisionTrackingAuthor, replInfo, coalesceContent))
                     .ToList();
-
                 List<object> collectionOfIns = collectionOfCollections
                     .Select(c =>
                     {
@@ -416,7 +399,6 @@ namespace OpenXmlPowerTools
                         return elements?.Select(ixc => new XElement(W.ins, element.Attributes(), ixc)) ?? c;
                     })
                     .ToList();
-
                 return collectionOfIns;
             }
 
@@ -428,9 +410,7 @@ namespace OpenXmlPowerTools
                         ? ((string) e).Select(c =>
                             new XElement(W.r,
                                 element.Elements(W.rPr),
-                                new XElement(W.t,
-                                    c == ' ' ? new XAttribute(XNamespace.Xml + "space", "preserve") : null,
-                                    c)))
+                                new XElement(W.t, XmlUtil.GetXmlSpaceAttribute(c), c)))
                         : new[] { new XElement(W.r, element.Elements(W.rPr), e) })
                     .SelectMany(t => t);
             }
@@ -442,147 +422,6 @@ namespace OpenXmlPowerTools
                         revisionTrackingAuthor, replInfo, coalesceContent)));
         }
 
-        private static XAttribute GetXmlSpaceAttribute(string value)
-        {
-            return (value.Length > 0) && ((value[0] == ' ') || (value[value.Length - 1] == ' '))
-                ? new XAttribute(XNamespace.Xml + "space", "preserve")
-                : null;
-        }
-
-        public static XElement CoalesceContent(XElement paragraph)
-        {
-            IEnumerable<IGrouping<string, XElement>> groupedAdjacentRunsWithIdenticalFormatting =
-                paragraph
-                    .Elements()
-                    .GroupAdjacent(ce =>
-                    {
-                        if ((ce.Name != W.r) && (ce.Name != W.ins) && (ce.Name != W.del))
-                            return DontConsolidate;
-
-                        if (ce.Name == W.r)
-                        {
-                            if ((ce.Elements().Count(e => e.Name != W.rPr) != 1) || (ce.Element(W.t) == null))
-                                return DontConsolidate;
-                            if (ce.Element(W.rPr) == null)
-                                return string.Empty;
-
-                            return ce.Element(W.rPr)?.ToString(SaveOptions.None);
-                        }
-
-                        if (ce.Name == W.ins)
-                        {
-                            if (ce.Elements(W.del).Any())
-                            {
-                                // for w:ins/w:del/w:r/w:delText
-                                if ((ce.Elements(W.del).Elements(W.r).Elements().Count(e => e.Name != W.rPr) != 1) ||
-                                    !ce.Elements().Elements().Elements(W.delText).Any())
-                                    return DontConsolidate;
-
-                                XAttribute dateIns = ce.Attribute(W.date);
-                                XAttribute dateDel = ce.Element(W.del)?.Attribute(W.date);
-
-                                string authorIns = (string) ce.Attribute(W.author) ?? string.Empty;
-                                string dateInsString = dateIns != null
-                                    ? ((DateTime) dateIns).ToString("s")
-                                    : string.Empty;
-                                string authorDel = (string) ce.Element(W.del)?.Attribute(W.author) ?? string.Empty;
-                                string dateDelString = dateDel != null
-                                    ? ((DateTime) dateDel).ToString("s")
-                                    : string.Empty;
-
-                                return "Wins" +
-                                       authorIns +
-                                       dateInsString +
-                                       authorDel +
-                                       dateDelString +
-                                       ce.Elements(W.del)
-                                           .Elements(W.r)
-                                           .Elements(W.rPr)
-                                           .Select(rPr => rPr.ToString(SaveOptions.None))
-                                           .StringConcatenate();
-                            }
-
-                            // w:ins/w:r/w:t
-                            if ((ce.Elements().Elements().Count(e => e.Name != W.rPr) != 1) ||
-                                !ce.Elements().Elements(W.t).Any())
-                                return DontConsolidate;
-
-                            string authorIns2 = (string) ce.Attribute(W.author) ?? "";
-
-                            XAttribute dateIns2 = ce.Attribute(W.date);
-                            string key = "Wins2" +
-                                         authorIns2 +
-                                         dateIns2 +
-                                         ce.Elements()
-                                             .Elements(W.rPr)
-                                             .Select(rPr => rPr.ToString(SaveOptions.None))
-                                             .StringConcatenate();
-                            return key;
-                        }
-
-                        // else ce.Name == W.del
-                        if ((ce.Elements(W.r).Elements().Count(e => e.Name != W.rPr) != 1) ||
-                            !ce.Elements().Elements(W.delText).Any())
-                            return DontConsolidate;
-
-                        string authorDel2 = (string) ce.Attribute(W.author) ?? string.Empty;
-
-                        XAttribute dateDel2 = ce.Attribute(W.date);
-                        return "Wdel" +
-                               authorDel2 +
-                               dateDel2 +
-                               ce.Elements(W.r)
-                                   .Elements(W.rPr)
-                                   .Select(rPr => rPr.ToString(SaveOptions.None))
-                                   .StringConcatenate();
-                    });
-
-            var paragraphWithConsolidatedRuns = new XElement(W.p,
-                groupedAdjacentRunsWithIdenticalFormatting.Select(g =>
-                {
-                    if (g.Key == DontConsolidate)
-                        return (object) g;
-
-                    string textValue =
-                        g.Select(r => r.Descendants()
-                            .Where(d => (d.Name == W.t) || (d.Name == W.delText))
-                            .Select(t => t.Value)
-                            .StringConcatenate()).StringConcatenate();
-                    XAttribute xs = GetXmlSpaceAttribute(textValue);
-
-                    if (g.First().Name == W.r)
-                        return new XElement(W.r,
-                            g.First().Elements(W.rPr),
-                            new XElement(W.t, xs, textValue));
-
-                    if (g.First().Name == W.ins)
-                    {
-                        if (g.First().Elements(W.del).Any())
-                            return new XElement(W.ins,
-                                g.First().Attributes(),
-                                new XElement(W.del,
-                                    g.First().Elements(W.del).Attributes(),
-                                    new XElement(W.r,
-                                        g.First().Elements(W.del).Elements(W.r).Elements(W.rPr),
-                                        new XElement(W.delText, xs, textValue))));
-
-                        return new XElement(W.ins,
-                            g.First().Attributes(),
-                            new XElement(W.r,
-                                g.First().Elements(W.r).Elements(W.rPr),
-                                new XElement(W.t, xs, textValue)));
-                    }
-
-                    return new XElement(W.del,
-                        g.First().Attributes(),
-                        new XElement(W.r,
-                            g.First().Elements(W.r).Elements(W.rPr),
-                            new XElement(W.delText, xs, textValue)));
-                }));
-
-            return paragraphWithConsolidatedRuns;
-        }
-
         private static object TransformToDelText(XNode node)
         {
             var element = node as XElement;
@@ -590,7 +429,7 @@ namespace OpenXmlPowerTools
 
             if (element.Name == W.t)
                 return new XElement(W.delText,
-                    GetXmlSpaceAttribute(element.Value),
+                    XmlUtil.GetXmlSpaceAttribute(element.Value),
                     element.Value);
 
             return new XElement(element.Name,
@@ -697,7 +536,7 @@ namespace OpenXmlPowerTools
                                 return (object) g;
 
                             string textValue = g.Select(r => r.Element(A.t)?.Value).StringConcatenate();
-                            XAttribute xs = GetXmlSpaceAttribute(textValue);
+                            XAttribute xs = XmlUtil.GetXmlSpaceAttribute(textValue);
                             return new XElement(A.r,
                                 g.First().Elements(A.rPr),
                                 new XElement(A.t, xs, textValue));
@@ -719,10 +558,7 @@ namespace OpenXmlPowerTools
                             var s = (string) e;
                             IEnumerable<XElement> collectionOfSubRuns = s.Select(c => new XElement(A.r,
                                 element.Elements(A.rPr),
-                                new XElement(A.t,
-                                    c == ' '
-                                        ? new XAttribute(XNamespace.Xml + "space", "preserve")
-                                        : null, c)));
+                                new XElement(A.t, XmlUtil.GetXmlSpaceAttribute(c), c)));
                             return (object) collectionOfSubRuns;
                         }
 

@@ -127,6 +127,28 @@ namespace OpenXmlRegex01
                 count = OpenXmlRegex.Replace(content, regex, "", null, true, "John Doe");
                 Console.WriteLine("Example #17 Deleted: {0}", count);
 
+                const string leftDoubleQuotationMarks = @"[\u0022“„«»”]";
+                const string words = @"[\w\-&/]+(?:\s[\w\-&/]+)*";
+                const string rightDoubleQuotationMarks = @"[\u0022”‟»«“]";
+
+                // Replace content using replacement pattern (paragraph 16)
+                content = xDoc.Descendants(W.p).Skip(15).Take(1);
+                regex = new Regex($"{leftDoubleQuotationMarks}(?<words>{words}){rightDoubleQuotationMarks}");
+                count = OpenXmlRegex.Replace(content, regex, "‘${words}’", null);
+                Console.WriteLine("Example #18 Replaced: {0}", count);
+
+                // Replace content using replacement pattern in partially inserted text (paragraph 17)
+                content = xDoc.Descendants(W.p).Skip(16).Take(1);
+                regex = new Regex($"{leftDoubleQuotationMarks}(?<words>{words}){rightDoubleQuotationMarks}");
+                count = OpenXmlRegex.Replace(content, regex, "‘${words}’", null, true, "John Doe");
+                Console.WriteLine("Example #19 Replaced: {0}", count);
+
+                // Replace content using replacement pattern (paragraph 18)
+                content = xDoc.Descendants(W.p).Skip(17).Take(1);
+                regex = new Regex($"({leftDoubleQuotationMarks})(video)({rightDoubleQuotationMarks})");
+                count = OpenXmlRegex.Replace(content, regex, "$1audio$3", null, true, "John Doe");
+                Console.WriteLine("Example #20 Replaced: {0}", count);
+
                 wDoc.MainDocumentPart.PutXDocument();
             }
 
