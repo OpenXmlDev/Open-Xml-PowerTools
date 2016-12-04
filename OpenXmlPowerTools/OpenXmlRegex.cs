@@ -213,8 +213,8 @@ namespace OpenXmlPowerTools
 
                 string preliminaryContent = paragraph
                     .DescendantsTrimmed(W.txbxContent)
-                    .Where(d => d.Name == W.t)
-                    .Select(t => (string) t)
+                    .Where(d => d.Name == W.r)
+                    .Select(UnicodeMapper.ElementToString)
                     .StringConcatenate();
                 if (regex.IsMatch(preliminaryContent))
                 {
@@ -222,17 +222,11 @@ namespace OpenXmlPowerTools
                         paragraph.Attributes(),
                         paragraph.Nodes().Select(n => WmlSearchAndReplaceTransform(n, regex, replacement, callback,
                             trackRevisions, revisionTrackingAuthor, replInfo, coalesceContent)));
-
                     IEnumerable<XElement> runsTrimmed = paragraphWithSplitRuns
                         .DescendantsTrimmed(W.txbxContent)
                         .Where(d => d.Name == W.r);
-
                     var charsAndRuns = runsTrimmed
-                        .Select(r =>
-                        {
-                            XElement t = r.Element(W.t);
-                            return t != null ? new { Ch = t.Value, r } : new { Ch = "\x01", r };
-                        })
+                        .Select(r => new { Ch = UnicodeMapper.ElementToString(r), r })
                         .ToList();
 
                     string content = charsAndRuns.Select(t => t.Ch).StringConcatenate();
@@ -274,15 +268,16 @@ namespace OpenXmlPowerTools
                         {
                             if (replacement != "")
                             {
+                                // We coalesce runs as some methods, e.g., in DocumentAssembler,
+                                // will try to find the replacement string even though they
+                                // set coalesceContent to false.
                                 string newTextValue = match.Result(replacement);
+                                List<XElement> newRuns = UnicodeMapper.StringToCoalescedRunList(newTextValue,
+                                    firstRunProperties);
                                 var newIns = new XElement(W.ins,
                                     new XAttribute(W.author, revisionTrackingAuthor),
-                                    new XAttribute(W.date, DateTime.Now.ToString("s") + "Z"),
-                                    new XElement(W.r,
-                                        firstRunProperties,
-                                        new XElement(W.t,
-                                            XmlUtil.GetXmlSpaceAttribute(newTextValue),
-                                            newTextValue)));
+                                    new XAttribute(W.date, DateTime.UtcNow.ToString("s") + "Z"),
+                                    newRuns);
 
                                 if (firstRun.Parent?.Name == W.ins)
                                     firstRun.Parent?.AddBeforeSelf(newIns);
@@ -314,7 +309,7 @@ namespace OpenXmlPowerTools
                                                     parentIns.Attributes(),
                                                     new XElement(W.del,
                                                         new XAttribute(W.author, revisionTrackingAuthor),
-                                                        new XAttribute(W.date, DateTime.Now.ToString("s") + "Z"),
+                                                        new XAttribute(W.date, DateTime.UtcNow.ToString("s") + "Z"),
                                                         parentIns.Elements().Select(TransformToDelText)))
                                                 : c)
                                             .ToList();
@@ -325,7 +320,7 @@ namespace OpenXmlPowerTools
                                 {
                                     var delRun = new XElement(W.del,
                                         new XAttribute(W.author, revisionTrackingAuthor),
-                                        new XAttribute(W.date, DateTime.Now.ToString("s") + "Z"),
+                                        new XAttribute(W.date, DateTime.UtcNow.ToString("s") + "Z"),
                                         TransformToDelText(run));
                                     run.ReplaceWith(delRun);
                                 }
@@ -339,22 +334,16 @@ namespace OpenXmlPowerTools
                                 else
                                     runToDelete.Remove();
 
+                            // We coalesce runs as some methods, e.g., in DocumentAssembler,
+                            // will try to find the replacement string even though they
+                            // set coalesceContent to false.
                             string newTextValue = match.Result(replacement);
-                            var newFirstRun = new XElement(W.r,
-                                firstRunProperties,
-                                new XElement(W.t,
-                                    XmlUtil.GetXmlSpaceAttribute(newTextValue),
-                                    newTextValue)); // creates a new run with proper run properties
-
+                            List<XElement> newRuns = UnicodeMapper.StringToCoalescedRunList(newTextValue,
+                                firstRunProperties);
                             if (firstRun.Parent?.Name == W.ins)
-                                firstRun.Parent?.ReplaceWith(newFirstRun);
+                                firstRun.Parent?.ReplaceWith(newRuns);
                             else
-                                firstRun.ReplaceWith(newFirstRun);
-
-                            // finds firstRun in its parent's list of children, unparents firstRun,
-
-                            // sets newFirstRun's parent to firstRuns old parent, and inserts in the list
-                            // of children at the right place.
+                                firstRun.ReplaceWith(newRuns);
                         }
                     }
 

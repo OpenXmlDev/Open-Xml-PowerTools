@@ -149,6 +149,64 @@ namespace OpenXmlRegex01
                 count = OpenXmlRegex.Replace(content, regex, "$1audio$3", null, true, "John Doe");
                 Console.WriteLine("Example #20 Replaced: {0}", count);
 
+                // Recognize tabs (paragraph 19)
+                content = xDoc.Descendants(W.p).Skip(18).Take(1);
+                regex = new Regex(@"([1-9])\.\t");
+                count = OpenXmlRegex.Replace(content, regex, "($1)\t", null);
+                Console.WriteLine("Example #21 Replaced: {0}", count);
+
+                // The next two examples deal with line breaks, i.e., the <w:br/> elements.
+                // Note that you should use the U+000D (Carriage Return) character (i.e., '\r')
+                // to match a <w:br/> (or <w:cr/>) and replace content with a <w:br/> element.
+                // Depending on your platform, the end of line character(s) provided by
+                // Environment.NewLine might be "\n" (Unix), "\r\n" (Windows), or "\r" (Mac).
+
+                // Recognize tabs and insert line breaks (paragraph 20).
+                content = xDoc.Descendants(W.p).Skip(19).Take(1);
+                regex = new Regex($@"([1-9])\.{UnicodeMapper.HorizontalTabulation}");
+                count = OpenXmlRegex.Replace(content, regex, $"Article $1{UnicodeMapper.CarriageReturn}", null);
+                Console.WriteLine("Example #22 Replaced: {0}", count);
+
+                // Recognize and remove line breaks (paragraph 21)
+                content = xDoc.Descendants(W.p).Skip(20).Take(1);
+                regex = new Regex($"{UnicodeMapper.CarriageReturn}");
+                count = OpenXmlRegex.Replace(content, regex, " ", null);
+                Console.WriteLine("Example #23 Replaced: {0}", count);
+
+                // Remove soft hyphens (paragraph 22)
+                List<XElement> paras = xDoc.Descendants(W.p).Skip(21).Take(1).ToList();
+                count = OpenXmlRegex.Replace(paras, new Regex($"{UnicodeMapper.SoftHyphen}"), "", null);
+                count += OpenXmlRegex.Replace(paras, new Regex("use"), "no longer use", null);
+                Console.WriteLine("Example #24 Replaced: {0}", count);
+
+                // The next example deals with symbols (i.e., w:sym elements).
+                // To work with symbols, you should acquire the Unicode values for the
+                // symbols you wish to match or use in replacement patterns. The reason
+                // is that UnicodeMapper will (a) mimic Microsoft Word in shifting the
+                // Unicode values into the Unicode private use area (by adding U+F000)
+                // and (b) use replacements for Unicode values that have been used in
+                // conjunction with different fonts already (by adding U+E000).
+                //
+                // The replacement Únicode values will depend on the order in which
+                // symbols are retrieved. Therefore, you should not rely on any fixed
+                // assignment.
+                //
+                // In the example below, pencil will be represented by U+F021, whereas
+                // spider (same value with different font) will be represented by U+E001.
+                // If spider had been assigned first, spider would be U+F021 and pencil
+                // would be U+E001.
+                char oldPhone = UnicodeMapper.SymToChar("Wingdings", 40);
+                char newPhone = UnicodeMapper.SymToChar("Wingdings", 41);
+                char pencil = UnicodeMapper.SymToChar("Wingdings", 0x21);
+                char spider = UnicodeMapper.SymToChar("Webdings", 0x21);
+
+                // Replace or comment on symbols (paragraph 23)
+                paras = xDoc.Descendants(W.p).Skip(22).Take(1).ToList();
+                count = OpenXmlRegex.Replace(paras, new Regex($"{oldPhone}"), $"{newPhone} (replaced with new phone)", null);
+                count += OpenXmlRegex.Replace(paras, new Regex($"({pencil})"), "$1 (same pencil)", null);
+                count += OpenXmlRegex.Replace(paras, new Regex($"({spider})"), "$1 (same spider)", null);
+                Console.WriteLine("Example #25 Replaced: {0}", count);
+
                 wDoc.MainDocumentPart.PutXDocument();
             }
 
