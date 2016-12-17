@@ -834,10 +834,16 @@ namespace OpenXmlPowerTools
                     {
                         if (ce.Name == W.r)
                         {
-                            if ((ce.Elements().Count(e => e.Name != W.rPr) != 1) || (ce.Element(W.t) == null))
+                            if (ce.Elements().Count(e => e.Name != W.rPr) != 1)
                                 return dontConsolidate;
 
-                            return ce.Element(W.rPr)?.ToString(SaveOptions.None) ?? "";
+                            if (ce.Element(W.t) != null)
+                                return "Wt" + ce.Element(W.rPr)?.ToString(SaveOptions.None);
+
+                            if (ce.Element(W.instrText) != null)
+                                return "WinstrText" + ce.Element(W.rPr)?.ToString(SaveOptions.None);
+
+                            return dontConsolidate;
                         }
 
                         if (ce.Name == W.ins)
@@ -927,19 +933,27 @@ namespace OpenXmlPowerTools
                     string textValue = g
                         .Select(r =>
                             r.Descendants()
-                                .Where(d => (d.Name == W.t) || (d.Name == W.delText))
-                                .Select(t => t.Value)
+                                .Where(d => (d.Name == W.t) || (d.Name == W.delText) || (d.Name == W.instrText))
+                                .Select(d => d.Value)
                                 .StringConcatenate())
                         .StringConcatenate();
                     XAttribute xs = XmlUtil.GetXmlSpaceAttribute(textValue);
 
                     if (g.First().Name == W.r)
                     {
-                        IEnumerable<IEnumerable<XAttribute>> statusAtt =
-                            g.Select(r => r.Descendants(W.t).Take(1).Attributes(PtOpenXml.Status));
-                        return new XElement(W.r,
-                            g.First().Elements(W.rPr),
-                            new XElement(W.t, statusAtt, xs, textValue));
+                        if (g.First().Element(W.t) != null)
+                        {
+                            IEnumerable<IEnumerable<XAttribute>> statusAtt =
+                                g.Select(r => r.Descendants(W.t).Take(1).Attributes(PtOpenXml.Status));
+                            return new XElement(W.r,
+                                g.First().Elements(W.rPr),
+                                new XElement(W.t, statusAtt, xs, textValue));
+                        }
+
+                        if (g.First().Element(W.instrText) != null)
+                            return new XElement(W.r,
+                                g.First().Elements(W.rPr),
+                                new XElement(W.instrText, xs, textValue));
                     }
 
                     if (g.First().Name == W.ins)
