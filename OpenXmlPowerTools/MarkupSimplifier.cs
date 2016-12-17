@@ -89,6 +89,15 @@ namespace OpenXmlPowerTools
                 SimplifyMarkupForPart(doc.MainDocumentPart.StyleDefinitionsPart, settings);
             if (doc.MainDocumentPart.StylesWithEffectsPart != null)
                 SimplifyMarkupForPart(doc.MainDocumentPart.StylesWithEffectsPart, settings);
+
+            if (settings.RemoveComments)
+            {
+                WordprocessingCommentsPart commentsPart = doc.MainDocumentPart.WordprocessingCommentsPart;
+                if (commentsPart != null) doc.MainDocumentPart.DeletePart(commentsPart);
+
+                WordprocessingCommentsExPart commentsExPart = doc.MainDocumentPart.WordprocessingCommentsExPart;
+                if (commentsExPart != null) doc.MainDocumentPart.DeletePart(commentsExPart);
+            }
         }
 
         private static void RemoveRsidInfoInSettings(WordprocessingDocument doc)
@@ -212,78 +221,13 @@ namespace OpenXmlPowerTools
                 element.Nodes().Select(RemoveRsidTransform));
         }
 
-        private static XAttribute GetXmlSpaceAttribute(string value)
-        {
-            return (value.Length > 0) && ((value[0] == ' ') || (value[value.Length - 1] == ' '))
-                ? new XAttribute(XNamespace.Xml + "space", "preserve")
-                : null;
-        }
-
         private static object MergeAdjacentRunsTransform(XNode node)
         {
             var element = node as XElement;
             if (element == null) return node;
 
             if (element.Name == W.p)
-            {
-                XElement paragraph = element;
-                IEnumerable<IGrouping<string, XElement>> runGroups = paragraph
-                    .Elements()
-                    .GroupAdjacent(r =>
-                    {
-                        if (r.Name != W.r)
-                            return "NotRuns";
-
-                        XElement rPr = r.Element(W.rPr);
-                        return rPr?.ToString(SaveOptions.DisableFormatting) ?? "NoRunProperties";
-                    });
-                return new XElement(W.p,
-                    paragraph.Attributes(),
-                    runGroups.Select(g =>
-                        {
-                            if (g.Key == "NotRuns")
-                                return (object) g;
-
-                            if (g.Key == "NoRunProperties")
-                                return new XElement(W.r,
-                                    g.First().Attributes(),
-                                    g.Elements()
-                                        .GroupAdjacent(c => c.Name)
-                                        .Select(gc =>
-                                        {
-                                            if (gc.Key != W.t)
-                                                return (object) gc;
-
-                                            string textElementValue = gc.Select(t => (string) t).StringConcatenate();
-                                            return new XElement(W.t,
-                                                GetXmlSpaceAttribute(textElementValue),
-                                                textElementValue);
-                                        }));
-
-                            XElement runPropertyElement = XElement.Parse(g.Key);
-                            runPropertyElement.Attributes()
-                                .Where(a => a.IsNamespaceDeclaration)
-                                .Remove();
-                            return new XElement(
-                                W.r,
-                                g.First().Attributes(),
-                                runPropertyElement,
-                                g.Elements()
-                                    .Where(e => e.Name != W.rPr)
-                                    .GroupAdjacent(c => c.Name)
-                                    .Select(gc =>
-                                    {
-                                        if (gc.Key != W.t)
-                                            return (object) gc;
-
-                                        string textElementValue = gc.Select(t => (string) t).StringConcatenate();
-                                        return new XElement(W.t,
-                                            GetXmlSpaceAttribute(textElementValue),
-                                            textElementValue);
-                                    }));
-                        }
-                    ));
-            }
+                return WordprocessingMLUtil.CoalesceAdjacentRunsWithIdenticalFormatting(element);
 
             return new XElement(element.Name,
                 element.Attributes(),
