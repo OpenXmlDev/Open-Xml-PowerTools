@@ -27,7 +27,7 @@ See License.txt in the project root for license information.
 News
 ====
 We are happy to announce the release of the Open XML PowerTools Version 4.3.  The big new feature in 4.3 is WmlComparer.cs, which is a module that compares two DOCX files and
-produces a DOCX with revision tracking markup.  It enables retreiving a list of revisions.
+produces a DOCX with revision tracking markup.  It enables retrieving a list of revisions.
 
 Open-Xml-PowerTools Content
 ===========================
