@@ -202,180 +202,173 @@ namespace OpenXmlPowerTools
             {
                 if (element.Name == W.p)
                 {
-                    var paragraph = element;
-                    string contents = element
+                    var paragraph = new XElement(element); // clone
+                    paragraph.Descendants(W.r).Where(r => r.Attribute(PtOpenXml.ListItemRun) != null).Remove();
+                    string contents = paragraph
                         .DescendantsTrimmed(W.txbxContent)
                         .Where(d => d.Name == W.t)
                         .Select(t => (string)t)
                         .StringConcatenate();
                     if (regex.IsMatch(contents))
                     {
-                        contents = element
+                        XElement paragraphWithSplitRuns = new XElement(W.p,
+                            paragraph.Attributes(),
+                            paragraph.Nodes().Select(n => WmlSearchAndReplaceTransform(n, regex, replacement, callback,
+                                trackRevisions, revisionTrackingAuthor, replInfo, coalesceContent)));
+
+                        var runsTrimmed = paragraphWithSplitRuns
                             .DescendantsTrimmed(W.txbxContent)
-                            .Where(d => d.Name == W.t)
-                            .Select(t => (string)t)
-                            .StringConcatenate();
-                        if (regex.IsMatch(contents))
-                        {
-                            XElement paragraphWithSplitRuns = new XElement(W.p,
-                                paragraph.Attributes(),
-                                paragraph.Nodes().Select(n => WmlSearchAndReplaceTransform(n, regex, replacement, callback,
-                                    trackRevisions, revisionTrackingAuthor, replInfo, coalesceContent)));
+                            .Where(d => d.Name == W.r)
+                            .ToList();
 
-                            var runsTrimmed = paragraphWithSplitRuns
-                                .DescendantsTrimmed(W.txbxContent)
-                                .Where(d => d.Name == W.r)
-                                .ToList();
-
-                            var charsAndRuns = runsTrimmed
-                                .Select(r =>
-                                {
-                                    if (r.Element(W.t) != null)
-                                        return new
-                                        {
-                                            Ch = r.Element(W.t).Value,
-                                            r,
-                                        };
-                                    else
-                                        return new
-                                        {
-                                            Ch = "\x01",
-                                            r,
-                                        };
-                                })
-                                .ToList();
-
-                            var content = charsAndRuns.Select(t => t.Ch).StringConcatenate();
-                            var alignedRuns = charsAndRuns.Select(t => t.r).ToArray();
-
-                            var matchCollection = regex.Matches(content);
-                            replInfo.Count += matchCollection.Count;
-                            if (replacement == null)
+                        var charsAndRuns = runsTrimmed
+                            .Select(r =>
                             {
-                                if (callback != null)
-                                {
-                                    foreach (var match in matchCollection.Cast<Match>())
-                                        callback(paragraph, match);
-                                }
-                            }
-                            else
+                                if (r.Element(W.t) != null)
+                                    return new
+                                    {
+                                        Ch = r.Element(W.t).Value,
+                                        r,
+                                    };
+                                else
+                                    return new
+                                    {
+                                        Ch = "\x01",
+                                        r,
+                                    };
+                            })
+                            .ToList();
+
+                        var content = charsAndRuns.Select(t => t.Ch).StringConcatenate();
+                        var alignedRuns = charsAndRuns.Select(t => t.r).ToArray();
+
+                        var matchCollection = regex.Matches(content);
+                        replInfo.Count += matchCollection.Count;
+                        if (replacement == null)
+                        {
+                            if (callback != null)
                             {
                                 foreach (var match in matchCollection.Cast<Match>())
+                                    callback(paragraph, match);
+                            }
+                        }
+                        else
+                        {
+                            foreach (var match in matchCollection.Cast<Match>())
+                            {
+                                if (match.Length == 0)
+                                    continue;
+                                if (callback == null || callback(paragraph, match))
                                 {
-                                    if (match.Length == 0)
-                                        continue;
-                                    if (callback == null || callback(paragraph, match))
+                                    var runCollection = alignedRuns
+                                        .Skip(match.Index)
+                                        .Take(match.Length)
+                                        .ToList(); // uses the Skip / Take special semantics of array to implement efficient finding of sub array
+
+                                    var firstRun = runCollection.First();
+                                    var firstRunProperties = firstRun.Elements(W.rPr).FirstOrDefault(); // save away first run properties
+
+                                    if (trackRevisions)
                                     {
-                                        var runCollection = alignedRuns
-                                            .Skip(match.Index)
-                                            .Take(match.Length)
-                                            .ToList(); // uses the Skip / Take special semantics of array to implement efficient finding of sub array
-
-                                        var firstRun = runCollection.First();
-                                        var firstRunProperties = firstRun.Elements(W.rPr).FirstOrDefault(); // save away first run properties
-
-                                        if (trackRevisions)
+                                        if (replacement != null && replacement != "")
                                         {
-                                            if (replacement != null && replacement != "")
+                                            var newIns = new XElement(W.ins,
+                                                new XAttribute(W.author, revisionTrackingAuthor),
+                                                new XAttribute(W.date, DateTime.Now.ToString("s") + "Z"),
+                                                new XElement(W.r,
+                                                    firstRunProperties,
+                                                    new XElement(W.t, replacement)));
+                                            if (firstRun.Parent.Name == W.ins)
+                                                firstRun.Parent.AddBeforeSelf(newIns);
+                                            else
+                                                firstRun.AddBeforeSelf(newIns);
+                                        }
+
+                                        foreach (var run in runCollection)
+                                        {
+                                            var isInIns = run.Parent.Name == W.ins;
+                                            if (isInIns)
                                             {
-                                                var newIns = new XElement(W.ins,
+                                                var parentIns = run.Parent;
+                                                if ((string)parentIns.Attributes(W.author).FirstOrDefault() == revisionTrackingAuthor)
+                                                {
+                                                    var parentInsSiblings = parentIns
+                                                        .Parent
+                                                        .Elements()
+                                                        .Where(c => c != parentIns)
+                                                        .ToList();
+                                                    parentIns.Parent.ReplaceNodes(parentInsSiblings);
+                                                }
+                                                else
+                                                {
+                                                    var parentInsSiblings = parentIns
+                                                        .Parent
+                                                        .Elements()
+                                                        .Select(c =>
+                                                        {
+                                                            if (c == parentIns)
+                                                            {
+                                                                var newIns = new XElement(W.ins,
+                                                                    parentIns.Attributes(),
+                                                                    new XElement(W.del,
+                                                                        new XAttribute(W.author, revisionTrackingAuthor),
+                                                                        new XAttribute(W.date, DateTime.Now.ToString("s") + "Z"),
+                                                                        parentIns.Elements().Select(r => TransformToDelText(r))));
+                                                                return newIns;
+                                                            }
+                                                            else
+                                                            {
+                                                                return c;
+                                                            }
+                                                        })
+                                                        .ToList();
+                                                    parentIns.Parent.ReplaceNodes(parentInsSiblings);
+                                                }
+                                            }
+                                            else
+                                            {
+                                                var delRun = new XElement(W.del,
                                                     new XAttribute(W.author, revisionTrackingAuthor),
                                                     new XAttribute(W.date, DateTime.Now.ToString("s") + "Z"),
-                                                    new XElement(W.r,
-                                                        firstRunProperties,
-                                                        new XElement(W.t, replacement)));
-                                                if (firstRun.Parent.Name == W.ins)
-                                                    firstRun.Parent.AddBeforeSelf(newIns);
-                                                else
-                                                    firstRun.AddBeforeSelf(newIns);
+                                                    TransformToDelText(run));
+                                                run.ReplaceWith(delRun);
                                             }
-
-                                            foreach (var run in runCollection)
-                                            {
-                                                var isInIns = run.Parent.Name == W.ins;
-                                                if (isInIns)
-                                                {
-                                                    var parentIns = run.Parent;
-                                                    if ((string)parentIns.Attributes(W.author).FirstOrDefault() == revisionTrackingAuthor)
-                                                    {
-                                                        var parentInsSiblings = parentIns
-                                                            .Parent
-                                                            .Elements()
-                                                            .Where(c => c != parentIns)
-                                                            .ToList();
-                                                        parentIns.Parent.ReplaceNodes(parentInsSiblings);
-                                                    }
-                                                    else
-                                                    {
-                                                        var parentInsSiblings = parentIns
-                                                            .Parent
-                                                            .Elements()
-                                                            .Select(c =>
-                                                            {
-                                                                if (c == parentIns)
-                                                                {
-                                                                    var newIns = new XElement(W.ins,
-                                                                        parentIns.Attributes(),
-                                                                        new XElement(W.del,
-                                                                            new XAttribute(W.author, revisionTrackingAuthor),
-                                                                            new XAttribute(W.date, DateTime.Now.ToString("s") + "Z"),
-                                                                            parentIns.Elements().Select(r => TransformToDelText(r))));
-                                                                    return newIns;
-                                                                }
-                                                                else
-                                                                {
-                                                                    return c;
-                                                                }
-                                                            })
-                                                            .ToList();
-                                                        parentIns.Parent.ReplaceNodes(parentInsSiblings);
-                                                    }
-                                                }
-                                                else
-                                                {
-                                                    var delRun = new XElement(W.del,
-                                                        new XAttribute(W.author, revisionTrackingAuthor),
-                                                        new XAttribute(W.date, DateTime.Now.ToString("s") + "Z"),
-                                                        TransformToDelText(run));
-                                                    run.ReplaceWith(delRun);
-                                                }
-                                            }
-                                        }
-                                        else // not tracked revisions
-                                        {
-                                            foreach (var runToDelete in runCollection.Skip(1).ToList())
-                                            {
-                                                if (runToDelete.Parent.Name == W.ins)
-                                                    runToDelete.Parent.Remove();
-                                                else
-                                                    runToDelete.Remove();
-                                            }
-
-                                            XAttribute xs = null;
-                                            if (replacement.Length > 0 && (replacement[0] == ' ' || replacement[replacement.Length - 1] == ' '))
-                                                xs = new XAttribute(XNamespace.Xml + "space", "preserve");
-
-                                            var newFirstRun = new XElement(W.r,
-                                                firstRun.Element(W.rPr),
-                                                new XElement(W.t,
-                                                    xs,
-                                                    replacement)); // creates a new run with proper run properties
-
-                                            if (firstRun.Parent.Name == W.ins)
-                                                firstRun.Parent.ReplaceWith(newFirstRun);
-                                            else
-                                                firstRun.ReplaceWith(newFirstRun);  // finds firstRun in its parent's list of children, unparents firstRun,
-                                            // sets newFirstRun's parent to firstRuns old parent, and inserts in the list
-                                            // of children at the right place.
                                         }
                                     }
-                                }
+                                    else // not tracked revisions
+                                    {
+                                        foreach (var runToDelete in runCollection.Skip(1).ToList())
+                                        {
+                                            if (runToDelete.Parent.Name == W.ins)
+                                                runToDelete.Parent.Remove();
+                                            else
+                                                runToDelete.Remove();
+                                        }
 
-                                if (coalesceContent)
-                                    paragraph = WordprocessingMLUtil.CoalesceAdjacentRunsWithIdenticalFormatting(paragraphWithSplitRuns);
-                                else
-                                    paragraph = paragraphWithSplitRuns;
+                                        XAttribute xs = null;
+                                        if (replacement.Length > 0 && (replacement[0] == ' ' || replacement[replacement.Length - 1] == ' '))
+                                            xs = new XAttribute(XNamespace.Xml + "space", "preserve");
+
+                                        var newFirstRun = new XElement(W.r,
+                                            firstRun.Element(W.rPr),
+                                            new XElement(W.t,
+                                                xs,
+                                                replacement)); // creates a new run with proper run properties
+
+                                        if (firstRun.Parent.Name == W.ins)
+                                            firstRun.Parent.ReplaceWith(newFirstRun);
+                                        else
+                                            firstRun.ReplaceWith(newFirstRun);  // finds firstRun in its parent's list of children, unparents firstRun,
+                                        // sets newFirstRun's parent to firstRuns old parent, and inserts in the list
+                                        // of children at the right place.
+                                    }
+                                }
                             }
+
+                            if (coalesceContent)
+                                paragraph = WordprocessingMLUtil.CoalesceAdjacentRunsWithIdenticalFormatting(paragraphWithSplitRuns);
+                            else
+                                paragraph = paragraphWithSplitRuns;
                         }
                         return paragraph;
                     }
