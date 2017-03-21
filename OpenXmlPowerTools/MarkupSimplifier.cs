@@ -175,6 +175,10 @@ namespace OpenXmlPowerTools
                         .Select(e =>
                             RemoveCustomXmlAndContentControlsTransform(e,
                                 simplifyMarkupSettings));
+
+                return new XElement(element.Name,
+                    element.Attributes(),
+                    element.Nodes().Select(n => RemoveCustomXmlAndContentControlsTransform(n, simplifyMarkupSettings)));
             }
             return node;
         }
@@ -673,11 +677,13 @@ namespace OpenXmlPowerTools
                     new XAttribute(XNamespace.Xmlns + "w10", W10.w10),
                     new XAttribute(XNamespace.Xmlns + "w", W.w),
                     new XAttribute(XNamespace.Xmlns + "w14", W14.w14),
+                    new XAttribute(XNamespace.Xmlns + "w15", W15.w15),
+                    new XAttribute(XNamespace.Xmlns + "w16se", W16SE.w16se),
                     new XAttribute(XNamespace.Xmlns + "wpg", WPG.wpg),
                     new XAttribute(XNamespace.Xmlns + "wpi", WPI.wpi),
                     new XAttribute(XNamespace.Xmlns + "wne", WNE.wne),
                     new XAttribute(XNamespace.Xmlns + "wps", WPS.wps),
-                    new XAttribute(MC.Ignorable, "w14 wp14"),
+                    new XAttribute(MC.Ignorable, "w14 wp14 w15 w16se"),
                 };
 
                 XDocument newXDoc = Normalize(new XDocument(newRoot), null);
