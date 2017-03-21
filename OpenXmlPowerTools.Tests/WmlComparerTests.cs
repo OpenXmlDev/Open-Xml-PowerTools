@@ -31,6 +31,8 @@ using OpenXmlPowerTools;
 using Xunit;
 using System.Diagnostics;
 
+#if !ELIDE_XUNIT_TESTS
+
 /****************************************************************************************************************/
 // Large tests have been commented out below.  If and when there is an effort to improve performance for WmlComparer,
 // then uncomment.  Performance isn't bad, but certainly is possible to improve.
@@ -749,3 +751,5 @@ namespace OxPt
         }
     }
 }
+
+#endif

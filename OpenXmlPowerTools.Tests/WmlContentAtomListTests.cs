@@ -31,6 +31,8 @@ using DocumentFormat.OpenXml.Packaging;
 using OpenXmlPowerTools;
 using Xunit;
 
+#if !ELIDE_XUNIT_TESTS
+
 namespace OxPt
 {
     public class CaTests
@@ -148,3 +150,5 @@ namespace OxPt
         }
     }
 }
+
+#endif
