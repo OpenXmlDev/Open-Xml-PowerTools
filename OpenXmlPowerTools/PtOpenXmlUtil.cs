@@ -5359,6 +5359,16 @@ namespace OpenXmlPowerTools
         public static XName xfrm = w14 + "xfrm";
     }
 
+    public static class W15
+    {
+        public static XNamespace w15 = "http://schemas.microsoft.com/office/word/2012/wordml";
+    }
+
+    public static class W16SE
+    {
+        public static XNamespace w16se = "http://schemas.microsoft.com/office/word/2015/wordml/symex";
+    }
+
     public static class W3DIGSIG
     {
         public static XNamespace w3digsig =
@@ -5538,6 +5548,9 @@ namespace OpenXmlPowerTools
         public static XName SHA1Hash = pt + "SHA1Hash";
         public static XName Status = pt + "Status";
 
+        public static XName Level = pt + "Level";
+        public static XName ContentType = pt + "ContentType";
+
         public static XName trPr = pt + "trPr";
         public static XName tcPr = pt + "tcPr";
         public static XName rPr = pt + "rPr";
@@ -5637,7 +5650,7 @@ namespace OpenXmlPowerTools
         public static XName ol = "ol";
         public static XName ul = "ul";
         public static XName li = "li";
-        public static XName strong = "strong";
+        public static XName strong = "Bold";
         public static XName em = "em";
         public static XName tbody = "tbody";
         public static XName valign = "valign";
