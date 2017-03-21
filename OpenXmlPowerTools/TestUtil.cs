@@ -18,6 +18,7 @@ Email: eric@ericwhite.com
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -71,6 +72,11 @@ namespace OpenXmlPowerTools
             if (!notepadExe.Exists)
                 notepadExe = new FileInfo(@"C:\Windows\System32\notepad.exe");
             ExecutableRunner.RunExecutable(notepadExe.FullName, fi.FullName, TempDir.FullName);
+        }
+
+        public static void Explorer(DirectoryInfo di)
+        {
+            Process.Start(di.FullName);
         }
     }
 }
