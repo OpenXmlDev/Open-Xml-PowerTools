@@ -45,6 +45,13 @@ See:
 Build Instructions
 ==================
 
+Recently, we've updated the GitHub repo so that it pulls the Open-Xml-Sdk via NuGet.  The video at the following link shows how to clone and build the Open-Xml-PowerTools
+when pulling the Open-Xml-Sdk via NuGet.  It uses Visual Studio 2017 Community Edition.
+
+[Build Open-Xml-PowerTools](http://ericwhite.com/blog/2017/03/24/building-open-xml-powertools-when-pulling-the-open-xml-sdk-via-nuget/)
+
+The following instructions are somewhat outdated at this point.
+
 For this release, you need Visual Studio 2013 or 2015 installed.  The following video shows gitting and building the Open-Xml-Sdk and
 Open-Xml-PowerTools using [Visual Studio 2015 Community Edition](https://www.visualstudio.com/en-us/products/visual-studio-community-vs.aspx), which is free.
 
