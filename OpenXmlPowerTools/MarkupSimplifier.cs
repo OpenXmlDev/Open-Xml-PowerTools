@@ -109,15 +109,23 @@ namespace OpenXmlPowerTools
 
         private static void RemoveElementsForDocumentComparison(WordprocessingDocument doc)
         {
-            XDocument appPropsXDoc = doc.ExtendedFilePropertiesPart.GetXDocument();
-            appPropsXDoc.Root?.Elements(EP.TotalTime).Remove();
-            doc.ExtendedFilePropertiesPart.PutXDocument();
+            OpenXmlPart part = doc.ExtendedFilePropertiesPart;
+            if (part != null)
+            {
+                XDocument appPropsXDoc = part.GetXDocument();
+                appPropsXDoc.Root?.Elements(EP.TotalTime).Remove();
+                doc.ExtendedFilePropertiesPart.PutXDocument();
+            }
 
-            XDocument corePropsXDoc = doc.CoreFilePropertiesPart.GetXDocument();
-            corePropsXDoc.Root?.Elements(CP.revision).Remove();
-            corePropsXDoc.Root?.Elements(DCTERMS.created).Remove();
-            corePropsXDoc.Root?.Elements(DCTERMS.modified).Remove();
-            doc.CoreFilePropertiesPart.PutXDocument();
+            part = doc.CoreFilePropertiesPart;
+            if (part != null)
+            {
+                XDocument corePropsXDoc = part.GetXDocument();
+                corePropsXDoc.Root?.Elements(CP.revision).Remove();
+                corePropsXDoc.Root?.Elements(DCTERMS.created).Remove();
+                corePropsXDoc.Root?.Elements(DCTERMS.modified).Remove();
+                doc.CoreFilePropertiesPart.PutXDocument();
+            }
 
             XDocument mainXDoc = doc.MainDocumentPart.GetXDocument();
             List<XElement> bookmarkStart = mainXDoc

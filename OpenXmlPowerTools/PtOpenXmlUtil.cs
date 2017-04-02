@@ -37,7 +37,6 @@ using System.Xml.Linq;
 using System.Collections.Generic;
 using DocumentFormat.OpenXml.Packaging;
 using System.Drawing;
-using DocumentFormat.OpenXml.Wordprocessing;
 using Font = System.Drawing.Font;
 using FontFamily = System.Drawing.FontFamily;
 
@@ -49,29 +48,22 @@ namespace OpenXmlPowerTools
     {
         public static XDocument GetXDocument(this OpenXmlPart part)
         {
-            try
-            {
-                XDocument partXDocument = part.Annotation<XDocument>();
-                if (partXDocument != null)
-                    return partXDocument;
-                using (Stream partStream = part.GetStream())
-                {
-                    if (partStream.Length == 0)
-                    {
-                        partXDocument = new XDocument();
-                        partXDocument.Declaration = new XDeclaration("1.0", "UTF-8", "yes");
-                    }
-                    else
-                        using (XmlReader partXmlReader = XmlReader.Create(partStream))
-                            partXDocument = XDocument.Load(partXmlReader);
-                }
-                part.AddAnnotation(partXDocument);
+            XDocument partXDocument = part.Annotation<XDocument>();
+            if (partXDocument != null)
                 return partXDocument;
-            }
-            catch (Exception e)
+            using (Stream partStream = part.GetStream())
             {
-                throw e;
+                if (partStream.Length == 0)
+                {
+                    partXDocument = new XDocument();
+                    partXDocument.Declaration = new XDeclaration("1.0", "UTF-8", "yes");
+                }
+                else
+                    using (XmlReader partXmlReader = XmlReader.Create(partStream))
+                        partXDocument = XDocument.Load(partXmlReader);
             }
+            part.AddAnnotation(partXDocument);
+            return partXDocument;
         }
 
         public static XDocument GetXDocument(this OpenXmlPart part, out XmlNamespaceManager namespaceManager)
