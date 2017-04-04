@@ -70,6 +70,7 @@
     <Compile Include="HtmlToWmlCssApplier.cs" />
     <Compile Include="HtmlToWmlCssParser.cs" />
     <Compile Include="MetricsGetter.cs" />
+    <Compile Include="RevisionProcessor.cs" />
     <Compile Include="SmlCellFormatter.cs" />
     <Compile Include="SmlDataRetriever.cs" />
     <Compile Include="SmlToHtmlConverter.cs" />
