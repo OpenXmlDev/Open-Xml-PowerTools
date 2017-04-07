@@ -97,6 +97,7 @@
     <Compile Include="SSFormula.cs" />
     <Compile Include="TextReplacer.cs" />
     <Compile Include="WmlDocument.cs" />
+    <Compile Include="WmlToXml.cs" />
     <Compile Include="WorksheetAccessor.cs" />
     <Compile Include="XlsxTables.cs" />
   </ItemGroup>
