@@ -56,7 +56,7 @@ namespace OpenXmlPowerTools
         public List<ContentTypeRule> RunContentTypeRules;
         public ListItemRetrieverSettings ListItemRetrieverSettings;
         public bool? InjectCommentForContentTypes;
-        public Dictionary<string, int?> ContentTypeHierarchy;
+        public Func<XElement, WmlToXmlSettings, int?> ContentTypeHierarchyLambda;
         public Dictionary<string, Func<string, OpenXmlPart, XElement, WmlToXmlSettings, object>> XmlGenerationLambdas;
         public DirectoryInfo ImageBase;
         public bool WriteImageFiles = true;
@@ -70,7 +70,7 @@ namespace OpenXmlPowerTools
             List<ContentTypeRule> documentTypeContentTypeRules,
             List<ContentTypeRule> documentContentTypeRules,
             List<ContentTypeRule> runContentTypeRules,
-            Dictionary<string, int?> contentTypeHierarchy,
+            Func<XElement, WmlToXmlSettings, int?> contentTypeHierarchyLambda,
             Dictionary<string, Func<string, OpenXmlPart, XElement, WmlToXmlSettings, object>> xmlGenerationLambdas,
             DirectoryInfo imageBase,
             XDocument contentTypeRegexExtension)
@@ -80,7 +80,7 @@ namespace OpenXmlPowerTools
             DocumentContentTypeRules = documentContentTypeRules;
             RunContentTypeRules = runContentTypeRules;
             ListItemRetrieverSettings = new ListItemRetrieverSettings();
-            ContentTypeHierarchy = contentTypeHierarchy;
+            ContentTypeHierarchyLambda = contentTypeHierarchyLambda;
             XmlGenerationLambdas = xmlGenerationLambdas;
             ImageBase = imageBase;
             ContentTypeRegexExtension = contentTypeRegexExtension;
@@ -91,7 +91,7 @@ namespace OpenXmlPowerTools
             List<ContentTypeRule> documentTypeContentTypeRules,
             List<ContentTypeRule> documentContentTypeRules,
             List<ContentTypeRule> runContentTypeRules,
-            Dictionary<string, int?> contentTypeHierarchy,
+            Func<XElement, WmlToXmlSettings, int?> contentTypeHierarchyLambda,
             Dictionary<string, Func<string, OpenXmlPart, XElement, WmlToXmlSettings, object>> xmlGenerationLambdas,
             ListItemRetrieverSettings listItemRetrieverSettings,
             DirectoryInfo imageBase,
@@ -102,7 +102,7 @@ namespace OpenXmlPowerTools
             DocumentContentTypeRules = documentContentTypeRules;
             RunContentTypeRules = runContentTypeRules;
             ListItemRetrieverSettings = listItemRetrieverSettings;
-            ContentTypeHierarchy = contentTypeHierarchy;
+            ContentTypeHierarchyLambda = contentTypeHierarchyLambda;
             XmlGenerationLambdas = xmlGenerationLambdas;
             ImageBase = imageBase;
             ContentTypeRegexExtension = contentTypeRegexExtension;
@@ -479,12 +479,7 @@ namespace OpenXmlPowerTools
             int currentLevel = 1;
             foreach (var content in contentWithContentType)
             {
-                string styleName = null;
-                if (content.Name == W.p)
-                {
-                    styleName = (string)content.Elements(W.pPr).Elements(W.pStyle).Attributes(W.val).FirstOrDefault();
-                }
-                var thisLevel = GetIndentLevelByParagraphStyle(styleName, settings);
+                var thisLevel = GetIndentLevel(content, settings);
                 if (thisLevel == null)
                 {
                     content.Add(new XAttribute(PtOpenXml.Level, currentLevel));
@@ -508,12 +503,7 @@ namespace OpenXmlPowerTools
             int currentLevel = 1;
             foreach (var content in contentWithContentType)
             {
-                string styleName = null;
-                if (content.Name == W.p)
-                {
-                    styleName = (string)content.Elements(W.pPr).Elements(W.pStyle).Attributes(W.val).FirstOrDefault();
-                }
-                var thisLevel = GetIndentLevelByParagraphStyle(styleName, settings);
+                var thisLevel = GetIndentLevel(content, settings);
                 if (thisLevel == null)
                 {
                     content.Add(new XAttribute(PtOpenXml.Level, currentLevel));
@@ -526,13 +516,9 @@ namespace OpenXmlPowerTools
             }
         }
 
-        private static int? GetIndentLevelByParagraphStyle(string styleName, WmlToXmlSettings settings)
+        private static int? GetIndentLevel(XElement blockLevelContent, WmlToXmlSettings settings)
         {
-            if (styleName == null)
-                return null;
-            if (!settings.ContentTypeHierarchy.ContainsKey(styleName))
-                return null;
-            return settings.ContentTypeHierarchy[styleName];
+            return settings.ContentTypeHierarchyLambda(blockLevelContent, settings);
         }
 
         // Apply the Document rules first, then apply the DocumentType rules, then apply the Global rules.  First one that matches, wins.
