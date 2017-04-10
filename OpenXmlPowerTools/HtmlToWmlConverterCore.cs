@@ -2640,7 +2640,7 @@ namespace OpenXmlPowerTools.HtmlToWml
             if (width.IsNotAuto && height.IsAuto)
             {
                 Emu widthInEmus = (Emu)width;
-                double percentChange = widthInEmus / cx;
+                double percentChange = (float)widthInEmus / (float)cx;
                 cx = widthInEmus;
                 cy = (long)(cy * percentChange);
                 return new SizeEmu(cx, cy);

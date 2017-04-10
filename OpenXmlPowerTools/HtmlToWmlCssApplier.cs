@@ -582,9 +582,9 @@ namespace OpenXmlPowerTools.HtmlToWml
                             {
                                 string s1 = settings.DefaultBlockContentMargin.Substring(0, settings.DefaultBlockContentMargin.Length - 2);
                                 double d1;
-                                if (double.TryParse(s1, out d1))
+                                if (double.TryParse(s1, NumberStyles.Float, CultureInfo.InvariantCulture, out d1))
                                 {
-                                    return new CssExpression { Terms = new List<CssTerm> { new CssTerm { Value = d1.ToString(), Type = OpenXmlPowerTools.HtmlToWml.CSS.CssTermType.Number, Unit = CssUnit.PT } } };
+                                    return new CssExpression { Terms = new List<CssTerm> { new CssTerm { Value = d1.ToString(CultureInfo.InvariantCulture), Type = OpenXmlPowerTools.HtmlToWml.CSS.CssTermType.Number, Unit = CssUnit.PT } } };
                                 }
                             }
                             throw new OpenXmlPowerToolsException("invalid setting");
@@ -1431,7 +1431,7 @@ namespace OpenXmlPowerTools.HtmlToWml
             if (unit == CssUnit.Percent)
             {
                 double ptSize;
-                if (!double.TryParse(lengthForPercentage.Terms.First().Value, out ptSize))
+                if (!double.TryParse(lengthForPercentage.Terms.First().Value, NumberStyles.Float, CultureInfo.InvariantCulture, out ptSize))
                     throw new OpenXmlPowerToolsException("did not return a double?");
                 newPtSize = ptSize * decValue / 100d;
             }
@@ -1439,7 +1439,7 @@ namespace OpenXmlPowerTools.HtmlToWml
             {
                 CssExpression fontSize = GetComputedPropertyValue(null, element, "font-size", settings);
                 double decFontSize;
-                if (!double.TryParse(fontSize.Terms.First().Value, out decFontSize))
+                if (!double.TryParse(fontSize.Terms.First().Value, NumberStyles.Float, CultureInfo.InvariantCulture, out decFontSize))
                     throw new OpenXmlPowerToolsException("Internal error");
                 newPtSize = (unit == CssUnit.EM) ? decFontSize * decValue : decFontSize * decValue / 2;
             }
@@ -1480,7 +1480,7 @@ namespace OpenXmlPowerTools.HtmlToWml
             {
                 CssExpression parentFontSize = GetComputedPropertyValue(null, element.Parent, "font-size", settings);
                 double ptSize;
-                if (!double.TryParse(parentFontSize.Terms.First().Value, out ptSize))
+                if (!double.TryParse(parentFontSize.Terms.First().Value, NumberStyles.Float, CultureInfo.InvariantCulture, out ptSize))
                     throw new OpenXmlPowerToolsException("did not return a double?");
                 double newPtSize2 = 0;
                 if (value == "larger")
@@ -1516,14 +1516,14 @@ namespace OpenXmlPowerTools.HtmlToWml
                 return new CssExpression { Terms = new List<CssTerm> { new CssTerm { Value = newPtSize2.ToString(), Type = OpenXmlPowerTools.HtmlToWml.CSS.CssTermType.Number, Unit = CssUnit.PT, } } };
             }
             double decValue;
-            if (!double.TryParse(value, out decValue))
+            if (!double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out decValue))
                 throw new OpenXmlPowerToolsException("em value did not parse");
             double? newPtSize = null;
             if (unit == CssUnit.EM || unit == CssUnit.EX || unit == CssUnit.Percent)
             {
                 CssExpression parentFontSize = GetComputedPropertyValue(null, element.Parent, "font-size", settings);
                 double ptSize;
-                if (!double.TryParse(parentFontSize.Terms.First().Value, out ptSize))
+                if (!double.TryParse(parentFontSize.Terms.First().Value, NumberStyles.Float, CultureInfo.InvariantCulture, out ptSize))
                     throw new OpenXmlPowerToolsException("did not return a double?");
                 if (unit == CssUnit.EM)
                     newPtSize = ptSize * decValue;
