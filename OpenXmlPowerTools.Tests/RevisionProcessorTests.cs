@@ -202,7 +202,7 @@ namespace OxPt
                 var baselineAcceptedWml = new WmlDocument(baselineAcceptedFi.FullName);
                 WmlComparerSettings wmlComparerSettings = new WmlComparerSettings();
                 WmlDocument result = WmlComparer.Compare(baselineAcceptedWml, afterAcceptingWml, wmlComparerSettings);
-                var revisions = WmlComparer.GetRevisions(result);
+                var revisions = WmlComparer.GetRevisions(result, wmlComparerSettings);
                 if (revisions.Any())
                 {
                     Assert.True(false, "Regression Error: Accepted baseline document did not match processed document");
@@ -220,7 +220,7 @@ namespace OxPt
                 var baselineRejectedWml = new WmlDocument(baselineRejectedFi.FullName);
                 WmlComparerSettings wmlComparerSettings = new WmlComparerSettings();
                 WmlDocument result = WmlComparer.Compare(baselineRejectedWml, afterRejectingWml, wmlComparerSettings);
-                var revisions = WmlComparer.GetRevisions(result);
+                var revisions = WmlComparer.GetRevisions(result, wmlComparerSettings);
                 if (revisions.Any())
                 {
                     Assert.True(false, "Regression Error: Rejected baseline document did not match processed document");
