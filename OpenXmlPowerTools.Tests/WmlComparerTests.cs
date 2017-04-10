@@ -31,8 +31,6 @@ using OpenXmlPowerTools;
 using Xunit;
 using System.Diagnostics;
 
-#if !ELIDE_XUNIT_TESTS
-
 /****************************************************************************************************************/
 // Large tests have been commented out below.  If and when there is an effort to improve performance for WmlComparer,
 // then uncomment.  Performance isn't bad, but certainly is possible to improve.
@@ -397,7 +395,7 @@ namespace OxPt
         [InlineData("WC006-Table-Delete-Row.docx", "WC006-Table.docx", 1)]
         [InlineData("WC006-Table.docx", "WC006-Table-Delete-Contests-of-Row.docx", 2)]
         [InlineData("WC007-Unmodified.docx", "WC007-Longest-At-End.docx", 2)]
-        [InlineData("WC007-Unmodified.docx", "WC007-Deleted-at-Beginning-of-Para.docx", 1)]
+        [InlineData("WC007-Unmodified.docx", "WC007-Deleted-at-Beginning-of-Para.docx", 2)]
         [InlineData("WC007-Unmodified.docx", "WC007-Moved-into-Table.docx", 2)]
         [InlineData("WC009-Table-Unmodified.docx", "WC009-Table-Cell-1-1-Mod.docx", 1)]
         [InlineData("WC010-Para-Before-Table-Unmodified.docx", "WC010-Para-Before-Table-Mod.docx", 3)]
@@ -445,8 +443,8 @@ namespace OxPt
         [InlineData("WC036-Footnote-With-Table-After.docx", "WC036-Footnote-With-Table-Before.docx", 5)]
         [InlineData("WC034-Endnotes-Before.docx", "WC034-Endnotes-After1.docx", 1)]
         [InlineData("WC034-Endnotes-Before.docx", "WC034-Endnotes-After2.docx", 6)]
-        [InlineData("WC034-Endnotes-Before.docx", "WC034-Endnotes-After3.docx", 6)]
-        [InlineData("WC034-Endnotes-After3.docx", "WC034-Endnotes-Before.docx", 6)]
+        [InlineData("WC034-Endnotes-Before.docx", "WC034-Endnotes-After3.docx", 8)]
+        [InlineData("WC034-Endnotes-After3.docx", "WC034-Endnotes-Before.docx", 8)]
         [InlineData("WC035-Endnote-Before.docx", "WC035-Endnote-After.docx", 2)]
         [InlineData("WC035-Endnote-After.docx", "WC035-Endnote-Before.docx", 2)]
         [InlineData("WC036-Endnote-With-Table-Before.docx", "WC036-Endnote-With-Table-After.docx", 6)]
@@ -549,7 +547,7 @@ namespace OxPt
             /************************************************************************************************************************/
 
             WmlDocument revisionWml = new WmlDocument(docxWithRevisionsFi.FullName);
-            var revisions = WmlComparer.GetRevisions(revisionWml);
+            var revisions = WmlComparer.GetRevisions(revisionWml, settings);
             Assert.Equal(revisionCount, revisions.Count());
         }
 
@@ -666,6 +664,108 @@ namespace OxPt
             ValidateDocument(comparedWml2);
         }
 
+        [Theory]
+        [InlineData("WC040-Case-Before.docx", "WC040-Case-After.docx", 2)]
+        //[InlineData("", "", 0)]
+        //[InlineData("", "", 0)]
+        //[InlineData("", "", 0)]
+        //[InlineData("", "", 0)]
+        //[InlineData("", "", 0)]
+        //[InlineData("", "", 0)]
+        //[InlineData("", "", 0)]
+        //[InlineData("", "", 0)]
+
+        public void WC005_Compare_CaseInsensitive(string name1, string name2, int revisionCount)
+        {
+            FileInfo source1Docx = new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, name1));
+            FileInfo source2Docx = new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, name2));
+
+            var source1CopiedToDestDocx = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, source1Docx.Name));
+            var source2CopiedToDestDocx = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, source2Docx.Name));
+            if (!source1CopiedToDestDocx.Exists)
+                File.Copy(source1Docx.FullName, source1CopiedToDestDocx.FullName);
+            if (!source2CopiedToDestDocx.Exists)
+                File.Copy(source2Docx.FullName, source2CopiedToDestDocx.FullName);
+
+            /************************************************************************************************************************/
+
+            if (s_OpenWord)
+            {
+                FileInfo source1DocxForWord = new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, name1));
+                FileInfo source2DocxForWord = new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, name2));
+
+                var source1CopiedToDestDocxForWord = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, source1Docx.Name.Replace(".docx", "-For-Word.docx")));
+                var source2CopiedToDestDocxForWord = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, source2Docx.Name.Replace(".docx", "-For-Word.docx")));
+                if (!source1CopiedToDestDocxForWord.Exists)
+                    File.Copy(source1Docx.FullName, source1CopiedToDestDocxForWord.FullName);
+                if (!source2CopiedToDestDocxForWord.Exists)
+                    File.Copy(source2Docx.FullName, source2CopiedToDestDocxForWord.FullName);
+
+                FileInfo wordExe = new FileInfo(@"C:\Program Files (x86)\Microsoft Office\root\Office16\WINWORD.EXE");
+                var path = new DirectoryInfo(@"C:\Users\Eric\Documents\WindowsPowerShellModules\Open-Xml-PowerTools\TestFiles");
+                WordRunner.RunWord(wordExe, source2CopiedToDestDocxForWord);
+                WordRunner.RunWord(wordExe, source1CopiedToDestDocxForWord);
+            }
+
+            /************************************************************************************************************************/
+
+            var before = source1CopiedToDestDocx.Name.Replace(".docx", "");
+            var after = source2CopiedToDestDocx.Name.Replace(".docx", "");
+            var docxWithRevisionsFi = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, before + "-COMPARE-" + after + ".docx"));
+
+            WmlDocument source1Wml = new WmlDocument(source1CopiedToDestDocx.FullName);
+            WmlDocument source2Wml = new WmlDocument(source2CopiedToDestDocx.FullName);
+            WmlComparerSettings settings = new WmlComparerSettings();
+            settings.CaseInsensitive = true;
+            settings.CultureInfo = System.Globalization.CultureInfo.CurrentCulture;
+            WmlDocument comparedWml = WmlComparer.Compare(source1Wml, source2Wml, settings);
+            comparedWml.SaveAs(docxWithRevisionsFi.FullName);
+
+            using (MemoryStream ms = new MemoryStream())
+            {
+                ms.Write(comparedWml.DocumentByteArray, 0, comparedWml.DocumentByteArray.Length);
+                using (WordprocessingDocument wDoc = WordprocessingDocument.Open(ms, true))
+                {
+                    OpenXmlValidator validator = new OpenXmlValidator();
+                    var errors = validator.Validate(wDoc).Where(e => !ExpectedErrors.Contains(e.Description));
+                    if (errors.Count() > 0)
+                    {
+
+                        var ind = "  ";
+                        var sb = new StringBuilder();
+                        foreach (var err in errors)
+                        {
+#if true
+                            sb.Append("Error" + Environment.NewLine);
+                            sb.Append(ind + "ErrorType: " + err.ErrorType.ToString() + Environment.NewLine);
+                            sb.Append(ind + "Description: " + err.Description + Environment.NewLine);
+                            sb.Append(ind + "Part: " + err.Part.Uri.ToString() + Environment.NewLine);
+                            sb.Append(ind + "XPath: " + err.Path.XPath + Environment.NewLine);
+#else
+                        sb.Append("            \"" + err.Description + "\"," + Environment.NewLine);
+#endif
+                        }
+                        var sbs = sb.ToString();
+                        Assert.Equal("", sbs);
+                    }
+                }
+            }
+
+            /************************************************************************************************************************/
+
+            if (s_OpenWord)
+            {
+                FileInfo wordExe = new FileInfo(@"C:\Program Files (x86)\Microsoft Office\root\Office16\WINWORD.EXE");
+                WordRunner.RunWord(wordExe, docxWithRevisionsFi);
+            }
+
+            /************************************************************************************************************************/
+
+            WmlDocument revisionWml = new WmlDocument(docxWithRevisionsFi.FullName);
+            var revisions = WmlComparer.GetRevisions(revisionWml, settings);
+            Assert.Equal(revisionCount, revisions.Count());
+        }
+
         private static void ValidateDocument(WmlDocument wmlToValidate)
         {
             using (MemoryStream ms = new MemoryStream())
@@ -751,5 +851,3 @@ namespace OxPt
         }
     }
 }
-
-#endif

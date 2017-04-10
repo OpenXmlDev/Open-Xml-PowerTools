@@ -31,8 +31,6 @@ using DocumentFormat.OpenXml.Packaging;
 using OpenXmlPowerTools;
 using Xunit;
 
-#if !ELIDE_XUNIT_TESTS
-
 namespace OxPt
 {
     public class CaTests
@@ -76,7 +74,8 @@ namespace OxPt
             using (WordprocessingDocument wDoc = WordprocessingDocument.Open(coalescedDocx.FullName, true))
             {
                 var contentParent = wDoc.MainDocumentPart.GetXDocument().Root.Element(W.body);
-                ComparisonUnitAtom[] contentAtomList = WmlComparer.CreateComparisonUnitAtomList(wDoc.MainDocumentPart, contentParent);
+                var settings = new WmlComparerSettings();
+                ComparisonUnitAtom[] contentAtomList = WmlComparer.CreateComparisonUnitAtomList(wDoc.MainDocumentPart, contentParent, settings);
                 StringBuilder sb = new StringBuilder();
                 var part = wDoc.MainDocumentPart;
 
@@ -114,7 +113,8 @@ namespace OxPt
             using (WordprocessingDocument wDoc = WordprocessingDocument.Open(annotatedDocx.FullName, true))
             {
                 var contentParent = wDoc.MainDocumentPart.GetXDocument().Root.Element(W.body);
-                WmlComparer.CreateComparisonUnitAtomList(wDoc.MainDocumentPart, contentParent);
+                var settings = new WmlComparerSettings();
+                WmlComparer.CreateComparisonUnitAtomList(wDoc.MainDocumentPart, contentParent, settings);
             }
 #endif
         }
@@ -144,11 +144,10 @@ namespace OxPt
                 Assert.Throws<NotSupportedException>(() =>
                 {
                     var contentParent = wDoc.MainDocumentPart.GetXDocument().Root.Element(W.body);
-                    WmlComparer.CreateComparisonUnitAtomList(wDoc.MainDocumentPart, contentParent);
+                    var settings = new WmlComparerSettings();
+                    WmlComparer.CreateComparisonUnitAtomList(wDoc.MainDocumentPart, contentParent, settings);
                 });
             }
         }
     }
 }
-
-#endif
