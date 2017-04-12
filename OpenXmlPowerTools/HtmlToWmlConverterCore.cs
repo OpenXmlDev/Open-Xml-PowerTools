@@ -4758,7 +4758,7 @@ namespace OpenXmlPowerTools.HtmlToWml
                         if (styleXDoc
                             .Root
                             .Elements(W.style)
-                            .Where(e => (string)e.Attribute(W.type) == "paragraph" && (string)e.Attribute(W.styleId) == styleName)
+                            .Where(e => (string)e.Attribute(W.type) == "paragraph" && ((string)e.Attribute(W.styleId)).ToLower() == styleName)
                             .FirstOrDefault() == null)
                             styleXDoc.Root.Add(newStyle);
                     }
