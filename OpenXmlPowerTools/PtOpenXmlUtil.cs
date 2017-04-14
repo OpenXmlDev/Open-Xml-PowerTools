@@ -46,11 +46,78 @@ namespace OpenXmlPowerTools
 {
     public static class PtOpenXmlExtensions
     {
+        /// <summary>
+        /// If true (the default), reloads the <see cref="OpenXmlPart"/>'s content into the Open XML DOM tree
+        /// after writing an <see cref="XDocument"/> to the <see cref="OpenXmlPart"/>'s stream.
+        /// </summary>
+        /// <remarks>
+        /// This is required where the strictly typed classes from the Open XML SDK are used in conjunction
+        /// with the Open XML PowerTools. Therefore, to be on the safe side, the default is true. Should your
+        /// application not use the strictly typed classes at all, however, this property can be set to false.
+        /// </remarks>
+        public static bool ReloadRootElementOnPut { get; set; } = true;
+
+        /// <summary>
+        /// Removes <see cref="XDocument"/> and <see cref="XmlNamespaceManager"/> instances added by
+        /// <see cref="GetXDocument(OpenXmlPart)"/>, <see cref="GetXDocument(OpenXmlPart, XmlNamespaceManager)"/>,
+        /// <see cref="PutXDocument(OpenXmlPart)"/>, <see cref="PutXDocument(OpenXmlPart, XDocument)"/>, and
+        /// <see cref="PutXDocumentWithFormatting(OpenXmlPart)"/>.
+        /// methods.
+        /// </summary>
+        /// <remarks>
+        /// This is required where the strongly typed classes from the Open XML SDK are used in conjunction with
+        /// the Open XML PowerTools. For example, after making changes to multiple <see cref="OpenXmlPart"/>s 
+        /// contained in a <see cref="WordprocessingDocument"/> through the strongly typed classes, invoke the 
+        /// following methods before using further PowerTools:
+        /// <code>
+        ///     wordprocessingDocument.Save();
+        ///     wordprocessingDocument.RemovePowerToolsAnnotations();
+        /// </code>
+        /// </remarks>
+        /// <param name="package">
+        /// An <see cref="OpenXmlPackage"/>, i.e., a <see cref="WordprocessingDocument"/>,
+        /// <see cref="SpreadsheetDocument"/>, or <see cref="PresentationDocument"/>.
+        /// </param>
+        public static void RemovePowerToolsAnnotations(this OpenXmlPackage package)
+        {
+            if (package == null) throw new ArgumentNullException(nameof(package));
+
+            foreach (OpenXmlPart part in package.GetAllParts())
+                part.RemovePowerToolsAnnotations();
+        }
+
+        /// <summary>
+        /// Removes <see cref="XDocument"/> and <see cref="XmlNamespaceManager"/> instances added by
+        /// <see cref="GetXDocument(OpenXmlPart)"/>, <see cref="GetXDocument(OpenXmlPart, XmlNamespaceManager)"/>,
+        /// <see cref="PutXDocument(OpenXmlPart)"/>, <see cref="PutXDocument(OpenXmlPart, XDocument)"/>, and
+        /// <see cref="PutXDocumentWithFormatting(OpenXmlPart)"/>.
+        /// </summary>
+        /// <remarks>
+        /// This is required where the strongly typed classes from the Open XML SDK are used in conjunction with
+        /// the Open XML PowerTools. For example, after making changes to the <see cref="MainDocumentPart"/>, 
+        /// using strongly typed classes such as <see cref="DocumentFormat.OpenXml.Wordprocessing.Paragraph"/>,
+        /// invoke the following methods before using further PowerTools:
+        /// <code>
+        ///     openXmlPart.RootElement.Save();
+        ///     openXmlPart.RemovePowerToolsAnnotations();
+        /// </code>
+        /// </remarks>
+        /// <param name="part">An <see cref="OpenXmlPart"/>, e.g., a <see cref="MainDocumentPart"/>.</param>
+        public static void RemovePowerToolsAnnotations(this OpenXmlPart part)
+        {
+            if (part == null) throw new ArgumentNullException(nameof(part));
+
+            part.RemoveAnnotations<XDocument>();
+            part.RemoveAnnotations<XmlNamespaceManager>();
+        }
+
         public static XDocument GetXDocument(this OpenXmlPart part)
         {
+            if (part == null) throw new ArgumentNullException(nameof(part));
+
             XDocument partXDocument = part.Annotation<XDocument>();
-            if (partXDocument != null)
-                return partXDocument;
+            if (partXDocument != null) return partXDocument;
+
             using (Stream partStream = part.GetStream())
             {
                 if (partStream.Length == 0)
@@ -59,24 +126,29 @@ namespace OpenXmlPowerTools
                     partXDocument.Declaration = new XDeclaration("1.0", "UTF-8", "yes");
                 }
                 else
+                {
                     using (XmlReader partXmlReader = XmlReader.Create(partStream))
                         partXDocument = XDocument.Load(partXmlReader);
+                }
             }
+
             part.AddAnnotation(partXDocument);
             return partXDocument;
         }
 
         public static XDocument GetXDocument(this OpenXmlPart part, out XmlNamespaceManager namespaceManager)
         {
+            if (part == null) throw new ArgumentNullException(nameof(part));
 
-            XDocument partXDocument = part.Annotation<XDocument>();
             namespaceManager = part.Annotation<XmlNamespaceManager>();
+            XDocument partXDocument = part.Annotation<XDocument>();
             if (partXDocument != null)
             {
-                if (namespaceManager != null)
-                    return partXDocument;
+                if (namespaceManager != null) return partXDocument;
+
                 namespaceManager = GetManagerFromXDocument(partXDocument);
                 part.AddAnnotation(namespaceManager);
+
                 return partXDocument;
             }
 
@@ -86,7 +158,9 @@ namespace OpenXmlPowerTools
                 {
                     partXDocument = new XDocument();
                     partXDocument.Declaration = new XDeclaration("1.0", "UTF-8", "yes");
+
                     part.AddAnnotation(partXDocument);
+
                     return partXDocument;
                 }
                 else
@@ -94,10 +168,11 @@ namespace OpenXmlPowerTools
                     using (XmlReader partXmlReader = XmlReader.Create(partStream))
                     {
                         partXDocument = XDocument.Load(partXmlReader);
-                        XmlNameTable nameTable = partXmlReader.NameTable;
-                        namespaceManager = new XmlNamespaceManager(nameTable);
+                        namespaceManager = new XmlNamespaceManager(partXmlReader.NameTable);
+
                         part.AddAnnotation(partXDocument);
                         part.AddAnnotation(namespaceManager);
+
                         return partXDocument;
                     }
                 }
@@ -106,6 +181,8 @@ namespace OpenXmlPowerTools
 
         public static void PutXDocument(this OpenXmlPart part)
         {
+            if (part == null) throw new ArgumentNullException(nameof(part));
+
             XDocument partXDocument = part.GetXDocument();
             if (partXDocument != null)
             {
@@ -118,11 +195,16 @@ namespace OpenXmlPowerTools
                 using (MemoryStream ms = new MemoryStream(array))
                     part.FeedData(ms);
 #endif
+                // To be able to access the DOM tree using the strictly typed classes, we need
+                // to reload it after having written an XDocument to the part.
+                if (ReloadRootElementOnPut) part.RootElement?.Reload();
             }
         }
 
         public static void PutXDocumentWithFormatting(this OpenXmlPart part)
         {
+            if (part == null) throw new ArgumentNullException(nameof(part));
+
             XDocument partXDocument = part.GetXDocument();
             if (partXDocument != null)
             {
@@ -134,25 +216,39 @@ namespace OpenXmlPowerTools
                     settings.NewLineOnAttributes = true;
                     using (XmlWriter partXmlWriter = XmlWriter.Create(partStream, settings))
                         partXDocument.Save(partXmlWriter);
+
+                    // To be able to access the DOM tree using the strictly typed classes, we need
+                    // to reload it after having written an XDocument to the part.
+                    if (ReloadRootElementOnPut) part.RootElement?.Reload();
                 }
             }
         }
 
         public static void PutXDocument(this OpenXmlPart part, XDocument document)
         {
+            if (part == null) throw new ArgumentNullException(nameof(part));
+            if (document == null) throw new ArgumentNullException(nameof(document));
+
             using (Stream partStream = part.GetStream(FileMode.Create, FileAccess.Write))
             using (XmlWriter partXmlWriter = XmlWriter.Create(partStream))
                 document.Save(partXmlWriter);
+
             part.RemoveAnnotations<XDocument>();
             part.AddAnnotation(document);
+
+            // To be able to access the DOM tree using the strictly typed classes, we need
+            // to reload it after having written an XDocument to the part.
+            if (ReloadRootElementOnPut) part.RootElement?.Reload();
         }
 
         private static XmlNamespaceManager GetManagerFromXDocument(XDocument xDocument)
         {
             XmlReader reader = xDocument.CreateReader();
             XDocument newXDoc = XDocument.Load(reader);
+
             XElement rootElement = xDocument.Elements().FirstOrDefault();
             rootElement.ReplaceWith(newXDoc.Root);
+
             XmlNameTable nameTable = reader.NameTable;
             XmlNamespaceManager namespaceManager = new XmlNamespaceManager(nameTable);
             return namespaceManager;
@@ -162,6 +258,7 @@ namespace OpenXmlPowerTools
         {
             if (element.Name == W.document)
                 return element.Descendants(W.body).Take(1);
+
             if (element.Name == W.body ||
                 element.Name == W.tc ||
                 element.Name == W.txbxContent)
@@ -172,14 +269,17 @@ namespace OpenXmlPowerTools
                     .Where(e =>
                         e.Name == W.p ||
                         e.Name == W.tbl);
+
             if (element.Name == W.tbl)
                 return element
                     .DescendantsTrimmed(W.tr)
                     .Where(e => e.Name == W.tr);
+
             if (element.Name == W.tr)
                 return element
                     .DescendantsTrimmed(W.tc)
                     .Where(e => e.Name == W.tc);
+
             if (element.Name == W.p)
                 return element
                     .DescendantsTrimmed(e => e.Name == W.r ||
@@ -188,10 +288,12 @@ namespace OpenXmlPowerTools
                     .Where(e => e.Name == W.r ||
                         e.Name == W.pict ||
                         e.Name == W.drawing);
+
             if (element.Name == W.r)
                 return element
                     .DescendantsTrimmed(e => W.SubRunLevelContent.Contains(e.Name))
                     .Where(e => W.SubRunLevelContent.Contains(e.Name));
+
             if (element.Name == MC.AlternateContent)
                 return element
                     .DescendantsTrimmed(e =>
@@ -201,29 +303,28 @@ namespace OpenXmlPowerTools
                     .Where(e =>
                         e.Name == W.pict ||
                         e.Name == W.drawing);
+
             if (element.Name == W.pict || element.Name == W.drawing)
                 return element
                     .DescendantsTrimmed(W.txbxContent)
                     .Where(e => e.Name == W.txbxContent);
+
             return XElement.EmptySequence;
         }
 
-        public static IEnumerable<XElement> LogicalChildrenContent(
-            this IEnumerable<XElement> source)
+        public static IEnumerable<XElement> LogicalChildrenContent(this IEnumerable<XElement> source)
         {
             foreach (XElement e1 in source)
                 foreach (XElement e2 in e1.LogicalChildrenContent())
                     yield return e2;
         }
 
-        public static IEnumerable<XElement> LogicalChildrenContent(
-            this XElement element, XName name)
+        public static IEnumerable<XElement> LogicalChildrenContent(this XElement element, XName name)
         {
             return element.LogicalChildrenContent().Where(e => e.Name == name);
         }
 
-        public static IEnumerable<XElement> LogicalChildrenContent(
-            this IEnumerable<XElement> source, XName name)
+        public static IEnumerable<XElement> LogicalChildrenContent(this IEnumerable<XElement> source, XName name)
         {
             foreach (XElement e1 in source)
                 foreach (XElement e2 in e1.LogicalChildrenContent(name))
@@ -233,54 +334,47 @@ namespace OpenXmlPowerTools
         public static IEnumerable<OpenXmlPart> ContentParts(this WordprocessingDocument doc)
         {
             yield return doc.MainDocumentPart;
+
             foreach (var hdr in doc.MainDocumentPart.HeaderParts)
                 yield return hdr;
+
             foreach (var ftr in doc.MainDocumentPart.FooterParts)
                 yield return ftr;
+
             if (doc.MainDocumentPart.FootnotesPart != null)
                 yield return doc.MainDocumentPart.FootnotesPart;
+
             if (doc.MainDocumentPart.EndnotesPart != null)
                 yield return doc.MainDocumentPart.EndnotesPart;
         }
 
+        /// <summary>
+        /// Creates a complete list of all parts contained in the <see cref="OpenXmlPartContainer"/>.
+        /// </summary>
+        /// <param name="container">
+        /// A <see cref="WordprocessingDocument"/>, <see cref="SpreadsheetDocument"/>, or
+        /// <see cref="PresentationDocument"/>.
+        /// </param>
+        /// <returns>list of <see cref="OpenXmlPart"/>s contained in the <see cref="OpenXmlPartContainer"/>.</returns>
+        public static List<OpenXmlPart> GetAllParts(this OpenXmlPartContainer container)
+        {
+            // Use a HashSet so that parts are processed only once.
+            HashSet<OpenXmlPart> partList = new HashSet<OpenXmlPart>();
+
+            foreach (IdPartPair p in container.Parts)
+                AddPart(partList, p.OpenXmlPart);
+
+            return partList.OrderBy(p => p.ContentType).ThenBy(p => p.Uri.ToString()).ToList();
+        }
+
         private static void AddPart(HashSet<OpenXmlPart> partList, OpenXmlPart part)
         {
-            if (partList.Contains(part))
-                return;
+            if (partList.Contains(part)) return;
+
             partList.Add(part);
             foreach (IdPartPair p in part.Parts)
                 AddPart(partList, p.OpenXmlPart);
         }
-
-        // the following three functions, plus the recursive function above,
-        // creates a complete list of all parts in package.
-        public static List<OpenXmlPart> GetAllParts(this WordprocessingDocument doc)
-        {
-            // use the following so that parts are processed only once
-            HashSet<OpenXmlPart> partList = new HashSet<OpenXmlPart>();
-            foreach (IdPartPair p in doc.Parts)
-                AddPart(partList, p.OpenXmlPart);
-            return partList.OrderBy(p => p.ContentType).ThenBy(p => p.Uri.ToString()).ToList();
-        }
-
-        public static List<OpenXmlPart> GetAllParts(this SpreadsheetDocument doc)
-        {
-            // use the following so that parts are processed only once
-            HashSet<OpenXmlPart> partList = new HashSet<OpenXmlPart>();
-            foreach (IdPartPair p in doc.Parts)
-                AddPart(partList, p.OpenXmlPart);
-            return partList.OrderBy(p => p.ContentType).ThenBy(p => p.Uri.ToString()).ToList();
-        }
-
-        public static List<OpenXmlPart> GetAllParts(this PresentationDocument doc)
-        {
-            // use the following so that parts are processed only once
-            HashSet<OpenXmlPart> partList = new HashSet<OpenXmlPart>();
-            foreach (IdPartPair p in doc.Parts)
-                AddPart(partList, p.OpenXmlPart);
-            return partList.OrderBy(p => p.ContentType).ThenBy(p => p.Uri.ToString()).ToList();
-        }
-
     }
 
     public static class FlatOpc
