@@ -102,9 +102,9 @@ namespace OpenXmlPowerTools
 
         private static void RemoveRsidInfoInSettings(WordprocessingDocument doc)
         {
-            XDocument settingsXDoc = doc.MainDocumentPart.DocumentSettingsPart.GetXDocument();
-            settingsXDoc.Root?.Elements(W.rsids).Remove();
-            doc.MainDocumentPart.DocumentSettingsPart.PutXDocument();
+            XDocument settingsXDoc = doc.MainDocumentPart.DocumentSettingsPart?.GetXDocument();
+            settingsXDoc?.Root?.Elements(W.rsids).Remove();
+            doc.MainDocumentPart.DocumentSettingsPart?.PutXDocument();
         }
 
         private static void RemoveElementsForDocumentComparison(WordprocessingDocument doc)
@@ -204,7 +204,9 @@ namespace OpenXmlPowerTools
                     element.Nodes().Select(n => RemoveCustomXmlAndContentControlsTransform(n, simplifyMarkupSettings)));
             }
 
-            return node;
+            return new XElement(element.Name,
+                element.Attributes(),
+                element.Nodes().Select(n => RemoveCustomXmlAndContentControlsTransform(n, simplifyMarkupSettings)));
         }
 
         private static object RemoveRsidTransform(XNode node)
