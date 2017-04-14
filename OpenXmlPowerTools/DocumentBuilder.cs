@@ -455,12 +455,16 @@ namespace OpenXmlPowerTools
                     using (OpenXmlMemoryStreamDocument streamDoc = new OpenXmlMemoryStreamDocument(sources[0].WmlDocument))
                     using (WordprocessingDocument doc = streamDoc.GetWordprocessingDocument())
                     {
-                        var sectPr = doc.MainDocumentPart.GetXDocument().Root.Element(W.body)
-                            .Elements().Last();
-                        if (sectPr.Name == W.sectPr)
+                        var body = doc.MainDocumentPart.GetXDocument().Root.Element(W.body);
+
+                        if (body != null && body.Elements().Any())
                         {
-                            AddSectionAndDependencies(doc, output, sectPr, images);
-                            output.MainDocumentPart.GetXDocument().Root.Element(W.body).Add(sectPr);
+                            var sectPr = body.Elements().Last();
+                            if (sectPr.Name == W.sectPr)
+                            {
+                                AddSectionAndDependencies(doc, output, sectPr, images);
+                                output.MainDocumentPart.GetXDocument().Root.Element(W.body).Add(sectPr);
+                            }
                         }
                     }
                 }
