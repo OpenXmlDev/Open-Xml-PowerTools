@@ -998,38 +998,38 @@ namespace OpenXmlPowerTools
             public TimeSpan Time;
         }
 
-        private static string _lastBucket;
-        private static DateTime _lastTime;
-        private static Dictionary<string, BucketInfo> _buckets;
+        private static string LastBucket = null;
+        private static DateTime LastTime;
+        private static Dictionary<string, BucketInfo> Buckets;
 
         public static void Bucket(string bucket)
         {
             DateTime now = DateTime.Now;
-            if (_lastBucket != null)
+            if (LastBucket != null)
             {
-                TimeSpan d = now - _lastTime;
-                if (_buckets.ContainsKey(_lastBucket))
+                TimeSpan d = now - LastTime;
+                if (Buckets.ContainsKey(LastBucket))
                 {
-                    _buckets[_lastBucket].Count = _buckets[_lastBucket].Count + 1;
-                    _buckets[_lastBucket].Time += d;
+                    Buckets[LastBucket].Count = Buckets[LastBucket].Count + 1;
+                    Buckets[LastBucket].Time += d;
                 }
                 else
                 {
-                    _buckets.Add(_lastBucket, new BucketInfo()
+                    Buckets.Add(LastBucket, new BucketInfo()
                     {
                         Count = 1,
                         Time = d,
                     });
                 }
             }
-            _lastBucket = bucket;
-            _lastTime = now;
+            LastBucket = bucket;
+            LastTime = now;
         }
 
         public static string DumpBucketsByKey()
         {
-            var sb = new StringBuilder();
-            foreach (KeyValuePair<string, BucketInfo> bucket in _buckets.OrderBy(b => b.Key))
+            StringBuilder sb = new StringBuilder();
+            foreach (var bucket in Buckets.OrderBy(b => b.Key))
             {
                 string ts = bucket.Value.Time.ToString();
                 if (ts.Contains('.'))
@@ -1055,16 +1055,16 @@ namespace OpenXmlPowerTools
                 string s = bucket.Key.PadRight(60, '-') + "  " + string.Format("{0:00000000}", bucket.Value.Count) + "  " + ts;
                 sb.Append(s + Environment.NewLine);
             }
-            TimeSpan total = _buckets
+            TimeSpan total = Buckets
                 .Aggregate(TimeSpan.Zero, (t, b) => t + b.Value.Time);
             var tz = total.ToString();
-            sb.Append($"Total: {tz.Substring(0, tz.Length - 5)}");
+            sb.Append(string.Format("Total: {0}", tz.Substring(0, tz.Length - 5)));
             return sb.ToString();
         }
 
         public static void Init()
         {
-            _buckets = new Dictionary<string, BucketInfo>();
+            Buckets = new Dictionary<string, BucketInfo>();
         }
     }
 

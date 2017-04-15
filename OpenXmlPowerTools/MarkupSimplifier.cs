@@ -193,7 +193,7 @@ namespace OpenXmlPowerTools
                 if (simplifyMarkupSettings.RemoveContentControls &&
                     element.Name == W.sdt)
                     return element
-                        .Element(W.sdtContent)
+                        .Elements(W.sdtContent)
                         .Elements()
                         .Select(e =>
                             RemoveCustomXmlAndContentControlsTransform(e,
@@ -204,9 +204,7 @@ namespace OpenXmlPowerTools
                     element.Nodes().Select(n => RemoveCustomXmlAndContentControlsTransform(n, simplifyMarkupSettings)));
             }
 
-            return new XElement(element.Name,
-                element.Attributes(),
-                element.Nodes().Select(n => RemoveCustomXmlAndContentControlsTransform(n, simplifyMarkupSettings)));
+            return node;
         }
 
         private static object RemoveRsidTransform(XNode node)
