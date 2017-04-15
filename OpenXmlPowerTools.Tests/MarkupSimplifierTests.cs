@@ -68,6 +68,16 @@ namespace OpenXmlPowerTools.Tests
   </w:body>
 </w:document>";
 
+        private const string GoBackBookmarkDocumentXmlString =
+@"<w:document xmlns:w=""http://schemas.openxmlformats.org/wordprocessingml/2006/main"">
+  <w:body>
+    <w:p>
+      <w:bookmarkStart w:id=""0"" w:name=""_GoBack""/>
+      <w:bookmarkEnd w:id=""0""/>
+    </w:p>
+  </w:body>
+</w:document>";
+
         [Fact]
         public void CanRemoveSmartTags()
         {
@@ -114,6 +124,32 @@ namespace OpenXmlPowerTools.Tests
 
                 Assert.False(partDocument.Descendants(W.sdt).Any());
                 Assert.Equal(W.p, element.Name);
+            }
+        }
+
+        [Fact]
+        public void CanRemoveGoBackBookmarks()
+        {
+            XDocument partDocument = XDocument.Parse(GoBackBookmarkDocumentXmlString);
+            Assert.True(partDocument
+                .Descendants(W.bookmarkStart)
+                .Any(e => e.Attribute(W.name)?.Value == "_GoBack" && e.Attribute(W.id)?.Value == "0"));
+            Assert.True(partDocument
+                .Descendants(W.bookmarkEnd)
+                .Any(e => e.Attribute(W.id)?.Value == "0"));
+
+            using (var stream = new MemoryStream())
+            using (WordprocessingDocument wordDocument = WordprocessingDocument.Create(stream, DocumentType))
+            {
+                MainDocumentPart part = wordDocument.AddMainDocumentPart();
+                part.PutXDocument(partDocument);
+
+                var settings = new SimplifyMarkupSettings { RemoveGoBackBookmark = true };
+                MarkupSimplifier.SimplifyMarkup(wordDocument, settings);
+
+                partDocument = part.GetXDocument();
+                Assert.False(partDocument.Descendants(W.bookmarkStart).Any());
+                Assert.False(partDocument.Descendants(W.bookmarkEnd).Any());
             }
         }
     }
