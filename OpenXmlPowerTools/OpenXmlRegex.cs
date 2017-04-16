@@ -213,8 +213,8 @@ namespace OpenXmlPowerTools
 
                 string preliminaryContent = paragraph
                     .DescendantsTrimmed(W.txbxContent)
-                    .Where(d => d.Name == W.r)
-                    .Select(UnicodeMapper.ElementToString)
+                    .Where(d => d.Name == W.r && d.Parent?.Name != W.del)
+                    .Select(UnicodeMapper.RunToString)
                     .StringConcatenate();
                 if (regex.IsMatch(preliminaryContent))
                 {
@@ -222,11 +222,13 @@ namespace OpenXmlPowerTools
                         paragraph.Attributes(),
                         paragraph.Nodes().Select(n => WmlSearchAndReplaceTransform(n, regex, replacement, callback,
                             trackRevisions, revisionTrackingAuthor, replInfo, coalesceContent)));
+
                     IEnumerable<XElement> runsTrimmed = paragraphWithSplitRuns
                         .DescendantsTrimmed(W.txbxContent)
-                        .Where(d => d.Name == W.r);
+                        .Where(d => d.Name == W.r && d.Parent?.Name != W.del);
+
                     var charsAndRuns = runsTrimmed
-                        .Select(r => new { Ch = UnicodeMapper.ElementToString(r), r })
+                        .Select(r => new { Ch = UnicodeMapper.RunToString(r), r })
                         .ToList();
 
                     string content = charsAndRuns.Select(t => t.Ch).StringConcatenate();
@@ -374,7 +376,7 @@ namespace OpenXmlPowerTools
                     : newParagraph;
             }
 
-            if ((element.Name == W.ins) && element.Elements(W.r).Any())
+            if (element.Name == W.ins && element.Elements(W.r).Any())
             {
                 List<object> collectionOfCollections = element
                     .Elements()
@@ -391,7 +393,7 @@ namespace OpenXmlPowerTools
                 return collectionOfIns;
             }
 
-            if ((element.Name == W.r) && element.Elements(W.t).Any())
+            if (element.Name == W.r)
             {
                 return element.Elements()
                     .Where(e => e.Name != W.rPr)

@@ -36,7 +36,7 @@ namespace OpenXmlPowerTools
 
         /// <summary>
         /// List of w:r child elements that will be mapped to Unicode strings by the
-        /// <see cref="ElementToString"/> method. All other elements will be mapped to the
+        /// <see cref="RunToString"/> method. All other elements will be mapped to the
         /// <see cref="StartOfHeading"/> Unicode value, i.e., U+0001.
         /// </summary>
         public static readonly List<XName> StringifiedRunElements = new List<XName>
@@ -65,19 +65,18 @@ namespace OpenXmlPowerTools
         private static char _lastUnicodeChar = StartOfPrivateUseArea;
 
         /// <summary>
-        /// Stringify an Open XML element, turning (a) w:t, w:br, w:cr, w:noBreakHyphen,
-        /// w:softHyphen,  w:sym, and w:tab into their corresponding Unicode strings and
-        /// (b) everything else into U+0001.
+        /// Stringify an Open XML run, turning (a) w:t, w:br, w:cr, w:noBreakHyphen,
+        /// w:softHyphen,  w:sym, and w:tab into their corresponding Unicode strings
+        /// and (b) everything else into U+0001.
         /// </summary>
-        /// <param name="element">An Open XML element.</param>
+        /// <param name="element">An Open XML run or run child element.</param>
         /// <returns>The corresponding Unicode value or U+0001.</returns>
-        public static string ElementToString(XElement element)
+        public static string RunToString(XElement element)
         {
-            // For w:r elements, we stringify the elements contained in StringifiedRunElements.
-            if (element.Name == W.r)
+            if (element.Name == W.r && element.Parent?.Name != W.del)
                 return element.Elements()
                     .Where(e => StringifiedRunElements.Contains(e.Name))
-                    .Select(ElementToString)
+                    .Select(RunToString)
                     .StringConcatenate();
 
             // For w:t elements, we obviously want the element's value.
@@ -89,7 +88,7 @@ namespace OpenXmlPowerTools
             if (element.Name == W.br)
             {
                 string type = element.Attribute(W.type)?.Value;
-                if ((type == null) || (type == "textWrapping"))
+                if (type == null || type == "textWrapping")
                     return CarriageReturn.ToString();
                 if (type == "page")
                     return FormFeed.ToString();

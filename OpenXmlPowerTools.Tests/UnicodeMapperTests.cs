@@ -28,26 +28,26 @@ namespace OpenXmlPowerTools.Tests
             var runElement = new XElement(W.r, textElement);
             var formattedRunElement = new XElement(W.r, new XElement(W.rPr, new XElement(W.b)), textElement);
 
-            Assert.Equal(textValue, UnicodeMapper.ElementToString(textElement));
-            Assert.Equal(textValue, UnicodeMapper.ElementToString(runElement));
-            Assert.Equal(textValue, UnicodeMapper.ElementToString(formattedRunElement));
+            Assert.Equal(textValue, UnicodeMapper.RunToString(textElement));
+            Assert.Equal(textValue, UnicodeMapper.RunToString(runElement));
+            Assert.Equal(textValue, UnicodeMapper.RunToString(formattedRunElement));
         }
 
         [Fact]
         public void CanStringifySpecialElements()
         {
             Assert.Equal(UnicodeMapper.CarriageReturn,
-                UnicodeMapper.ElementToString(new XElement(W.cr)).First());
+                UnicodeMapper.RunToString(new XElement(W.cr)).First());
             Assert.Equal(UnicodeMapper.CarriageReturn,
-                UnicodeMapper.ElementToString(new XElement(W.br)).First());
+                UnicodeMapper.RunToString(new XElement(W.br)).First());
             Assert.Equal(UnicodeMapper.FormFeed,
-                UnicodeMapper.ElementToString(new XElement(W.br, new XAttribute(W.type, "page"))).First());
+                UnicodeMapper.RunToString(new XElement(W.br, new XAttribute(W.type, "page"))).First());
             Assert.Equal(UnicodeMapper.NonBreakingHyphen,
-                UnicodeMapper.ElementToString(new XElement(W.noBreakHyphen)).First());
+                UnicodeMapper.RunToString(new XElement(W.noBreakHyphen)).First());
             Assert.Equal(UnicodeMapper.SoftHyphen,
-                UnicodeMapper.ElementToString(new XElement(W.softHyphen)).First());
+                UnicodeMapper.RunToString(new XElement(W.softHyphen)).First());
             Assert.Equal(UnicodeMapper.HorizontalTabulation,
-                UnicodeMapper.ElementToString(new XElement(W.tab)).First());
+                UnicodeMapper.RunToString(new XElement(W.tab)).First());
         }
 
         [Fact]
