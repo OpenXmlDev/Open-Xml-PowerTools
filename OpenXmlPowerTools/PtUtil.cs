@@ -46,7 +46,7 @@ namespace OpenXmlPowerTools
         public static string MakeValidXml(string p)
         {
             return p.Any(c => c < 0x20)
-                ? p.Select(c => c < 0x20 ? $"_{(int) c:X}_" : c.ToString()).StringConcatenate()
+                ? p.Select(c => c < 0x20 ? string.Format("_{0:X}_", (int) c) : c.ToString()).StringConcatenate()
                 : p;
         }
 
@@ -204,7 +204,8 @@ namespace OpenXmlPowerTools
             DateTime now = DateTime.Now;
             string dirName =
                 prefix +
-                $"-{now.Year - 2000:00}-{now.Month:00}-{now.Day:00}-{now.Hour:00}{now.Minute:00}{now.Second:00}";
+                string.Format("-{0:00}-{1:00}-{2:00}-{3:00}{4:00}{5:00}", now.Year - 2000, now.Month, now.Day, now.Hour,
+                    now.Minute, now.Second);
             return new DirectoryInfo(dirName);
         }
 
@@ -213,7 +214,8 @@ namespace OpenXmlPowerTools
             DateTime now = DateTime.Now;
             string fileName =
                 prefix +
-                $"-{now.Year - 2000:00}-{now.Month:00}-{now.Day:00}-{now.Hour:00}{now.Minute:00}{now.Second:00}" +
+                string.Format("-{0:00}-{1:00}-{2:00}-{3:00}{4:00}{5:00}", now.Year - 2000, now.Month, now.Day, now.Hour,
+                    now.Minute, now.Second) +
                 suffix;
             return new FileInfo(fileName);
         }
@@ -1072,7 +1074,7 @@ namespace OpenXmlPowerTools
         {
             if (Value.Substring(0, 1) == "#")
             {
-                string e = $"&{Value};";
+                string e = string.Format("&{0};", Value);
                 writer.WriteRaw(e);
             }
             else
