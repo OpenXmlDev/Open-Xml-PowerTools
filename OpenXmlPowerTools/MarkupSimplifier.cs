@@ -229,7 +229,7 @@ namespace OpenXmlPowerTools
                                 (a.Name != W.rsidRPr) &&
                                 (a.Name != W.rsidSect) &&
                                 (a.Name != W.rsidTr)),
-                element.Nodes().Select(RemoveRsidTransform));
+                element.Nodes().Select(n => RemoveRsidTransform(n)));
         }
 
         private static object MergeAdjacentRunsTransform(XNode node)
@@ -242,7 +242,7 @@ namespace OpenXmlPowerTools
 
             return new XElement(element.Name,
                 element.Attributes(),
-                element.Nodes().Select(MergeAdjacentRunsTransform));
+                element.Nodes().Select(n => MergeAdjacentRunsTransform(n)));
         }
 
         private static object RemoveEmptyRunsAndRunPropertiesTransform(
@@ -257,7 +257,7 @@ namespace OpenXmlPowerTools
 
                 return new XElement(element.Name,
                     element.Attributes(),
-                    element.Nodes().Select(RemoveEmptyRunsAndRunPropertiesTransform));
+                    element.Nodes().Select(n => RemoveEmptyRunsAndRunPropertiesTransform(n)));
             }
 
             return node;
@@ -296,7 +296,7 @@ namespace OpenXmlPowerTools
 
                 return new XElement(element.Name,
                     element.Attributes(),
-                    element.Nodes().Select(MergeAdjacentInstrText));
+                    element.Nodes().Select(n => MergeAdjacentInstrText(n)));
             }
 
             return node;
@@ -537,7 +537,6 @@ namespace OpenXmlPowerTools
                     XElement goBackBookmark = doc
                         .MainDocumentPart
                         .GetXDocument()
-                        .Root?
                         .Descendants(W.bookmarkStart)
                         .FirstOrDefault(bm => (string) bm.Attribute(W.name) == "_GoBack");
                     if (goBackBookmark != null)
@@ -642,7 +641,7 @@ namespace OpenXmlPowerTools
 
             return new XElement(element.Name,
                 element.Attributes(),
-                element.Nodes().Select(SeparateRunChildrenIntoSeparateRuns));
+                element.Nodes().Select(n => SeparateRunChildrenIntoSeparateRuns(n)));
         }
 
         private static object SingleCharacterRunTransform(XNode node)
@@ -672,12 +671,12 @@ namespace OpenXmlPowerTools
                                 element.Elements(W.rPr),
                                 new XElement(sr.Name,
                                     sr.Attributes(),
-                                    sr.Nodes().Select(SingleCharacterRunTransform))));
+                                    sr.Nodes().Select(n => SingleCharacterRunTransform(n)))));
                     });
 
             return new XElement(element.Name,
                 element.Attributes(),
-                element.Nodes().Select(SingleCharacterRunTransform));
+                element.Nodes().Select(n => SingleCharacterRunTransform(n)));
         }
 
         private static class Xsi

@@ -23,6 +23,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -454,6 +455,7 @@ namespace OpenXmlPowerTools
             }
         }
 
+        [SuppressMessage("ReSharper", "PossibleNullReferenceException")]
         public static IEnumerable<XElement> SiblingsBeforeSelfReverseDocumentOrder(
             this XElement element)
         {
@@ -463,7 +465,7 @@ namespace OpenXmlPowerTools
             while (true)
             {
                 XElement previousElement = current
-                    .Annotation<SiblingsReverseDocumentOrderInfo>()?
+                    .Annotation<SiblingsReverseDocumentOrderInfo>()
                     .PreviousSibling;
                 if (previousElement == null)
                     yield break;
@@ -484,6 +486,7 @@ namespace OpenXmlPowerTools
             }
         }
 
+        [SuppressMessage("ReSharper", "PossibleNullReferenceException")]
         public static IEnumerable<XElement> DescendantsBeforeSelfReverseDocumentOrder(
             this XElement element)
         {
@@ -493,7 +496,7 @@ namespace OpenXmlPowerTools
             while (true)
             {
                 XElement previousElement = current
-                    .Annotation<DescendantsReverseDocumentOrderInfo>()?
+                    .Annotation<DescendantsReverseDocumentOrderInfo>()
                     .PreviousElement;
                 if (previousElement == null)
                     yield break;
@@ -514,6 +517,7 @@ namespace OpenXmlPowerTools
             }
         }
 
+        [SuppressMessage("ReSharper", "PossibleNullReferenceException")]
         public static IEnumerable<XElement> DescendantsTrimmedBeforeSelfReverseDocumentOrder(
             this XElement element, XName trimName)
         {
@@ -528,7 +532,7 @@ namespace OpenXmlPowerTools
             while (true)
             {
                 XElement previousElement = current
-                    .Annotation<DescendantsTrimmedReverseDocumentOrderInfo>()?
+                    .Annotation<DescendantsTrimmedReverseDocumentOrderInfo>()
                     .PreviousElement;
                 if (previousElement == null)
                     yield break;
@@ -736,12 +740,12 @@ namespace OpenXmlPowerTools
                 //    );
                 //
                 var com = xobj as XComment;
-                if (com != null)
+                if (com != null && com.Document != null)
                     return
                         "/" +
                         (
                             com
-                                .Document?
+                                .Document
                                 .Nodes()
                                 .OfType<XComment>()
                                 .Count() != 1
@@ -781,36 +785,36 @@ namespace OpenXmlPowerTools
                         el
                             .Ancestors()
                             .InDocumentOrder()
-                            .Select(NameWithPredicate)
+                            .Select(e => NameWithPredicate(e))
                             .StrCat("/") +
                         NameWithPredicate(el);
                 }
 
                 var at = xobj as XAttribute;
-                if (at != null)
+                if (at != null && at.Parent != null)
                     return
                         "/" +
                         at
-                            .Parent?
+                            .Parent
                             .AncestorsAndSelf()
                             .InDocumentOrder()
-                            .Select(NameWithPredicate)
+                            .Select(e => NameWithPredicate(e))
                             .StrCat("/") +
                         "@" + GetQName(at);
 
                 var com = xobj as XComment;
-                if (com != null)
+                if (com != null && com.Parent != null)
                     return
                         "/" +
                         com
-                            .Parent?
+                            .Parent
                             .AncestorsAndSelf()
                             .InDocumentOrder()
-                            .Select(NameWithPredicate)
+                            .Select(e => NameWithPredicate(e))
                             .StrCat("/") +
                         (
                             com
-                                .Parent?
+                                .Parent
                                 .Nodes()
                                 .OfType<XComment>()
                                 .Count() != 1
@@ -823,18 +827,18 @@ namespace OpenXmlPowerTools
                         );
 
                 var cd = xobj as XCData;
-                if (cd != null)
+                if (cd != null && cd.Parent != null)
                     return
                         "/" +
                         cd
-                            .Parent?
+                            .Parent
                             .AncestorsAndSelf()
                             .InDocumentOrder()
-                            .Select(NameWithPredicate)
+                            .Select(e => NameWithPredicate(e))
                             .StrCat("/") +
                         (
                             cd
-                                .Parent?
+                                .Parent
                                 .Nodes()
                                 .OfType<XText>()
                                 .Count() != 1
@@ -847,18 +851,18 @@ namespace OpenXmlPowerTools
                         );
 
                 var tx = xobj as XText;
-                if (tx != null)
+                if (tx != null && tx.Parent != null)
                     return
                         "/" +
                         tx
-                            .Parent?
+                            .Parent
                             .AncestorsAndSelf()
                             .InDocumentOrder()
-                            .Select(NameWithPredicate)
+                            .Select(e => NameWithPredicate(e))
                             .StrCat("/") +
                         (
                             tx
-                                .Parent?
+                                .Parent
                                 .Nodes()
                                 .OfType<XText>()
                                 .Count() != 1
@@ -871,18 +875,18 @@ namespace OpenXmlPowerTools
                         );
 
                 var pi = xobj as XProcessingInstruction;
-                if (pi != null)
+                if (pi != null && pi.Parent != null)
                     return
                         "/" +
                         pi
-                            .Parent?
+                            .Parent
                             .AncestorsAndSelf()
                             .InDocumentOrder()
-                            .Select(NameWithPredicate)
+                            .Select(e => NameWithPredicate(e))
                             .StrCat("/") +
                         (
                             pi
-                                .Parent?
+                                .Parent
                                 .Nodes()
                                 .OfType<XProcessingInstruction>()
                                 .Count() != 1
@@ -977,7 +981,7 @@ namespace OpenXmlPowerTools
         }
 
         public TKey Key { get; set; }
-        private List<TSource> GroupList { get; }
+        private List<TSource> GroupList { get; set; }
 
         IEnumerator IEnumerable.GetEnumerator()
         {
