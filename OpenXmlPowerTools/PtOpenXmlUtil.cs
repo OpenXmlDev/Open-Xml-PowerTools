@@ -80,7 +80,7 @@ namespace OpenXmlPowerTools
         /// </param>
         public static void RemovePowerToolsAnnotations(this OpenXmlPackage package)
         {
-            if (package == null) throw new ArgumentNullException(nameof(package));
+            if (package == null) throw new ArgumentNullException("package");
 
             foreach (OpenXmlPart part in package.GetAllParts())
                 part.RemovePowerToolsAnnotations();
@@ -105,7 +105,7 @@ namespace OpenXmlPowerTools
         /// <param name="part">An <see cref="OpenXmlPart"/>, e.g., a <see cref="MainDocumentPart"/>.</param>
         public static void RemovePowerToolsAnnotations(this OpenXmlPart part)
         {
-            if (part == null) throw new ArgumentNullException(nameof(part));
+            if (part == null) throw new ArgumentNullException("part");
 
             part.RemoveAnnotations<XDocument>();
             part.RemoveAnnotations<XmlNamespaceManager>();
@@ -113,7 +113,7 @@ namespace OpenXmlPowerTools
 
         public static XDocument GetXDocument(this OpenXmlPart part)
         {
-            if (part == null) throw new ArgumentNullException(nameof(part));
+            if (part == null) throw new ArgumentNullException("part");
 
             XDocument partXDocument = part.Annotation<XDocument>();
             if (partXDocument != null) return partXDocument;
@@ -138,7 +138,7 @@ namespace OpenXmlPowerTools
 
         public static XDocument GetXDocument(this OpenXmlPart part, out XmlNamespaceManager namespaceManager)
         {
-            if (part == null) throw new ArgumentNullException(nameof(part));
+            if (part == null) throw new ArgumentNullException("part");
 
             namespaceManager = part.Annotation<XmlNamespaceManager>();
             XDocument partXDocument = part.Annotation<XDocument>();
@@ -181,7 +181,7 @@ namespace OpenXmlPowerTools
 
         public static void PutXDocument(this OpenXmlPart part)
         {
-            if (part == null) throw new ArgumentNullException(nameof(part));
+            if (part == null) throw new ArgumentNullException("part");
 
             XDocument partXDocument = part.GetXDocument();
             if (partXDocument != null)
@@ -203,7 +203,7 @@ namespace OpenXmlPowerTools
 
         public static void PutXDocumentWithFormatting(this OpenXmlPart part)
         {
-            if (part == null) throw new ArgumentNullException(nameof(part));
+            if (part == null) throw new ArgumentNullException("part");
 
             XDocument partXDocument = part.GetXDocument();
             if (partXDocument != null)
@@ -226,8 +226,8 @@ namespace OpenXmlPowerTools
 
         public static void PutXDocument(this OpenXmlPart part, XDocument document)
         {
-            if (part == null) throw new ArgumentNullException(nameof(part));
-            if (document == null) throw new ArgumentNullException(nameof(document));
+            if (part == null) throw new ArgumentNullException("part");
+            if (document == null) throw new ArgumentNullException("document");
 
             using (Stream partStream = part.GetStream(FileMode.Create, FileAccess.Write))
             using (XmlWriter partXmlWriter = XmlWriter.Create(partStream))

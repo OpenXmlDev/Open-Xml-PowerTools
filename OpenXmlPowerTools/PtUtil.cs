@@ -942,7 +942,7 @@ namespace OpenXmlPowerTools
                 }
                 else
                 {
-                    throw new ArgumentException("Invalid executable path.", nameof(executablePath));
+                    throw new ArgumentException("Invalid executable path.", "executablePath");
                 }
             }
             catch (Exception e)

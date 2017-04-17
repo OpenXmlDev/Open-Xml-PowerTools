@@ -180,9 +180,9 @@ namespace OpenXmlPowerTools
         public static char SymToChar(string fontAttributeValue, string charAttributeValue)
         {
             if (string.IsNullOrEmpty(fontAttributeValue))
-                throw new ArgumentException("Argument is null or empty.", nameof(fontAttributeValue));
+                throw new ArgumentException("Argument is null or empty.", "fontAttributeValue");
             if (string.IsNullOrEmpty(charAttributeValue))
-                throw new ArgumentException("Argument is null or empty.", nameof(charAttributeValue));
+                throw new ArgumentException("Argument is null or empty.", "charAttributeValue");
 
             return SymToChar(new XElement(W.sym,
                 new XAttribute(W.font, fontAttributeValue),
@@ -200,17 +200,17 @@ namespace OpenXmlPowerTools
         public static char SymToChar(XElement sym)
         {
             if (sym == null)
-                throw new ArgumentNullException(nameof(sym));
+                throw new ArgumentNullException("sym");
             if (sym.Name != W.sym)
-                throw new ArgumentException($"Not a w:sym: {sym.Name}", nameof(sym));
+                throw new ArgumentException($"Not a w:sym: {sym.Name}", "sym");
 
             string fontAttributeValue = sym.Attribute(W.font)?.Value;
             if (fontAttributeValue == null)
-                throw new ArgumentException("w:sym element has no w:font attribute.", nameof(sym));
+                throw new ArgumentException("w:sym element has no w:font attribute.", "sym");
 
             string charAttributeValue = sym.Attribute(W._char)?.Value;
             if (charAttributeValue == null)
-                throw new ArgumentException("w:sym element has no w:char attribute.", nameof(sym));
+                throw new ArgumentException("w:sym element has no w:char attribute.", "sym");
 
             // Return Unicode value if it is in the dictionary.
             var standardizedSym = new XElement(W.sym,
