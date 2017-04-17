@@ -46,6 +46,8 @@ namespace OpenXmlPowerTools
 {
     public static class PtOpenXmlExtensions
     {
+        private static bool _reloadRootElementOnPut = true;
+
         /// <summary>
         /// If true (the default), reloads the <see cref="OpenXmlPart"/>'s content into the Open XML DOM tree
         /// after writing an <see cref="XDocument"/> to the <see cref="OpenXmlPart"/>'s stream.
@@ -55,7 +57,11 @@ namespace OpenXmlPowerTools
         /// with the Open XML PowerTools. Therefore, to be on the safe side, the default is true. Should your
         /// application not use the strictly typed classes at all, however, this property can be set to false.
         /// </remarks>
-        public static bool ReloadRootElementOnPut { get; set; } = true;
+        public static bool ReloadRootElementOnPut
+        {
+            get { return _reloadRootElementOnPut; }
+            set { _reloadRootElementOnPut = value; }
+        }
 
         /// <summary>
         /// Removes <see cref="XDocument"/> and <see cref="XmlNamespaceManager"/> instances added by
