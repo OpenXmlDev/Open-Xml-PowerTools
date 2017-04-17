@@ -41,6 +41,7 @@ namespace OpenXmlPowerTools
         public double DetailThreshold = 0.15;
         public bool CaseInsensitive = false;
         public CultureInfo CultureInfo = null;
+        public Action<string> LogCallback = null;
 
         public WmlComparerSettings()
         {
@@ -186,6 +187,8 @@ namespace OpenXmlPowerTools
             public string RevisionHash;
             public string RevisionString; // for debugging purposes only
         }
+
+        private static string nl = Environment.NewLine;
 
         /*****************************************************************************************************************/
         // Consolidate does not process deltas in endnotes and footnotes.  In a future version, this method should go into
@@ -355,6 +358,54 @@ namespace OpenXmlPowerTools
                         // RC004 documents contain the test data to exercise this.
 
                         var lciCount = lci.Count();
+
+                        if (lci.Count() > 1 && lciCount == revisedDocumentInfoListCount)
+                        {
+                            var uniqueRevisions = lci
+                                .GroupBy(ci => ci.InsertBefore.ToString() + ci.RevisionHash)
+                                .OrderByDescending(g => g.Count())
+                                .ToList();
+                            var uniqueRevisionCount = uniqueRevisions.Count();
+                            if (uniqueRevisionCount == 1)
+                            {
+                                ele.ReplaceWith(lci.First().RevisionElement);
+                                continue;
+                            }
+
+                            // this is the location where we have determined that there are the same number of revisions for this paragraph as there are revision documents.
+                            // however, the hash for all of them were not the same.
+                            // therefore, they would be added to the consolidated document as separate revisions.
+
+                            // create a log that shows what is different, in detail.
+                            if (settings.LogCallback != null)
+                            {
+                                StringBuilder sb = new StringBuilder();
+                                sb.Append("====================================================================================================" + nl);
+                                sb.Append("Non-Consolidated Revision" + nl);
+                                sb.Append("====================================================================================================" + nl);
+                                foreach (var urList in uniqueRevisions)
+                                {
+                                    var revisorList = urList.Select(ur => ur.Revisor + " : ").StringConcatenate().TrimEnd(' ', ':');
+                                    sb.Append("Revisors: " + revisorList + nl);
+                                    var str = RevisionToLogFormTransform(urList.First().RevisionElement, 0, false);
+                                    sb.Append(str);
+                                    sb.Append("=========================" + nl);
+                                }
+                                sb.Append(nl);
+                                settings.LogCallback(sb.ToString());
+                            }
+                        }
+#if false
+                    // old code
+                    foreach (var ele in elementsToProcess)
+                    {
+                        var lci = ele.Annotation<List<ConsolidationInfo>>();
+
+                        // if all revisions from all revisors are exactly the same, then instead of adding multiple tables after
+                        // that contains the revisions, then simply replace the paragraph with the one with the revisions.
+                        // RC004 documents contain the test data to exercise this.
+
+                        var lciCount = lci.Count();
                         if (lci.Count() > 1 && lciCount == revisedDocumentInfoListCount)
                         {
                             var uniqueRevisionCount = lci
@@ -366,6 +417,8 @@ namespace OpenXmlPowerTools
                                 continue;
                             }
                         }
+#endif
+
                         var contentToAddBefore = lci
                             .Where(ci => ci.InsertBefore == true)
                             .GroupAdjacent(ci => ci.Revisor + ci.Color.ToString())
@@ -399,6 +452,38 @@ namespace OpenXmlPowerTools
                 var newConsolidatedDocument = new WmlDocument("consolidated.docx", consolidatedMs.ToArray());
                 return newConsolidatedDocument;
             }
+        }
+
+        private static string RevisionToLogFormTransform(XElement element, int depth, bool inserting)
+        {
+            if (element.Name == W.p)
+                return "Paragraph" + nl + element.Elements().Select(e => RevisionToLogFormTransform(e, depth + 2, false)).StringConcatenate();
+            if (element.Name == W.pPr || element.Name == W.rPr)
+                return "";
+            if (element.Name == W.r)
+                return element.Elements().Select(e => RevisionToLogFormTransform(e, depth, inserting)).StringConcatenate();
+            if (element.Name == W.t)
+            {
+                if (inserting)
+                    return "".PadRight(depth) + "Inserted Text:" + QuoteIt((string)element) + nl;
+                else
+                    return "".PadRight(depth) + "Text:" + QuoteIt((string)element) + nl;
+            }
+            if (element.Name == W.delText)
+                return "".PadRight(depth) + "Deleted Text:" + QuoteIt((string)element) + nl;
+            if (element.Name == W.ins)
+                return element.Elements().Select(e => RevisionToLogFormTransform(e, depth, true)).StringConcatenate();
+            if (element.Name == W.del)
+                return element.Elements().Select(e => RevisionToLogFormTransform(e, depth, false)).StringConcatenate();
+            return "";
+        }
+
+        private static string QuoteIt(string str)
+        {
+            var quoteString = "\"";
+            if (str.Contains('\"'))
+                quoteString = "\'";
+            return quoteString + str + quoteString;
         }
 
         private static void FixUpEndnoteFootnoteIds(WordprocessingDocument wDoc, XDocument mainDocumentXDoc)
