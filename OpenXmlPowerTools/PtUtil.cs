@@ -57,7 +57,7 @@ namespace OpenXmlPowerTools
 
             XElement newXElement = XElement.Parse(newElement);
             newXElement.Attributes().Where(a => a.IsNamespaceDeclaration).Remove();
-            partXDoc.Root?.Add(newXElement);
+            if (partXDoc.Root != null) partXDoc.Root.Add(newXElement);
         }
     }
 
@@ -670,7 +670,7 @@ namespace OpenXmlPowerTools
 
         private static string GetQName(XAttribute xa)
         {
-            string prefix = xa.Parent?.GetPrefixOfNamespace(xa.Name.Namespace);
+            string prefix = xa.Parent != null ? xa.Parent.GetPrefixOfNamespace(xa.Name.Namespace) : null;
             if (xa.Name.Namespace == XNamespace.None || prefix == null)
                 return xa.Name.ToString();
 
@@ -757,9 +757,7 @@ namespace OpenXmlPowerTools
                     return
                         "/" +
                         (
-                            pi.Document?.Nodes()
-                                .OfType<XProcessingInstruction>()
-                                .Count() != 1
+                            pi.Document != null && pi.Document.Nodes().OfType<XProcessingInstruction>().Count() != 1
                                 ? "processing-instruction()[" +
                                   (pi
                                        .NodesBeforeSelf()
@@ -942,7 +940,7 @@ namespace OpenXmlPowerTools
                 }
                 else
                 {
-                    throw new ArgumentException("Invalid executable path.", nameof(executablePath));
+                    throw new ArgumentException("Invalid executable path.", "executablePath");
                 }
             }
             catch (Exception e)

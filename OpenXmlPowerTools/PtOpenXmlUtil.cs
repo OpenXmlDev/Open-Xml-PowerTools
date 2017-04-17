@@ -80,7 +80,7 @@ namespace OpenXmlPowerTools
         /// </param>
         public static void RemovePowerToolsAnnotations(this OpenXmlPackage package)
         {
-            if (package == null) throw new ArgumentNullException(nameof(package));
+            if (package == null) throw new ArgumentNullException("package");
 
             foreach (OpenXmlPart part in package.GetAllParts())
                 part.RemovePowerToolsAnnotations();
@@ -105,7 +105,7 @@ namespace OpenXmlPowerTools
         /// <param name="part">An <see cref="OpenXmlPart"/>, e.g., a <see cref="MainDocumentPart"/>.</param>
         public static void RemovePowerToolsAnnotations(this OpenXmlPart part)
         {
-            if (part == null) throw new ArgumentNullException(nameof(part));
+            if (part == null) throw new ArgumentNullException("part");
 
             part.RemoveAnnotations<XDocument>();
             part.RemoveAnnotations<XmlNamespaceManager>();
@@ -113,7 +113,7 @@ namespace OpenXmlPowerTools
 
         public static XDocument GetXDocument(this OpenXmlPart part)
         {
-            if (part == null) throw new ArgumentNullException(nameof(part));
+            if (part == null) throw new ArgumentNullException("part");
 
             XDocument partXDocument = part.Annotation<XDocument>();
             if (partXDocument != null) return partXDocument;
@@ -138,7 +138,7 @@ namespace OpenXmlPowerTools
 
         public static XDocument GetXDocument(this OpenXmlPart part, out XmlNamespaceManager namespaceManager)
         {
-            if (part == null) throw new ArgumentNullException(nameof(part));
+            if (part == null) throw new ArgumentNullException("part");
 
             namespaceManager = part.Annotation<XmlNamespaceManager>();
             XDocument partXDocument = part.Annotation<XDocument>();
@@ -181,7 +181,7 @@ namespace OpenXmlPowerTools
 
         public static void PutXDocument(this OpenXmlPart part)
         {
-            if (part == null) throw new ArgumentNullException(nameof(part));
+            if (part == null) throw new ArgumentNullException("part");
 
             XDocument partXDocument = part.GetXDocument();
             if (partXDocument != null)
@@ -197,13 +197,13 @@ namespace OpenXmlPowerTools
 #endif
                 // To be able to access the DOM tree using the strictly typed classes, we need
                 // to reload it after having written an XDocument to the part.
-                if (ReloadRootElementOnPut) part.RootElement?.Reload();
+                if (ReloadRootElementOnPut && part.RootElement != null) part.RootElement.Reload();
             }
         }
 
         public static void PutXDocumentWithFormatting(this OpenXmlPart part)
         {
-            if (part == null) throw new ArgumentNullException(nameof(part));
+            if (part == null) throw new ArgumentNullException("part");
 
             XDocument partXDocument = part.GetXDocument();
             if (partXDocument != null)
@@ -219,15 +219,15 @@ namespace OpenXmlPowerTools
 
                     // To be able to access the DOM tree using the strictly typed classes, we need
                     // to reload it after having written an XDocument to the part.
-                    if (ReloadRootElementOnPut) part.RootElement?.Reload();
+                    if (ReloadRootElementOnPut && part.RootElement != null) part.RootElement.Reload();
                 }
             }
         }
 
         public static void PutXDocument(this OpenXmlPart part, XDocument document)
         {
-            if (part == null) throw new ArgumentNullException(nameof(part));
-            if (document == null) throw new ArgumentNullException(nameof(document));
+            if (part == null) throw new ArgumentNullException("part");
+            if (document == null) throw new ArgumentNullException("document");
 
             using (Stream partStream = part.GetStream(FileMode.Create, FileAccess.Write))
             using (XmlWriter partXmlWriter = XmlWriter.Create(partStream))
@@ -238,7 +238,7 @@ namespace OpenXmlPowerTools
 
             // To be able to access the DOM tree using the strictly typed classes, we need
             // to reload it after having written an XDocument to the part.
-            if (ReloadRootElementOnPut) part.RootElement?.Reload();
+            if (ReloadRootElementOnPut && part.RootElement != null) part.RootElement.Reload();
         }
 
         private static XmlNamespaceManager GetManagerFromXDocument(XDocument xDocument)
@@ -923,11 +923,14 @@ namespace OpenXmlPowerTools
                             if (ce.Elements().Count(e => e.Name != W.rPr) != 1)
                                 return dontConsolidate;
 
+                            XElement rPr = ce.Element(W.rPr);
+                            string rPrString = rPr != null ? rPr.ToString(SaveOptions.None) : string.Empty;
+
                             if (ce.Element(W.t) != null)
-                                return "Wt" + ce.Element(W.rPr)?.ToString(SaveOptions.None);
+                                return "Wt" + rPrString;
 
                             if (ce.Element(W.instrText) != null)
-                                return "WinstrText" + ce.Element(W.rPr)?.ToString(SaveOptions.None);
+                                return "WinstrText" + rPrString;
 
                             return dontConsolidate;
                         }
@@ -942,13 +945,14 @@ namespace OpenXmlPowerTools
                                     return dontConsolidate;
 
                                 XAttribute dateIns = ce.Attribute(W.date);
-                                XAttribute dateDel = ce.Element(W.del)?.Attribute(W.date);
+                                XElement del = ce.Element(W.del);
+                                XAttribute dateDel = del.Attribute(W.date);
 
-                                string authorIns = (string) ce.Attribute(W.author) ?? "";
+                                string authorIns = (string) ce.Attribute(W.author) ?? string.Empty;
                                 string dateInsString = dateIns != null
                                     ? ((DateTime) dateIns).ToString("s")
                                     : string.Empty;
-                                string authorDel = (string) ce.Element(W.del)?.Attribute(W.author) ?? string.Empty;
+                                string authorDel = (string) del.Attribute(W.author) ?? string.Empty;
                                 string dateDelString = dateDel != null
                                     ? ((DateTime) dateDel).ToString("s")
                                     : string.Empty;

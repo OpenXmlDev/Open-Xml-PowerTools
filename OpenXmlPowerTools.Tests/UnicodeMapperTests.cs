@@ -60,7 +60,7 @@ namespace OpenXmlPowerTools.Tests
 
             XElement element = UnicodeMapper.CharToRunChild(UnicodeMapper.FormFeed);
             Assert.Equal(W.br, element.Name);
-            Assert.Equal("page", element.Attribute(W.type)?.Value);
+            Assert.Equal("page", element.Attribute(W.type).Value);
 
             Assert.Equal(W.br, UnicodeMapper.CharToRunChild('\r').Name);
         }
@@ -113,11 +113,11 @@ namespace OpenXmlPowerTools.Tests
             Assert.Equal(charFromSym1, charFromSym3);
             Assert.NotEqual(charFromSym1, charFromSym4);
 
-            Assert.Equal("F028", symFromChar1.Attribute(W._char)?.Value);
-            Assert.Equal("Wingdings", symFromChar1.Attribute(W.font)?.Value);
+            Assert.Equal("F028", symFromChar1.Attribute(W._char).Value);
+            Assert.Equal("Wingdings", symFromChar1.Attribute(W.font).Value);
 
-            Assert.Equal("F028", symFromChar4.Attribute(W._char)?.Value);
-            Assert.Equal("Webdings", symFromChar4.Attribute(W.font)?.Value);
+            Assert.Equal("F028", symFromChar4.Attribute(W._char).Value);
+            Assert.Equal("Webdings", symFromChar4.Attribute(W.font).Value);
         }
 
         [Fact]

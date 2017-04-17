@@ -126,7 +126,7 @@ namespace OpenXmlPowerTools.Tests
         private static string InnerText(XContainer e)
         {
             return e.Descendants(W.r)
-                .Where(r => r.Parent?.Name != W.del)
+                .Where(r => r.Parent.Name != W.del)
                 .Select(UnicodeMapper.RunToString)
                 .StringConcatenate();
         }
@@ -267,8 +267,8 @@ namespace OpenXmlPowerTools.Tests
 
                 Assert.True(p.Descendants(W.ins).Any(
                     ins => ins.Descendants(W.sym).Any(
-                        sym => sym.Attribute(W.font)?.Value == "Wingdings" && 
-                               sym.Attribute(W._char)?.Value == "F028")));
+                        sym => sym.Attribute(W.font).Value == "Wingdings" && 
+                               sym.Attribute(W._char).Value == "F028")));
             }
         }
     }
