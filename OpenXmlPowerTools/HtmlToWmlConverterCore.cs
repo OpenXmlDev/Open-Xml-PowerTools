@@ -18,7 +18,7 @@ Email: eric@ericwhite.com
 
 /***************************************************************************
  * HTML elements handled in this module:
- * 
+ *
  * a
  * b
  * body
@@ -53,9 +53,9 @@ Email: eric@ericwhite.com
  * kbd
  * samp
  * pre
- * 
+ *
  * HTML elements that are handled by recursively processing descedants
- * 
+ *
  * article
  * hgroup
  * nav
@@ -80,11 +80,11 @@ Email: eric@ericwhite.com
  * time
  * var
  * wbr
- * 
+ *
  * HTML elements ignored in this module
- * 
+ *
  * head
- * 
+ *
 ***************************************************************************/
 
 // need to research all of the html attributes that take effect, such as border="1" and somehow work into the rendering system.
@@ -646,97 +646,84 @@ namespace OpenXmlPowerTools.HtmlToWml
 
         private static void AddNonBreakingSpacesForSpansWithWidth(WordprocessingDocument wDoc, XElement body)
         {
-            var runsWithWidth = body.Descendants(W.r).Where(r => r.Attribute(PtOpenXml.HtmlToWmlCssWidth) != null).ToList();
-            foreach (var run in runsWithWidth)
+            List<XElement> runsWithWidth = body
+                .Descendants(W.r)
+                .Where(r => r.Attribute(PtOpenXml.HtmlToWmlCssWidth) != null)
+                .ToList();
+            foreach (XElement run in runsWithWidth)
             {
-                var rPr = run.Element(W.rPr);
-                XElement pPr = null;
-                var p = run.Ancestors(W.p).FirstOrDefault();
-                if (p != null)
-                    pPr = p.Element(W.pPr);
-                XElement rFonts = rPr.Element(W.rFonts);
-                var str = run.Descendants(W.t).Select(t => (string)t).StringConcatenate();
-                if (pPr != null && rPr != null && rFonts != null && str != "")
+                XElement p = run.Ancestors(W.p).FirstOrDefault();
+                XElement pPr = p?.Element(W.pPr);
+                XElement rPr = run.Element(W.rPr);
+                XElement rFonts = rPr?.Element(W.rFonts);
+                string str = run.Descendants(W.t).Select(t => (string) t).StringConcatenate();
+                if ((pPr == null) || (rPr == null) || (rFonts == null) || (str == "")) continue;
+
+                AdjustFontAttributes(wDoc, run, pPr, rPr);
+                var csa = new CharStyleAttributes(pPr, rPr);
+                char charToExamine = str.FirstOrDefault(c => !WeakAndNeutralDirectionalCharacters.Contains(c));
+                if (charToExamine == '\0')
+                    charToExamine = str[0];
+
+                FontType ft = DetermineFontTypeFromCharacter(charToExamine, csa);
+                string fontType = null;
+                string languageType = null;
+                switch (ft)
                 {
-                    AdjustFontAttributes(wDoc, run, pPr, rPr);
-                    var csa = new CharStyleAttributes(pPr, rPr);
-                    var charToExamine = str.FirstOrDefault(c => !WeakAndNeutralDirectionalCharacters.Contains(c));
-                    if (charToExamine == '\0')
-                        charToExamine = str[0];
-
-                    var ft = DetermineFontTypeFromCharacter(charToExamine, csa);
-                    string fontType = null;
-                    string languageType = null;
-                    switch (ft)
-                    {
-                        case FontType.Ascii:
-                            fontType = (string)rFonts.Attribute(W.ascii);
-                            languageType = "western";
-                            break;
-                        case FontType.HAnsi:
-                            fontType = (string)rFonts.Attribute(W.hAnsi);
-                            languageType = "western";
-                            break;
-                        case FontType.EastAsia:
-                            fontType = (string)rFonts.Attribute(W.eastAsia);
-                            languageType = "eastAsia";
-                            break;
-                        case FontType.CS:
-                            fontType = (string)rFonts.Attribute(W.cs);
-                            languageType = "bidi";
-                            break;
-                    }
-
-                    if (fontType != null)
-                    {
-                        if (run.Attribute(PtOpenXml.FontName) == null)
-                        {
-                            XAttribute fta = new XAttribute(PtOpenXml.FontName, fontType.ToString());
-                            run.Add(fta);
-                        }
-                        else
-                        {
-                            run.Attribute(PtOpenXml.FontName).Value = fontType.ToString();
-                        }
-                    }
-                    if (languageType != null)
-                    {
-                        if (run.Attribute(PtOpenXml.LanguageType) == null)
-                        {
-                            XAttribute lta = new XAttribute(PtOpenXml.LanguageType, languageType);
-                            run.Add(lta);
-                        }
-                        else
-                        {
-                            run.Attribute(PtOpenXml.LanguageType).Value = languageType;
-                        }
-                    }
-
-                    var pixWidth = CalcWidthOfRunInPixels(run);
-                    // calc width of non breaking spaces
-                    var npSpRun = new XElement(W.r,
-                        run.Attributes(),
-                        run.Elements(W.rPr),
-                        new XElement(W.t, "\u00a0"));
-                    var nbSpWidth = CalcWidthOfRunInPixels(npSpRun);
-                    if (nbSpWidth == 0)
-                        continue;
-                    // get HtmlToWmlCssWidth attribute, convert to pixels
-                    var cssWidth = (string)run.Attribute(PtOpenXml.HtmlToWmlCssWidth);
-                    if (cssWidth.EndsWith("pt"))
-                    {
-                        cssWidth = cssWidth.Substring(0, cssWidth.Length - 2);
-                        decimal cssWidthInDecimal;
-                        if (decimal.TryParse(cssWidth, out cssWidthInDecimal))
-                        {
-                            decimal cssWidthInPixels = (cssWidthInDecimal / 72) * 96;
-                            // calculate the number of non-breaking spaces to add
-                            var numberOfNpSpToAdd = (cssWidthInPixels - pixWidth) / nbSpWidth;
-                            // then add them.
-                            run.Add(new XElement(W.t, "".PadRight((int)numberOfNpSpToAdd, '\u00a0')));
-                        }
-                    }
+                    case FontType.Ascii:
+                        fontType = (string) rFonts.Attribute(W.ascii);
+                        languageType = "western";
+                        break;
+                    case FontType.HAnsi:
+                        fontType = (string) rFonts.Attribute(W.hAnsi);
+                        languageType = "western";
+                        break;
+                    case FontType.EastAsia:
+                        fontType = (string) rFonts.Attribute(W.eastAsia);
+                        languageType = "eastAsia";
+                        break;
+                    case FontType.CS:
+                        fontType = (string) rFonts.Attribute(W.cs);
+                        languageType = "bidi";
+                        break;
                 }
+
+                if (fontType != null)
+                    if (run.Attribute(PtOpenXml.FontName) == null)
+                        run.Add(new XAttribute(PtOpenXml.FontName, fontType));
+                    else
+                        run.Attribute(PtOpenXml.FontName)?.SetValue(fontType);
+
+                if (languageType != null)
+                    if (run.Attribute(PtOpenXml.LanguageType) == null)
+                        run.Add(new XAttribute(PtOpenXml.LanguageType, languageType));
+                    else
+                        run.Attribute(PtOpenXml.LanguageType)?.SetValue(languageType);
+
+                int pixWidth = CalcWidthOfRunInPixels(run) ?? 0;
+
+                // calc width of non breaking spaces
+                var npSpRun = new XElement(W.r,
+                    run.Attributes(),
+                    run.Elements(W.rPr),
+                    new XElement(W.t, "\u00a0"));
+                int nbSpWidth = CalcWidthOfRunInPixels(npSpRun) ?? 0;
+                if (nbSpWidth == 0)
+                    continue;
+
+                // get HtmlToWmlCssWidth attribute
+                var cssWidth = (string) run.Attribute(PtOpenXml.HtmlToWmlCssWidth);
+                if (!cssWidth.EndsWith("pt")) continue;
+
+                cssWidth = cssWidth.Substring(0, cssWidth.Length - 2);
+                decimal cssWidthInDecimal;
+                if (!decimal.TryParse(cssWidth, out cssWidthInDecimal)) continue;
+
+                // calculate the number of non-breaking spaces to add
+                decimal cssWidthInPixels = cssWidthInDecimal/72*96;
+                var numberOfNpSpToAdd = (int) ((cssWidthInPixels - pixWidth)/nbSpWidth);
+                if (numberOfNpSpToAdd > 0)
+                    run.Add(new XElement(W.t, "".PadRight(numberOfNpSpToAdd, '\u00a0')));
             }
         }
 
@@ -1997,7 +1984,7 @@ namespace OpenXmlPowerTools.HtmlToWml
             '\x066B', // arabic decimal separator
             '\x066C', // arabic thousands separator
 
-            '\x0627', // arabic pipe 
+            '\x0627', // arabic pipe
 
             '\x20A0', // start currency symbols
             '\x20A1',

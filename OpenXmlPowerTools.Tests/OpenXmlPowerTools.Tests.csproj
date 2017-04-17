@@ -34,14 +34,12 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="DocumentFormat.OpenXml, Version=0.0.1.0, Culture=neutral, PublicKeyToken=8fb06cb64d019a17, processorArchitecture=MSIL">
-      <HintPath>..\packages\DocumentFormat.OpenXml.2.7.2-vnext0023\lib\net45\DocumentFormat.OpenXml.dll</HintPath>
+      <HintPath>..\packages\DocumentFormat.OpenXml.2.7.2-vnext0027\lib\net45\DocumentFormat.OpenXml.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
-    <Reference Include="System.IO.Packaging">
-      <HintPath>..\..\Open-Xml-SDK\DocumentFormat.OpenXml\bin\Debug\System.IO.Packaging.dll</HintPath>
-    </Reference>
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -68,19 +66,25 @@
     <Compile Include="HtmlConverterTests.cs" />
     <Compile Include="HtmlToWmlConverterTests.cs" />
     <Compile Include="HtmlToWmlReadAsXElement.cs" />
+    <Compile Include="MarkupSimplifierTests.cs" />
     <Compile Include="MetricsGetterTests.cs" />
+    <Compile Include="OpenXmlRegexTests.cs" />
     <Compile Include="PresentationBuilderTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="PtOpenXmlExtensionsTests.cs" />
     <Compile Include="RevisionAccepterTests.cs" />
     <Compile Include="RevisionProcessorTests.cs" />
     <Compile Include="SmlCellFormatterTests.cs" />
     <Compile Include="SmlToHtmlConverterTests.cs" />
     <Compile Include="SpreadsheetWriterTests.cs" />
+    <Compile Include="UnicodeMapperTests.cs" />
     <Compile Include="WmlComparerTests.cs" />
     <Compile Include="WmlContentAtomListTests.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
+    <None Include="packages.config">
+      <SubType>Designer</SubType>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />

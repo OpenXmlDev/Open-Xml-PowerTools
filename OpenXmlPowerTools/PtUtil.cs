@@ -20,6 +20,7 @@ Version: 2.6.00
 ***************************************************************************/
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -35,35 +36,28 @@ namespace OpenXmlPowerTools
     {
         public static string NormalizeDirName(string dirName)
         {
-            var d = dirName.Replace('\\', '/');
+            string d = dirName.Replace('\\', '/');
             if (d[dirName.Length - 1] != '/' && d[dirName.Length - 1] != '\\')
                 return d + "/";
-            else
-                return d;
+
+            return d;
         }
 
         public static string MakeValidXml(string p)
         {
-            if (!p.Any(c => c < 0x20))
-                return p;
-            var newP = p
-                .Select(c =>
-                {
-                    if (c < 0x20)
-                        return string.Format("_{0:X}_", (int)c);
-                    return c.ToString();
-                })
-                .StringConcatenate();
-            return newP;
+            return p.Any(c => c < 0x20)
+                ? p.Select(c => c < 0x20 ? $"_{(int) c:X}_" : c.ToString()).StringConcatenate()
+                : p;
         }
 
         public static void AddElementIfMissing(XDocument partXDoc, XElement existing, string newElement)
         {
             if (existing != null)
                 return;
+
             XElement newXElement = XElement.Parse(newElement);
             newXElement.Attributes().Where(a => a.IsNamespaceDeclaration).Remove();
-            partXDoc.Root.Add(newXElement);
+            partXDoc.Root?.Add(newXElement);
         }
     }
 
@@ -208,26 +202,19 @@ namespace OpenXmlPowerTools
         public static DirectoryInfo GetDateTimeStampedDirectoryInfo(string prefix)
         {
             DateTime now = DateTime.Now;
-            var dirName = prefix + string.Format("-{0:00}-{1:00}-{2:00}-{3:00}{4:00}{5:00}",
-                now.Year - 2000,
-                now.Month,
-                now.Day,
-                now.Hour,
-                now.Minute,
-                now.Second);
+            string dirName =
+                prefix +
+                $"-{now.Year - 2000:00}-{now.Month:00}-{now.Day:00}-{now.Hour:00}{now.Minute:00}{now.Second:00}";
             return new DirectoryInfo(dirName);
         }
 
         public static FileInfo GetDateTimeStampedFileInfo(string prefix, string suffix)
         {
             DateTime now = DateTime.Now;
-            var fileName = prefix + string.Format("-{0:00}-{1:00}-{2:00}-{3:00}{4:00}{5:00}",
-                now.Year - 2000,
-                now.Month,
-                now.Day,
-                now.Hour,
-                now.Minute,
-                now.Second) + suffix;
+            string fileName =
+                prefix +
+                $"-{now.Year - 2000:00}-{now.Month:00}-{now.Day:00}-{now.Hour:00}{now.Minute:00}{now.Second:00}" +
+                suffix;
             return new FileInfo(fileName);
         }
 
@@ -237,6 +224,7 @@ namespace OpenXmlPowerTools
             {
                 if (dir.Exists)
                     break;
+
                 try
                 {
                     dir.Create();
@@ -255,6 +243,7 @@ namespace OpenXmlPowerTools
             {
                 if (destFile.Exists)
                     break;
+
                 try
                 {
                     File.Copy(sourceFile.FullName, destFile.FullName);
@@ -273,6 +262,7 @@ namespace OpenXmlPowerTools
             {
                 if (file.Exists)
                     break;
+
                 try
                 {
                     File.WriteAllText(file.FullName, "");
@@ -305,39 +295,37 @@ namespace OpenXmlPowerTools
 
         public static List<string> GetFilesRecursive(DirectoryInfo dir, string searchPattern)
         {
-            List<string> fileList = new List<string>();
+            var fileList = new List<string>();
             GetFilesRecursiveInternal(dir, searchPattern, fileList);
             return fileList;
         }
 
         private static void GetFilesRecursiveInternal(DirectoryInfo dir, string searchPattern, List<string> fileList)
         {
-            foreach (var file in dir.GetFiles(searchPattern))
-                fileList.Add(file.FullName);
-            foreach (var subdir in dir.GetDirectories())
+            fileList.AddRange(dir.GetFiles(searchPattern).Select(file => file.FullName));
+            foreach (DirectoryInfo subdir in dir.GetDirectories())
                 GetFilesRecursiveInternal(subdir, searchPattern, fileList);
         }
 
         public static List<string> GetFilesRecursive(DirectoryInfo dir)
         {
-            List<string> fileList = new List<string>();
+            var fileList = new List<string>();
             GetFilesRecursiveInternal(dir, fileList);
             return fileList;
         }
 
         private static void GetFilesRecursiveInternal(DirectoryInfo dir, List<string> fileList)
         {
-            foreach (var file in dir.GetFiles())
-                fileList.Add(file.FullName);
-            foreach (var subdir in dir.GetDirectories())
+            fileList.AddRange(dir.GetFiles().Select(file => file.FullName));
+            foreach (DirectoryInfo subdir in dir.GetDirectories())
                 GetFilesRecursiveInternal(subdir, fileList);
         }
 
         public static void CopyStream(Stream source, Stream target)
         {
             const int bufSize = 0x4096;
-            byte[] buf = new byte[bufSize];
-            int bytesRead = 0;
+            var buf = new byte[bufSize];
+            int bytesRead;
             while ((bytesRead = source.Read(buf, 0, bufSize)) > 0)
                 target.Write(buf, 0, bytesRead);
         }
@@ -347,7 +335,7 @@ namespace OpenXmlPowerTools
     {
         public static XElement GetXElement(this XmlNode node)
         {
-            XDocument xDoc = new XDocument();
+            var xDoc = new XDocument();
             using (XmlWriter xmlWriter = xDoc.CreateWriter())
                 node.WriteTo(xmlWriter);
             return xDoc.Root;
@@ -355,32 +343,30 @@ namespace OpenXmlPowerTools
 
         public static XmlNode GetXmlNode(this XElement element)
         {
+            var xmlDoc = new XmlDocument();
             using (XmlReader xmlReader = element.CreateReader())
-            {
-                XmlDocument xmlDoc = new XmlDocument();
                 xmlDoc.Load(xmlReader);
-                return xmlDoc;
-            }
+            return xmlDoc;
         }
 
         public static XDocument GetXDocument(this XmlDocument document)
         {
-            XDocument xDoc = new XDocument();
+            var xDoc = new XDocument();
             using (XmlWriter xmlWriter = xDoc.CreateWriter())
                 document.WriteTo(xmlWriter);
-            XmlDeclaration decl =
-                document.ChildNodes.OfType<XmlDeclaration>().FirstOrDefault();
+
+            XmlDeclaration decl = document.ChildNodes.OfType<XmlDeclaration>().FirstOrDefault();
             if (decl != null)
-                xDoc.Declaration = new XDeclaration(decl.Version, decl.Encoding,
-                    decl.Standalone);
+                xDoc.Declaration = new XDeclaration(decl.Version, decl.Encoding, decl.Standalone);
+
             return xDoc;
         }
 
         public static XmlDocument GetXmlDocument(this XDocument document)
         {
+            var xmlDoc = new XmlDocument();
             using (XmlReader xmlReader = document.CreateReader())
             {
-                XmlDocument xmlDoc = new XmlDocument();
                 xmlDoc.Load(xmlReader);
                 if (document.Declaration != null)
                 {
@@ -388,26 +374,24 @@ namespace OpenXmlPowerTools
                         document.Declaration.Encoding, document.Declaration.Standalone);
                     xmlDoc.InsertBefore(dec, xmlDoc.FirstChild);
                 }
-                return xmlDoc;
             }
+            return xmlDoc;
         }
 
         public static string StringConcatenate(this IEnumerable<string> source)
         {
-            StringBuilder sb = new StringBuilder();
-            foreach (string s in source)
-                sb.Append(s);
-            return sb.ToString();
+            return source.Aggregate(
+                new StringBuilder(),
+                (sb, s) => sb.Append(s),
+                sb => sb.ToString());
         }
 
-        public static string StringConcatenate<T>(
-            this IEnumerable<T> source,
-            Func<T, string> projectionFunc)
+        public static string StringConcatenate<T>(this IEnumerable<T> source, Func<T, string> projectionFunc)
         {
             return source.Aggregate(
                 new StringBuilder(),
-                (s, i) => s.Append(projectionFunc(i)),
-                s => s.ToString());
+                (sb, i) => sb.Append(projectionFunc(i)),
+                sb => sb.ToString());
         }
 
         public static IEnumerable<TResult> PtZip<TFirst, TSecond, TResult>(
@@ -415,10 +399,10 @@ namespace OpenXmlPowerTools
             IEnumerable<TSecond> second,
             Func<TFirst, TSecond, TResult> func)
         {
-            var ie1 = first.GetEnumerator();
-            var ie2 = second.GetEnumerator();
-            while (ie1.MoveNext() && ie2.MoveNext())
-                yield return func(ie1.Current, ie2.Current);
+            using (IEnumerator<TFirst> ie1 = first.GetEnumerator())
+            using (IEnumerator<TSecond> ie2 = second.GetEnumerator())
+                while (ie1.MoveNext() && ie2.MoveNext())
+                    yield return func(ie1.Current, ie2.Current);
         }
 
         public static IEnumerable<IGrouping<TKey, TSource>> GroupAdjacent<TSource, TKey>(
@@ -426,8 +410,8 @@ namespace OpenXmlPowerTools
             Func<TSource, TKey> keySelector)
         {
             TKey last = default(TKey);
-            bool haveLast = false;
-            List<TSource> list = new List<TSource>();
+            var haveLast = false;
+            var list = new List<TSource>();
 
             foreach (TSource s in source)
             {
@@ -437,8 +421,8 @@ namespace OpenXmlPowerTools
                     if (!k.Equals(last))
                     {
                         yield return new GroupOfAdjacent<TSource, TKey>(list, last);
-                        list = new List<TSource>();
-                        list.Add(s);
+
+                        list = new List<TSource> { s };
                         last = k;
                     }
                     else
@@ -477,11 +461,13 @@ namespace OpenXmlPowerTools
             while (true)
             {
                 XElement previousElement = current
-                    .Annotation<SiblingsReverseDocumentOrderInfo>()
+                    .Annotation<SiblingsReverseDocumentOrderInfo>()?
                     .PreviousSibling;
                 if (previousElement == null)
                     yield break;
+
                 yield return previousElement;
+
                 current = previousElement;
             }
         }
@@ -505,11 +491,13 @@ namespace OpenXmlPowerTools
             while (true)
             {
                 XElement previousElement = current
-                    .Annotation<DescendantsReverseDocumentOrderInfo>()
+                    .Annotation<DescendantsReverseDocumentOrderInfo>()?
                     .PreviousElement;
                 if (previousElement == null)
                     yield break;
+
                 yield return previousElement;
+
                 current = previousElement;
             }
         }
@@ -529,33 +517,36 @@ namespace OpenXmlPowerTools
         {
             if (element.Annotation<DescendantsTrimmedReverseDocumentOrderInfo>() == null)
             {
-                var ances = element.AncestorsAndSelf(W.txbxContent).FirstOrDefault();
-                if (ances == null)
-                    ances = element.AncestorsAndSelf().Last();
+                XElement ances = element.AncestorsAndSelf(W.txbxContent).FirstOrDefault() ??
+                                 element.AncestorsAndSelf().Last();
                 InitializeDescendantsTrimmedReverseDocumentOrder(ances, trimName);
             }
-                
+
             XElement current = element;
             while (true)
             {
                 XElement previousElement = current
-                    .Annotation<DescendantsTrimmedReverseDocumentOrderInfo>()
+                    .Annotation<DescendantsTrimmedReverseDocumentOrderInfo>()?
                     .PreviousElement;
                 if (previousElement == null)
                     yield break;
+
                 yield return previousElement;
+
                 current = previousElement;
             }
         }
 
         public static string ToStringNewLineOnAttributes(this XElement element)
         {
-            XmlWriterSettings settings = new XmlWriterSettings();
-            settings.Indent = true;
-            settings.OmitXmlDeclaration = true;
-            settings.NewLineOnAttributes = true;
-            StringBuilder stringBuilder = new StringBuilder();
-            using (StringWriter stringWriter = new StringWriter(stringBuilder))
+            var settings = new XmlWriterSettings
+            {
+                Indent = true,
+                OmitXmlDeclaration = true,
+                NewLineOnAttributes = true
+            };
+            var stringBuilder = new StringBuilder();
+            using (var stringWriter = new StringWriter(stringBuilder))
             using (XmlWriter xmlWriter = XmlWriter.Create(stringWriter, settings))
                 element.WriteTo(xmlWriter);
             return stringBuilder.ToString();
@@ -625,11 +616,10 @@ namespace OpenXmlPowerTools
                 yield return source[i++];
         }
 
-        public static IEnumerable<T> SkipLast<T>(this IEnumerable<T> source,
-            int count)
+        public static IEnumerable<T> SkipLast<T>(this IEnumerable<T> source, int count)
         {
-            Queue<T> saveList = new Queue<T>();
-            int saved = 0;
+            var saveList = new Queue<T>();
+            var saved = 0;
             foreach (T item in source)
             {
                 if (saved < count)
@@ -638,43 +628,53 @@ namespace OpenXmlPowerTools
                     ++saved;
                     continue;
                 }
+
                 saveList.Enqueue(item);
                 yield return saveList.Dequeue();
             }
-            yield break;
         }
 
         public static bool? ToBoolean(this XAttribute a)
         {
             if (a == null)
                 return null;
-            string s = ((string)a).ToLower();
-            if (s == "1") return true;
-            if (s == "0") return false;
-            if (s == "true") return true;
-            if (s == "false") return false;
-            if (s == "on") return true;
-            if (s == "off") return false;
-            return (bool)a;
+
+            string s = ((string) a).ToLower();
+            switch (s)
+            {
+                case "1":
+                    return true;
+                case "0":
+                    return false;
+                case "true":
+                    return true;
+                case "false":
+                    return false;
+                case "on":
+                    return true;
+                case "off":
+                    return false;
+                default:
+                    return (bool) a;
+            }
         }
 
         private static string GetQName(XElement xe)
         {
             string prefix = xe.GetPrefixOfNamespace(xe.Name.Namespace);
             if (xe.Name.Namespace == XNamespace.None || prefix == null)
-                return xe.Name.LocalName.ToString();
-            else
-                return prefix + ":" + xe.Name.LocalName.ToString();
+                return xe.Name.LocalName;
+
+            return prefix + ":" + xe.Name.LocalName;
         }
 
         private static string GetQName(XAttribute xa)
         {
-            string prefix =
-                xa.Parent.GetPrefixOfNamespace(xa.Name.Namespace);
+            string prefix = xa.Parent?.GetPrefixOfNamespace(xa.Name.Namespace);
             if (xa.Name.Namespace == XNamespace.None || prefix == null)
                 return xa.Name.ToString();
-            else
-                return prefix + ":" + xa.Name.LocalName;
+
+            return prefix + ":" + xa.Name.LocalName;
         }
 
         private static string NameWithPredicate(XElement el)
@@ -700,15 +700,18 @@ namespace OpenXmlPowerTools
         {
             if (xobj.Parent == null)
             {
-                XDocument doc = xobj as XDocument;
+                var doc = xobj as XDocument;
                 if (doc != null)
                     return ".";
-                XElement el = xobj as XElement;
+
+                var el = xobj as XElement;
                 if (el != null)
                     return "/" + NameWithPredicate(el);
-                XText xt = xobj as XText;
+
+                var xt = xobj as XText;
                 if (xt != null)
                     return null;
+
                 //
                 //the following doesn't work because the XPath data
                 //model doesn't include white space text nodes that
@@ -730,159 +733,167 @@ namespace OpenXmlPowerTools
                 //        "text()"
                 //    );
                 //
-                XComment com = xobj as XComment;
+                var com = xobj as XComment;
                 if (com != null)
                     return
                         "/" +
                         (
                             com
-                            .Document
-                            .Nodes()
-                            .OfType<XComment>()
-                            .Count() != 1 ?
-                            "comment()[" +
-                            (com
-                            .NodesBeforeSelf()
-                            .OfType<XComment>()
-                            .Count() + 1) +
-                            "]" :
-                            "comment()"
+                                .Document?
+                                .Nodes()
+                                .OfType<XComment>()
+                                .Count() != 1
+                                ? "comment()[" +
+                                  (com
+                                       .NodesBeforeSelf()
+                                       .OfType<XComment>()
+                                       .Count() + 1) +
+                                  "]"
+                                : "comment()"
                         );
-                XProcessingInstruction pi = xobj as XProcessingInstruction;
+
+                var pi = xobj as XProcessingInstruction;
                 if (pi != null)
                     return
                         "/" +
                         (
-                            pi.Document.Nodes()
-                            .OfType<XProcessingInstruction>()
-                            .Count() != 1 ?
-                            "processing-instruction()[" +
-                            (pi
-                            .NodesBeforeSelf()
-                            .OfType<XProcessingInstruction>()
-                            .Count() + 1) +
-                            "]" :
-                            "processing-instruction()"
+                            pi.Document?.Nodes()
+                                .OfType<XProcessingInstruction>()
+                                .Count() != 1
+                                ? "processing-instruction()[" +
+                                  (pi
+                                       .NodesBeforeSelf()
+                                       .OfType<XProcessingInstruction>()
+                                       .Count() + 1) +
+                                  "]"
+                                : "processing-instruction()"
                         );
+
                 return null;
             }
             else
             {
-                XElement el = xobj as XElement;
+                var el = xobj as XElement;
                 if (el != null)
                 {
                     return
                         "/" +
                         el
-                        .Ancestors()
-                        .InDocumentOrder()
-                        .Select(e => NameWithPredicate(e))
-                        .StrCat("/") +
+                            .Ancestors()
+                            .InDocumentOrder()
+                            .Select(NameWithPredicate)
+                            .StrCat("/") +
                         NameWithPredicate(el);
                 }
-                XAttribute at = xobj as XAttribute;
+
+                var at = xobj as XAttribute;
                 if (at != null)
                     return
                         "/" +
                         at
-                        .Parent
-                        .AncestorsAndSelf()
-                        .InDocumentOrder()
-                        .Select(e => NameWithPredicate(e))
-                        .StrCat("/") +
+                            .Parent?
+                            .AncestorsAndSelf()
+                            .InDocumentOrder()
+                            .Select(NameWithPredicate)
+                            .StrCat("/") +
                         "@" + GetQName(at);
-                XComment com = xobj as XComment;
+
+                var com = xobj as XComment;
                 if (com != null)
                     return
                         "/" +
                         com
-                        .Parent
-                        .AncestorsAndSelf()
-                        .InDocumentOrder()
-                        .Select(e => NameWithPredicate(e))
-                        .StrCat("/") +
+                            .Parent?
+                            .AncestorsAndSelf()
+                            .InDocumentOrder()
+                            .Select(NameWithPredicate)
+                            .StrCat("/") +
                         (
                             com
-                            .Parent
-                            .Nodes()
-                            .OfType<XComment>()
-                            .Count() != 1 ?
-                            "comment()[" +
-                            (com
-                            .NodesBeforeSelf()
-                            .OfType<XComment>()
-                            .Count() + 1) + "]" :
-                            "comment()"
+                                .Parent?
+                                .Nodes()
+                                .OfType<XComment>()
+                                .Count() != 1
+                                ? "comment()[" +
+                                  (com
+                                       .NodesBeforeSelf()
+                                       .OfType<XComment>()
+                                       .Count() + 1) + "]"
+                                : "comment()"
                         );
-                XCData cd = xobj as XCData;
+
+                var cd = xobj as XCData;
                 if (cd != null)
                     return
                         "/" +
                         cd
-                        .Parent
-                        .AncestorsAndSelf()
-                        .InDocumentOrder()
-                        .Select(e => NameWithPredicate(e))
-                        .StrCat("/") +
+                            .Parent?
+                            .AncestorsAndSelf()
+                            .InDocumentOrder()
+                            .Select(NameWithPredicate)
+                            .StrCat("/") +
                         (
                             cd
-                            .Parent
-                            .Nodes()
-                            .OfType<XText>()
-                            .Count() != 1 ?
-                            "text()[" +
-                            (cd
-                            .NodesBeforeSelf()
-                            .OfType<XText>()
-                            .Count() + 1) + "]" :
-                            "text()"
+                                .Parent?
+                                .Nodes()
+                                .OfType<XText>()
+                                .Count() != 1
+                                ? "text()[" +
+                                  (cd
+                                       .NodesBeforeSelf()
+                                       .OfType<XText>()
+                                       .Count() + 1) + "]"
+                                : "text()"
                         );
-                XText tx = xobj as XText;
+
+                var tx = xobj as XText;
                 if (tx != null)
                     return
                         "/" +
                         tx
-                        .Parent
-                        .AncestorsAndSelf()
-                        .InDocumentOrder()
-                        .Select(e => NameWithPredicate(e))
-                        .StrCat("/") +
+                            .Parent?
+                            .AncestorsAndSelf()
+                            .InDocumentOrder()
+                            .Select(NameWithPredicate)
+                            .StrCat("/") +
                         (
                             tx
-                            .Parent
-                            .Nodes()
-                            .OfType<XText>()
-                            .Count() != 1 ?
-                            "text()[" +
-                            (tx
-                            .NodesBeforeSelf()
-                            .OfType<XText>()
-                            .Count() + 1) + "]" :
-                            "text()"
+                                .Parent?
+                                .Nodes()
+                                .OfType<XText>()
+                                .Count() != 1
+                                ? "text()[" +
+                                  (tx
+                                       .NodesBeforeSelf()
+                                       .OfType<XText>()
+                                       .Count() + 1) + "]"
+                                : "text()"
                         );
-                XProcessingInstruction pi = xobj as XProcessingInstruction;
+
+                var pi = xobj as XProcessingInstruction;
                 if (pi != null)
                     return
                         "/" +
                         pi
-                        .Parent
-                        .AncestorsAndSelf()
-                        .InDocumentOrder()
-                        .Select(e => NameWithPredicate(e))
-                        .StrCat("/") +
+                            .Parent?
+                            .AncestorsAndSelf()
+                            .InDocumentOrder()
+                            .Select(NameWithPredicate)
+                            .StrCat("/") +
                         (
                             pi
-                            .Parent
-                            .Nodes()
-                            .OfType<XProcessingInstruction>()
-                            .Count() != 1 ?
-                            "processing-instruction()[" +
-                            (pi
-                            .NodesBeforeSelf()
-                            .OfType<XProcessingInstruction>()
-                            .Count() + 1) + "]" :
-                            "processing-instruction()"
+                                .Parent?
+                                .Nodes()
+                                .OfType<XProcessingInstruction>()
+                                .Count() != 1
+                                ? "processing-instruction()[" +
+                                  (pi
+                                       .NodesBeforeSelf()
+                                       .OfType<XProcessingInstruction>()
+                                       .Count() + 1) + "]"
+                                : "processing-instruction()"
                         );
+
                 return null;
             }
         }
@@ -931,7 +942,7 @@ namespace OpenXmlPowerTools
                 }
                 else
                 {
-                    throw new ArgumentException("Invalid executable path.", "exePath");
+                    throw new ArgumentException("Invalid executable path.", nameof(executablePath));
                 }
             }
             catch (Exception e)
@@ -957,27 +968,25 @@ namespace OpenXmlPowerTools
         public XElement PreviousElement;
     }
 
-    public class GroupOfAdjacent<TSource, TKey> : IEnumerable<TSource>, IGrouping<TKey, TSource>
+    public class GroupOfAdjacent<TSource, TKey> : IGrouping<TKey, TSource>
     {
-        public TKey Key { get; set; }
-        private List<TSource> GroupList { get; set; }
-
-        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
-        {
-            return ((System.Collections.Generic.IEnumerable<TSource>)this).GetEnumerator();
-        }
-
-        System.Collections.Generic.IEnumerator<TSource>
-            System.Collections.Generic.IEnumerable<TSource>.GetEnumerator()
-        {
-            foreach (var s in GroupList)
-                yield return s;
-        }
-
         public GroupOfAdjacent(List<TSource> source, TKey key)
         {
             GroupList = source;
             Key = key;
+        }
+
+        public TKey Key { get; set; }
+        private List<TSource> GroupList { get; }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return ((IEnumerable<TSource>) this).GetEnumerator();
+        }
+
+        IEnumerator<TSource> IEnumerable<TSource>.GetEnumerator()
+        {
+            return ((IEnumerable<TSource>) GroupList).GetEnumerator();
         }
     }
 
@@ -1063,15 +1072,18 @@ namespace OpenXmlPowerTools
     {
         public override void WriteTo(XmlWriter writer)
         {
-            if (this.Value.Substring(0, 1) == "#")
+            if (Value.Substring(0, 1) == "#")
             {
-                string e = string.Format("&{0};", this.Value);
+                string e = $"&{Value};";
                 writer.WriteRaw(e);
             }
             else
-                writer.WriteEntityRef(this.Value);
+                writer.WriteEntityRef(Value);
         }
-        public XEntity(string value) : base(value) { }
+
+        public XEntity(string value) : base(value)
+        {
+        }
     }
 
     public static class Xsi
