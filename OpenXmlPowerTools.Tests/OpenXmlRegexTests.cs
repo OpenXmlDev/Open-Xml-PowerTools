@@ -156,7 +156,8 @@ namespace OpenXmlPowerTools.Tests
                 part.PutXDocument(partDocument);
 
                 IEnumerable<XElement> content = partDocument.Descendants(W.p);
-                var regex = new Regex($"{LeftDoubleQuotationMarks}(?<words>{Words}){RightDoubleQuotationMarks}");
+                var regex = new Regex(string.Format("{0}(?<words>{1}){2}", LeftDoubleQuotationMarks, Words,
+                    RightDoubleQuotationMarks));
                 int count = OpenXmlRegex.Replace(content, regex, "‘changed ${words}’", null);
 
                 p = partDocument.Descendants(W.p).First();
@@ -187,7 +188,8 @@ namespace OpenXmlPowerTools.Tests
                 part.PutXDocument(partDocument);
 
                 IEnumerable<XElement> content = partDocument.Descendants(W.p);
-                var regex = new Regex($"{LeftDoubleQuotationMarks}(?<words>{Words}){RightDoubleQuotationMarks}");
+                var regex = new Regex(string.Format("{0}(?<words>{1}){2}", LeftDoubleQuotationMarks, Words,
+                    RightDoubleQuotationMarks));
                 int count = OpenXmlRegex.Replace(content, regex, "‘changed ${words}’", null, true, "John Doe");
 
                 p = partDocument.Descendants(W.p).First();
@@ -224,7 +226,8 @@ namespace OpenXmlPowerTools.Tests
                 part.PutXDocument(partDocument);
 
                 IEnumerable<XElement> content = partDocument.Descendants(W.p);
-                var regex = new Regex($"{LeftDoubleQuotationMarks}(?<words>{Words}){RightDoubleQuotationMarks}");
+                var regex = new Regex(string.Format("{0}(?<words>{1}){2}", LeftDoubleQuotationMarks, Words,
+                    RightDoubleQuotationMarks));
                 int count = OpenXmlRegex.Replace(content, regex, "‘changed ${words}’", null, true, "John Doe");
 
                 p = partDocument.Descendants(W.p).First();

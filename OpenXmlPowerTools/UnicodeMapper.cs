@@ -203,7 +203,7 @@ namespace OpenXmlPowerTools
             if (sym == null)
                 throw new ArgumentNullException("sym");
             if (sym.Name != W.sym)
-                throw new ArgumentException($"Not a w:sym: {sym.Name}", "sym");
+                throw new ArgumentException(string.Format("Not a w:sym: {0}", sym.Name), "sym");
 
             XAttribute fontAttribute = sym.Attribute(W.font);
             string fontAttributeValue = fontAttribute != null ? fontAttribute.Value : null;
