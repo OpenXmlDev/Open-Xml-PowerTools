@@ -102,9 +102,12 @@ namespace OpenXmlPowerTools
 
         private static void RemoveRsidInfoInSettings(WordprocessingDocument doc)
         {
-            XDocument settingsXDoc = doc.MainDocumentPart.DocumentSettingsPart?.GetXDocument();
-            settingsXDoc?.Root?.Elements(W.rsids).Remove();
-            doc.MainDocumentPart.DocumentSettingsPart?.PutXDocument();
+            DocumentSettingsPart part = doc.MainDocumentPart.DocumentSettingsPart;
+            if (part == null) return;
+
+            XDocument settingsXDoc = part.GetXDocument();
+            settingsXDoc.Descendants(W.rsids).Remove();
+            part.PutXDocument();
         }
 
         private static void RemoveElementsForDocumentComparison(WordprocessingDocument doc)
@@ -113,18 +116,18 @@ namespace OpenXmlPowerTools
             if (part != null)
             {
                 XDocument appPropsXDoc = part.GetXDocument();
-                appPropsXDoc.Root?.Elements(EP.TotalTime).Remove();
-                doc.ExtendedFilePropertiesPart.PutXDocument();
+                appPropsXDoc.Descendants(EP.TotalTime).Remove();
+                part.PutXDocument();
             }
 
             part = doc.CoreFilePropertiesPart;
             if (part != null)
             {
                 XDocument corePropsXDoc = part.GetXDocument();
-                corePropsXDoc.Root?.Elements(CP.revision).Remove();
-                corePropsXDoc.Root?.Elements(DCTERMS.created).Remove();
-                corePropsXDoc.Root?.Elements(DCTERMS.modified).Remove();
-                doc.CoreFilePropertiesPart.PutXDocument();
+                corePropsXDoc.Descendants(CP.revision).Remove();
+                corePropsXDoc.Descendants(DCTERMS.created).Remove();
+                corePropsXDoc.Descendants(DCTERMS.modified).Remove();
+                part.PutXDocument();
             }
 
             XDocument mainXDoc = doc.MainDocumentPart.GetXDocument();
@@ -349,11 +352,9 @@ namespace OpenXmlPowerTools
                 return null;
 
             if (settings.ReplaceTabsWithSpaces &&
-                (element.Name == W.tab) &&
-                (element.Parent?.Name == W.r))
-                return new XElement(W.t,
-                    new XAttribute(XNamespace.Xml + "space", "preserve"),
-                    " ");
+                (element.Name == W.tab) && 
+                (element.Parent != null && element.Parent.Name == W.r))
+                return new XElement(W.t, new XAttribute(XNamespace.Xml + "space", "preserve"), " ");
 
             if (settings.RemoveComments &&
                 ((element.Name == W.commentRangeStart) ||
@@ -364,7 +365,7 @@ namespace OpenXmlPowerTools
 
             if (settings.RemoveComments &&
                 (element.Name == W.rStyle) &&
-                (element.Attribute(W.val)?.Value == "CommentReference"))
+                (element.Attribute(W.val).Value == "CommentReference"))
                 return null;
 
             if (settings.RemoveEndAndFootNotes &&
@@ -437,8 +438,11 @@ namespace OpenXmlPowerTools
                 {
                     if (havePsvi)
                     {
-                        XmlTypeCode? dt = a.GetSchemaInfo()?.SchemaType?.TypeCode;
-                        switch (dt)
+                        IXmlSchemaInfo schemaInfo = a.GetSchemaInfo();
+                        XmlSchemaType schemaType = schemaInfo != null ? schemaInfo.SchemaType : null;
+                        XmlTypeCode? typeCode = schemaType != null ? schemaType.TypeCode : (XmlTypeCode?) null;
+
+                        switch (typeCode)
                         {
                             case XmlTypeCode.Boolean:
                                 return new XAttribute(a.Name, (bool) a);
@@ -479,8 +483,11 @@ namespace OpenXmlPowerTools
         {
             if (havePsvi)
             {
-                IXmlSchemaInfo dt = element.GetSchemaInfo();
-                switch (dt?.SchemaType?.TypeCode)
+                IXmlSchemaInfo schemaInfo = element.GetSchemaInfo();
+                XmlSchemaType schemaType = schemaInfo != null ? schemaInfo.SchemaType : null;
+                XmlTypeCode? typeCode = schemaType != null ? schemaType.TypeCode : (XmlTypeCode?) null;
+
+                switch (typeCode)
                 {
                     case XmlTypeCode.Boolean:
                         return new XElement(element.Name,
@@ -607,14 +614,18 @@ namespace OpenXmlPowerTools
                 };
 
                 XDocument newXDoc = Normalize(new XDocument(newRoot), null);
-                foreach (XAttribute nsAttr in nsAttrs)
-                    if (newXDoc.Root?.Attribute(nsAttr.Name) == null)
-                        newXDoc.Root?.Add(nsAttr);
+                newRoot = newXDoc.Root;
+                if (newRoot != null)
+                    foreach (XAttribute nsAttr in nsAttrs)
+                        if (newRoot.Attribute(nsAttr.Name) == null)
+                            newRoot.Add(nsAttr);
 
                 part.PutXDocument(newXDoc);
             }
             else
+            {
                 part.PutXDocument(new XDocument(newRoot));
+            }
         }
 
         private static object SeparateRunChildrenIntoSeparateRuns(XNode node)

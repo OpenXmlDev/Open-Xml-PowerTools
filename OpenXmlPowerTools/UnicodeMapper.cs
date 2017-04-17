@@ -73,7 +73,7 @@ namespace OpenXmlPowerTools
         /// <returns>The corresponding Unicode value or U+0001.</returns>
         public static string RunToString(XElement element)
         {
-            if (element.Name == W.r && element.Parent?.Name != W.del)
+            if (element.Name == W.r && (element.Parent == null || element.Parent.Name != W.del))
                 return element.Elements()
                     .Where(e => StringifiedRunElements.Contains(e.Name))
                     .Select(RunToString)
@@ -87,7 +87,8 @@ namespace OpenXmlPowerTools
             // unicode characters.
             if (element.Name == W.br)
             {
-                string type = element.Attribute(W.type)?.Value;
+                XAttribute typeAttribute = element.Attribute(W.type);
+                string type = typeAttribute != null ? typeAttribute.Value : null;
                 if (type == null || type == "textWrapping")
                     return CarriageReturn.ToString();
                 if (type == "page")
@@ -204,11 +205,13 @@ namespace OpenXmlPowerTools
             if (sym.Name != W.sym)
                 throw new ArgumentException($"Not a w:sym: {sym.Name}", "sym");
 
-            string fontAttributeValue = sym.Attribute(W.font)?.Value;
+            XAttribute fontAttribute = sym.Attribute(W.font);
+            string fontAttributeValue = fontAttribute != null ? fontAttribute.Value : null;
             if (fontAttributeValue == null)
                 throw new ArgumentException("w:sym element has no w:font attribute.", "sym");
 
-            string charAttributeValue = sym.Attribute(W._char)?.Value;
+            XAttribute charAttribute = sym.Attribute(W._char);
+            string charAttributeValue = charAttribute != null ? charAttribute.Value : null;
             if (charAttributeValue == null)
                 throw new ArgumentException("w:sym element has no w:char attribute.", "sym");
 

@@ -653,9 +653,9 @@ namespace OpenXmlPowerTools.HtmlToWml
             foreach (XElement run in runsWithWidth)
             {
                 XElement p = run.Ancestors(W.p).FirstOrDefault();
-                XElement pPr = p?.Element(W.pPr);
+                XElement pPr = p != null ? p.Element(W.pPr) : null;
                 XElement rPr = run.Element(W.rPr);
-                XElement rFonts = rPr?.Element(W.rFonts);
+                XElement rFonts = rPr != null ? rPr.Element(W.rFonts) : null;
                 string str = run.Descendants(W.t).Select(t => (string) t).StringConcatenate();
                 if ((pPr == null) || (rPr == null) || (rFonts == null) || (str == "")) continue;
 
@@ -689,16 +689,26 @@ namespace OpenXmlPowerTools.HtmlToWml
                 }
 
                 if (fontType != null)
-                    if (run.Attribute(PtOpenXml.FontName) == null)
+                {
+                    XAttribute fontNameAttribute = run.Attribute(PtOpenXml.FontName);
+                    if (fontNameAttribute == null)
                         run.Add(new XAttribute(PtOpenXml.FontName, fontType));
                     else
-                        run.Attribute(PtOpenXml.FontName)?.SetValue(fontType);
+                        fontNameAttribute.SetValue(fontType);
+                }
 
                 if (languageType != null)
-                    if (run.Attribute(PtOpenXml.LanguageType) == null)
+                {
+                    XAttribute languageTypeAttribute = run.Attribute(PtOpenXml.LanguageType);
+                    if (languageTypeAttribute == null)
+                    {
                         run.Add(new XAttribute(PtOpenXml.LanguageType, languageType));
+                    }
                     else
-                        run.Attribute(PtOpenXml.LanguageType)?.SetValue(languageType);
+                    {
+                        languageTypeAttribute.SetValue(languageType);
+                    }
+                }
 
                 int pixWidth = CalcWidthOfRunInPixels(run) ?? 0;
 
