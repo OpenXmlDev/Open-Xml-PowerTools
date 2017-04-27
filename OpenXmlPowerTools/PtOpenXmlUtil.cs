@@ -46,77 +46,6 @@ namespace OpenXmlPowerTools
 {
     public static class PtOpenXmlExtensions
     {
-        private static bool _reloadRootElementOnPut = true;
-
-        /// <summary>
-        /// If true (the default), reloads the <see cref="OpenXmlPart"/>'s content into the Open XML DOM tree
-        /// after writing an <see cref="XDocument"/> to the <see cref="OpenXmlPart"/>'s stream.
-        /// </summary>
-        /// <remarks>
-        /// This is required where the strictly typed classes from the Open XML SDK are used in conjunction
-        /// with the Open XML PowerTools. Therefore, to be on the safe side, the default is true. Should your
-        /// application not use the strictly typed classes at all, however, this property can be set to false.
-        /// </remarks>
-        public static bool ReloadRootElementOnPut
-        {
-            get { return _reloadRootElementOnPut; }
-            set { _reloadRootElementOnPut = value; }
-        }
-
-        /// <summary>
-        /// Removes <see cref="XDocument"/> and <see cref="XmlNamespaceManager"/> instances added by
-        /// <see cref="GetXDocument(OpenXmlPart)"/>, <see cref="GetXDocument(OpenXmlPart, XmlNamespaceManager)"/>,
-        /// <see cref="PutXDocument(OpenXmlPart)"/>, <see cref="PutXDocument(OpenXmlPart, XDocument)"/>, and
-        /// <see cref="PutXDocumentWithFormatting(OpenXmlPart)"/>.
-        /// methods.
-        /// </summary>
-        /// <remarks>
-        /// This is required where the strongly typed classes from the Open XML SDK are used in conjunction with
-        /// the Open XML PowerTools. For example, after making changes to multiple <see cref="OpenXmlPart"/>s 
-        /// contained in a <see cref="WordprocessingDocument"/> through the strongly typed classes, invoke the 
-        /// following methods before using further PowerTools:
-        /// <code>
-        ///     wordprocessingDocument.Save();
-        ///     wordprocessingDocument.RemovePowerToolsAnnotations();
-        /// </code>
-        /// </remarks>
-        /// <param name="package">
-        /// An <see cref="OpenXmlPackage"/>, i.e., a <see cref="WordprocessingDocument"/>,
-        /// <see cref="SpreadsheetDocument"/>, or <see cref="PresentationDocument"/>.
-        /// </param>
-        public static void RemovePowerToolsAnnotations(this OpenXmlPackage package)
-        {
-            if (package == null) throw new ArgumentNullException("package");
-
-            foreach (OpenXmlPart part in package.GetAllParts())
-                part.RemovePowerToolsAnnotations();
-        }
-
-        /// <summary>
-        /// Removes <see cref="XDocument"/> and <see cref="XmlNamespaceManager"/> instances added by
-        /// <see cref="GetXDocument(OpenXmlPart)"/>, <see cref="GetXDocument(OpenXmlPart, XmlNamespaceManager)"/>,
-        /// <see cref="PutXDocument(OpenXmlPart)"/>, <see cref="PutXDocument(OpenXmlPart, XDocument)"/>, and
-        /// <see cref="PutXDocumentWithFormatting(OpenXmlPart)"/>.
-        /// </summary>
-        /// <remarks>
-        /// This is required where the strongly typed classes from the Open XML SDK are used in conjunction with
-        /// the Open XML PowerTools. For example, after making changes to the <see cref="MainDocumentPart"/>, 
-        /// using strongly typed classes such as <see cref="DocumentFormat.OpenXml.Wordprocessing.Paragraph"/>,
-        /// invoke the following methods before using further PowerTools:
-        /// <code>
-        ///     openXmlPart.RootElement.Save();
-        ///     openXmlPart.RemovePowerToolsAnnotations();
-        /// </code>
-        /// </remarks>
-        /// <param name="part">An <see cref="OpenXmlPart"/>, e.g., a <see cref="MainDocumentPart"/>.</param>
-        public static void RemovePowerToolsAnnotations(this OpenXmlPart part)
-        {
-            if (part == null) throw new ArgumentNullException("part");
-
-            part.RemoveAnnotations<XDocument>();
-            part.RemoveAnnotations<XmlNamespaceManager>();
-        }
-
         public static XDocument GetXDocument(this OpenXmlPart part)
         {
             if (part == null) throw new ArgumentNullException("part");
@@ -201,9 +130,6 @@ namespace OpenXmlPowerTools
                 using (MemoryStream ms = new MemoryStream(array))
                     part.FeedData(ms);
 #endif
-                // To be able to access the DOM tree using the strictly typed classes, we need
-                // to reload it after having written an XDocument to the part.
-                if (ReloadRootElementOnPut && part.RootElement != null) part.RootElement.Reload();
             }
         }
 
@@ -222,10 +148,6 @@ namespace OpenXmlPowerTools
                     settings.NewLineOnAttributes = true;
                     using (XmlWriter partXmlWriter = XmlWriter.Create(partStream, settings))
                         partXDocument.Save(partXmlWriter);
-
-                    // To be able to access the DOM tree using the strictly typed classes, we need
-                    // to reload it after having written an XDocument to the part.
-                    if (ReloadRootElementOnPut && part.RootElement != null) part.RootElement.Reload();
                 }
             }
         }
@@ -241,10 +163,6 @@ namespace OpenXmlPowerTools
 
             part.RemoveAnnotations<XDocument>();
             part.AddAnnotation(document);
-
-            // To be able to access the DOM tree using the strictly typed classes, we need
-            // to reload it after having written an XDocument to the part.
-            if (ReloadRootElementOnPut && part.RootElement != null) part.RootElement.Reload();
         }
 
         private static XmlNamespaceManager GetManagerFromXDocument(XDocument xDocument)
