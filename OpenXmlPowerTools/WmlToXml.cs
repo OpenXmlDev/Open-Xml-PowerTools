@@ -277,6 +277,11 @@ namespace OpenXmlPowerTools
 
             // Call RetrieveListItem so that all paragraphs are initialized with ListItemInfo
             var firstParagraph = mainXDoc.Descendants(W.p).FirstOrDefault();
+
+            // if there is no content, then return an empty document.
+            if (firstParagraph == null)
+                return new XElement("ContentTypeXml");
+
             var listItem = ListItemRetriever.RetrieveListItem(wDoc, firstParagraph);
 
             // Annotate runs associated with fields, so that can retrieve hyperlinks that are stored as fields.
@@ -676,6 +681,15 @@ namespace OpenXmlPowerTools
 
                                 // following removes the subtitle created by a soft break, so that the pattern matches appropriately.
                                 clonedBlc = RemoveContentAfterBR(clonedBlc);
+
+#if false
+<p p1:FontName="Georgia" p1:LanguageType="western" p1:AbstractNumId="28" xmlns:p1="http://powertools.codeplex.com/2011" xmlns="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+  <r p1:ListItemRun="1.1" p1:FontName="Georgia" p1:LanguageType="western">
+    <t xml:space="preserve">1.1</t>
+  </r>
+#endif
+                                // remove list item runs so that they are not matched in the content
+                                clonedBlc.Elements(W.r).Where(r => r.Attribute(PtOpenXml.ListItemRun) != null).Remove();
 
                                 if (OpenXmlRegex.Match(new[] { clonedBlc }, rule.RegexArray[i]) != 0)
                                 {
