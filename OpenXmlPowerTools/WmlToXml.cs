@@ -291,6 +291,8 @@ namespace OpenXmlPowerTools
             if (body == null)
                 throw new OpenXmlPowerToolsException("Internal error: invalid document");
 
+            AnnotateRunsThatUseFieldsForNumbering(mainXDoc);
+
             var contentList = body.Elements()
                 .Where(e => e.Attribute(PtOpenXml.Level) != null)
                 .ToList();
@@ -310,6 +312,79 @@ namespace OpenXmlPowerTools
                         return xml;
                     }));
             return contentTypeXml;
+        }
+
+        private static void AnnotateRunsThatUseFieldsForNumbering(XDocument mainXDoc)
+        {
+            var cachedAnnotationInformation = mainXDoc.Root.Annotation<Dictionary<int, List<XElement>>>();
+            if (cachedAnnotationInformation == null)
+                return;
+
+            StringBuilder sb = new StringBuilder();
+            foreach (var item in cachedAnnotationInformation)
+            {
+                var instrText = FieldRetriever.InstrText(mainXDoc.Root, item.Key).TrimStart('{').TrimEnd('}');
+                var fi = FieldRetriever.ParseField(instrText);
+                if (fi.FieldType.ToUpper() == "SEQ")
+                {
+                    // have it
+
+                    var runsForField = mainXDoc
+                        .Root
+                        .Descendants()
+                        .Where(d =>
+                        {
+                            Stack<FieldRetriever.FieldElementTypeInfo> stack = d.Annotation<Stack<FieldRetriever.FieldElementTypeInfo>>();
+                            if (stack == null)
+                                return false;
+                            if (stack.Any(stackItem => stackItem.Id == item.Key && stackItem.FieldElementType == FieldRetriever.FieldElementTypeEnum.Result))
+                                return true;
+                            return false;
+                        })
+                        .Select(d => d.AncestorsAndSelf(W.r).FirstOrDefault())
+                        .Where(z9 => z9 != null)
+                        .GroupAdjacent(o => o)
+                        .Select(g => g.First())
+                        .Where(r => r.Element(W.t) != null)
+                        .ToList();
+
+                    if (!runsForField.Any())
+                        continue;
+
+                    var lastRun = runsForField
+                        .Last();
+
+                    var nextRun = lastRun
+                        .ElementsAfterSelf(W.r)
+                        .FirstOrDefault(r => r.Element(W.t) != null);
+
+                    var nextRunTextElement = nextRun
+                        .Element(W.t);
+
+                    var nextRunText = nextRunTextElement.Value;
+                    var sepChars = nextRunText
+                        .TakeWhile(ch => ch == '.' || ch == ' ')
+                        .ToList();
+
+                    nextRunText = nextRunText.Substring(sepChars.Count());
+                    nextRunTextElement.Value = nextRunText;
+
+                    var lastRunTextElement = lastRun
+                        .Element(W.t);
+
+                    var lastRunText = lastRunTextElement.Value + sepChars.Select(ch => ch.ToString()).StringConcatenate();
+                    lastRunTextElement.Value = lastRunText;
+
+                    lastRun.Add(new XAttribute(PtOpenXml.ListItemRun, lastRunText));
+
+                    foreach (var runbefore in lastRun
+                        .ElementsBeforeSelf(W.r)
+                        .Where(rz => rz.Element(W.t) != null))
+                    {
+                        runbefore.Add(new XAttribute(PtOpenXml.ListItemRun, lastRunText));
+                    }
+                }
+            }
         }
 
         // this method produces the XML for an endnote or footnote - the blockLevelContentContainer is the w:endnote or w:footnote element, and it produces the content type XML for the
