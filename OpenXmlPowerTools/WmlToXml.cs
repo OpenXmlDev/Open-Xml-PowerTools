@@ -354,26 +354,31 @@ namespace OpenXmlPowerTools
                     var lastRun = runsForField
                         .Last();
 
+                    var lastRunTextElement = lastRun
+                        .Element(W.t);
+
+                    var lastRunText = lastRunTextElement.Value;
+                    
                     var nextRun = lastRun
                         .ElementsAfterSelf(W.r)
                         .FirstOrDefault(r => r.Element(W.t) != null);
 
-                    var nextRunTextElement = nextRun
-                        .Element(W.t);
+                    if (nextRun != null)
+                    {
+                        var nextRunTextElement = nextRun
+                            .Element(W.t);
 
-                    var nextRunText = nextRunTextElement.Value;
-                    var sepChars = nextRunText
-                        .TakeWhile(ch => ch == '.' || ch == ' ')
-                        .ToList();
+                        var nextRunText = nextRunTextElement.Value;
+                        var sepChars = nextRunText
+                            .TakeWhile(ch => ch == '.' || ch == ' ')
+                            .ToList();
 
-                    nextRunText = nextRunText.Substring(sepChars.Count());
-                    nextRunTextElement.Value = nextRunText;
+                        nextRunText = nextRunText.Substring(sepChars.Count());
+                        nextRunTextElement.Value = nextRunText;
 
-                    var lastRunTextElement = lastRun
-                        .Element(W.t);
-
-                    var lastRunText = lastRunTextElement.Value + sepChars.Select(ch => ch.ToString()).StringConcatenate();
-                    lastRunTextElement.Value = lastRunText;
+                        lastRunText = lastRunTextElement.Value + sepChars.Select(ch => ch.ToString()).StringConcatenate();
+                        lastRunTextElement.Value = lastRunText;
+                    }
 
                     lastRun.Add(new XAttribute(PtOpenXml.ListItemRun, lastRunText));
 
