@@ -241,7 +241,95 @@ namespace OpenXmlPowerTools
 
             ListItemRetrieverSettings listItemRetrieverSettings = new ListItemRetrieverSettings();
             AssembleListItemInformation(wDoc, settings.ListItemRetrieverSettings);
+
+
+
+
+
+
+
+            //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            // TODO temporarily assign levels to headings.  This needs removed and replaced when I rework the hierarchical infrastructure.
+            //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            TemporarilyAssignLevelsToHeadings(wDoc);
+
+
+
+
+
+
+
+
             ApplyContentTypesForRuleSet(settings, ctai, wDoc);
+        }
+
+        private static void TemporarilyAssignLevelsToHeadings(WordprocessingDocument wDoc)
+        {
+            XDocument xDoc = wDoc.MainDocumentPart.GetXDocument();
+            var headings = xDoc.Descendants(W.p)
+                .Where(p =>
+                {
+                    var styleId = (string)p
+                        .Elements(W.pPr)
+                        .Elements(W.pStyle)
+                        .Attributes(W.val)
+                        .FirstOrDefault();
+                    if (styleId == "Heading1" ||
+                        styleId == "Heading2" ||
+                        styleId == "Heading3" ||
+                        styleId == "Heading4" ||
+                        styleId == "Heading5" ||
+                        styleId == "Heading6" ||
+                        styleId == "Heading9")
+                        return true;
+                    else
+                        return false;
+                });
+            var seenHeading6 = false;
+            foreach (var hdg in headings)
+            {
+                var styleId = (string)hdg
+                    .Elements(W.pPr)
+                    .Elements(W.pStyle)
+                    .Attributes(W.val)
+                    .FirstOrDefault();
+                if (styleId == "Heading6")
+                    seenHeading6 = true;
+                int lvl = 0;
+                if (seenHeading6)
+                {
+                    if (styleId == "Heading6")
+                        lvl = 1;
+                    else if (styleId == "Heading1")
+                        lvl = 2;
+                    else if (styleId == "Heading2")
+                        lvl = 3;
+                    else if (styleId == "Heading3")
+                        lvl = 4;
+                    else if (styleId == "Heading4")
+                        lvl = 5;
+                    else if (styleId == "Heading5")
+                        lvl = 6;
+                    else if (styleId == "Heading9")
+                        lvl = 3;
+                }
+                else
+                {
+                    if (styleId == "Heading1")
+                        lvl = 1;
+                    else if (styleId == "Heading2")
+                        lvl = 2;
+                    else if (styleId == "Heading3")
+                        lvl = 3;
+                    else if (styleId == "Heading4")
+                        lvl = 4;
+                    else if (styleId == "Heading5")
+                        lvl = 5;
+                    else if (styleId == "Heading9")
+                        lvl = 2;
+                }
+                hdg.Add(new XAttribute(PtOpenXml.Level, lvl));
+            }
         }
 
         public static XElement ProduceContentTypeXml(WmlDocument document, WmlToXmlSettings settings)
@@ -571,7 +659,8 @@ namespace OpenXmlPowerTools
                 }
                 else
                 {
-                    content.Add(new XAttribute(PtOpenXml.Level, thisLevel));
+                    if (content.Attribute(PtOpenXml.Level) == null)
+                        content.Add(new XAttribute(PtOpenXml.Level, thisLevel));
                     currentLevel = (int)thisLevel + 1;
                 }
             }
