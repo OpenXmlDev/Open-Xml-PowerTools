@@ -241,7 +241,95 @@ namespace OpenXmlPowerTools
 
             ListItemRetrieverSettings listItemRetrieverSettings = new ListItemRetrieverSettings();
             AssembleListItemInformation(wDoc, settings.ListItemRetrieverSettings);
+
+
+
+
+
+
+
+            //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            // TODO temporarily assign levels to headings.  This needs removed and replaced when I rework the hierarchical infrastructure.
+            //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            TemporarilyAssignLevelsToHeadings(wDoc);
+
+
+
+
+
+
+
+
             ApplyContentTypesForRuleSet(settings, ctai, wDoc);
+        }
+
+        private static void TemporarilyAssignLevelsToHeadings(WordprocessingDocument wDoc)
+        {
+            XDocument xDoc = wDoc.MainDocumentPart.GetXDocument();
+            var headings = xDoc.Descendants(W.p)
+                .Where(p =>
+                {
+                    var styleId = (string)p
+                        .Elements(W.pPr)
+                        .Elements(W.pStyle)
+                        .Attributes(W.val)
+                        .FirstOrDefault();
+                    if (styleId == "Heading1" ||
+                        styleId == "Heading2" ||
+                        styleId == "Heading3" ||
+                        styleId == "Heading4" ||
+                        styleId == "Heading5" ||
+                        styleId == "Heading6" ||
+                        styleId == "Heading9")
+                        return true;
+                    else
+                        return false;
+                });
+            var seenHeading6 = false;
+            foreach (var hdg in headings)
+            {
+                var styleId = (string)hdg
+                    .Elements(W.pPr)
+                    .Elements(W.pStyle)
+                    .Attributes(W.val)
+                    .FirstOrDefault();
+                if (styleId == "Heading6")
+                    seenHeading6 = true;
+                int lvl = 0;
+                if (seenHeading6)
+                {
+                    if (styleId == "Heading6")
+                        lvl = 1;
+                    else if (styleId == "Heading1")
+                        lvl = 2;
+                    else if (styleId == "Heading2")
+                        lvl = 3;
+                    else if (styleId == "Heading3")
+                        lvl = 4;
+                    else if (styleId == "Heading4")
+                        lvl = 5;
+                    else if (styleId == "Heading5")
+                        lvl = 6;
+                    else if (styleId == "Heading9")
+                        lvl = 3;
+                }
+                else
+                {
+                    if (styleId == "Heading1")
+                        lvl = 1;
+                    else if (styleId == "Heading2")
+                        lvl = 2;
+                    else if (styleId == "Heading3")
+                        lvl = 3;
+                    else if (styleId == "Heading4")
+                        lvl = 4;
+                    else if (styleId == "Heading5")
+                        lvl = 5;
+                    else if (styleId == "Heading9")
+                        lvl = 2;
+                }
+                hdg.Add(new XAttribute(PtOpenXml.Level, lvl));
+            }
         }
 
         public static XElement ProduceContentTypeXml(WmlDocument document, WmlToXmlSettings settings)
@@ -277,6 +365,11 @@ namespace OpenXmlPowerTools
 
             // Call RetrieveListItem so that all paragraphs are initialized with ListItemInfo
             var firstParagraph = mainXDoc.Descendants(W.p).FirstOrDefault();
+
+            // if there is no content, then return an empty document.
+            if (firstParagraph == null)
+                return new XElement("ContentTypeXml");
+
             var listItem = ListItemRetriever.RetrieveListItem(wDoc, firstParagraph);
 
             // Annotate runs associated with fields, so that can retrieve hyperlinks that are stored as fields.
@@ -285,6 +378,8 @@ namespace OpenXmlPowerTools
             var body = mainXDoc.Root.Descendants(W.body).FirstOrDefault();
             if (body == null)
                 throw new OpenXmlPowerToolsException("Internal error: invalid document");
+
+            AnnotateRunsThatUseFieldsForNumbering(mainXDoc);
 
             var contentList = body.Elements()
                 .Where(e => e.Attribute(PtOpenXml.Level) != null)
@@ -305,6 +400,84 @@ namespace OpenXmlPowerTools
                         return xml;
                     }));
             return contentTypeXml;
+        }
+
+        private static void AnnotateRunsThatUseFieldsForNumbering(XDocument mainXDoc)
+        {
+            var cachedAnnotationInformation = mainXDoc.Root.Annotation<Dictionary<int, List<XElement>>>();
+            if (cachedAnnotationInformation == null)
+                return;
+
+            StringBuilder sb = new StringBuilder();
+            foreach (var item in cachedAnnotationInformation)
+            {
+                var instrText = FieldRetriever.InstrText(mainXDoc.Root, item.Key).TrimStart('{').TrimEnd('}');
+                var fi = FieldRetriever.ParseField(instrText);
+                if (fi.FieldType.ToUpper() == "SEQ")
+                {
+                    // have it
+
+                    var runsForField = mainXDoc
+                        .Root
+                        .Descendants()
+                        .Where(d =>
+                        {
+                            Stack<FieldRetriever.FieldElementTypeInfo> stack = d.Annotation<Stack<FieldRetriever.FieldElementTypeInfo>>();
+                            if (stack == null)
+                                return false;
+                            if (stack.Any(stackItem => stackItem.Id == item.Key && stackItem.FieldElementType == FieldRetriever.FieldElementTypeEnum.Result))
+                                return true;
+                            return false;
+                        })
+                        .Select(d => d.AncestorsAndSelf(W.r).FirstOrDefault())
+                        .Where(z9 => z9 != null)
+                        .GroupAdjacent(o => o)
+                        .Select(g => g.First())
+                        .Where(r => r.Element(W.t) != null)
+                        .ToList();
+
+                    if (!runsForField.Any())
+                        continue;
+
+                    var lastRun = runsForField
+                        .Last();
+
+                    var lastRunTextElement = lastRun
+                        .Element(W.t);
+
+                    var lastRunText = lastRunTextElement.Value;
+                    
+                    var nextRun = lastRun
+                        .ElementsAfterSelf(W.r)
+                        .FirstOrDefault(r => r.Element(W.t) != null);
+
+                    if (nextRun != null)
+                    {
+                        var nextRunTextElement = nextRun
+                            .Element(W.t);
+
+                        var nextRunText = nextRunTextElement.Value;
+                        var sepChars = nextRunText
+                            .TakeWhile(ch => ch == '.' || ch == ' ')
+                            .ToList();
+
+                        nextRunText = nextRunText.Substring(sepChars.Count());
+                        nextRunTextElement.Value = nextRunText;
+
+                        lastRunText = lastRunTextElement.Value + sepChars.Select(ch => ch.ToString()).StringConcatenate();
+                        lastRunTextElement.Value = lastRunText;
+                    }
+
+                    lastRun.Add(new XAttribute(PtOpenXml.ListItemRun, lastRunText));
+
+                    foreach (var runbefore in lastRun
+                        .ElementsBeforeSelf(W.r)
+                        .Where(rz => rz.Element(W.t) != null))
+                    {
+                        runbefore.Add(new XAttribute(PtOpenXml.ListItemRun, lastRunText));
+                    }
+                }
+            }
         }
 
         // this method produces the XML for an endnote or footnote - the blockLevelContentContainer is the w:endnote or w:footnote element, and it produces the content type XML for the
@@ -486,7 +659,8 @@ namespace OpenXmlPowerTools
                 }
                 else
                 {
-                    content.Add(new XAttribute(PtOpenXml.Level, thisLevel));
+                    if (content.Attribute(PtOpenXml.Level) == null)
+                        content.Add(new XAttribute(PtOpenXml.Level, thisLevel));
                     currentLevel = (int)thisLevel + 1;
                 }
             }
@@ -676,6 +850,15 @@ namespace OpenXmlPowerTools
 
                                 // following removes the subtitle created by a soft break, so that the pattern matches appropriately.
                                 clonedBlc = RemoveContentAfterBR(clonedBlc);
+
+#if false
+<p p1:FontName="Georgia" p1:LanguageType="western" p1:AbstractNumId="28" xmlns:p1="http://powertools.codeplex.com/2011" xmlns="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+  <r p1:ListItemRun="1.1" p1:FontName="Georgia" p1:LanguageType="western">
+    <t xml:space="preserve">1.1</t>
+  </r>
+#endif
+                                // remove list item runs so that they are not matched in the content
+                                clonedBlc.Elements(W.r).Where(r => r.Attribute(PtOpenXml.ListItemRun) != null).Remove();
 
                                 if (OpenXmlRegex.Match(new[] { clonedBlc }, rule.RegexArray[i]) != 0)
                                 {
