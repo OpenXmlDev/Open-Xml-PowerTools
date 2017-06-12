@@ -18,6 +18,8 @@ using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
 using Xunit;
 
+#if !ELIDE_XUNIT_TESTS
+
 namespace OpenXmlPowerTools.Tests
 {
     public class PowerToolsBlockExtensionsTests : TestsBase
@@ -139,3 +141,5 @@ namespace OpenXmlPowerTools.Tests
         }
     }
 }
+
+#endif

@@ -5,6 +5,8 @@ using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using Xunit;
 
+#if !ELIDE_XUNIT_TESTS
+
 namespace OpenXmlPowerTools.Tests
 {
     public class MarkupSimplifierTests
@@ -154,3 +156,5 @@ namespace OpenXmlPowerTools.Tests
         }
     }
 }
+
+#endif

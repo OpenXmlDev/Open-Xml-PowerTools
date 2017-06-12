@@ -29,6 +29,8 @@ using DocumentFormat.OpenXml.Packaging;
 using OpenXmlPowerTools;
 using Xunit;
 
+#if !ELIDE_XUNIT_TESTS
+
 namespace OxPt
 {
     public class RpTests
@@ -36,7 +38,7 @@ namespace OxPt
         ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         // perf settings
         public static bool m_CopySourceFilesToTempDir = true;
-        public static bool m_OpenTempDirInExplorer = true;
+        public static bool m_OpenTempDirInExplorer = false;
         ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
         [Theory]
@@ -89,8 +91,8 @@ namespace OxPt
         [InlineData("RP/RP046-Consecutive-Deleted-Ranges.docx")]
         [InlineData("RP/RP047-Inserted-and-Deleted-Paragraph-Mark.docx")]
         [InlineData("RP/RP048-Deleted-Inserted-Para-Mark.docx")]
-        //[InlineData("RP/")]
-        //[InlineData("RP/")]
+        [InlineData("RP/RP049-Deleted-Para-Before-Table.docx")]
+        [InlineData("RP/RP050-Deleted-Footnote.docx")]
         //[InlineData("RP/")]
         //[InlineData("RP/")]
         //[InlineData("RP/")]
@@ -233,3 +235,5 @@ namespace OxPt
         }
     }
 }
+
+#endif
