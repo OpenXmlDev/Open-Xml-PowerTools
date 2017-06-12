@@ -31,26 +31,28 @@ using DocumentFormat.OpenXml.Packaging;
 using OpenXmlPowerTools;
 using Xunit;
 
+#if !ELIDE_XUNIT_TESTS
+
 namespace OxPt
 {
     public class CaTests
     {
         [Theory]
-        [InlineData("CA001-Plain.docx", 60)]
-        [InlineData("CA002-Bookmark.docx", 7)]
-        [InlineData("CA003-Numbered-List.docx", 8)]
-        [InlineData("CA004-TwoParas.docx", 88)]
-        [InlineData("CA005-Table.docx", 27)]
-        [InlineData("CA006-ContentControl.docx", 60)]
-        [InlineData("CA007-DayLong.docx", 10)]
-        [InlineData("CA008-Footnote-Reference.docx", 23)]
-        [InlineData("CA010-Delete-Run.docx", 16)]
-        [InlineData("CA011-Insert-Run.docx", 16)]
-        [InlineData("CA012-fldSimple.docx", 10)]
-        [InlineData("CA013-Lots-of-Stuff.docx", 168)]
-        [InlineData("CA014-Complex-Table.docx", 193)]
-        [InlineData("WC024-Table-Before.docx", 24)]
-        [InlineData("WC024-Table-After2.docx", 18)]
+        [InlineData("CA/CA001-Plain.docx", 60)]
+        [InlineData("CA/CA002-Bookmark.docx", 7)]
+        [InlineData("CA/CA003-Numbered-List.docx", 8)]
+        [InlineData("CA/CA004-TwoParas.docx", 88)]
+        [InlineData("CA/CA005-Table.docx", 27)]
+        [InlineData("CA/CA006-ContentControl.docx", 60)]
+        [InlineData("CA/CA007-DayLong.docx", 10)]
+        [InlineData("CA/CA008-Footnote-Reference.docx", 23)]
+        [InlineData("CA/CA010-Delete-Run.docx", 16)]
+        [InlineData("CA/CA011-Insert-Run.docx", 16)]
+        [InlineData("CA/CA012-fldSimple.docx", 10)]
+        [InlineData("CA/CA013-Lots-of-Stuff.docx", 168)]
+        [InlineData("CA/CA014-Complex-Table.docx", 193)]
+        [InlineData("WC/WC024-Table-Before.docx", 24)]
+        [InlineData("WC/WC024-Table-After2.docx", 18)]
         //[InlineData("", 0)]
         //[InlineData("", 0)]
         //[InlineData("", 0)]
@@ -120,7 +122,7 @@ namespace OxPt
         }
 
         [Theory]
-        [InlineData("CA009-altChunk.docx")]
+        [InlineData("CA/CA009-altChunk.docx")]
         //[InlineData("")]
         //[InlineData("")]
         //[InlineData("")]
@@ -151,3 +153,5 @@ namespace OxPt
         }
     }
 }
+
+#endif

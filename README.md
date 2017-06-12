@@ -19,14 +19,16 @@ It supports scenarios such as:
   enables writing XLSX files with millions of rows.
 - Extracting data (along with formatting) from spreadsheets.
 
-Copyright (c) Microsoft Corporation 2012-2016
-Portions Copyright (c) Eric White 2016
+Copyright (c) Microsoft Corporation 2012-2017
+Portions Copyright (c) Eric White 2016-2017
 Licensed under the Microsoft Public License.
 See License.txt in the project root for license information.
 
 News
 ====
-We are happy to announce the release of the Open XML PowerTools Version 4.3.  The big new feature in 4.3 is WmlComparer.cs, which is a module that compares two DOCX files and
+New Release!  Version 4.4.
+
+This version has a completely re-written WmlComparer.cs, which now supports nested tables and text boxes.  WmlComparer.cs is a module that compares two DOCX files and
 produces a DOCX with revision tracking markup.  It enables retrieving a list of revisions.
 
 Open-Xml-PowerTools Content

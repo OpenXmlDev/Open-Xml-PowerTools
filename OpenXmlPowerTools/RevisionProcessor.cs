@@ -144,7 +144,10 @@ namespace OpenXmlPowerTools
                 if (element.Name == W.pPr &&
                     element.Element(W.pPrChange) != null)
                 {
-                    var new_pPr = new XElement(element.Element(W.pPrChange).Element(W.pPr)); // clone it
+                    var pPr = element.Element(W.pPrChange).Element(W.pPr);
+                    if (pPr == null)
+                        pPr = new XElement(W.pPr);
+                    var new_pPr = new XElement(pPr); // clone it
                     new_pPr.Add(RejectRevisionsForPartTransform(element.Element(W.rPr)));
                     return RejectRevisionsForPartTransform(new_pPr);
                 }
@@ -2214,6 +2217,7 @@ namespace OpenXmlPowerTools
                             if (g.First().GroupingInfo.GroupingType == GroupingType.DeletedRange)
                             {
                                 XElement newParagraph = new XElement(W.p,
+                                    g.First().BlockLevelContent.ThisBlockContentElement.Attribute(PtOpenXml.Unid),
                                     g.First().BlockLevelContent.ThisBlockContentElement.Elements(W.pPr),
                                     g.Select(z => CollapseParagraphTransform(z.BlockLevelContent.ThisBlockContentElement)));
 
@@ -2222,7 +2226,8 @@ namespace OpenXmlPowerTools
                                 var allIsDeleted = AllParaContentIsDeleted(newParagraph);
                                 if (allIsDeleted &&
                                     g.Last().BlockLevelContent.ThisBlockContentElement.Elements(W.pPr).Elements(W.rPr).Elements(W.del).Any() &&
-                                    g.Last().BlockLevelContent.NextBlockContentElement == null)
+                                    (g.Last().BlockLevelContent.NextBlockContentElement == null ||
+                                     g.Last().BlockLevelContent.NextBlockContentElement.Name == W.tbl))
                                     return null;
 
                                 return (object)newParagraph;

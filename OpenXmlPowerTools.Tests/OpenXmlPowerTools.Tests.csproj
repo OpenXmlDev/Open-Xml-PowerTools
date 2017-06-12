@@ -82,6 +82,7 @@
     <Compile Include="TestsBase.cs" />
     <Compile Include="UnicodeMapperTests.cs" />
     <Compile Include="WmlComparerTests.cs" />
+    <Compile Include="WmlComparerTests2.cs" />
     <Compile Include="WmlContentAtomListTests.cs" />
   </ItemGroup>
   <ItemGroup>
