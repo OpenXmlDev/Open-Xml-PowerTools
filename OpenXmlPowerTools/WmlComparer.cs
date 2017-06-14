@@ -3607,6 +3607,66 @@ namespace OpenXmlPowerTools
                 }
                 else if (remainingLeft != 0 && remainingRight != 0)
                 {
+                    var first1 = unknown.ComparisonUnitArray1[0] as ComparisonUnitWord;
+                    var first2 = unknown.ComparisonUnitArray2[0] as ComparisonUnitWord;
+
+                    if (first1 != null && first2 != null)
+                    {
+                        // if operating at the word level and
+                        //   if the last word on the left != pPr && last word on right != pPr
+                        //     then create an unknown for the rest of the paragraph, and create an unknown for the rest of the unknown
+                        //   if the last word on the left != pPr and last word on right == pPr
+                        //     then create deleted for the left, and create an unknown for the rest of the unknown
+                        //   if the last word on the left == pPr and last word on right != pPr
+                        //     then create inserted for the right, and create an unknown for the rest of the unknown
+                        //   if the last word on the left == pPr and last word on right == pPr
+                        //     then create an unknown for the rest of the unknown
+
+                        var remainingInLeft = unknown
+                            .ComparisonUnitArray1
+                            .Skip(countCommonAtBeginning)
+                            .ToArray();
+
+                        var remainingInRight = unknown
+                            .ComparisonUnitArray2
+                            .Skip(countCommonAtBeginning)
+                            .ToArray();
+
+                        var lastContentAtomLeft = unknown.ComparisonUnitArray1[countCommonAtBeginning - 1].DescendantContentAtoms().FirstOrDefault();
+                        var lastContentAtomRight = unknown.ComparisonUnitArray2[countCommonAtBeginning - 1].DescendantContentAtoms().FirstOrDefault();
+
+                        if (lastContentAtomLeft.ContentElement.Name != W.pPr && lastContentAtomRight.ContentElement.Name != W.pPr)
+                        {
+                            var split1 = SplitAtParagraphMark(remainingInLeft);
+                            var split2 = SplitAtParagraphMark(remainingInRight);
+                            if (split1.Count() == 1 && split2.Count() == 1)
+                            {
+                                CorrelatedSequence csUnknown2 = new CorrelatedSequence();
+                                csUnknown2.CorrelationStatus = CorrelationStatus.Unknown;
+                                csUnknown2.ComparisonUnitArray1 = split1.First();
+                                csUnknown2.ComparisonUnitArray2 = split2.First();
+                                newSequence.Add(csUnknown2);
+                                return newSequence;
+                            }
+                            else if (split1.Count == 2 && split2.Count == 2)
+                            {
+                                CorrelatedSequence csUnknown2 = new CorrelatedSequence();
+                                csUnknown2.CorrelationStatus = CorrelationStatus.Unknown;
+                                csUnknown2.ComparisonUnitArray1 = split1.First();
+                                csUnknown2.ComparisonUnitArray2 = split2.First();
+                                newSequence.Add(csUnknown2);
+
+                                CorrelatedSequence csUnknown3 = new CorrelatedSequence();
+                                csUnknown3.CorrelationStatus = CorrelationStatus.Unknown;
+                                csUnknown3.ComparisonUnitArray1 = split1.Skip(1).First();
+                                csUnknown3.ComparisonUnitArray2 = split2.Skip(1).First();
+                                newSequence.Add(csUnknown3);
+
+                                return newSequence;
+                            }
+                        }
+                    }
+
                     CorrelatedSequence csUnknown = new CorrelatedSequence();
                     csUnknown.CorrelationStatus = CorrelationStatus.Unknown;
                     csUnknown.ComparisonUnitArray1 = unknown.ComparisonUnitArray1.Skip(countCommonAtBeginning).ToArray();
@@ -3971,6 +4031,29 @@ namespace OpenXmlPowerTools
             }
             return newSequence;
 #endif
+        }
+
+        private static List<ComparisonUnit[]> SplitAtParagraphMark(ComparisonUnit[] cua)
+        {
+            int i;
+            for (i = 0; i < cua.Length; i++)
+            {
+                var atom = cua[i].DescendantContentAtoms().FirstOrDefault();
+                if (atom != null && atom.ContentElement.Name == W.pPr)
+                    break;
+            }
+            if (i == cua.Length)
+            {
+                return new List<ComparisonUnit[]>()
+                {
+                    cua
+                };
+            }
+            return new List<ComparisonUnit[]>()
+            {
+                cua.Take(i).ToArray(),
+                cua.Skip(i).ToArray(),
+            };
         }
 
         private static void MoveLastSectPrToChildOfBody(XDocument newXDoc)

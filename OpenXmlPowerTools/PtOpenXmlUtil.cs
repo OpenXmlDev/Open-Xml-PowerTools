@@ -863,6 +863,8 @@ namespace OpenXmlPowerTools
                         {
                             if (ce.Elements(W.del).Any())
                             {
+                                return dontConsolidate;
+#if false
                                 // for w:ins/w:del/w:r/w:delText
                                 if ((ce.Elements(W.del).Elements(W.r).Elements().Count(e => e.Name != W.rPr) != 1) ||
                                     !ce.Elements().Elements().Elements(W.delText).Any())
@@ -891,6 +893,7 @@ namespace OpenXmlPowerTools
                                            .Elements(W.rPr)
                                            .Select(rPr => rPr.ToString(SaveOptions.None))
                                            .StringConcatenate();
+#endif
                             }
 
                             // w:ins/w:r/w:t
@@ -905,9 +908,12 @@ namespace OpenXmlPowerTools
                                 ? ((DateTime) dateIns2).ToString("s")
                                 : string.Empty;
 
+                            string idIns2 = (string)ce.Attribute(W.id);
+
                             return "Wins2" +
                                    authorIns2 +
                                    dateInsString2 +
+                                   idIns2 +
                                    ce.Elements()
                                        .Elements(W.rPr)
                                        .Select(rPr => rPr.ToString(SaveOptions.None))
@@ -972,6 +978,7 @@ namespace OpenXmlPowerTools
 
                     if (g.First().Name == W.ins)
                     {
+#if false
                         if (g.First().Elements(W.del).Any())
                             return new XElement(W.ins,
                                 g.First().Attributes(),
@@ -980,7 +987,7 @@ namespace OpenXmlPowerTools
                                     new XElement(W.r,
                                         g.First().Elements(W.del).Elements(W.r).Elements(W.rPr),
                                         new XElement(W.delText, xs, textValue))));
-
+#endif
                         return new XElement(W.ins,
                             g.First().Attributes(),
                             new XElement(W.r,
