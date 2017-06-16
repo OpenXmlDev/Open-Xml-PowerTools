@@ -2217,7 +2217,12 @@ namespace OpenXmlPowerTools
                             if (g.First().GroupingInfo.GroupingType == GroupingType.DeletedRange)
                             {
                                 XElement newParagraph = new XElement(W.p,
+#if false
                                     g.First().BlockLevelContent.ThisBlockContentElement.Attribute(PtOpenXml.Unid),
+#endif
+#if false
+                                    g.Last().BlockLevelContent.ThisBlockContentElement.Attribute(PtOpenXml.Unid),
+#endif
                                     g.First().BlockLevelContent.ThisBlockContentElement.Elements(W.pPr),
                                     g.Select(z => CollapseParagraphTransform(z.BlockLevelContent.ThisBlockContentElement)));
 
