@@ -2843,37 +2843,6 @@ namespace OpenXmlPowerTools
                             .Select(ca => ca.DescendantContentAtoms())
                             .SelectMany(m => m);
 
-
-
-
-                        //var beforeHas = contentAtomsBefore
-                        //    .Any(ca =>
-                        //    {
-                        //        return ca.AncestorElements.Any(ae =>
-                        //        {
-                        //            if (ae.Attribute(PtOpenXml.Unid) == null)
-                        //                return false;
-                        //            return ((string)ae.Attribute(PtOpenXml.Unid)).Contains(searchFor);
-                        //        });
-                        //    });
-                        //var afterHas = contentAtomsAfter
-                        //    .Any(ca =>
-                        //    {
-                        //        return ca.AncestorElements.Any(ae =>
-                        //        {
-                        //            if (ae.Attribute(PtOpenXml.Unid) == null)
-                        //                return false;
-                        //            return ((string)ae.Attribute(PtOpenXml.Unid)).Contains(searchFor);
-                        //        });
-                        //    });
-                        //if (beforeHas || afterHas)
-                        //    Console.WriteLine();
-
-
-
-
-
-
                         var comparisonUnitAtomList = contentAtomsBefore
                             .Zip(contentAtomsAfter,
                                 (before, after) =>
@@ -2890,26 +2859,6 @@ namespace OpenXmlPowerTools
                     }
                     else if (cs.CorrelationStatus == CorrelationStatus.Deleted)
                     {
-                        //var contentAtomsBefore = cs
-                        //    .ComparisonUnitArray1
-                        //    .Select(ca => ca.DescendantContentAtoms())
-                        //    .SelectMany(m => m);
-                        //var beforeHas = contentAtomsBefore
-                        //    .Any(ca =>
-                        //    {
-                        //        return ca.AncestorElements.Any(ae =>
-                        //        {
-                        //            if (ae.Attribute(PtOpenXml.Unid) == null)
-                        //                return false;
-                        //            return ((string)ae.Attribute(PtOpenXml.Unid)).Contains(searchFor);
-                        //        });
-                        //    });
-                        //if (beforeHas)
-                        //    Console.WriteLine();
-
-
-
-
                         var comparisonUnitAtomList = cs
                             .ComparisonUnitArray1
                             .Select(ca => ca.DescendantContentAtoms())
@@ -2924,26 +2873,6 @@ namespace OpenXmlPowerTools
                     }
                     else if (cs.CorrelationStatus == CorrelationStatus.Inserted)
                     {
-                        //var contentAtomsAfter = cs
-                        //    .ComparisonUnitArray2
-                        //    .Select(ca => ca.DescendantContentAtoms())
-                        //    .SelectMany(m => m);
-                        //var afterHas = contentAtomsAfter
-                        //    .Any(ca =>
-                        //    {
-                        //        return ca.AncestorElements.Any(ae =>
-                        //        {
-                        //            if (ae.Attribute(PtOpenXml.Unid) == null)
-                        //                return false;
-                        //            return ((string)ae.Attribute(PtOpenXml.Unid)).Contains(searchFor);
-                        //        });
-                        //    });
-                        //if (afterHas)
-                        //    Console.WriteLine();
-
-
-
-
                         var comparisonUnitAtomList = cs
                             .ComparisonUnitArray2
                             .Select(ca => ca.DescendantContentAtoms())
@@ -4960,8 +4889,35 @@ namespace OpenXmlPowerTools
 
         private static List<CorrelatedSequence> DoLcsAlgorithm(CorrelatedSequence unknown, WmlComparerSettings settings)
         {
+            var newListOfCorrelatedSequence = new List<CorrelatedSequence>();
+
             var cul1 = unknown.ComparisonUnitArray1;
             var cul2 = unknown.ComparisonUnitArray2;
+
+            // first thing to do - if we have an unknown with zero length on left or right side, create appropriate 
+            // this is a code optimization that enables easier processing of cases elsewhere.
+            if (cul1.Length > 0 && cul2.Length == 0)
+            {
+                var deletedCorrelatedSequence = new CorrelatedSequence();
+                deletedCorrelatedSequence.CorrelationStatus = CorrelationStatus.Deleted;
+                deletedCorrelatedSequence.ComparisonUnitArray1 = cul1;
+                deletedCorrelatedSequence.ComparisonUnitArray2 = null;
+                newListOfCorrelatedSequence.Add(deletedCorrelatedSequence);
+                return newListOfCorrelatedSequence;
+            }
+            else if (cul1.Length == 0 && cul2.Length > 0)
+            {
+                var insertedCorrelatedSequence = new CorrelatedSequence();
+                insertedCorrelatedSequence.CorrelationStatus = CorrelationStatus.Inserted;
+                insertedCorrelatedSequence.ComparisonUnitArray1 = null;
+                insertedCorrelatedSequence.ComparisonUnitArray2 = cul2;
+                newListOfCorrelatedSequence.Add(insertedCorrelatedSequence);
+                return newListOfCorrelatedSequence;
+            }
+            else if (cul1.Length == 0 && cul2.Length == 0)
+            {
+                return newListOfCorrelatedSequence; // this will effectively remove the unknown with no data on either side from the current data model.
+            }
 
             int currentLongestCommonSequenceLength = 0;
             int currentI1 = -1;
@@ -5096,7 +5052,6 @@ namespace OpenXmlPowerTools
                 }
             }
 
-            var newListOfCorrelatedSequence = new List<CorrelatedSequence>();
             if (currentI1 == -1 && currentI2 == -1)
             {
                 var leftLength = unknown.ComparisonUnitArray1.Length;
@@ -5828,46 +5783,66 @@ namespace OpenXmlPowerTools
                 .ToArray();
             newListOfCorrelatedSequence.Add(middleEqual);
 
+
             int endI1 = currentI1 + currentLongestCommonSequenceLength;
             int endI2 = currentI2 + currentLongestCommonSequenceLength;
 
-            if (endI1 < cul1.Length && endI2 == cul2.Length)
+            var remaining1 = cul1
+                .Skip(endI1)
+                .ToArray();
+
+            var remaining2 = cul2
+                .Skip(endI2)
+                .ToArray();
+
+            // here is the point that we want to make a new unknown from this point to the end of the paragraph that contains the equal parts.
+            // this will never hurt anything, and will in many cases result in a better difference.
+
+            var leftCuw = middleEqual.ComparisonUnitArray1[middleEqual.ComparisonUnitArray1.Length - 1] as ComparisonUnitWord;
+            if (leftCuw != null)
             {
-                var deletedCorrelatedSequence = new CorrelatedSequence();
-                deletedCorrelatedSequence.CorrelationStatus = CorrelationStatus.Deleted;
-                deletedCorrelatedSequence.ComparisonUnitArray1 = cul1
-                    .Skip(endI1)
-                    .ToArray();
-                deletedCorrelatedSequence.ComparisonUnitArray2 = null;
-                newListOfCorrelatedSequence.Add(deletedCorrelatedSequence);
+                var lastContentAtom = leftCuw.DescendantContentAtoms().LastOrDefault();
+                // if the middleEqual did not end with a paragraph mark
+                if (lastContentAtom != null && lastContentAtom.ContentElement.Name != W.pPr)
+                {
+                    int idx1 = FindIndexOfNextParaMark(remaining1);
+                    int idx2 = FindIndexOfNextParaMark(remaining2);
+
+                    var unknownCorrelatedSequenceRemaining = new CorrelatedSequence();
+                    unknownCorrelatedSequenceRemaining.CorrelationStatus = CorrelationStatus.Unknown;
+                    unknownCorrelatedSequenceRemaining.ComparisonUnitArray1 = remaining1.Take(idx1).ToArray();
+                    unknownCorrelatedSequenceRemaining.ComparisonUnitArray2 = remaining2.Take(idx2).ToArray();
+                    newListOfCorrelatedSequence.Add(unknownCorrelatedSequenceRemaining);
+
+                    var unknownCorrelatedSequenceAfter = new CorrelatedSequence();
+                    unknownCorrelatedSequenceAfter.CorrelationStatus = CorrelationStatus.Unknown;
+                    unknownCorrelatedSequenceAfter.ComparisonUnitArray1 = remaining1.Skip(idx1).ToArray();
+                    unknownCorrelatedSequenceAfter.ComparisonUnitArray2 = remaining2.Skip(idx2).ToArray();
+                    newListOfCorrelatedSequence.Add(unknownCorrelatedSequenceAfter);
+
+                    return newListOfCorrelatedSequence;
+                }
             }
-            else if (endI1 == cul1.Length && endI2 < cul2.Length)
-            {
-                var insertedCorrelatedSequence = new CorrelatedSequence();
-                insertedCorrelatedSequence.CorrelationStatus = CorrelationStatus.Inserted;
-                insertedCorrelatedSequence.ComparisonUnitArray1 = null;
-                insertedCorrelatedSequence.ComparisonUnitArray2 = cul2
-                    .Skip(endI2)
-                    .ToArray();
-                newListOfCorrelatedSequence.Add(insertedCorrelatedSequence);
-            }
-            else if (endI1 < cul1.Length && endI2 < cul2.Length)
-            {
-                var unknownCorrelatedSequence = new CorrelatedSequence();
-                unknownCorrelatedSequence.CorrelationStatus = CorrelationStatus.Unknown;
-                unknownCorrelatedSequence.ComparisonUnitArray1 = cul1
-                    .Skip(endI1)
-                    .ToArray();
-                unknownCorrelatedSequence.ComparisonUnitArray2 = cul2
-                    .Skip(endI2)
-                    .ToArray();
-                newListOfCorrelatedSequence.Add(unknownCorrelatedSequence);
-            }
-            else if (endI1 == cul1.Length && endI2 == cul2.Length)
-            {
-                // nothing to do
-            }
+
+            var unknownCorrelatedSequence20 = new CorrelatedSequence();
+            unknownCorrelatedSequence20.CorrelationStatus = CorrelationStatus.Unknown;
+            unknownCorrelatedSequence20.ComparisonUnitArray1 = remaining1;
+            unknownCorrelatedSequence20.ComparisonUnitArray2 = remaining2;
+            newListOfCorrelatedSequence.Add(unknownCorrelatedSequence20);
+
             return newListOfCorrelatedSequence;
+        }
+
+        private static int FindIndexOfNextParaMark(ComparisonUnit[] cul)
+        {
+            for (int i = 0; i < cul.Length; i++)
+            {
+                var cuw = cul[i] as ComparisonUnitWord;
+                var lastAtom = cuw.DescendantContentAtoms().LastOrDefault();
+                if (lastAtom.ContentElement.Name == W.pPr)
+                    return i;
+            }
+            return cul.Length;
         }
 
         private static List<CorrelatedSequence> DoLcsAlgorithmForTable(CorrelatedSequence unknown, WmlComparerSettings settings)
@@ -7140,8 +7115,6 @@ namespace OpenXmlPowerTools
             SourceFile = new System.Diagnostics.StackTrace(true).GetFrame(1).GetFileName();
             SourceLine = new System.Diagnostics.StackTrace(true).GetFrame(1).GetFileLineNumber();
 #endif
-            //if (SourceLine == 0)
-            //    Console.WriteLine();
         }
 
         public override string ToString()
