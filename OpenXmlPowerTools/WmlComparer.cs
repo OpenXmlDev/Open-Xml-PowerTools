@@ -1043,6 +1043,29 @@ namespace OpenXmlPowerTools
                             return revisionInTable;
                         }))));
 
+            // if the last paragraph has a deleted paragraph mark, then remove the deletion from the paragraph mark.  This is to prevent Word from misbehaving.
+            // the last paragraph in a cell must not have a deleted paragraph mark.
+            var theCell = table
+                .Descendants(W.tc)
+                .FirstOrDefault();
+            var lastPara = theCell
+                .Elements(W.p)
+                .LastOrDefault();
+            if (lastPara != null)
+            {
+                var isDeleted = lastPara
+                    .Elements(W.pPr)
+                    .Elements(W.rPr)
+                    .Elements(W.del)
+                    .Any();
+                if (isDeleted)
+                    lastPara
+                        .Elements(W.pPr)
+                        .Elements(W.rPr)
+                        .Elements(W.del)
+                        .Remove();
+            }
+
             var content = new[] {
                                     idx == 0 ? emptyParagraph : null,
                                     table,
