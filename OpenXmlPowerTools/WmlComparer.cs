@@ -76,7 +76,7 @@ namespace OpenXmlPowerTools
         public WmlComparerSettings()
         {
             // note that , and . are processed explicitly to handle cases where they are in a number or word
-            WordSeparators = new[] { ' ', '-' }; // todo need to fix this for complete list
+            WordSeparators = new[] { ' ', '-', ')', '(', ';', ',' }; // todo need to fix this for complete list
         }
     }
 
@@ -5042,13 +5042,50 @@ namespace OpenXmlPowerTools
                 }
             }
 
-            // don't match just a single space
+            // don't match just a single character
             if (currentLongestCommonSequenceLength == 1)
             {
                 var cuw2 = cul2[currentI2] as ComparisonUnitAtom;
                 if (cuw2 != null)
                 {
                     if (cuw2.ContentElement.Name == W.t && cuw2.ContentElement.Value == " ")
+                    {
+                        currentI1 = -1;
+                        currentI2 = -1;
+                        currentLongestCommonSequenceLength = 0;
+                    }
+                }
+            }
+
+            // don't match only word break characters
+            if (currentLongestCommonSequenceLength > 0 && currentLongestCommonSequenceLength <= 3)
+            {
+                var commonSequence = cul1.Skip(currentI1).Take(currentLongestCommonSequenceLength).ToArray();
+                // if they are all ComparisonUnitWord objects
+                var oneIsNotWord = commonSequence.Any(cs => (cs as ComparisonUnitWord) == null);
+                var allAreWords = !oneIsNotWord;
+                if (allAreWords)
+                {
+                    var contentOtherThanWordSplitChars = commonSequence
+                        .Cast<ComparisonUnitWord>()
+                        .Any(cs =>
+                        {
+                            var otherThanText = cs.DescendantContentAtoms().Any(dca => dca.ContentElement.Name != W.t);
+                            if (otherThanText)
+                                return true;
+                            var otherThanWordSplit = cs
+                                .DescendantContentAtoms()
+                                .Any(dca =>
+                                {
+                                    var charValue = dca.ContentElement.Value;
+                                    var isWordSplit = settings.WordSeparators.Contains(charValue[0]);
+                                    if (isWordSplit)
+                                        return false;
+                                    return true;
+                                });
+                            return otherThanWordSplit;
+                        });
+                    if (! contentOtherThanWordSplitChars)
                     {
                         currentI1 = -1;
                         currentI2 = -1;
