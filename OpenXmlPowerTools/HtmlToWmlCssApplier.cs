@@ -354,7 +354,7 @@ namespace OpenXmlPowerTools.HtmlToWml
                 Names = new[] { "font-size" },
                 Inherits = true,
                 Includes = (e, settings) => true,
-                InitialValue = (element, settings) => new CssExpression { Terms = new List<CssTerm> { new CssTerm { Value = ((double)settings.DefaultFontSize).ToString(), Type = OpenXmlPowerTools.HtmlToWml.CSS.CssTermType.String, Unit = CssUnit.PT } } },
+                InitialValue = (element, settings) => new CssExpression { Terms = new List<CssTerm> { new CssTerm { Value = ((double)settings.DefaultFontSize).ToString(CultureInfo.InvariantCulture), Type = OpenXmlPowerTools.HtmlToWml.CSS.CssTermType.String, Unit = CssUnit.PT } } },
                 ComputedValue = (element, assignedValue, settings) => ComputeAbsoluteFontSize(element, assignedValue, settings),
             },
 
@@ -901,7 +901,7 @@ namespace OpenXmlPowerTools.HtmlToWml
                         if (rightMargin == null)
                             rightMargin = 1440;
                         double width = (double)(pageWidth - leftMargin - rightMargin) / 20;
-                        return new CssExpression { Terms = new List<CssTerm> { new CssTerm { Value = width.ToString(), Type = OpenXmlPowerTools.HtmlToWml.CSS.CssTermType.String, Unit = CssUnit.PT, } } };
+                        return new CssExpression { Terms = new List<CssTerm> { new CssTerm { Value = width.ToString(CultureInfo.InvariantCulture), Type = OpenXmlPowerTools.HtmlToWml.CSS.CssTermType.String, Unit = CssUnit.PT, } } };
                     }
                     return new CssExpression { Terms = new List<CssTerm> { new CssTerm { Value = "auto", Type = OpenXmlPowerTools.HtmlToWml.CSS.CssTermType.String, } } };
                 },
@@ -934,7 +934,6 @@ namespace OpenXmlPowerTools.HtmlToWml
                         }
                         break;
                     }
-                    //if (valueForPercentage.ToString() == "auto")
 
                     return ComputeAbsoluteLength(element, assignedValue, settings, valueForPercentage);
                 },
@@ -1458,9 +1457,9 @@ namespace OpenXmlPowerTools.HtmlToWml
                 if (unit == CssUnit.PX)
                     newPtSize = decValue * 0.75d;
             }
-            if (newPtSize == null)
+            if (!newPtSize.HasValue)
                 throw new OpenXmlPowerToolsException("Internal error: should not have reached this exception");
-            CssExpression newExpr = new CssExpression { Terms = new List<CssTerm> { new CssTerm { Value = newPtSize.ToString(), Type = OpenXmlPowerTools.HtmlToWml.CSS.CssTermType.Number, Unit = CssUnit.PT, } } };
+            CssExpression newExpr = new CssExpression { Terms = new List<CssTerm> { new CssTerm { Value = newPtSize.Value.ToString(CultureInfo.InvariantCulture), Type = OpenXmlPowerTools.HtmlToWml.CSS.CssTermType.Number, Unit = CssUnit.PT, } } };
             return newExpr;
         }
 
@@ -1473,7 +1472,7 @@ namespace OpenXmlPowerTools.HtmlToWml
             if (unit == CssUnit.PT)
                 return assignedValue;
             if (FontSizeMap.ContainsKey(value))
-                return new CssExpression { Terms = new List<CssTerm> { new CssTerm { Value = FontSizeMap[value].ToString(), Type = OpenXmlPowerTools.HtmlToWml.CSS.CssTermType.Number, Unit = CssUnit.PT, } } };
+                return new CssExpression { Terms = new List<CssTerm> { new CssTerm { Value = FontSizeMap[value].ToString(CultureInfo.InvariantCulture), Type = OpenXmlPowerTools.HtmlToWml.CSS.CssTermType.Number, Unit = CssUnit.PT, } } };
 
             // todo what should the calculation be for computing larger / smaller?
             if (value == "larger" || value == "smaller")
@@ -1513,7 +1512,7 @@ namespace OpenXmlPowerTools.HtmlToWml
                     if (ptSize >= 30)
                         newPtSize2 = 24d;
                 }
-                return new CssExpression { Terms = new List<CssTerm> { new CssTerm { Value = newPtSize2.ToString(), Type = OpenXmlPowerTools.HtmlToWml.CSS.CssTermType.Number, Unit = CssUnit.PT, } } };
+                return new CssExpression { Terms = new List<CssTerm> { new CssTerm { Value = newPtSize2.ToString(CultureInfo.InvariantCulture), Type = OpenXmlPowerTools.HtmlToWml.CSS.CssTermType.Number, Unit = CssUnit.PT, } } };
             }
             double decValue;
             if (!double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out decValue))
@@ -1545,9 +1544,9 @@ namespace OpenXmlPowerTools.HtmlToWml
                 if (unit == CssUnit.PX)
                     newPtSize = decValue * 0.75d;
             }
-            if (newPtSize == null)
+            if (!newPtSize.HasValue)
                 throw new OpenXmlPowerToolsException("Internal error: should not have reached this exception");
-            CssExpression newExpr = new CssExpression { Terms = new List<CssTerm> { new CssTerm { Value = newPtSize.ToString(), Type = OpenXmlPowerTools.HtmlToWml.CSS.CssTermType.Number, Unit = CssUnit.PT, } } };
+            CssExpression newExpr = new CssExpression { Terms = new List<CssTerm> { new CssTerm { Value = newPtSize.Value.ToString(CultureInfo.InvariantCulture), Type = OpenXmlPowerTools.HtmlToWml.CSS.CssTermType.Number, Unit = CssUnit.PT, } } };
             return newExpr;
         }
 
