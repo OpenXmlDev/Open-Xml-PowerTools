@@ -125,6 +125,80 @@ namespace OpenXmlPowerTools.Tests
   </w:body>
 </w:document>";
 
+        private const string FieldsDocumentXmlString =
+@"<w:document xmlns:w=""http://schemas.openxmlformats.org/wordprocessingml/2006/main"">
+  <w:body>
+    <w:p>
+      <w:pPr>
+        <w:pStyle w:val=""Heading1""/>
+      </w:pPr>
+      <w:bookmarkStart w:id=""0"" w:name=""_Ref491716064""/>
+      <w:r>
+        <w:t>Article</w:t>
+      </w:r>
+      <w:bookmarkEnd w:id=""0""/>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:pStyle w:val=""Heading2""/>
+      </w:pPr>
+      <w:bookmarkStart w:id=""1"" w:name=""_Ref491716082""/>
+      <w:r>
+        <w:t>Section</w:t>
+      </w:r>
+      <w:bookmarkEnd w:id=""1""/>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:pStyle w:val=""HeadingBody2""/>
+      </w:pPr>
+      <w:r>
+        <w:t xml:space=""preserve"">As stated in Article </w:t>
+      </w:r>
+      <w:r>
+        <w:fldChar w:fldCharType=""begin""/>
+      </w:r>
+      <w:r>
+        <w:instrText xml:space=""preserve""> REF _Ref491716064 \r \h </w:instrText>
+      </w:r>
+      <w:r>
+      </w:r>
+      <w:r>
+        <w:fldChar w:fldCharType=""separate""/>
+      </w:r>
+      <w:r>
+        <w:t>1</w:t>
+      </w:r>
+      <w:r>
+        <w:fldChar w:fldCharType=""end""/>
+      </w:r>
+      <w:r>
+        <w:t xml:space=""preserve""> and this Section </w:t>
+      </w:r>
+      <w:r>
+        <w:fldChar w:fldCharType=""begin""/>
+      </w:r>
+      <w:r>
+        <w:instrText xml:space=""preserve""> REF _Ref491716082 \r \h </w:instrText>
+      </w:r>
+      <w:r>
+      </w:r>
+      <w:r>
+        <w:fldChar w:fldCharType=""separate""/>
+      </w:r>
+      <w:r>
+        <w:t>1.1</w:t>
+      </w:r>
+      <w:r>
+        <w:fldChar w:fldCharType=""end""/>
+      </w:r>
+      <w:r>
+        <w:t>, this is described in Schedule C (Performance Framework).</w:t>
+      </w:r>
+    </w:p>
+  </w:body>
+</w:document>";
+
         private static string InnerText(XContainer e)
         {
             return e.Descendants(W.r)
@@ -274,6 +348,34 @@ namespace OpenXmlPowerTools.Tests
                     ins => ins.Descendants(W.sym).Any(
                         sym => sym.Attribute(W.font).Value == "Wingdings" && 
                                sym.Attribute(W._char).Value == "F028")));
+            }
+        }
+
+        [Fact]
+        public void CanReplaceTextWithFields()
+        {
+            XDocument partDocument = XDocument.Parse(FieldsDocumentXmlString);
+            XElement p = partDocument.Descendants(W.p).Last();
+            string innerText = InnerText(p);
+
+            Assert.Equal("As stated in Article {__1} and this Section {__1.1}, this is described in Schedule C (Performance Framework).",
+                innerText);
+
+            using (var stream = new MemoryStream())
+            using (WordprocessingDocument wordDocument = WordprocessingDocument.Create(stream, DocumentType))
+            {
+                MainDocumentPart part = wordDocument.AddMainDocumentPart();
+                part.PutXDocument(partDocument);
+
+                IEnumerable<XElement> content = partDocument.Descendants(W.p);
+                var regex = new Regex(@"Schedule C \(Performance Framework\)");
+                int count = OpenXmlRegex.Replace(content, regex, "Exhibit 4", null, true, "John Doe");
+
+                p = partDocument.Descendants(W.p).Last();
+                innerText = InnerText(p);
+
+                Assert.Equal(1, count);
+                Assert.Equal("As stated in Article {__1} and this Section {__1.1}, this is described in Exhibit 4.", innerText);
             }
         }
     }
