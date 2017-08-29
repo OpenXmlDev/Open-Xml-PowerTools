@@ -5654,6 +5654,7 @@ namespace OpenXmlPowerTools
         public static XName Status = pt + "Status";
 
         public static XName Level = pt + "Level";
+        public static XName IndentLevel = pt + "IndentLevel";
         public static XName ContentType = pt + "ContentType";
 
         public static XName trPr = pt + "trPr";
