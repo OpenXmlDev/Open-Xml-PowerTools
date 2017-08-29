@@ -12,8 +12,6 @@ Email: eric@ericwhite.com
 
 ***************************************************************************/
 
-// TODO we are not generating lang if English, but this needs revised after analysis
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -56,7 +54,8 @@ namespace OpenXmlPowerTools
         public List<ContentTypeRule> RunContentTypeRules;
         public ListItemRetrieverSettings ListItemRetrieverSettings;
         public bool? InjectCommentForContentTypes;
-        public Func<XElement, WmlToXmlSettings, int?> ContentTypeHierarchyLambda;
+        public XElement ContentTypeHierarchyDefinition;
+        public Func<XElement, WmlToXmlSettings, bool> ContentTypeHierarchyLambda;
         public Dictionary<string, Func<string, OpenXmlPart, XElement, WmlToXmlSettings, object>> XmlGenerationLambdas;
         public DirectoryInfo ImageBase;
         public bool WriteImageFiles = true;
@@ -70,7 +69,8 @@ namespace OpenXmlPowerTools
             List<ContentTypeRule> documentTypeContentTypeRules,
             List<ContentTypeRule> documentContentTypeRules,
             List<ContentTypeRule> runContentTypeRules,
-            Func<XElement, WmlToXmlSettings, int?> contentTypeHierarchyLambda,
+            XElement contentTypeHierarchyDefinition,
+            Func<XElement, WmlToXmlSettings, bool> contentTypeHierarchyLambda,
             Dictionary<string, Func<string, OpenXmlPart, XElement, WmlToXmlSettings, object>> xmlGenerationLambdas,
             DirectoryInfo imageBase,
             XDocument contentTypeRegexExtension)
@@ -80,6 +80,7 @@ namespace OpenXmlPowerTools
             DocumentContentTypeRules = documentContentTypeRules;
             RunContentTypeRules = runContentTypeRules;
             ListItemRetrieverSettings = new ListItemRetrieverSettings();
+            ContentTypeHierarchyDefinition = contentTypeHierarchyDefinition;
             ContentTypeHierarchyLambda = contentTypeHierarchyLambda;
             XmlGenerationLambdas = xmlGenerationLambdas;
             ImageBase = imageBase;
@@ -91,7 +92,7 @@ namespace OpenXmlPowerTools
             List<ContentTypeRule> documentTypeContentTypeRules,
             List<ContentTypeRule> documentContentTypeRules,
             List<ContentTypeRule> runContentTypeRules,
-            Func<XElement, WmlToXmlSettings, int?> contentTypeHierarchyLambda,
+            Func<XElement, WmlToXmlSettings, bool> contentTypeHierarchyLambda,
             Dictionary<string, Func<string, OpenXmlPart, XElement, WmlToXmlSettings, object>> xmlGenerationLambdas,
             ListItemRetrieverSettings listItemRetrieverSettings,
             DirectoryInfo imageBase,
@@ -241,95 +242,7 @@ namespace OpenXmlPowerTools
 
             ListItemRetrieverSettings listItemRetrieverSettings = new ListItemRetrieverSettings();
             AssembleListItemInformation(wDoc, settings.ListItemRetrieverSettings);
-
-
-
-
-
-
-
-            //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            // TODO temporarily assign levels to headings.  This needs removed and replaced when I rework the hierarchical infrastructure.
-            //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            TemporarilyAssignLevelsToHeadings(wDoc);
-
-
-
-
-
-
-
-
             ApplyContentTypesForRuleSet(settings, ctai, wDoc);
-        }
-
-        private static void TemporarilyAssignLevelsToHeadings(WordprocessingDocument wDoc)
-        {
-            XDocument xDoc = wDoc.MainDocumentPart.GetXDocument();
-            var headings = xDoc.Descendants(W.p)
-                .Where(p =>
-                {
-                    var styleId = (string)p
-                        .Elements(W.pPr)
-                        .Elements(W.pStyle)
-                        .Attributes(W.val)
-                        .FirstOrDefault();
-                    if (styleId == "Heading1" ||
-                        styleId == "Heading2" ||
-                        styleId == "Heading3" ||
-                        styleId == "Heading4" ||
-                        styleId == "Heading5" ||
-                        styleId == "Heading6" ||
-                        styleId == "Heading9")
-                        return true;
-                    else
-                        return false;
-                });
-            var seenHeading6 = false;
-            foreach (var hdg in headings)
-            {
-                var styleId = (string)hdg
-                    .Elements(W.pPr)
-                    .Elements(W.pStyle)
-                    .Attributes(W.val)
-                    .FirstOrDefault();
-                if (styleId == "Heading6")
-                    seenHeading6 = true;
-                int lvl = 0;
-                if (seenHeading6)
-                {
-                    if (styleId == "Heading6")
-                        lvl = 1;
-                    else if (styleId == "Heading1")
-                        lvl = 2;
-                    else if (styleId == "Heading2")
-                        lvl = 3;
-                    else if (styleId == "Heading3")
-                        lvl = 4;
-                    else if (styleId == "Heading4")
-                        lvl = 5;
-                    else if (styleId == "Heading5")
-                        lvl = 6;
-                    else if (styleId == "Heading9")
-                        lvl = 3;
-                }
-                else
-                {
-                    if (styleId == "Heading1")
-                        lvl = 1;
-                    else if (styleId == "Heading2")
-                        lvl = 2;
-                    else if (styleId == "Heading3")
-                        lvl = 3;
-                    else if (styleId == "Heading4")
-                        lvl = 4;
-                    else if (styleId == "Heading5")
-                        lvl = 5;
-                    else if (styleId == "Heading9")
-                        lvl = 2;
-                }
-                hdg.Add(new XAttribute(PtOpenXml.Level, lvl));
-            }
         }
 
         public static XElement ProduceContentTypeXml(WmlDocument document, WmlToXmlSettings settings)
@@ -375,11 +288,21 @@ namespace OpenXmlPowerTools
             // Annotate runs associated with fields, so that can retrieve hyperlinks that are stored as fields.
             FieldRetriever.AnnotateWithFieldInfo(wDoc.MainDocumentPart);
 
+            AnnotateRunsThatUseFieldsForNumbering(mainXDoc);
+
+            var newRoot = (XElement)AnnotateRunsThatUseFldSimple(mainXDoc.Root);
+            mainXDoc.Root.ReplaceWith(newRoot);
+
+            wDoc.MainDocumentPart.PutXDocument();
+
+            // Annotate runs associated with fields, so that can retrieve hyperlinks that are stored as fields.
+            FieldRetriever.AnnotateWithFieldInfo(wDoc.MainDocumentPart);
+
+            mainXDoc = wDoc.MainDocumentPart.GetXDocument();
+
             var body = mainXDoc.Root.Descendants(W.body).FirstOrDefault();
             if (body == null)
                 throw new OpenXmlPowerToolsException("Internal error: invalid document");
-
-            AnnotateRunsThatUseFieldsForNumbering(mainXDoc);
 
             var contentList = body.Elements()
                 .Where(e => e.Attribute(PtOpenXml.Level) != null)
@@ -399,8 +322,245 @@ namespace OpenXmlPowerTools
                             xml.Add(childrenHeadings);
                         return xml;
                     }));
+
+            contentTypeXml = HierarchyPerSettings(contentTypeXml, settings);
+
             return contentTypeXml;
         }
+
+        private static XElement HierarchyPerSettings(XElement contentTypeXml, WmlToXmlSettings settings)
+        {
+            var hierarchyDefinition = settings.ContentTypeHierarchyDefinition;
+            HashSet<XName> hierarchyElements = new HashSet<XName>(hierarchyDefinition.DescendantsAndSelf().Select(d => d.Name).Distinct());
+
+            Stack<XElement> stack = new Stack<XElement>();
+            var rootElement = hierarchyDefinition
+                .Elements()
+                .FirstOrDefault(e => (bool)e.Attribute("IsRoot"));
+            if (rootElement == null)
+                throw new OpenXmlPowerToolsException("Invalid content type hierarchy definition - no root element");
+            stack.Push(rootElement);
+
+            var currentlyLookingAt = hierarchyDefinition.Element(rootElement.Name);
+
+            foreach (var item in contentTypeXml.Elements())
+            {
+                if (!hierarchyElements.Contains(item.Name))
+                    throw new OpenXmlPowerToolsException(string.Format("Invalid Content Type Hierarchy Definition - missing def for {0}", item.Name));
+
+                bool found = false;
+                var possibleChildItem = currentlyLookingAt.Element(item.Name);
+                if (possibleChildItem != null)
+                {
+                    if (!possibleChildItem.HasAttributes)
+                        found = true;
+                    if (!found)
+                    {
+                        var anyMismatch = possibleChildItem.Attributes().Any(a =>
+                        {
+                            var val1 = a.Value;
+                            var a2 = item.Attribute(a.Name);
+                            if (a2 == null)
+                                return true;
+                            var val2 = a2.Value;
+                            if (val1 != val2)
+                                return true;
+                            return false;
+                        });
+                        if (!anyMismatch)
+                            found = true;
+                    }
+                }
+                if (found)
+                {
+                    item.Add(new XAttribute(PtOpenXml.IndentLevel, stack.Count()));
+                    stack.Push(item);
+                    currentlyLookingAt = FindCurrentlyLookingAt(hierarchyDefinition, item);
+                    continue;
+                }
+                if (hierarchyElements.Contains(item.Name))
+                {
+                    while (true)
+                    {
+                        if (stack.Count() == 1)
+                        {
+                            // have encountered an unexpected hierarchy element.  have gone up the stack, and no element up the stack allows for this as a child element.
+                            // Therefore, put it at level one, and let the Narrdoc transform generate invalid narrdoc.
+                            item.Add(new XAttribute(PtOpenXml.IndentLevel, stack.Count()));
+                            break;
+                        }
+                        stack.Pop();
+                        var last = stack.Peek();
+                        currentlyLookingAt = FindCurrentlyLookingAt(hierarchyDefinition, last);
+                        bool found2 = false;
+                        var possibleChildItem2 = currentlyLookingAt.Element(item.Name);
+                        if (possibleChildItem2 != null)
+                        {
+                            if (!possibleChildItem2.HasAttributes)
+                                found2 = true;
+                            if (!found2)
+                            {
+                                var anyMismatch2 = possibleChildItem2.Attributes().Any(a =>
+                                {
+                                    var val1 = a.Value;
+                                    var a2 = item.Attribute(a.Name);
+                                    if (a2 == null)
+                                        return true;
+                                    var val2 = a2.Value;
+                                    if (val1 != val2)
+                                        return true;
+                                    return false;
+                                });
+                                if (!anyMismatch2)
+                                    found2 = true;
+                            }
+                        }
+                        if (found2)
+                        {
+                            item.Add(new XAttribute(PtOpenXml.IndentLevel, stack.Count()));
+                            stack.Push(item);
+                            currentlyLookingAt = FindCurrentlyLookingAt(hierarchyDefinition, item);
+                            break;
+                        }
+                        if (stack.Count() == 0)
+                            throw new OpenXmlPowerToolsException("Internal error = reached top of hierarchy - prob not an internal error - some other error");
+                    }
+                    continue;
+                }
+                // otherwise continue on to next item.
+            }
+
+            var hierarchicalContentTypeXml = new XElement("ContentTypeXml",
+                HierarchyPerSettingsTransform(contentTypeXml.Elements(), 1));
+
+            hierarchicalContentTypeXml.DescendantsAndSelf().Attributes(PtOpenXml.IndentLevel).Remove();
+
+            return hierarchicalContentTypeXml;
+        }
+
+        private static XElement FindCurrentlyLookingAt(XElement hierarchyDefinition, XElement item)
+        {
+            var candidates = hierarchyDefinition
+                .Elements(item.Name)
+                .OrderByDescending(e => e.Attributes().Count());
+
+            var theOne = candidates
+                .FirstOrDefault(c =>
+                {
+                    if (!c.HasAttributes)
+                        return true;
+                    var anyMismatch2 = c.Attributes().Any(a =>
+                    {
+                        var val1 = a.Value;
+                        var a2 = item.Attribute(a.Name);
+                        if (a2 == null)
+                            return true;
+                        var val2 = a2.Value;
+                        if (val1 != val2)
+                            return true;
+                        return false;
+                    });
+                    if (anyMismatch2)
+                        return false;
+                    return true;
+                });
+
+            if (theOne == null)
+                throw new OpenXmlPowerToolsException("Internal error");
+
+            return theOne;
+        }
+
+        private static object HierarchyPerSettingsTransform(IEnumerable<XElement> list, int level)
+        {
+            // small optimization - other code in this method would have same effect, but this is more efficient.
+            if (!list.Any())
+                return null;
+
+            List<int> groupingKeys = new List<int>();
+            int currentGroupingKey = 0;
+            foreach (var item in list)
+            {
+                if (item.Attribute(PtOpenXml.IndentLevel) == null)
+                    throw new OpenXmlPowerToolsException(string.Format("Invalid Content Type Hierarchy Definition - missing def for {0}", item.Name));
+                if ((int)item.Attribute(PtOpenXml.IndentLevel) == level)
+                {
+                    currentGroupingKey += 1;
+                }
+                groupingKeys.Add(currentGroupingKey);
+            }
+
+            var zipped = list
+                .Zip(groupingKeys, (item, key) => new
+                {
+                    Item = item,
+                    Key = key,
+                })
+                .GroupBy(z => z.Key)
+                .ToList();
+
+            var newContent = zipped
+                .Select(z =>
+                {
+                    var first = z.First().Item;
+                    var newItem = new XElement(first.Name,
+                        first.Attributes(),
+                        first.Elements(),
+                        HierarchyPerSettingsTransform(z.Skip(1).Select(r => r.Item), level + 1));
+                    return newItem;
+                })
+                .ToList();
+
+            return newContent;
+        }
+
+
+        // this is where we need to do the same type of run annotation as for complex fields, but for simple fields.
+        // I think that we may need to split up the run following the simple field
+
+#if false
+<w:p pt:StyleName="Caption" pt:ContentType="Caption" pt:Level="2">
+  <w:r pt:ContentType="Span">
+    <w:t xml:space="preserve">Table </w:t>
+  </w:r>
+  <w:r>
+    <w:fldChar w:fldCharType="begin" />
+  </w:r>
+  <w:r>
+    <w:instrText xml:space="preserve"> STYLEREF 1 \s </w:instrText>
+  </w:r>
+  <w:r>
+    <w:fldChar w:fldCharType="separate" />
+  </w:r>
+  <w:r pt:ContentType="Span">
+    <w:t>1</w:t>
+  </w:r>
+  <w:r>
+    <w:fldChar w:fldCharType="end" />
+  </w:r>
+  <w:r pt:ContentType="Span">
+    <w:t>.</w:t>
+  </w:r>
+  <w:r>
+    <w:fldChar w:fldCharType="begin" />
+  </w:r>
+  <w:r>
+    <w:instrText xml:space="preserve"> SEQ Table \* ARABIC </w:instrText>
+  </w:r>
+  <w:r>
+    <w:fldChar w:fldCharType="separate" />
+  </w:r>
+  <w:r pt:ContentType="Span">
+    <w:t>1</w:t>
+  </w:r>
+  <w:r>
+    <w:fldChar w:fldCharType="end" />
+  </w:r>
+  <w:r pt:ContentType="Span">
+    <w:t>Type the title here</w:t>
+  </w:r>
+</w:p>
+#endif
 
         private static void AnnotateRunsThatUseFieldsForNumbering(XDocument mainXDoc)
         {
@@ -413,6 +573,130 @@ namespace OpenXmlPowerTools
             {
                 var instrText = FieldRetriever.InstrText(mainXDoc.Root, item.Key).TrimStart('{').TrimEnd('}');
                 var fi = FieldRetriever.ParseField(instrText);
+
+                if (fi.FieldType.ToUpper() == "SEQ" || fi.FieldType.ToUpper() == "STYLEREF")
+                {
+                    var runsForField = mainXDoc
+                        .Root
+                        .Descendants()
+                        .Where(d =>
+                        {
+                            Stack<FieldRetriever.FieldElementTypeInfo> stack = d.Annotation<Stack<FieldRetriever.FieldElementTypeInfo>>();
+                            if (stack == null)
+                                return false;
+                            if (stack.Any(stackItem => stackItem.Id == item.Key && stackItem.FieldElementType == FieldRetriever.FieldElementTypeEnum.Result))
+                                return true;
+                            return false;
+                        })
+                        .Select(d => d.AncestorsAndSelf(W.r).FirstOrDefault())
+                        .Where(z9 => z9 != null)
+                        .GroupAdjacent(o => o)
+                        .Select(g => g.First())
+                        .Where(r => r.Element(W.t) != null)
+                        .ToList();
+
+                    if (!runsForField.Any())
+                        continue;
+
+                    var lastRun = runsForField.LastOrDefault();
+
+                    var para = lastRun
+                        .Ancestors(W.p)
+                        .FirstOrDefault();
+
+                    if (para == null)
+                        throw new OpenXmlPowerToolsException("Internal error - invalid document");
+
+                    // if already processed
+                    if (para.Descendants(W.r).Any(r => r.Attribute(PtOpenXml.ListItemRun) != null))
+                        continue;
+
+                    var lastFldCharRun = para
+                        .Elements(W.r)
+                        .LastOrDefault(r =>
+                        {
+                            if (r.Element(W.fldChar) == null)
+                                return false;
+                            Stack<FieldRetriever.FieldElementTypeInfo> stack = r.Annotation<Stack<FieldRetriever.FieldElementTypeInfo>>();
+                            if (stack == null)
+                                return false;
+
+                            if (stack.Any(stackItem =>
+                                {
+                                    var instrText2 = FieldRetriever.InstrText(mainXDoc.Root, stackItem.Id).TrimStart('{').TrimEnd('}');
+                                    var fi2 = FieldRetriever.ParseField(instrText2);
+                                    if (fi2.FieldType.ToUpper() == "SEQ" || fi2.FieldType.ToUpper() == "STYLEREF")
+                                        return true;
+                                    return false;
+                                }))
+                                return true;
+                            return false;
+                        });
+
+                    var elementAfter = lastFldCharRun
+                        .ElementsAfterSelf(W.r)
+                        .FirstOrDefault();
+
+                    // elementAfter may be null - that is ok - the rest of the routine works properly in this case.
+
+                    var listItemText = para
+                        .Elements(W.r)
+                        .TakeWhile(e => e != elementAfter)
+                        .Select(r1 => r1.Descendants(W.t).Select(t => (string)t).StringConcatenate())
+                        .StringConcatenate()
+                        .Trim();
+
+                    var nextRun = lastFldCharRun
+                        .ElementsAfterSelf(W.r)
+                        .FirstOrDefault(nr => nr.Element(W.t) != null);
+
+                    var lastFldCharRunText = lastFldCharRun
+                        .ElementsBeforeSelf(W.r)
+                        .Reverse()
+                        .First(r => r.Element(W.t) != null)
+                        .Element(W.t);
+
+                    string sepCharsString = "";
+                    if (nextRun != null)
+                    {
+                        var nextRunTextElement = nextRun
+                            .Element(W.t);
+
+                        var nextRunText = nextRunTextElement.Value;
+                        var sepChars = nextRunText
+                            .TakeWhile(ch => ch == '.' || ch == ' ')
+                            .ToList();
+
+                        sepCharsString = nextRunText.Substring(0, sepChars.Count());
+
+                        nextRunText = nextRunText.Substring(sepChars.Count());
+                        nextRunTextElement.Value = nextRunText;
+
+                        lastFldCharRunText.Value = lastFldCharRunText.Value + sepCharsString;
+                    }
+
+                    Regex re = new Regex("[A-F0-9.]+$");
+                    Match m = re.Match(listItemText);
+                    string matchedValue = null;
+                    if (m.Success)
+                    {
+                        matchedValue = m.Value;
+                    }
+
+                    if (matchedValue != null)
+                    {
+                        matchedValue += sepCharsString;
+                        matchedValue = matchedValue.TrimStart('.');
+                        matchedValue = matchedValue.TrimEnd('.', ' ');
+
+                        foreach (var run in para.Elements(W.r).TakeWhile(e => e != elementAfter).Where(e => e.Element(W.t) != null))
+                            run.Add(new XAttribute(PtOpenXml.ListItemRun, matchedValue));
+                    }
+
+                }
+
+#if false
+                // old code
                 if (fi.FieldType.ToUpper() == "SEQ")
                 {
                     // have it
@@ -477,14 +761,96 @@ namespace OpenXmlPowerTools
                         runbefore.Add(new XAttribute(PtOpenXml.ListItemRun, lastRunText));
                     }
                 }
+#endif
+
             }
+            }
+
+#if false
+<w:p pt14:StyleName="Caption">
+  <w:r>
+    <w:t xml:space="preserve">Box </w:t>
+  </w:r>
+  <w:fldSimple w:instr=" SEQ Box \* ARABIC ">
+    <w:r>
+      <w:t>1</w:t>
+    </w:r>
+  </w:fldSimple>
+  <w:r>
+    <w:t>. Type the title here</w:t>
+  </w:r>
+</w:p>
+#endif
+        private static object AnnotateRunsThatUseFldSimple(XNode node)
+        {
+            var element = node as XElement;
+            if (element != null)
+            {
+                if (element.Name == W.p &&
+                    element.Element(W.fldSimple) != null)
+                {
+                    var fldSimple = element.Element(W.fldSimple);
+                    var instr = ((string)fldSimple.Attribute(W.instr)).Trim();
+                    if (instr.StartsWith("SEQ"))
+                    {
+                        var runAfter = fldSimple.ElementsAfterSelf(W.r).FirstOrDefault();
+                        var runAfterText = runAfter.Elements(W.t).Select(t => (string)t).StringConcatenate();
+                        var runAfterTextTrimmed = runAfterText.TrimStart('.', ' ');
+                        var listItemNum = fldSimple.Elements(W.r).Elements(W.t).Select(t => (string)t).StringConcatenate();
+                        var runsBefore = element.Elements().TakeWhile(e => e.Name != W.fldSimple).Select(e =>
+                            {
+                                var newE = new XElement(e.Name,
+                                    e.Attributes(),
+                                    e.Element(W.t) != null ? new XAttribute(PtOpenXml.ListItemRun, listItemNum) : null,
+                                    e.Elements());
+                                return newE;
+                            })
+                            .ToList();
+                        var fldSimpleRuns = fldSimple.Elements().Select(e =>
+                            {
+                                var newE = new XElement(e.Name,
+                                    e.Attributes(),
+                                    new XAttribute(PtOpenXml.ListItemRun, listItemNum),
+                                    e.Elements());
+                                return newE;
+                            });
+                        var runAfterTextTrimmedLength = runAfterText.Length - runAfterTextTrimmed.Length;
+                        XElement runAfterListItemElement = null;
+                        if (runAfterTextTrimmedLength != 0)
+                        {
+                            runAfterListItemElement = new XElement(W.r,
+                                runAfter.Attributes(),
+                                new XAttribute(PtOpenXml.ListItemRun, listItemNum),
+                                runAfter.Elements(W.rPr),
+                                new XElement(W.t, runAfterText.Substring(0, runAfterTextTrimmedLength)));
+                        }
+                        XElement runAfterRemainderElement = new XElement(W.r,
+                            runAfter.Attributes(),
+                            runAfter.Elements(W.rPr),
+                            new XElement(W.t, runAfterText.Substring(runAfterTextTrimmedLength)));
+                        var newPara = new XElement(W.p,
+                            element.Attributes(),
+                            runsBefore,
+                            fldSimpleRuns,
+                            runAfterListItemElement,
+                            runAfterRemainderElement,
+                            fldSimple.ElementsAfterSelf(W.r).Skip(1));
+                        return newPara;
+                    }
+                }
+
+                return new XElement(element.Name,
+                    element.Attributes(),
+                    element.Nodes().Select(n => AnnotateRunsThatUseFldSimple(n)));
+            }
+            return node;
         }
 
         // this method produces the XML for an endnote or footnote - the blockLevelContentContainer is the w:endnote or w:footnote element, and it produces the content type XML for the
         // contents of the endnote or footnote, to be inserted en situ in the ContentTypeXml.
         public static object ProduceContentTypeXmlForBlockLevelContentContainer(WordprocessingDocument wDoc, WmlToXmlSettings settings, OpenXmlPart part, XElement blockLevelContentContainer)
         {
-            AssignLevelsToContent(blockLevelContentContainer, settings);
+            AssignLevelsToContentForEndFootNote(blockLevelContentContainer, settings);
 
             // Call RetrieveListItem so that all paragraphs are initialized with ListItemInfo
             var firstParagraph = blockLevelContentContainer.Descendants(W.p).FirstOrDefault();
@@ -507,6 +873,7 @@ namespace OpenXmlPowerTools
                             xml.Add(childrenHeadings);
                         return xml;
                     });
+
             return contentTypeXml;
         }
 
@@ -666,7 +1033,7 @@ namespace OpenXmlPowerTools
             }
         }
 
-        private static void AssignLevelsToContent(XElement blockLevelContentContainer, WmlToXmlSettings settings)
+        private static void AssignLevelsToContentForEndFootNote(XElement blockLevelContentContainer, WmlToXmlSettings settings)
         {
             var contentWithContentType = blockLevelContentContainer
                 .Descendants()
@@ -674,25 +1041,15 @@ namespace OpenXmlPowerTools
                 .Where(d => d.Attribute(PtOpenXml.ContentType) != null)
                 .ToList();
 
-            int currentLevel = 1;
             foreach (var content in contentWithContentType)
-            {
-                var thisLevel = GetIndentLevel(content, settings);
-                if (thisLevel == null)
-                {
-                    content.Add(new XAttribute(PtOpenXml.Level, currentLevel));
-                }
-                else
-                {
-                    content.Add(new XAttribute(PtOpenXml.Level, thisLevel));
-                    currentLevel = (int)thisLevel + 1;
-                }
-            }
+                content.Add(new XAttribute(PtOpenXml.Level, 1));
         }
 
         private static int? GetIndentLevel(XElement blockLevelContent, WmlToXmlSettings settings)
         {
-            return settings.ContentTypeHierarchyLambda(blockLevelContent, settings);
+            if (settings.ContentTypeHierarchyLambda(blockLevelContent, settings))
+                return 1;
+            return 2;
         }
 
         // Apply the Document rules first, then apply the DocumentType rules, then apply the Global rules.  First one that matches, wins.
