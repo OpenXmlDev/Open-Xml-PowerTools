@@ -383,7 +383,7 @@ namespace OpenXmlPowerTools
             string fieldType = field.TrimStart().Split(' ').FirstOrDefault();
             if (fieldType == null)
                 return emptyField;
-            if (fieldType.ToUpper() != "HYPERLINK" && fieldType.ToUpper() != "SEQ")
+            if (fieldType.ToUpper() != "HYPERLINK" && fieldType.ToUpper() != "SEQ" && fieldType.ToUpper() != "STYLEREF")
                 return emptyField;
             string[] tokens = GetTokens(field);
             if (tokens.Length == 0)
