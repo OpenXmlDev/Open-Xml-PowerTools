@@ -34,22 +34,6 @@ namespace OpenXmlPowerTools
         public static readonly char StartOfSymbolArea = '\uF000';
         public static readonly char EndOfPrivateUseArea = '\uF8FF';
 
-        /// <summary>
-        /// List of w:r child elements that will be mapped to Unicode strings by the
-        /// <see cref="RunToString"/> method. All other elements will be mapped to the
-        /// <see cref="StartOfHeading"/> Unicode value, i.e., U+0001.
-        /// </summary>
-        public static readonly List<XName> StringifiedRunElements = new List<XName>
-        {
-            W.br,
-            W.cr,
-            W.noBreakHyphen,
-            W.softHyphen,
-            W.sym,
-            W.t,
-            W.tab
-        };
-
         // Dictionaries for w:sym stringification.
         private static readonly Dictionary<string, char> SymStringToUnicodeCharDictionary =
             new Dictionary<string, char>();
@@ -74,10 +58,11 @@ namespace OpenXmlPowerTools
         public static string RunToString(XElement element)
         {
             if (element.Name == W.r && (element.Parent == null || element.Parent.Name != W.del))
-                return element.Elements()
-                    .Where(e => StringifiedRunElements.Contains(e.Name))
-                    .Select(RunToString)
-                    .StringConcatenate();
+                return element.Elements().Select(RunToString).StringConcatenate();
+
+            // We need to ignore run properties.
+            if (element.Name == W.rPr)
+                return string.Empty;
 
             // For w:t elements, we obviously want the element's value.
             if (element.Name == W.t)
@@ -103,6 +88,23 @@ namespace OpenXmlPowerTools
                 return SoftHyphen.ToString();
             if (element.Name == W.tab)
                 return HorizontalTabulation.ToString();
+
+            if (element.Name == W.fldChar)
+            {
+                var fldCharType = element.Attributes(W.fldCharType).Select(a => a.Value).FirstOrDefault();
+                switch (fldCharType)
+                {
+                    case "begin":
+                        return "{";
+                    case "end":
+                        return "}";
+                    default:
+                        return "_";
+                }
+            }
+
+            if (element.Name == W.instrText)
+                return "_";
 
             // Turn w:sym elements into Unicode character values. A w:char attribute
             // value can be stored (a) directly in its Unicode character value from
