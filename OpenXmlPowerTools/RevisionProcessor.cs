@@ -2327,12 +2327,22 @@ namespace OpenXmlPowerTools
                 ceName == W.bookmarkEnd ||
                 ceName == W.commentRangeStart ||
                 ceName == W.commentRangeEnd ||
+                ceName == W.customXmlDelRangeStart ||
+                ceName == W.customXmlDelRangeEnd ||
+                ceName == W.customXmlInsRangeStart ||
+                ceName == W.customXmlInsRangeEnd ||
+                ceName == W.customXmlMoveFromRangeStart ||
+                ceName == W.customXmlMoveFromRangeEnd ||
+                ceName == W.customXmlMoveToRangeStart ||
+                ceName == W.customXmlMoveToRangeEnd ||
                 ceName == W.del ||
                 ceName == W.moveFrom ||
                 ceName == W.moveFromRangeStart ||
                 ceName == W.moveFromRangeEnd ||
                 ceName == W.moveToRangeStart ||
                 ceName == W.moveToRangeEnd ||
+                ceName == W.permStart ||
+                ceName == W.permEnd ||
                 ceName == W.proofErr)
                 return false;
 
