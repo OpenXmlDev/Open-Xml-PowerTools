@@ -81,7 +81,7 @@ namespace OpenXmlPowerTools
             if (splitFormatCode.Length == 1)
             {
                 double dv;
-                if (double.TryParse(value, out dv))
+                if (double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out dv))
                 {
                     return FormatDouble(formatCode, dv, out color);
                 }
@@ -90,7 +90,7 @@ namespace OpenXmlPowerTools
             if (splitFormatCode.Length == 2)
             {
                 double dv;
-                if (double.TryParse(value, out dv))
+                if (double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out dv))
                 {
                     if (dv > 0)
                     {
@@ -109,7 +109,7 @@ namespace OpenXmlPowerTools
             if (splitFormatCode.Length == 4)
             {
                 double dv;
-                if (double.TryParse(value, out dv))
+                if (double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out dv))
                 {
                     if (dv > 0)
                     {
@@ -211,7 +211,7 @@ namespace OpenXmlPowerTools
 
 
             if (formatCode == "General")
-                return dv.ToString();
+                return dv.ToString(CultureInfo.InvariantCulture);
             bool isDate = IsFormatCodeForDate(formatCode);
             var cfc = ConvertFormatCode(formatCode);
             if (isDate)
@@ -223,7 +223,7 @@ namespace OpenXmlPowerTools
                 }
                 catch (ArgumentException)
                 {
-                    return dv.ToString();
+                    return dv.ToString(CultureInfo.InvariantCulture);
                 }
                 if (cfc.StartsWith("[h]"))
                 {
@@ -239,23 +239,23 @@ namespace OpenXmlPowerTools
                     var s4 = thisDate.ToString(cfc2).Trim();
                     return s4;
                 }
-                var s2 = thisDate.ToString(cfc).Trim();
+                var s2 = thisDate.ToString(cfc, CultureInfo.InvariantCulture).Trim();
                 return s2;
             }
             if (ExcelFormatCodeToNetFormatCodeExceptionMap.ContainsKey(formatCode))
             {
                 FormatConfig fc = ExcelFormatCodeToNetFormatCodeExceptionMap[formatCode];
-                var s = dv.ToString(fc.FormatCode).Trim();
+                var s = dv.ToString(fc.FormatCode, CultureInfo.InvariantCulture).Trim();
                 return s;
             }
             if ((cfc.Contains('(') && cfc.Contains(')')) || cfc.Contains('-'))
             {
-                var s3 = (-dv).ToString(cfc).Trim();
+                var s3 = (-dv).ToString(cfc, CultureInfo.InvariantCulture).Trim();
                 return s3;
             }
             else
             {
-                var s4 = dv.ToString(cfc).Trim();
+                var s4 = dv.ToString(cfc, CultureInfo.InvariantCulture).Trim();
                 return s4;
             }
         }

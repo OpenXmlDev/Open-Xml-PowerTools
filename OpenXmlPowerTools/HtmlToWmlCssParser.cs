@@ -15,6 +15,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -585,18 +586,18 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
 
         public static explicit operator double(CssExpression e)
         {
-            return double.Parse(e.Terms.First().Value);
+            return double.Parse(e.Terms.First().Value, CultureInfo.InvariantCulture);
         }
 
         public static explicit operator Emu(CssExpression e)
         {
-            return Emu.PointsToEmus(double.Parse(e.Terms.First().Value));
+            return Emu.PointsToEmus(double.Parse(e.Terms.First().Value, CultureInfo.InvariantCulture));
         }
 
         // will only be called on expression that is in terms of points
         public static explicit operator TPoint(CssExpression e)
         {
-            return new TPoint(double.Parse(e.Terms.First().Value));
+            return new TPoint(double.Parse(e.Terms.First().Value, CultureInfo.InvariantCulture));
         }
 
         // will only be called on expression that is in terms of points
@@ -608,7 +609,7 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
                 if (term.Unit == CssUnit.PT)
                 {
                     double ptValue;
-                    if (double.TryParse(term.Value.ToString(), out ptValue))
+                    if (double.TryParse(term.Value.ToString(), NumberStyles.Float, CultureInfo.InvariantCulture, out ptValue))
                     {
                         if (term.Sign == '-')
                             ptValue = -ptValue;
