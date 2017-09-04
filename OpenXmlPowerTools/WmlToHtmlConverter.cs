@@ -1349,7 +1349,7 @@ namespace OpenXmlPowerTools
             var sz = paragraph
                 .DescendantsTrimmed(W.txbxContent)
                 .Where(e => e.Name == W.r)
-                .Select(GetFontSize)
+                .Select(r => GetFontSize(r))
                 .Max();
             if (sz != null)
                 style.AddIfMissing("font-size", string.Format(NumberFormatInfo.InvariantInfo, "{0}pt", sz / 2.0m));
@@ -2514,7 +2514,7 @@ namespace OpenXmlPowerTools
                     if (hasContent == false)
                         return new XElement(element.Name,
                             element.Attributes(),
-                            element.Nodes().Select(InsertAppropriateNonbreakingSpacesTransform),
+                            element.Nodes().Select(n => InsertAppropriateNonbreakingSpacesTransform(n)),
                             new XElement(W.r,
                                 element.Elements(W.pPr).Elements(W.rPr),
                                 new XElement(W.t, " ")));
@@ -2522,7 +2522,7 @@ namespace OpenXmlPowerTools
 
                 return new XElement(element.Name,
                     element.Attributes(),
-                    element.Nodes().Select(InsertAppropriateNonbreakingSpacesTransform));
+                    element.Nodes().Select(n => InsertAppropriateNonbreakingSpacesTransform(n)));
             }
             return node;
         }

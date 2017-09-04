@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2013
-VisualStudioVersion = 12.0.40629.0
+# Visual Studio 14
+VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenXmlPowerTools", "OpenXmlPowerTools\OpenXmlPowerTools.csproj", "{6F957FF3-AFCC-4D69-8FBC-71AE21BC45C9}"
 EndProject

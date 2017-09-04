@@ -30,17 +30,13 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="DocumentFormat.OpenXml">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\Open-Xml-SDK\DocumentFormat.OpenXml\bin\Debug\DocumentFormat.OpenXml.dll</HintPath>
+    <Reference Include="DocumentFormat.OpenXml, Version=2.7.2.0, Culture=neutral, PublicKeyToken=8fb06cb64d019a17, processorArchitecture=MSIL">
+      <HintPath>..\packages\DocumentFormat.OpenXml.2.7.2\lib\net40\DocumentFormat.OpenXml.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.IO.Compression" />
-    <Reference Include="System.IO.Packaging">
-      <HintPath>..\..\Open-Xml-SDK\DocumentFormat.OpenXml\bin\Debug\System.IO.Packaging.dll</HintPath>
-    </Reference>
     <Reference Include="System.Management.Automation, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\..\..\..\Windows\assembly\GAC_MSIL\System.Management.Automation\1.0.0.0__31bf3856ad364e35\System.Management.Automation.dll</HintPath>
@@ -51,6 +47,7 @@
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
+    <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ChartUpdater.cs" />
@@ -70,10 +67,15 @@
     <Compile Include="HtmlToWmlCssApplier.cs" />
     <Compile Include="HtmlToWmlCssParser.cs" />
     <Compile Include="MetricsGetter.cs" />
+    <Compile Include="StronglyTypedBlock.cs" />
+    <Compile Include="PowerToolsBlock.cs" />
+    <Compile Include="PowerToolsBlockExtensions.cs" />
+    <Compile Include="RevisionProcessor.cs" />
     <Compile Include="SmlCellFormatter.cs" />
     <Compile Include="SmlDataRetriever.cs" />
     <Compile Include="SmlToHtmlConverter.cs" />
     <Compile Include="TestUtil.cs" />
+    <Compile Include="UnicodeMapper.cs" />
     <Compile Include="WmlComparer.cs" />
     <Compile Include="WmlToHtmlConverter.cs" />
     <Compile Include="ListItemRetriever.cs" />
@@ -96,14 +98,18 @@
     <Compile Include="SSFormula.cs" />
     <Compile Include="TextReplacer.cs" />
     <Compile Include="WmlDocument.cs" />
+    <Compile Include="WmlToXml.cs" />
     <Compile Include="WorksheetAccessor.cs" />
     <Compile Include="XlsxTables.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="OpenXmlPowerTools.dll-Help.xml" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
   </Target>
