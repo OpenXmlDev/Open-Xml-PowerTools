@@ -94,6 +94,7 @@ namespace OxPt
         [InlineData("RP/RP049-Deleted-Para-Before-Table.docx")]
         [InlineData("RP/RP050-Deleted-Footnote.docx")]
         //[InlineData("RP/")]
+        [InlineData("RP/RP052-Deleted-Para-Mark.docx")]
         //[InlineData("RP/")]
         //[InlineData("RP/")]
         //[InlineData("RP/")]
