@@ -509,6 +509,7 @@ namespace OpenXmlPowerTools
 
                     }
                 }
+                AdjustDocPrIds(output);
             }
             foreach (var part in output.GetAllParts())
                 if (part.Annotation<XDocument>() != null)
@@ -1297,7 +1298,6 @@ namespace OpenXmlPowerTools
             }
             else
                 newMainXDoc.Root.Element(W.body).Add(newContent);
-            AdjustDocPrIds(newDocument);
         }
 
         private static void CopyCustomXml(WordprocessingDocument sourceDocument, WordprocessingDocument newDocument,
