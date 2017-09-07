@@ -37,9 +37,6 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
-    <Reference Include="System.IO.Packaging">
-      <HintPath>..\..\..\Open-Xml-Sdk\DocumentFormat.OpenXml\bin\Debug\System.IO.Packaging.dll</HintPath>
-    </Reference>
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
