@@ -318,8 +318,17 @@ namespace OpenXmlPowerTools
                             }
                         }
 
+                        var paragraphLevel = ListItemRetriever.GetParagraphLevel(element);
+                        ListItemRetriever.LevelNumbers levelNums = element.Annotation<ListItemRetriever.LevelNumbers>();
+                        string levelNumsString = levelNums
+                            .LevelNumbersArray
+                            .Take(paragraphLevel + 1)
+                            .Select(i => i.ToString() + ".")
+                            .StringConcatenate()
+                            .TrimEnd('.');
+
                         var listItemRun = new XElement(W.r,
-                            new XAttribute(PtOpenXml.ListItemRun, "1"),
+                            new XAttribute(PtOpenXml.ListItemRun, levelNumsString),
                             element.Attribute(PtOpenXml.FontName),
                             element.Attribute(PtOpenXml.LanguageType),
                             listItemRunProps,
@@ -398,7 +407,7 @@ namespace OpenXmlPowerTools
                             listItemRun,
                             suffix != null ?
                                 new XElement(W.r,
-                                    new XAttribute(PtOpenXml.ListItemRun, "2"),
+                                    new XAttribute(PtOpenXml.ListItemRun, levelNumsString),
                                     listItemRunProps,
                                     suffix) : null,
                             element.Elements().Where(e => e.Name != W.pPr).Select(n => NormalizeListItemsTransform(fai, wDoc, n, settings)));

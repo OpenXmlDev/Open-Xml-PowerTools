@@ -47,6 +47,7 @@ namespace OxPt
         [InlineData("LIR004-en-US-upperRoman.docx")]
         [InlineData("LIR005-fr-FR-cardinalText.docx")]
         [InlineData("LIR006-fr-FR-ordinalText.docx")]
+        [InlineData("LIR006-fr-FR-ordinal.docx")]
         // [InlineData("LIR007-ru-RU-ordinalText.docx")]  // todo this fails, the code needs updated.
         [InlineData("LIR008-zh-CH-chineseCountingThousand.docx")]
         [InlineData("LIR009-zh-CN-chineseCounting.docx")]

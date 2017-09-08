@@ -144,6 +144,15 @@ namespace OpenXmlPowerTools
                 result += OneThroughNineteen[tens * 10 + ones];
                 return result.Substring(0, 1).ToUpper() + result.Substring(1);
             }
+            if (numFmt == "ordinal")
+            {
+                string suffix;
+                if (levelNumber == 1)
+                    suffix = "er";
+                else
+                    suffix = "e";
+                return levelNumber.ToString() + suffix;
+            }
             if (numFmt == "ordinalText")
             {
                 string result = "";

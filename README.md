@@ -19,15 +19,17 @@ It supports scenarios such as:
   enables writing XLSX files with millions of rows.
 - Extracting data (along with formatting) from spreadsheets.
 
-Copyright (c) Microsoft Corporation 2012-2016
-Portions Copyright (c) Eric White 2016
+Copyright (c) Microsoft Corporation 2012-2017
+Portions Copyright (c) Eric White 2016-2017
 Licensed under the Microsoft Public License.
 See License.txt in the project root for license information.
 
 News
 ====
-We are happy to announce the release of the Open XML PowerTools Version 4.3.  The big new feature in 4.3 is WmlComparer.cs, which is a module that compares two DOCX files and
-produces a DOCX with revision tracking markup.  It enables retreiving a list of revisions.
+New Release!  Version 4.4.
+
+This version has a completely re-written WmlComparer.cs, which now supports nested tables and text boxes.  WmlComparer.cs is a module that compares two DOCX files and
+produces a DOCX with revision tracking markup.  It enables retrieving a list of revisions.
 
 Open-Xml-PowerTools Content
 ===========================
@@ -44,6 +46,13 @@ See:
 
 Build Instructions
 ==================
+
+Recently, we've updated the GitHub repo so that it pulls the Open-Xml-Sdk via NuGet.  The video at the following link shows how to clone and build the Open-Xml-PowerTools
+when pulling the Open-Xml-Sdk via NuGet.  It uses Visual Studio 2017 Community Edition.
+
+[Build Open-Xml-PowerTools](http://ericwhite.com/blog/2017/03/24/building-open-xml-powertools-when-pulling-the-open-xml-sdk-via-nuget/)
+
+The following instructions are somewhat outdated at this point.
 
 For this release, you need Visual Studio 2013 or 2015 installed.  The following video shows gitting and building the Open-Xml-Sdk and
 Open-Xml-PowerTools using [Visual Studio 2015 Community Edition](https://www.visualstudio.com/en-us/products/visual-studio-community-vs.aspx), which is free.

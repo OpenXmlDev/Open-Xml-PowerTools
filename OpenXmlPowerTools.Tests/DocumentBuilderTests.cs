@@ -369,6 +369,27 @@ namespace OxPt
             Validate(out1);
         }
 
+        [Fact]
+        public void DB011_BodyAndHeaderWithShapes()
+        {
+            // Both of theses documents have a shape with a DocProperties ID of 1.
+            FileInfo source1 = new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, "DB011-Header-With-Shape.docx"));
+            FileInfo source2 = new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, "DB011-Body-With-Shape.docx"));
+            List<Source> sources = null;
+
+            sources = new List<Source>()
+            {
+                new Source(new WmlDocument(source1.FullName)),
+                new Source(new WmlDocument(source2.FullName)),
+            };
+            var processedDestDocx =
+                new FileInfo(Path.Combine(TestUtil.TempDir.FullName, "DB011-Body-And-Header-With-Shapes.docx"));
+            DocumentBuilder.BuildDocument(sources, processedDestDocx.FullName);
+            Validate(processedDestDocx);
+
+            ValidateUniqueDocPrIds(processedDestDocx);
+        }
+
         private void Validate(FileInfo fi)
         {
             using (WordprocessingDocument wDoc = WordprocessingDocument.Open(fi.FullName, true))
@@ -410,8 +431,27 @@ namespace OxPt
             "The element has unexpected child element 'http://schemas.openxmlformats.org/wordprocessingml/2006/main:updateFields'.",
         };
 
-
-        
+        private void ValidateUniqueDocPrIds(FileInfo fi)
+        {
+            using (WordprocessingDocument doc = WordprocessingDocument.Open(fi.FullName, false))
+            {
+                var docPrIds = new HashSet<string>();
+                foreach (var item in doc.MainDocumentPart.GetXDocument().Descendants(WP.docPr))
+                    Assert.True(docPrIds.Add(item.Attribute(NoNamespace.id).Value));
+                foreach (var header in doc.MainDocumentPart.HeaderParts)
+                foreach (var item in header.GetXDocument().Descendants(WP.docPr))
+                    Assert.True(docPrIds.Add(item.Attribute(NoNamespace.id).Value));
+                foreach (var footer in doc.MainDocumentPart.FooterParts)
+                foreach (var item in footer.GetXDocument().Descendants(WP.docPr))
+                    Assert.True(docPrIds.Add(item.Attribute(NoNamespace.id).Value));
+                if (doc.MainDocumentPart.FootnotesPart != null)
+                    foreach (var item in doc.MainDocumentPart.FootnotesPart.GetXDocument().Descendants(WP.docPr))
+                        Assert.True(docPrIds.Add(item.Attribute(NoNamespace.id).Value));
+                if (doc.MainDocumentPart.EndnotesPart != null)
+                    foreach (var item in doc.MainDocumentPart.EndnotesPart.GetXDocument().Descendants(WP.docPr))
+                        Assert.True(docPrIds.Add(item.Attribute(NoNamespace.id).Value));
+            }
+        }
     }
 }
 #endif
