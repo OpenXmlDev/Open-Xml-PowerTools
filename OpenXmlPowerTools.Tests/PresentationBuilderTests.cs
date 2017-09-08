@@ -124,6 +124,38 @@ namespace OxPt
             PresentationBuilder.BuildPresentation(sources, processedDestPptx.FullName);
         }
 
+        [Fact]
+        public void PB006_VideoFormats()
+        {
+            // This presentation contains videos with content types video/mp4, video/quicktime, video/unknown, video/x-ms-asf, and video/x-msvideo.
+            FileInfo sourcePptx = new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, "PP006-Videos.pptx"));
+
+            var oldMediaDataContentTypes = GetMediaDataContentTypes(sourcePptx);
+
+            List<SlideSource> sources = null;
+            sources = new List<SlideSource>()
+            {
+                new SlideSource(new PmlDocument(sourcePptx.FullName), true),
+            };
+            var processedDestPptx = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, "PB006-Videos.pptx"));
+            PresentationBuilder.BuildPresentation(sources, processedDestPptx.FullName);
+
+            var newMediaDataContentTypes = GetMediaDataContentTypes(processedDestPptx);
+
+            Assert.Equal(oldMediaDataContentTypes, newMediaDataContentTypes);
+        }
+
+        private static string[] GetMediaDataContentTypes(FileInfo fi)
+        {
+            using (PresentationDocument ptDoc = PresentationDocument.Open(fi.FullName, false))
+            {
+                return ptDoc.PresentationPart.SlideParts.SelectMany(
+                        p => p.DataPartReferenceRelationships.Select(d => d.DataPart.ContentType))
+                    .Distinct()
+                    .OrderBy(m => m)
+                    .ToArray();
+            }
+        }
     }
 }
 
