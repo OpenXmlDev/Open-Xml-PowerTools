@@ -27,6 +27,7 @@ using System.Threading.Tasks;
 using System.Xml.Linq;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Validation;
+using DocumentFormat.OpenXml.Wordprocessing;
 using OpenXmlPowerTools;
 using Xunit;
 
@@ -388,6 +389,38 @@ namespace OxPt
             Validate(processedDestDocx);
 
             ValidateUniqueDocPrIds(processedDestDocx);
+        }
+
+        [Fact]
+        public void DB013_LocalizedStyleIds()
+        {
+            // Each of these documents have changed the font color of the Heading 1 style, one to red, the other to blue.
+            // One of the documents were created with English as the Word display language, the other with Danish as the language.
+            FileInfo source1 =
+                new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, "DB013-Red-Heading1-English.docx"));
+            FileInfo source2 = new FileInfo(Path.Combine(TestUtil.SourceDir.FullName,
+                "DB013-Green-Heading1-Danish.docx"));
+            List<Source> sources = null;
+
+            sources = new List<Source>()
+            {
+                new Source(new WmlDocument(source1.FullName)),
+                new Source(new WmlDocument(source2.FullName)),
+            };
+            var processedDestDocx =
+                new FileInfo(Path.Combine(TestUtil.TempDir.FullName, "DB013-Colored-Heading1.docx"));
+            DocumentBuilder.BuildDocument(sources, processedDestDocx.FullName);
+
+            using (WordprocessingDocument wDoc = WordprocessingDocument.Open(processedDestDocx.FullName, false))
+            {
+                var styles = wDoc.MainDocumentPart.StyleDefinitionsPart.Styles.OfType<Style>().ToArray();
+                Assert.Equal(1, styles.Count(s => s.StyleName.Val == "heading 1"));
+
+                var styleIds = new HashSet<string>(styles.Select(s => s.StyleId.Value));
+                var paragraphStylesIds = new HashSet<string>(wDoc.MainDocumentPart.Document.Descendants<ParagraphStyleId>()
+                    .Select(p => p.Val.Value));
+                Assert.Subset(styleIds, paragraphStylesIds);
+            }
         }
 
         private void Validate(FileInfo fi)
