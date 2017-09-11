@@ -19,6 +19,7 @@ Version: 2.6.00
 ***************************************************************************/
 
 #define TestForUnsupportedDocuments
+#define MergeStylesWithSameNames
 
 using System;
 using System.Collections.Generic;
@@ -887,18 +888,44 @@ namespace OpenXmlPowerTools
             }
         }
 
-        private static void MergeStyles(WordprocessingDocument sourceDocument, WordprocessingDocument newDocument,
-            XDocument fromStyles, XDocument toStyles)
+        private static void MergeStyles(WordprocessingDocument sourceDocument, WordprocessingDocument newDocument, XDocument fromStyles, XDocument toStyles, IEnumerable<XElement> newContent)
         {
+#if MergeStylesWithSameNames
+            var newIds = new Dictionary<string, string>();
+#endif
+
             foreach (XElement style in fromStyles.Root.Elements(W.style))
             {
-                string name = style.Attribute(W.styleId).Value;
+                string id = style.Attribute(W.styleId).Value;
                 if (toStyles
                     .Root
                     .Elements(W.style)
-                    .Where(o => o.Attribute(W.styleId).Value == name)
+                    .Where(o => o.Attribute(W.styleId).Value == id)
                     .Count() == 0)
                 {
+#if MergeStylesWithSameNames
+                    var linkElement = style.Element(W.link);
+                    string linkedId;
+                    if (linkElement != null && newIds.TryGetValue(linkElement.Attribute(W.val).Value, out linkedId))
+                    {
+                        var linkedStyle = toStyles.Root.Elements(W.style)
+                            .First(o => o.Attribute(W.styleId).Value == linkedId);
+                        newIds.Add(id, linkedStyle.Element(W.link).Attribute(W.val).Value);
+                        continue;
+                    }
+
+                    string name = style.Element(W.name).Attribute(W.val).Value;
+                    var namedStyle = toStyles
+                        .Root
+                        .Elements(W.style)
+                        .FirstOrDefault(o => o.Element(W.name).Attribute(W.val).Value == name);
+                    if (namedStyle != null)
+                    {
+                        newIds.Add(id, namedStyle.Attribute(W.styleId).Value);
+                        continue;
+                    }
+#endif
+
                     int number = 1;
                     int abstractNumber = 0;
                     XDocument oldNumbering = null;
@@ -1040,7 +1067,64 @@ namespace OpenXmlPowerTools
                     toStyles.Root.Add(newStyle);
                 }
             }
+
+#if MergeStylesWithSameNames
+            if (newIds.Count > 0)
+            {
+                foreach (var style in toStyles
+                    .Root
+                    .Elements(W.style))
+                {
+                    ConvertToNewId(style.Element(W.basedOn), newIds);
+                    ConvertToNewId(style.Element(W.next), newIds);
+                }
+
+                foreach (var item in newContent.DescendantsAndSelf()
+                    .Where(d => d.Name == W.pStyle ||
+                                d.Name == W.rStyle ||
+                                d.Name == W.tblStyle))
+                {
+                    ConvertToNewId(item, newIds);
+                }
+
+                if (newDocument.MainDocumentPart.NumberingDefinitionsPart != null)
+                {
+                    var newNumbering = newDocument.MainDocumentPart.NumberingDefinitionsPart.GetXDocument();
+                    foreach (var abstractNum in newNumbering
+                        .Root
+                        .Elements(W.abstractNum))
+                    {
+                        ConvertToNewId(abstractNum.Element(W.styleLink), newIds);
+                        ConvertToNewId(abstractNum.Element(W.numStyleLink), newIds);
+                    }
+
+                    foreach (var item in newNumbering
+                        .Descendants()
+                        .Where(d => d.Name == W.pStyle ||
+                                    d.Name == W.rStyle ||
+                                    d.Name == W.tblStyle))
+                    {
+                        ConvertToNewId(item, newIds);
+                    }
+                }
+            }
+#endif
         }
+
+#if MergeStylesWithSameNames
+        private static void ConvertToNewId(XElement element, Dictionary<string, string> newIds)
+        {
+            if (element == null)
+                return;
+
+            var valueAttribute = element.Attribute(W.val);
+            string newId;
+            if (newIds.TryGetValue(valueAttribute.Value, out newId))
+            {
+                valueAttribute.Value = newId;
+            }
+        }
+#endif
 
         private static void MergeFontTables(XDocument fromFontTable, XDocument toFontTable)
         {
@@ -1074,7 +1158,7 @@ namespace OpenXmlPowerTools
                 else
                 {
                     XDocument newStyles = newDocument.MainDocumentPart.StyleDefinitionsPart.GetXDocument();
-                    MergeStyles(sourceDocument, newDocument, oldStyles, newStyles);
+                    MergeStyles(sourceDocument, newDocument, oldStyles, newStyles, newContent);
                 }
             }
 
@@ -1093,7 +1177,7 @@ namespace OpenXmlPowerTools
                 else
                 {
                     XDocument newStyles = newDocument.MainDocumentPart.StylesWithEffectsPart.GetXDocument();
-                    MergeStyles(sourceDocument, newDocument, oldStyles, newStyles);
+                    MergeStyles(sourceDocument, newDocument, oldStyles, newStyles, newContent);
                 }
             }
 
@@ -2076,7 +2160,7 @@ namespace OpenXmlPowerTools
                 newXDoc.Add(new XElement(W.styles,
                     new XAttribute(XNamespace.Xmlns + "w", W.w),
                     stylesPart.GetXDocument().Descendants(W.docDefaults)));
-                MergeStyles(sourceDocument, newDocument, stylesPart.GetXDocument(), newXDoc);
+                MergeStyles(sourceDocument, newDocument, stylesPart.GetXDocument(), newXDoc, Enumerable.Empty<XElement>());
             }
 
             //// A StylesWithEffects part shall not have implicit or explicit relationships to any other part.
