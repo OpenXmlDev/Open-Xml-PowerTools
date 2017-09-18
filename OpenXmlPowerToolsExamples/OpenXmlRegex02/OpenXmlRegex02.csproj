@@ -32,16 +32,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="DocumentFormat.OpenXml">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\Open-Xml-Sdk\DocumentFormat.OpenXml\bin\Debug\DocumentFormat.OpenXml.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.IO.Compression" />
-    <Reference Include="System.IO.Packaging">
-      <HintPath>..\..\..\Open-Xml-Sdk\DocumentFormat.OpenXml\bin\Debug\System.IO.Packaging.dll</HintPath>
-    </Reference>
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -62,7 +55,7 @@
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
   </Target>
