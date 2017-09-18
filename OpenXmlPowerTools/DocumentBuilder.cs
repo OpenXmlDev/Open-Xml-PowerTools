@@ -1090,22 +1090,14 @@ namespace OpenXmlPowerTools
                 if (newDocument.MainDocumentPart.NumberingDefinitionsPart != null)
                 {
                     var newNumbering = newDocument.MainDocumentPart.NumberingDefinitionsPart.GetXDocument();
-                    foreach (var abstractNum in newNumbering
-                        .Root
-                        .Elements(W.abstractNum))
-                    {
-                        ConvertToNewId(abstractNum.Element(W.styleLink), newIds);
-                        ConvertToNewId(abstractNum.Element(W.numStyleLink), newIds);
-                    }
+                    ConvertNumberingPartToNewIds(newNumbering, newIds);
+                }
 
-                    foreach (var item in newNumbering
-                        .Descendants()
-                        .Where(d => d.Name == W.pStyle ||
-                                    d.Name == W.rStyle ||
-                                    d.Name == W.tblStyle))
-                    {
-                        ConvertToNewId(item, newIds);
-                    }
+                // Convert source document, since numberings will be copied over after styles.
+                if (sourceDocument.MainDocumentPart.NumberingDefinitionsPart != null)
+                {
+                    var sourceNumbering = sourceDocument.MainDocumentPart.NumberingDefinitionsPart.GetXDocument();
+                    ConvertNumberingPartToNewIds(sourceNumbering, newIds);
                 }
             }
 #endif
@@ -1122,6 +1114,26 @@ namespace OpenXmlPowerTools
             if (newIds.TryGetValue(valueAttribute.Value, out newId))
             {
                 valueAttribute.Value = newId;
+            }
+        }
+
+        private static void ConvertNumberingPartToNewIds(XDocument newNumbering, Dictionary<string, string> newIds)
+        {
+            foreach (var abstractNum in newNumbering
+                .Root
+                .Elements(W.abstractNum))
+            {
+                ConvertToNewId(abstractNum.Element(W.styleLink), newIds);
+                ConvertToNewId(abstractNum.Element(W.numStyleLink), newIds);
+            }
+
+            foreach (var item in newNumbering
+                .Descendants()
+                .Where(d => d.Name == W.pStyle ||
+                            d.Name == W.rStyle ||
+                            d.Name == W.tblStyle))
+            {
+                ConvertToNewId(item, newIds);
             }
         }
 #endif
