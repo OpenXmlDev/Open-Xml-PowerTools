@@ -116,7 +116,21 @@ namespace OxPt
         [InlineData("DA264-InvalidRunLevelRepeat.docx", "DA-Data.xml", true)]
         [InlineData("DA265-RunLevelRepeatWithWhiteSpaceBefore.docx", "DA-Data.xml", false)]
         [InlineData("DA266-RunLevelRepeat-NoData.docx", "DA-Data.xml", true)]
-        
+        [InlineData("DA267-Repeat-HorizontalAlignType.docx", "DA-Data.xml", false)]
+        [InlineData("DA268-Repeat-VerticalAlignType.docx", "DA-Data.xml", false)]
+        [InlineData("DA269-Repeat-InvalidAlignType.docx", "DA-Data.xml", true)]
+        [InlineData("DA270-ImageSelect.docx", "DA-Data-WithImages.xml", false)]
+        [InlineData("DA271-ImageSelectWithRepeat.docx", "DA-Data-WithImages.xml", false)]
+        [InlineData("DA272-ImageSelectWithRepeatHorizontalAlign.docx", "DA-Data-WithImages.xml", false)]
+        [InlineData("DA273-ImageSelectInsideTextBoxWithRepeatVerticalAlign.docx", "DA-Data-WithImages.xml", false)]
+        [InlineData("DA274-ImageSelectInsideTextBoxWithRepeatHorizontalAlign.docx", "DA-Data-WithImages.xml", false)]
+        [InlineData("DA275-ImageSelectWithRepeatInvalidAlign.docx", "DA-Data-WithImages.xml", true)]
+        [InlineData("DA276-ImageSelectInsideTable.docx", "DA-Data-WithImages.xml", false)]
+        [InlineData("DA277-ImageSelectMissingOrInvalidPictureContent.docx", "DA-Data-WithImages.xml", true)]
+        [InlineData("DA278-ImageSelect.docx", "DA-Data-WithImagesInvalidPath.xml", true)]
+        [InlineData("DA279-ImageSelectWithRepeat.docx", "DA-Data-WithImagesInvalidMIMEType.xml", true)]
+        [InlineData("DA280-ImageSelectWithRepeat.docx", "DA-Data-WithImagesInvalidImageDataFormat.xml", true)]
+
         public void DA101(string name, string data, bool err)
         {
             DirectoryInfo sourceDir = new DirectoryInfo("../../../../TestFiles/");
