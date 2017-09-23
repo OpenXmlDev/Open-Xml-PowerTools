@@ -699,7 +699,6 @@ namespace OpenXmlPowerTools
                                   <xs:element name='Image'>
                                     <xs:complexType>
                                       <xs:attribute name='Select' type='xs:string' use='required' />
-                                      <xs:attribute name='Aspect' type='xs:string' use='optional' />
                                     </xs:complexType>
                                   </xs:element>
                                 </xs:schema>",
