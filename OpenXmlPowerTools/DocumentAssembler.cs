@@ -822,13 +822,21 @@ namespace OpenXmlPowerTools
         /// <returns>Image element</returns>
         private static object ProcessImageContent(XElement element, XElement data, TemplateError templateError, WordprocessingDocument wordDoc)
         {
+            // check for misplaced sdt content, should contain the paragraph and not vice versa
+            var sdt = element.Descendants(W.sdt).FirstOrDefault();
+            if (sdt == null)
+            {
+                return CreateContextErrorMessage(element, "Image: missing picture control", templateError);
+            }
+
             // get the original element with all the formatting
-            var orig = element.Descendants(W.p).FirstOrDefault();
+            var orig = sdt.Descendants(W.p).FirstOrDefault();
 
             if (orig == null)
             {
-                return CreateContextErrorMessage(element, "Exception: paragraph not found", templateError);
+                return CreateContextErrorMessage(element, "Image: misplaced picture control", templateError);
             }
+
             // clone the paragraph, so repeating elements won't be overridden
             var para = new XElement(orig);
 
@@ -847,7 +855,7 @@ namespace OpenXmlPowerTools
                     .Descendants(WP.inline).FirstOrDefault();
             if (inline == null)
             {
-                return CreateContextErrorMessage(element, "Exception: missing or invalid picture control", templateError);
+                return CreateContextErrorMessage(element, "Image: invalid picture control", templateError);
             }
 
             // get aspect ratio option
@@ -883,14 +891,14 @@ namespace OpenXmlPowerTools
 
             if (extent == null || pictureExtent == null)
             {
-                return CreateContextErrorMessage(element, "Exception: extent(s) not found", templateError);
+                return CreateContextErrorMessage(element, "Image: missing element in picture control - extent(s)", templateError);
             }
 
             // get docPr
             var docPr = inline.Descendants(WP.docPr).FirstOrDefault();
             if (docPr == null)
             {
-                return CreateContextErrorMessage(element, "Exception: docPtr not found", templateError);
+                return CreateContextErrorMessage(element, "Image: missing element in picture control - docPtr", templateError);
             }
 
             docPr.SetAttributeValue(NoNamespace.id, imageId);
@@ -930,7 +938,7 @@ namespace OpenXmlPowerTools
                             var ratio = height / (width * 1.0);
                             if (!int.TryParse(extent.Attribute(NoNamespace.cx).Value, out width))
                             {
-                                return CreateContextErrorMessage(element, "Exception: Invalid image attributes",
+                                return CreateContextErrorMessage(element, "Image: Invalid image attributes",
                                     templateError);
                             }
                             height = (int)(width * ratio);
@@ -956,7 +964,7 @@ namespace OpenXmlPowerTools
                 }
                 else
                 {
-                    return CreateContextErrorMessage(element, string.Concat("Exception: ", error), templateError);
+                    return CreateContextErrorMessage(element, string.Concat("Image: ", error), templateError);
                 }
 
                 blip.SetAttributeValue(R.embed, relationshipId);
