@@ -4,6 +4,7 @@
   <Name>Cheryl</Name>
   <HighValueCustomer>True</HighValueCustomer>
   <CustomerLogo>../../../TestFiles/img.png</CustomerLogo>
+  <Header>../../../TestFiles/T0936_files/image001.png</Header>
   <Orders>
     <Order>
       <ProductDescription>Unicycle</ProductDescription>

@@ -39,10 +39,13 @@ namespace OpenXmlPowerTools
                     if (RevisionAccepter.HasTrackedRevisions(wordDoc))
                         throw new OpenXmlPowerToolsException("Invalid DocumentAssembler template - contains tracked revisions");
 
+                    // calculate and store the max object id for later use when adding image objects
+                    SetMaxDocPrId(wordDoc);
+
                     var te = new TemplateError();
                     foreach (var part in wordDoc.ContentParts())
                     {
-                        ProcessTemplatePart(data, te, part, wordDoc);
+                        ProcessTemplatePart(data, te, part);
                     }
                     templateError = te.HasError;
                 }
@@ -51,7 +54,7 @@ namespace OpenXmlPowerTools
             }
         }
 
-        private static void ProcessTemplatePart(XElement data, TemplateError te, OpenXmlPart part, WordprocessingDocument wordDoc)
+        private static void ProcessTemplatePart(XElement data, TemplateError te, OpenXmlPart part)
         {
             XDocument xDoc = part.GetXDocument();
 
@@ -71,7 +74,7 @@ namespace OpenXmlPowerTools
                     {
                         dataPartRoot = (XElement)TransformToMetadata(dataPartRoot, data, te);
                         // do the actual content replacement
-                        dataPartRoot = (XElement)ContentReplacementTransform(dataPartRoot, data, te, wordDoc);
+                        dataPartRoot = (XElement)ContentReplacementTransform(dataPartRoot, data, te, part);
                         diagramDoc.Elements().First().ReplaceWith(dataPartRoot);
                         diagramPart.PutXDocument();
                     }                
@@ -95,7 +98,7 @@ namespace OpenXmlPowerTools
             ProcessOrphanEndRepeatEndConditional(xDocRoot, te);
 
             // do the actual content replacement
-            xDocRoot = (XElement)ContentReplacementTransform(xDocRoot, data, te, wordDoc);
+            xDocRoot = (XElement)ContentReplacementTransform(xDocRoot, data, te, part);
 
             xDoc.Elements().First().ReplaceWith(xDocRoot);
             part.PutXDocument();
@@ -761,24 +764,76 @@ namespace OpenXmlPowerTools
             public bool HasError = false;
         }
 
-        private static decimal _imageId;
-        private static string GetNextImageId(WordprocessingDocument wordDoc)
+        /// <summary>
+        /// Gets the next image relationship identifier of given part. The
+        /// parts can be either header, footer or main document part. The method
+        /// scans for already present relationship identifiers, then increments and
+        /// returns the next available value.
+        /// </summary>
+        /// <param name="part">The part.</param>
+        /// <returns>System.String.</returns>
+        private static string GetNextImageRelationshipId(OpenXmlPart part)
         {
-            if (_imageId == 0)
+            var mainDocumentPart = part as MainDocumentPart;
+            if (mainDocumentPart != null)
             {
-                // need to keep track of the value, as the newly added relationships won't be updated
-                // in the document until saved.
-                _imageId = wordDoc.MainDocumentPart.Parts
+                var imageId = mainDocumentPart.Parts
                     .Select(p => Regex.Match(p.RelationshipId, @"rId(?<rId>\d+)").Groups["rId"].Value)
-                    .Max(x => Convert.ToDecimal(x));                
+                    .Max(x => Convert.ToDecimal(x));
+
+                return string.Format("rId{0}", ++imageId);
             }
 
-            return string.Format("{0}", ++_imageId);
+            var headerPart = part as HeaderPart;
+            if (headerPart != null)
+            {
+                var imageId = headerPart.Parts
+                    .Select(p => Regex.Match(p.RelationshipId, @"rId(?<rId>\d+)").Groups["rId"].Value)
+                    .Max(x => Convert.ToDecimal(x));
+
+                return string.Format("rId{0}", ++imageId);
+            }
+
+            var footerPart = part as FooterPart;
+            if (footerPart != null)
+            {
+                var imageId = footerPart.Parts
+                    .Select(p => Regex.Match(p.RelationshipId, @"rId(?<rId>\d+)").Groups["rId"].Value)
+                    .Max(x => Convert.ToDecimal(x));
+
+                return string.Format("rId{0}", ++imageId);
+            }
+
+            return null;
         }
 
-        private static string ImageId2RelationshipId(object imageId)
+        private static decimal _docPrId;
+
+        /// <summary>
+        /// Stores the maximum document pr identifier. The identifier is
+        /// unique throughout the document. This method
+        /// scans the whole document, finds and stores the max number (id is signed 
+        /// 23 bit integer).
+        /// </summary>
+        /// <param name="wordDoc">The word document.</param>
+        private static void SetMaxDocPrId(WordprocessingDocument wordDoc)
         {
-            return string.Format("rId{0}", imageId);
+            var idsList = new List<string>();
+            foreach (var part in wordDoc.ContentParts())
+            {
+                idsList.AddRange(part.GetXDocument().Descendants(WP.docPr)
+                    .SelectMany(e => e.Attributes().Where(a => a.Name == NoNamespace.id)).Select(v => v.Value));
+            }
+            _docPrId = (idsList.Count == 0)? 0 : idsList.Max(x => Convert.ToDecimal(x));
+        }
+
+        /// <summary>
+        /// Gets the next available object identifier. 
+        /// </summary>
+        /// <returns>System.String.</returns>
+        private static string GetNextDocPrId()
+        {
+            return string.Format("{0}", ++_docPrId);
         }
 
         // shape type identifier
@@ -795,21 +850,35 @@ namespace OpenXmlPowerTools
             return string.Format("_x0000_s{0}", _shapeId++);
         }
 
-        private static uint _maxDocPropertiesId = 0;
-
-        private static string GetMaxDocPropertyId(WordprocessingDocument wordDoc)
+        /// <summary>
+        /// Creates and returns the image part inside the given part. The
+        /// part can be either header, footer or main document part.
+        /// </summary>
+        /// <param name="part">The part.</param>
+        /// <param name="imagePartType">Type of the image part.</param>
+        /// <param name="relationshipId">The relationship identifier.</param>
+        /// <returns>ImagePart.</returns>
+        private static ImagePart GetImagePart(OpenXmlPart part, ImagePartType imagePartType, string relationshipId)
         {
-            if (_maxDocPropertiesId == 0)
+            var mainDocumentPart = part as MainDocumentPart;
+            if (mainDocumentPart != null)
             {
-                // determine current max document property id
-                _maxDocPropertiesId = wordDoc
-                                          .MainDocumentPart
-                                          .RootElement
-                                          .Descendants<DocProperties>()
-                                          .Max(x => (uint?)x.Id) ?? 0;
+                return mainDocumentPart.AddImagePart(imagePartType, relationshipId);
             }
 
-            return string.Format("{0}", ++_maxDocPropertiesId);
+            var headerPart = part as HeaderPart;
+            if (headerPart != null)
+            {
+                return headerPart.AddImagePart(imagePartType, relationshipId);
+            }
+
+            var footerPart = part as FooterPart;
+            if (footerPart != null)
+            {
+                return footerPart.AddImagePart(imagePartType, relationshipId);
+            }
+
+            return null;
         }
 
         /// <summary>
@@ -818,9 +887,9 @@ namespace OpenXmlPowerTools
         /// <param name="element">Source element</param>
         /// <param name="data">Data element with content</param>
         /// <param name="templateError">Error indicator</param>
-        /// <param name="wordDoc">Document reference</param>
+        /// <param name="part">The part where the image is getting processed.</param>
         /// <returns>Image element</returns>
-        private static object ProcessImageContent(XElement element, XElement data, TemplateError templateError, WordprocessingDocument wordDoc)
+        private static object ProcessImageContent(XElement element, XElement data, TemplateError templateError, OpenXmlPart part)
         {
             // check for misplaced sdt content, should contain the paragraph and not vice versa
             var sdt = element.Descendants(W.sdt).FirstOrDefault();
@@ -847,8 +916,8 @@ namespace OpenXmlPowerTools
 
             // assign unique image and paragraph ids. Image id is document property Id  (wp:docPr)
             // and relationship id is rId. Their numbering is different.
-            var imageId = GetNextImageId(wordDoc);
-            var relationshipId = ImageId2RelationshipId(GetNextImageId(wordDoc));
+            var imageId = GetNextDocPrId();
+            var relationshipId = GetNextImageRelationshipId(part);
 
             var inline =
                 para.Descendants(W.drawing)
@@ -902,7 +971,7 @@ namespace OpenXmlPowerTools
             }
 
             docPr.SetAttributeValue(NoNamespace.id, imageId);
-            docPr.SetAttributeValue(NoNamespace.name, imageId);
+            docPr.SetAttributeValue(NoNamespace.name, string.Format("Picture {0}", imageId));
 
             var blip = inline
                     .Descendants(A.graphic)
@@ -919,7 +988,13 @@ namespace OpenXmlPowerTools
                 var stream = Image2Stream(imagePath, out imagePartType, out error);
                 if (stream != null)
                 {
-                    var ip = wordDoc.MainDocumentPart.AddImagePart(imagePartType, relationshipId);
+                    var ip = GetImagePart(part, imagePartType, relationshipId);
+
+                    if (ip == null)
+                    {
+                        error = "Failed to get image part";
+                        return CreateContextErrorMessage(element, string.Concat("Image: ", error), templateError);
+                    }
                     ip.FeedData(stream);
                     stream.Close();
 
@@ -1090,7 +1165,7 @@ namespace OpenXmlPowerTools
             return null;
         }
 
-        static object ContentReplacementTransform(XNode node, XElement data, TemplateError templateError, WordprocessingDocument wordDoc)
+        static object ContentReplacementTransform(XNode node, XElement data, TemplateError templateError, OpenXmlPart part)
         {
             XElement element = node as XElement;
             if (element != null)
@@ -1105,7 +1180,7 @@ namespace OpenXmlPowerTools
                         .FirstOrDefault();
                     if (docProperties != null)
                     {
-                        docProperties.SetAttributeValue(NoNamespace.id, GetNextImageId(wordDoc));
+                        docProperties.SetAttributeValue(NoNamespace.id, GetNextDocPrId());
                     }
 
                     // get the fallback picture element
@@ -1142,7 +1217,7 @@ namespace OpenXmlPowerTools
                 }
                 if (element.Name == PA.Image)
                 {
-                    return ProcessImageContent(element, data, templateError, wordDoc);
+                    return ProcessImageContent(element, data, templateError, part);
                 }
                 if (element.Name == PA.Content)
                 {
@@ -1227,7 +1302,7 @@ namespace OpenXmlPowerTools
                         {
                             var content = element
                                 .Elements()
-                                .Select(e => ContentReplacementTransform(e, d, templateError, wordDoc))
+                                .Select(e => ContentReplacementTransform(e, d, templateError, part))
                                 .ToList();
                             return content;
                         })
@@ -1278,7 +1353,7 @@ namespace OpenXmlPowerTools
                         .Skip(2)
                         .ToList();
                     var footerRows = footerRowsBeforeTransform
-                        .Select(x => ContentReplacementTransform(x, data, templateError, wordDoc))
+                        .Select(x => ContentReplacementTransform(x, data, templateError, part))
                         .ToList();
                     if (protoRow == null)
                         return CreateContextErrorMessage(element, string.Format("Table does not contain a prototype row"), templateError);
@@ -1304,7 +1379,7 @@ namespace OpenXmlPowerTools
                                             if (image != null)
                                             {
                                                 // has to be wrapped as table cell element, since we are re-formatting the table
-                                                return new XElement(W.tc, ProcessImageContent(image, d, templateError, wordDoc));
+                                                return new XElement(W.tc, ProcessImageContent(image, d, templateError, part));
                                             }
                                         }
 
@@ -1362,14 +1437,14 @@ namespace OpenXmlPowerTools
                   
                     if ((match != null && testValue == match) || (notMatch != null && testValue != notMatch))
                     {
-                        var content = element.Elements().Select(e => ContentReplacementTransform(e, data, templateError, wordDoc));
+                        var content = element.Elements().Select(e => ContentReplacementTransform(e, data, templateError, part));
                         return content;
                     }
                     return null;
                 }
                 return new XElement(element.Name,
                     element.Attributes(),
-                    element.Nodes().Select(n => ContentReplacementTransform(n, data, templateError, wordDoc)));
+                    element.Nodes().Select(n => ContentReplacementTransform(n, data, templateError, part)));
             }
             return node;
         }

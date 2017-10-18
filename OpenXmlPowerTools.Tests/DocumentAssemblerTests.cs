@@ -131,6 +131,10 @@ namespace OxPt
         [InlineData("DA279-ImageSelectWithRepeat.docx", "DA-Data-WithImagesInvalidMIMEType.xml", true)]
         [InlineData("DA280-ImageSelectWithRepeat.docx", "DA-Data-WithImagesInvalidImageDataFormat.xml", true)]
         [InlineData("DA281-ImageSelectExtraWhitespaceBeforeImageContent.docx", "DA-Data-WithImages.xml", true)]
+        [InlineData("DA282-ImageSelectWithHeader.docx", "DA-Data-WithImages.xml", false)]
+        [InlineData("DA282-ImageSelectWithHeader.docx", "DA-Data-WithImagesInvalidPath.xml", true)]
+        [InlineData("DA283-ImageSelectWithFooter.docx", "DA-Data-WithImages.xml", false)]
+        [InlineData("DA284-ImageSelectWithHeaderAndFooter.docx", "DA-Data-WithImages.xml", false)]
 
         public void DA101(string name, string data, bool err)
         {
