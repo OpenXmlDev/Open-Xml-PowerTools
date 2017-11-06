@@ -272,8 +272,10 @@ namespace OpenXmlPowerTools
                 }
                 else
                 {
-                    image.ReplaceWith(
-                        CreateParaErrorMessage("Image metadata is not immediately followed by an image", te));
+                    // there might be the image without surrounding content control
+                    image.RemoveNodes();
+                    followingElement.Remove();
+                    image.Add(followingElement);
                     continue;
                 }
 
@@ -893,17 +895,13 @@ namespace OpenXmlPowerTools
         {
             // check for misplaced sdt content, should contain the paragraph and not vice versa
             var sdt = element.Descendants(W.sdt).FirstOrDefault();
-            if (sdt == null)
-            {
-                return CreateContextErrorMessage(element, "Image: missing picture control", templateError);
-            }
-
             // get the original element with all the formatting
-            var orig = sdt.Descendants(W.p).FirstOrDefault();
+            var orig = sdt == null ? element.Descendants(W.p).FirstOrDefault() : sdt.Descendants(W.p).FirstOrDefault();
 
-            if (orig == null)
+            // check for first run having image element in it
+            if (orig == null || !orig.Descendants(W.r).FirstOrDefault().Descendants(W.drawing).Any())
             {
-                return CreateContextErrorMessage(element, "Image: misplaced picture control", templateError);
+                return CreateContextErrorMessage(element, "Image metadata is not immediately followed by an image", templateError);
             }
 
             // clone the paragraph, so repeating elements won't be overridden
