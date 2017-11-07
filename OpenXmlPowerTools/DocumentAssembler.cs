@@ -39,8 +39,8 @@ namespace OpenXmlPowerTools
                     if (RevisionAccepter.HasTrackedRevisions(wordDoc))
                         throw new OpenXmlPowerToolsException("Invalid DocumentAssembler template - contains tracked revisions");
 
-                    // calculate and store the max object id for later use when adding image objects
-                    SetMaxDocPrId(wordDoc);
+                    // calculate and store the max docPr id for later use when adding image objects
+                    var macDocPrId = GetMaxDocPrId(wordDoc);
 
                     var te = new TemplateError();
                     foreach (var part in wordDoc.ContentParts())
@@ -48,6 +48,9 @@ namespace OpenXmlPowerTools
                         ProcessTemplatePart(data, te, part);
                     }
                     templateError = te.HasError;
+
+                    // update image docPr ids for the whole document
+                    FixUpDocPrIds(wordDoc, macDocPrId);
                 }
                 WmlDocument assembledDocument = new WmlDocument("TempFileName.docx", mem.ToArray());
                 return assembledDocument;
@@ -809,16 +812,15 @@ namespace OpenXmlPowerTools
             return null;
         }
 
-        private static decimal _docPrId;
-
         /// <summary>
-        /// Stores the maximum document pr identifier. The identifier is
+        /// Calculates the maximum docPr id. The identifier is
         /// unique throughout the document. This method
-        /// scans the whole document, finds and stores the max number (id is signed 
+        /// scans the whole document, finds and stores the max number (id is signed
         /// 23 bit integer).
         /// </summary>
         /// <param name="wordDoc">The word document.</param>
-        private static void SetMaxDocPrId(WordprocessingDocument wordDoc)
+        /// <returns>System.Decimal.</returns>
+        private static decimal GetMaxDocPrId(WordprocessingDocument wordDoc)
         {
             var idsList = new List<string>();
             foreach (var part in wordDoc.ContentParts())
@@ -826,16 +828,37 @@ namespace OpenXmlPowerTools
                 idsList.AddRange(part.GetXDocument().Descendants(WP.docPr)
                     .SelectMany(e => e.Attributes().Where(a => a.Name == NoNamespace.id)).Select(v => v.Value));
             }
-            _docPrId = (idsList.Count == 0)? 0 : idsList.Max(x => Convert.ToDecimal(x));
+            return idsList.Count == 0 ? 0 : idsList.Max(x => Convert.ToDecimal(x));
         }
 
+        private const string InvalidImageId = "InvalidImageId";
+
         /// <summary>
-        /// Gets the next available object identifier. 
+        /// Fixes docPrIds for the document. The identifier is unique throughout the
+        /// document. This method scans the whole document, finds and replaces the
+        /// image ids which were marked as invalid with incremental id 
+        /// (id is signed 23 bit integer).
         /// </summary>
-        /// <returns>System.String.</returns>
-        private static string GetNextDocPrId()
+        /// <param name="wDoc">The word processing document.</param>
+        /// <param name="maxDocPrId">The current maximum document pr identifier calculated 
+        /// before the document has been processed.</param>
+        private static void FixUpDocPrIds(WordprocessingDocument wDoc, decimal maxDocPrId)
         {
-            return string.Format("{0}", ++_docPrId);
+            var elementToFind = WP.docPr;
+            var docPrToChange = wDoc
+                .ContentParts()
+                .Select(cp => cp.GetXDocument())
+                .Select(xd => xd.Descendants().Where(d => d.Name == elementToFind))
+                .SelectMany(m => m);
+            var nextId = maxDocPrId;
+            foreach (var item in docPrToChange)
+            {
+                var idAtt = item.Attribute(NoNamespace.id);
+                if (idAtt != null && idAtt.Value == InvalidImageId)
+                    idAtt.Value = string.Format("{0}", ++nextId);
+            }
+            foreach (var cp in wDoc.ContentParts())
+                cp.PutXDocument();
         }
 
         // shape type identifier
@@ -914,7 +937,7 @@ namespace OpenXmlPowerTools
 
             // assign unique image and paragraph ids. Image id is document property Id  (wp:docPr)
             // and relationship id is rId. Their numbering is different.
-            var imageId = GetNextDocPrId();
+            const string imageId = InvalidImageId; // Ids will be replaced with real ones later, after transform is done
             var relationshipId = GetNextImageRelationshipId(part);
 
             var inline =
@@ -969,7 +992,7 @@ namespace OpenXmlPowerTools
             }
 
             docPr.SetAttributeValue(NoNamespace.id, imageId);
-            docPr.SetAttributeValue(NoNamespace.name, string.Format("Picture {0}", imageId));
+            docPr.SetAttributeValue(NoNamespace.name, "Templated Image Content");
 
             var blip = inline
                     .Descendants(A.graphic)
@@ -1178,7 +1201,7 @@ namespace OpenXmlPowerTools
                         .FirstOrDefault();
                     if (docProperties != null)
                     {
-                        docProperties.SetAttributeValue(NoNamespace.id, GetNextDocPrId());
+                        docProperties.SetAttributeValue(NoNamespace.id, InvalidImageId);
                     }
 
                     // get the fallback picture element
