@@ -413,12 +413,13 @@ namespace OxPt
 
             using (WordprocessingDocument wDoc = WordprocessingDocument.Open(processedDestDocx.FullName, false))
             {
-                var styles = wDoc.MainDocumentPart.StyleDefinitionsPart.Styles.OfType<Style>().ToArray();
-                Assert.Equal(1, styles.Count(s => s.StyleName.Val == "heading 1"));
+                var styles = wDoc.MainDocumentPart.StyleDefinitionsPart.GetXDocument().Root.Elements(W.style).ToArray();
+                Assert.Equal(1, styles.Count(s => s.Element(W.name).Attribute(W.val).Value == "heading 1"));
 
-                var styleIds = new HashSet<string>(styles.Select(s => s.StyleId.Value));
-                var paragraphStylesIds = new HashSet<string>(wDoc.MainDocumentPart.Document.Descendants<ParagraphStyleId>()
-                    .Select(p => p.Val.Value));
+                var styleIds = new HashSet<string>(styles.Select(s => s.Attribute(W.styleId).Value));
+                var paragraphStylesIds = new HashSet<string>(wDoc.MainDocumentPart.GetXDocument()
+                    .Descendants(W.pStyle)
+                    .Select(p => p.Attribute(W.val).Value));
                 Assert.Subset(styleIds, paragraphStylesIds);
             }
         }
