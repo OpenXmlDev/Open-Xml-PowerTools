@@ -34,6 +34,33 @@ namespace OpenXmlPowerTools
         public bool ApplyRunContentTypes = true;
     }
 
+    public class GlobalValidationRule
+    {
+        public string[] RuleNames;
+        public Func<GlobalValidationRule, WordprocessingDocument, WordprocessingDocument, XElement, WmlToXmlSettings, List<WmlToXmlValidationError>> GlobalRuleLambda;
+        public bool IsOnlyWarning;
+        public string Message;
+    }
+
+    public class BlockLevelContentValidationRule
+    {
+        public string[] RuleNames;
+        public Regex StyleNameRegex;
+        public Func<XElement, BlockLevelContentValidationRule, WordprocessingDocument, XElement, WmlToXmlSettings, List<WmlToXmlValidationError>> BlockLevelContentRuleLambda;
+        public bool IsOnlyWarning;
+        public string Message;
+    }
+
+    public class WmlToXmlValidationError
+    {
+        public string RuleName;
+        public string ErrorMessage;
+        public string BlockLevelContentIdentifier;  // this string is the same as the unid that is in the source document.  This string should be sufficient to identify and find any
+                                                    // invalid paragraph, table, row, cell, or anything else in the source document.
+                                                    // for now, i am putting an integer into this attribute / id, but I expect that this will be more elaborate than this.
+                                                    // I need to again research exactly how to move to a specific paragraph or table in a document, in a VSTO app.
+    }
+
     public class WmlToXmlProgressInfo
     {
         public int ContentCount;
@@ -52,6 +79,8 @@ namespace OpenXmlPowerTools
         public List<ContentTypeRule> DocumentTypeContentTypeRules;
         public List<ContentTypeRule> DocumentContentTypeRules;
         public List<ContentTypeRule> RunContentTypeRules;
+        public List<GlobalValidationRule> GlobalValidationRules;
+        public List<BlockLevelContentValidationRule> BlockLevelContentValidationRules;
         public ListItemRetrieverSettings ListItemRetrieverSettings;
         public bool? InjectCommentForContentTypes;
         public XElement ContentTypeHierarchyDefinition;
@@ -69,6 +98,8 @@ namespace OpenXmlPowerTools
             List<ContentTypeRule> documentTypeContentTypeRules,
             List<ContentTypeRule> documentContentTypeRules,
             List<ContentTypeRule> runContentTypeRules,
+            List<GlobalValidationRule> globalValidationRules,
+            List<BlockLevelContentValidationRule> blockLevelContentValidationRules,
             XElement contentTypeHierarchyDefinition,
             Func<XElement, WmlToXmlSettings, bool> contentTypeHierarchyLambda,
             Dictionary<string, Func<string, OpenXmlPart, XElement, WmlToXmlSettings, object>> xmlGenerationLambdas,
@@ -79,6 +110,8 @@ namespace OpenXmlPowerTools
             DocumentTypeContentTypeRules = documentTypeContentTypeRules;
             DocumentContentTypeRules = documentContentTypeRules;
             RunContentTypeRules = runContentTypeRules;
+            GlobalValidationRules = globalValidationRules;
+            BlockLevelContentValidationRules = blockLevelContentValidationRules;
             ListItemRetrieverSettings = new ListItemRetrieverSettings();
             ContentTypeHierarchyDefinition = contentTypeHierarchyDefinition;
             ContentTypeHierarchyLambda = contentTypeHierarchyLambda;
@@ -92,6 +125,8 @@ namespace OpenXmlPowerTools
             List<ContentTypeRule> documentTypeContentTypeRules,
             List<ContentTypeRule> documentContentTypeRules,
             List<ContentTypeRule> runContentTypeRules,
+            List<GlobalValidationRule> globalValidationRules,
+            List<BlockLevelContentValidationRule> blockLevelContentValidationRules,
             Func<XElement, WmlToXmlSettings, bool> contentTypeHierarchyLambda,
             Dictionary<string, Func<string, OpenXmlPart, XElement, WmlToXmlSettings, object>> xmlGenerationLambdas,
             ListItemRetrieverSettings listItemRetrieverSettings,
@@ -102,6 +137,8 @@ namespace OpenXmlPowerTools
             DocumentTypeContentTypeRules = documentTypeContentTypeRules;
             DocumentContentTypeRules = documentContentTypeRules;
             RunContentTypeRules = runContentTypeRules;
+            GlobalValidationRules = globalValidationRules;
+            BlockLevelContentValidationRules = blockLevelContentValidationRules;
             ListItemRetrieverSettings = listItemRetrieverSettings;
             ContentTypeHierarchyLambda = contentTypeHierarchyLambda;
             XmlGenerationLambdas = xmlGenerationLambdas;
@@ -787,56 +824,77 @@ namespace OpenXmlPowerTools
             if (element != null)
             {
                 if (element.Name == W.p &&
-                    element.Element(W.fldSimple) != null)
-                {
-                    var fldSimple = element.Element(W.fldSimple);
-                    var instr = ((string)fldSimple.Attribute(W.instr)).Trim();
-                    if (instr.StartsWith("SEQ"))
+                    element.Elements(W.fldSimple).Any(fs =>
                     {
-                        var runAfter = fldSimple.ElementsAfterSelf(W.r).FirstOrDefault();
-                        var runAfterText = runAfter.Elements(W.t).Select(t => (string)t).StringConcatenate();
-                        var runAfterTextTrimmed = runAfterText.TrimStart('.', ' ');
-                        var listItemNum = fldSimple.Elements(W.r).Elements(W.t).Select(t => (string)t).StringConcatenate();
-                        var runsBefore = element.Elements().TakeWhile(e => e.Name != W.fldSimple).Select(e =>
-                            {
-                                var newE = new XElement(e.Name,
-                                    e.Attributes(),
-                                    e.Element(W.t) != null ? new XAttribute(PtOpenXml.ListItemRun, listItemNum) : null,
-                                    e.Elements());
-                                return newE;
-                            })
-                            .ToList();
-                        var fldSimpleRuns = fldSimple.Elements().Select(e =>
-                            {
-                                var newE = new XElement(e.Name,
-                                    e.Attributes(),
-                                    new XAttribute(PtOpenXml.ListItemRun, listItemNum),
-                                    e.Elements());
-                                return newE;
-                            });
-                        var runAfterTextTrimmedLength = runAfterText.Length - runAfterTextTrimmed.Length;
-                        XElement runAfterListItemElement = null;
-                        if (runAfterTextTrimmedLength != 0)
+                        var instrText = ((string)fs.Attribute(W.instr)).Trim();
+                        return instrText.StartsWith("SEQ");
+                    }))
+                {
+                    var fldSimple = element.Elements(W.fldSimple).FirstOrDefault(fs =>
+                    {
+                        var instrText = ((string)fs.Attribute(W.instr)).Trim();
+                        return instrText.StartsWith("SEQ");
+                    });
+                    var instr = ((string)fldSimple.Attribute(W.instr)).Trim();
+
+                    // we have to do some funny business here because Word puts the ". " as part of the text following the fldSimple, and we want that text to be part of the list item.
+                    var runAfter = fldSimple.ElementsAfterSelf(W.r).FirstOrDefault();
+                    var runAfterText = runAfter.Elements(W.t).Select(t => (string)t).StringConcatenate();
+                    var runAfterTextTrimmed = runAfterText.TrimStart('.', ' ');
+                    var listItemNum = fldSimple.Elements(W.r).Elements(W.t).Select(t => (string)t).StringConcatenate();
+                    var runsBefore = element
+                        .Elements()
+                        .TakeWhile(fs => fs.Name != W.fldSimple || (fs.Name == W.fldSimple && !((string)fs.Attribute(W.instr)).Trim().StartsWith("SEQ")))
+                        .Select(e =>
                         {
-                            runAfterListItemElement = new XElement(W.r,
-                                runAfter.Attributes(),
+#if false
+<w:r pt14:StyleName="DefaultParagraphFont" pt14:FontName="Calibri" pt14:LanguageType="western" pt14:ListItemRun="3" xmlns:pt14="http://powertools.codeplex.com/2011" xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+  <w:rPr>
+    <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" w:eastAsiaTheme="minorHAnsi" w:cstheme="minorBidi" w:ascii="Calibri" w:hAnsi="Calibri" w:eastAsia="Calibri" w:cs="" />
+    <w:bCs />
+    <w:sz w:val="22" />
+    <w:szCs w:val="22" />
+    <w:lang w:bidi="ar-SA" w:eastAsia="en-US" w:val="en-US" />
+  </w:rPr>
+  <w:t>3.</w:t>
+</w:r>
+#endif
+                            var newE = new XElement(e); // clone
+                            if (e.Value != "" && e.Attribute(PtOpenXml.ListItemRun) == null)
+                                newE.Add(new XAttribute(PtOpenXml.ListItemRun, listItemNum));
+                            return newE;
+                        })
+                        .ToList();
+                    var fldSimpleRuns = fldSimple.Elements().Select(e =>
+                        {
+                            var newE = new XElement(e.Name,
+                                e.Attributes(),
                                 new XAttribute(PtOpenXml.ListItemRun, listItemNum),
-                                runAfter.Elements(W.rPr),
-                                new XElement(W.t, runAfterText.Substring(0, runAfterTextTrimmedLength)));
-                        }
-                        XElement runAfterRemainderElement = new XElement(W.r,
+                                e.Elements());
+                            return newE;
+                        });
+                    var runAfterTextTrimmedLength = runAfterText.Length - runAfterTextTrimmed.Length;
+                    XElement runAfterListItemElement = null;
+                    if (runAfterTextTrimmedLength != 0)
+                    {
+                        runAfterListItemElement = new XElement(W.r,
                             runAfter.Attributes(),
+                            new XAttribute(PtOpenXml.ListItemRun, listItemNum),
                             runAfter.Elements(W.rPr),
-                            new XElement(W.t, runAfterText.Substring(runAfterTextTrimmedLength)));
-                        var newPara = new XElement(W.p,
-                            element.Attributes(),
-                            runsBefore,
-                            fldSimpleRuns,
-                            runAfterListItemElement,
-                            runAfterRemainderElement,
-                            fldSimple.ElementsAfterSelf(W.r).Skip(1));
-                        return newPara;
+                            new XElement(W.t, runAfterText.Substring(0, runAfterTextTrimmedLength)));
                     }
+                    XElement runAfterRemainderElement = new XElement(W.r,
+                        runAfter.Attributes(),
+                        runAfter.Elements(W.rPr),
+                        new XElement(W.t, runAfterText.Substring(runAfterTextTrimmedLength)));
+                    var newPara = new XElement(W.p,
+                        element.Attributes(),
+                        runsBefore,
+                        fldSimpleRuns,
+                        runAfterListItemElement,
+                        runAfterRemainderElement,
+                        fldSimple.ElementsAfterSelf(W.r).Skip(1));
+                    return newPara;
                 }
 
                 return new XElement(element.Name,
@@ -906,7 +964,7 @@ namespace OpenXmlPowerTools
 
                 var contentType = (string)element.Attribute(PtOpenXml.ContentType);
 
-                if (element.Name == W.t)
+                if (element.Name == W.t || element.Name == W.fldSimple)
                     return element.Nodes().Select(z => ProduceXmlTransform(part, z, settings));
 
                 if (contentType == null && element.Name == W.r)
@@ -956,8 +1014,17 @@ namespace OpenXmlPowerTools
                                 if (n != null)
                                 {
                                     n.Add(new XAttribute("Lang", lang));
+                                    if (element.Attribute(PtOpenXml.Unid) != null)
+                                        n.Add(new XAttribute("Unid", element.Attribute(PtOpenXml.Unid).Value));
                                     return n;
                                 }
+                            }
+
+                            var n2 = newElement as XElement;
+                            if (n2 != null && element.Attribute(PtOpenXml.Unid) != null)
+                            {
+                                n2.Add(new XAttribute("Unid", element.Attribute(PtOpenXml.Unid).Value));
+                                return n2;
                             }
 
                             return newElement;
@@ -1191,7 +1258,7 @@ namespace OpenXmlPowerTools
                     if (stylePass)
                     {
                         styleRegexPass = rule.StyleNameRegex == null;
-                        if (rule.StyleNameRegex != null)
+                        if (rule.StyleNameRegex != null && styleOfBlc != null)
                             styleRegexPass = rule.StyleNameRegex.IsMatch(styleOfBlc);
                     }
 
@@ -1761,6 +1828,174 @@ namespace OpenXmlPowerTools
         public class ContentApplierException : Exception
         {
             public ContentApplierException(string message) : base(message) { }
+        }
+
+        public static List<WmlToXmlValidationError> ValidateContentTypeXml(WmlDocument wmlRawSourceDocument, WmlDocument wmlWithContentTypeApplied, XElement contentTypeXml, WmlToXmlSettings settings)
+        {
+            List<WmlToXmlValidationError> errorList = new List<WmlToXmlValidationError>();
+
+            using (MemoryStream msContentTypeApplied = new MemoryStream())
+            using (MemoryStream msRawSourceDocument = new MemoryStream())
+            {
+                msContentTypeApplied.Write(wmlWithContentTypeApplied.DocumentByteArray, 0, wmlWithContentTypeApplied.DocumentByteArray.Length);
+                msRawSourceDocument.Write(wmlRawSourceDocument.DocumentByteArray, 0, wmlRawSourceDocument.DocumentByteArray.Length);
+                using (WordprocessingDocument wDocContentTypeApplied = WordprocessingDocument.Open(msContentTypeApplied, true))
+                using (WordprocessingDocument wDocRawSourceDocument = WordprocessingDocument.Open(msRawSourceDocument, true))
+                {
+                    foreach (var vr in settings.GlobalValidationRules)
+                    {
+                        if (vr.GlobalRuleLambda != null)
+                        {
+                            var valErrors = vr.GlobalRuleLambda(vr, wDocRawSourceDocument, wDocContentTypeApplied, contentTypeXml, settings);
+                            if (valErrors != null && valErrors.Any())
+                            {
+                                foreach (var ve in valErrors)
+                                {
+                                    errorList.Add(ve);
+                                }
+                            }
+                        }
+                    }
+                    var mXDoc = wDocContentTypeApplied.MainDocumentPart.GetXDocument();
+                    var sXDoc = wDocContentTypeApplied.MainDocumentPart.StyleDefinitionsPart.GetXDocument();
+
+                    var defaultParagraphStyle = sXDoc
+                        .Root
+                        .Elements(W.style)
+                        .FirstOrDefault(s => (string)s.Attribute(W._default) == "1");
+
+                    string defaultParagraphStyleName = null;
+                    if (defaultParagraphStyle != null)
+                        defaultParagraphStyleName = (string)defaultParagraphStyle.Attribute(W.styleId);
+
+                    foreach (var blc in mXDoc.Root.Descendants().Where(d => d.Name == W.p || d.Name == W.tbl || d.Name == W.tr || d.Name == W.tc))
+                    {
+                        var styleId = (string)blc
+                            .Elements(W.pPr)
+                            .Elements(W.pStyle)
+                            .Attributes(W.val)
+                            .FirstOrDefault();
+                        var styleName = (string)sXDoc
+                            .Root
+                            .Elements(W.style)
+                            .Where(s => (string)s.Attribute(W.styleId) == styleId)
+                            .Elements(W.name)
+                            .Attributes(W.val)
+                            .FirstOrDefault();
+
+                        if (styleName == null && blc.Name == W.p)
+                            styleName = defaultParagraphStyleName;
+
+                        foreach (var vr in settings.BlockLevelContentValidationRules)
+                        {
+                            bool matchStyle = true;
+                            if (vr.StyleNameRegex != null)
+                            {
+                                if (styleName == null)
+                                {
+                                    matchStyle = false;
+                                }
+                                else
+                                {
+                                    var match = vr.StyleNameRegex.Match(styleName);
+                                    matchStyle = match.Success;
+                                }
+                            }
+                            if (matchStyle && vr.BlockLevelContentRuleLambda != null)
+                            {
+                                var valErrors = vr.BlockLevelContentRuleLambda(blc, vr, wDocContentTypeApplied, contentTypeXml, settings);
+                                if (valErrors != null && valErrors.Any())
+                                {
+                                    foreach (var ve in valErrors)
+                                    {
+                                        errorList.Add(ve);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            return errorList;
+        }
+    }
+
+    public static class WmlToXmlUtil
+    {
+        public static WmlDocument AssignUnidToBlc(WmlDocument document)
+        {
+            using (MemoryStream ms = new MemoryStream())
+            {
+                ms.Write(document.DocumentByteArray, 0, document.DocumentByteArray.Length);
+                using (WordprocessingDocument wDoc = WordprocessingDocument.Open(ms, true))
+                {
+                    var xDoc = wDoc.MainDocumentPart.GetXDocument();
+                    List<XElement> elementsInOrder = new List<XElement>();
+                    DetermineElementOrder(xDoc.Root.Descendants(W.body).FirstOrDefault(), elementsInOrder);
+                    var unid = 1;
+                    foreach (var b in elementsInOrder)
+                    {
+                        var unidString = unid.ToString();
+                        if (b.Attribute(PtOpenXml.Unid) != null)
+                            b.Attribute(PtOpenXml.Unid).Value = unidString;
+                        else
+                            b.Add(new XAttribute(PtOpenXml.Unid, unidString));
+                        unid++;
+                    }
+                    IgnorePt14Namespace(xDoc.Root);
+                    wDoc.MainDocumentPart.PutXDocument();
+                }
+                var result = new WmlDocument(document.FileName, ms.ToArray());
+                return result;
+            }
+        }
+
+        private static void DetermineElementOrder(XElement element, List<XElement> elementList)
+        {
+            foreach (var childElement in element.Elements())
+            {
+                if (childElement.Name == W.p)
+                {
+                    elementList.Add(childElement);
+                    continue;
+                }
+                else if (childElement.Name == W.tbl || childElement.Name == W.tc || childElement.Name == W.sdt ||
+                    childElement.Name == W.sdtContent)
+                {
+                    DetermineElementOrder(childElement, elementList);
+                    continue;
+                }
+                else if (childElement.Name == W.tr)
+                {
+                    foreach (var tc in childElement.Elements())
+                        DetermineElementOrder(tc, elementList);
+                    elementList.Add(childElement);
+                    continue;
+                }
+            }
+        }
+
+        private static void IgnorePt14Namespace(XElement root)
+        {
+            if (root.Attribute(XNamespace.Xmlns + "pt14") == null)
+            {
+                root.Add(new XAttribute(XNamespace.Xmlns + "pt14", PtOpenXml.pt.NamespaceName));
+            }
+            var ignorable = (string)root.Attribute(MC.Ignorable);
+            if (ignorable != null)
+            {
+                var list = ignorable.Split(' ');
+                if (!list.Contains("pt14"))
+                {
+                    ignorable += " pt14";
+                    root.Attribute(MC.Ignorable).Value = ignorable;
+                }
+            }
+            else
+            {
+                root.Add(new XAttribute(MC.Ignorable, "pt14"));
+            }
         }
     }
 }

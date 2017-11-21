@@ -402,6 +402,7 @@ namespace OpenXmlPowerTools
                         XElement newPara = new XElement(W.p,
                             element.Attribute(PtOpenXml.FontName),
                             element.Attribute(PtOpenXml.LanguageType),
+                            element.Attribute(PtOpenXml.Unid),
                             new XAttribute(PtOpenXml.AbstractNumId, abstractNumId),
                             newParaProps,
                             listItemRun,
@@ -452,7 +453,8 @@ namespace OpenXmlPowerTools
             PtOpenXml.AbstractNumId,
             PtOpenXml.StyleName,
             PtOpenXml.LanguageType,
-            PtOpenXml.ListItemRun
+            PtOpenXml.ListItemRun,
+            PtOpenXml.Unid,
         };
 
         public static void NormalizePropsForPart(XDocument pxd, FormattingAssemblerSettings settings)

@@ -1652,7 +1652,7 @@ namespace OpenXmlPowerTools
             if (field.Length == 0)
                 return emptyField;
             string fieldType = field.TrimStart().Split(' ').FirstOrDefault();
-            if (fieldType == null || fieldType.ToUpper() != "HYPERLINK")
+            if (fieldType == null || fieldType.ToUpper() != "HYPERLINK" || fieldType.ToUpper() != "REF")
                 return emptyField;
             string[] tokens = GetTokens(field);
             if (tokens.Length == 0)
