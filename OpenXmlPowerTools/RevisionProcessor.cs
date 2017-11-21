@@ -155,26 +155,26 @@ namespace OpenXmlPowerTools
                 ////////////////////////////////////////////////////////////////////////////////////////
                 // Run properties change
 #if false
-    <w:p w:rsidR="00615148" w:rsidRPr="00615148" w:rsidRDefault="00615148">
-      <w:pPr>
-        <w:rPr>
-          <w:b/>
-          <w:lang w:val="en-US"/>
-          <w:rPrChange w:id="0" w:author="Eric White" w:date="2017-03-26T05:02:00Z">
+        <w:p w:rsidR="00615148" w:rsidRPr="00615148" w:rsidRDefault="00615148">
+          <w:pPr>
+            <w:rPr>
+              <w:b/>
+              <w:lang w:val="en-US"/>
+              <w:rPrChange w:id="0" w:author="Eric White" w:date="2017-03-26T05:02:00Z">
+                <w:rPr>
+                  <w:lang w:val="en-US"/>
+                </w:rPr>
+              </w:rPrChange>
+            </w:rPr>
+          </w:pPr>
+          <w:r>
             <w:rPr>
               <w:lang w:val="en-US"/>
             </w:rPr>
-          </w:rPrChange>
-        </w:rPr>
-      </w:pPr>
-      <w:r>
-        <w:rPr>
-          <w:lang w:val="en-US"/>
-        </w:rPr>
-        <w:t>When you click Online Video, you can paste in the embed code for the video you want to add.</w:t>
-      </w:r>
-      <w:bookmarkStart w:id="1" w:name="_GoBack"/>
-    </w:p>
+            <w:t>When you click Online Video, you can paste in the embed code for the video you want to add.</w:t>
+          </w:r>
+          <w:bookmarkStart w:id="1" w:name="_GoBack"/>
+        </w:p>
 #endif
                 if (element.Name == W.rPr &&
                     element.Element(W.rPrChange) != null)
@@ -473,6 +473,146 @@ namespace OpenXmlPowerTools
                         a.Name != W.rsidSect &&
                         a.Name != W.rsidTr),
                     element.Nodes().Select(n => RemoveRsidTransform(n)));
+            }
+            return node;
+        }
+
+        private static object MergeAdjacentTablesTransform(XNode node)
+        {
+            XElement element = node as XElement;
+            if (element != null)
+            {
+                if (element.Element(W.tbl) != null)
+                {
+                    var grouped = element
+                        .Elements()
+                        .GroupAdjacent(e =>
+                        {
+                            if (e.Name != W.tbl)
+                                return "";
+                            var bidiVisual = e.Elements(W.tblPr).Elements(W.bidiVisual).FirstOrDefault();
+                            var bidiVisString = bidiVisual == null ? "" : "|bidiVisual";
+                            var key = "tbl" + bidiVisString;
+                            return key;
+                        });
+
+                    var newContent = grouped
+                        .Select(g =>
+                        {
+                            if (g.Key == "" || g.Count() == 1)
+                                return (object)g;
+                            var rolled = g
+                                .Select(tbl =>
+                                {
+                                    var gridCols = tbl
+                                        .Elements(W.tblGrid)
+                                        .Elements(W.gridCol)
+                                        .Attributes(W._w)
+                                        .Select(a => (int)a)
+                                        .Rollup(0, (s, i) => s + i);
+                                    return gridCols;
+                                })
+                                .SelectMany(m => m)
+                                .Distinct()
+                                .OrderBy(w => w)
+                                .ToArray();
+                            var newTable = new XElement(W.tbl,
+                                g.First().Elements(W.tblPr),
+                                new XElement(W.tblGrid,
+                                    rolled.Select((r, i) =>
+                                    {
+                                        int v;
+                                        if (i == 0)
+                                            v = r;
+                                        else
+                                            v = r - rolled[i - 1];
+                                        return new XElement(W.gridCol,
+                                            new XAttribute(W._w, v));
+                                    })),
+                                g.Select(tbl =>
+                                {
+                                    var fixedWidthsTbl = FixWidths(tbl);
+                                    var newRows = fixedWidthsTbl.Elements(W.tr)
+                                        .Select(tr =>
+                                        {
+                                            XElement newRow = new XElement(W.tr,
+                                                tr.Attributes(),
+                                                tr.Elements().Where(e => e.Name != W.tc),
+                                                tr.Elements(W.tc).Select(tc =>
+                                                {
+                                                    int? w = (int?)tc
+                                                        .Elements(W.tcPr)
+                                                        .Elements(W.tcW)
+                                                        .Attributes(W._w)
+                                                        .FirstOrDefault();
+                                                    if (w == null)
+                                                        return tc;
+                                                    var cellsToLeft = tc
+                                                        .Parent
+                                                        .Elements(W.tc)
+                                                        .TakeWhile(btc => btc != tc);
+                                                    int widthToLeft = 0;
+                                                    if (cellsToLeft.Any())
+                                                        widthToLeft = cellsToLeft
+                                                        .Elements(W.tcPr)
+                                                        .Elements(W.tcW)
+                                                        .Attributes(W._w)
+                                                        .Select(wi => (int)wi)
+                                                        .Sum();
+                                                    var rolledPairs = new[] { new
+                                                        {
+                                                            GridValue = 0,
+                                                            Index = 0,
+                                                        }}
+                                                        .Concat(
+                                                            rolled
+                                                            .Select((r, i) => new
+                                                            {
+                                                                GridValue = r,
+                                                                Index = i + 1,
+                                                            }));
+                                                    var start = rolledPairs
+                                                        .FirstOrDefault(t => t.GridValue >= widthToLeft);
+                                                    if (start != null)
+                                                    {
+                                                        var gridsRequired = rolledPairs
+                                                            .Skip(start.Index)
+                                                            .TakeWhile(rp => rp.GridValue - start.GridValue < w)
+                                                            .Count();
+                                                        var tcPr = new XElement(W.tcPr,
+                                                                tc.Elements(W.tcPr).Elements().Where(e => e.Name != W.gridSpan),
+                                                                gridsRequired != 1 ?
+                                                                    new XElement(W.gridSpan,
+                                                                        new XAttribute(W.val, gridsRequired)) :
+                                                                    null);
+                                                        var orderedTcPr = new XElement(W.tcPr,
+                                                            tcPr.Elements().OrderBy(e =>
+                                                            {
+                                                                if (Order_tcPr.ContainsKey(e.Name))
+                                                                    return Order_tcPr[e.Name];
+                                                                return 999;
+                                                            }));
+                                                        var newCell = new XElement(W.tc,
+                                                            orderedTcPr,
+                                                            tc.Elements().Where(e => e.Name != W.tcPr));
+                                                        return newCell;
+                                                    }
+                                                    return tc;
+                                                }));
+                                            return newRow;
+                                        });
+                                    return newRows;
+                                }));
+                            return newTable;
+                        });
+                    return new XElement(element.Name,
+                        element.Attributes(),
+                        newContent);
+                }
+
+                return new XElement(element.Name,
+                    element.Attributes(),
+                    element.Nodes().Select(n => MergeAdjacentTablesTransform(n)));
             }
             return node;
         }
@@ -1203,22 +1343,20 @@ namespace OpenXmlPowerTools
             part.PutXDocument(newXDoc);
         }
 
-        private static object AddEmptyParagraphToAnyEmptyCells(XNode node)
+        // Note that AcceptRevisionsForElement is an incomplete implementation.  It is not possible to accept all varieties of revisions
+        // for a single paragraph.  The paragraph may contain a marker for a deleted or inserted content control, as one example, of
+        // which there are many.  This method accepts simple revisions, such as deleted or inserted text, which is the most common use
+        // case.
+        public static XElement AcceptRevisionsForElement(XElement element)
         {
-            XElement element = node as XElement;
-            if (element != null)
-            {
-                if (element.Name == W.tc && !element.Elements().Where(e => e.Name != W.tcPr).Any())
-                    return new XElement(W.tc,
-                        element.Attributes(),
-                        element.Elements(),
-                        new XElement(W.p));
-
-                return new XElement(element.Name,
-                    element.Attributes(),
-                    element.Nodes().Select(n => AddEmptyParagraphToAnyEmptyCells(n)));
-            }
-            return node;
+            XElement rElement = element;
+            rElement = (XElement)RemoveRsidTransform(rElement);
+            var containsMoveFromMoveTo = rElement.Descendants(W.moveFrom).Any();
+            rElement = (XElement)AcceptMoveFromMoveToTransform(rElement);
+            rElement = (XElement)AcceptAllOtherRevisionsTransform(rElement);
+            rElement.Descendants().Attributes().Where(a => a.Name == PT.UniqueId || a.Name == PT.RunIds).Remove();
+            rElement.Descendants(W.numPr).Where(np => !np.HasElements).Remove();
+            return rElement;
         }
 
         private static object FixUpDeletedOrInsertedFieldCodesTransform(XNode node)
@@ -1315,142 +1453,20 @@ namespace OpenXmlPowerTools
             return node;
         }
 
-        private static object MergeAdjacentTablesTransform(XNode node)
+        private static object AddEmptyParagraphToAnyEmptyCells(XNode node)
         {
             XElement element = node as XElement;
             if (element != null)
             {
-                if (element.Element(W.tbl) != null)
-                {
-                    var grouped = element
-                        .Elements()
-                        .GroupAdjacent(e =>
-                        {
-                            if (e.Name != W.tbl)
-                                return "";
-                            var bidiVisual = e.Elements(W.tblPr).Elements(W.bidiVisual).FirstOrDefault();
-                            var bidiVisString = bidiVisual == null ? "" : "|bidiVisual";
-                            var key = "tbl" + bidiVisString;
-                            return key;
-                        });
-
-                    var newContent = grouped
-                        .Select(g =>
-                        {
-                            if (g.Key == "" || g.Count() == 1)
-                                return (object)g;
-                            var rolled = g
-                                .Select(tbl =>
-                                {
-                                    var gridCols = tbl
-                                        .Elements(W.tblGrid)
-                                        .Elements(W.gridCol)
-                                        .Attributes(W._w)
-                                        .Select(a => (int)a)
-                                        .Rollup(0, (s, i) => s + i);
-                                    return gridCols;
-                                })
-                                .SelectMany(m => m)
-                                .Distinct()
-                                .OrderBy(w => w)
-                                .ToArray();
-                            var newTable = new XElement(W.tbl,
-                                g.First().Elements(W.tblPr),
-                                new XElement(W.tblGrid,
-                                    rolled.Select((r, i) =>
-                                    {
-                                        int v;
-                                        if (i == 0)
-                                            v = r;
-                                        else
-                                            v = r - rolled[i - 1];
-                                        return new XElement(W.gridCol,
-                                            new XAttribute(W._w, v));
-                                    })),
-                                g.Select(tbl =>
-                                {
-                                    var fixedWidthsTbl = FixWidths(tbl);
-                                    var newRows = fixedWidthsTbl.Elements(W.tr)
-                                        .Select(tr =>
-                                        {
-                                            XElement newRow = new XElement(W.tr,
-                                                tr.Attributes(),
-                                                tr.Elements().Where(e => e.Name != W.tc),
-                                                tr.Elements(W.tc).Select(tc =>
-                                                {
-                                                    int? w = (int?)tc
-                                                        .Elements(W.tcPr)
-                                                        .Elements(W.tcW)
-                                                        .Attributes(W._w)
-                                                        .FirstOrDefault();
-                                                    if (w == null)
-                                                        return tc;
-                                                    var cellsToLeft = tc
-                                                        .Parent
-                                                        .Elements(W.tc)
-                                                        .TakeWhile(btc => btc != tc);
-                                                    int widthToLeft = 0;
-                                                    if (cellsToLeft.Any())
-                                                        widthToLeft = cellsToLeft
-                                                        .Elements(W.tcPr)
-                                                        .Elements(W.tcW)
-                                                        .Attributes(W._w)
-                                                        .Select(wi => (int)wi)
-                                                        .Sum();
-                                                    var rolledPairs = new [] { new
-                                                        {
-                                                            GridValue = 0,
-                                                            Index = 0,
-                                                        }}
-                                                        .Concat(
-                                                            rolled
-                                                            .Select((r, i) => new
-                                                            {
-                                                                GridValue = r,
-                                                                Index = i + 1,
-                                                            }));
-                                                    var start = rolledPairs
-                                                        .FirstOrDefault(t => t.GridValue >= widthToLeft);
-                                                    if (start != null)
-                                                    {
-                                                        var gridsRequired = rolledPairs
-                                                            .Skip(start.Index)
-                                                            .TakeWhile(rp => rp.GridValue - start.GridValue < w)
-                                                            .Count();
-                                                        var tcPr = new XElement(W.tcPr,
-                                                                tc.Elements(W.tcPr).Elements().Where(e => e.Name != W.gridSpan),
-                                                                gridsRequired != 1 ?
-                                                                    new XElement(W.gridSpan,
-                                                                        new XAttribute(W.val, gridsRequired)) :
-                                                                    null);
-                                                        var orderedTcPr = new XElement(W.tcPr,
-                                                            tcPr.Elements().OrderBy(e =>
-                                                            {
-                                                                if (Order_tcPr.ContainsKey(e.Name))
-                                                                    return Order_tcPr[e.Name];
-                                                                return 999;
-                                                            }));
-                                                        var newCell = new XElement(W.tc,
-                                                            orderedTcPr,
-                                                            tc.Elements().Where(e => e.Name != W.tcPr));
-                                                        return newCell;
-                                                    }
-                                                    return tc;
-                                                }));
-                                            return newRow;
-                                        });
-                                    return newRows;
-                                }));
-                            return newTable;
-                        });
-                    return new XElement(element.Name,
+                if (element.Name == W.tc && !element.Elements().Where(e => e.Name != W.tcPr).Any())
+                    return new XElement(W.tc,
                         element.Attributes(),
-                        newContent);
-                }
+                        element.Elements(),
+                        new XElement(W.p));
 
                 return new XElement(element.Name,
                     element.Attributes(),
-                    element.Nodes().Select(n => MergeAdjacentTablesTransform(n)));
+                    element.Nodes().Select(n => AddEmptyParagraphToAnyEmptyCells(n)));
             }
             return node;
         }
