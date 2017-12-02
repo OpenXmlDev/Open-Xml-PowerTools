@@ -31,7 +31,7 @@ using DocumentFormat.OpenXml.Wordprocessing;
 using OpenXmlPowerTools;
 using Xunit;
 
-#if !ELIDE_XUNIT_TESTS
+// #if !ELIDE_XUNIT_TESTS
 
 
 namespace OxPt
@@ -242,6 +242,97 @@ namespace OxPt
             var newNotes = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, "DB008-NewNotes.docx"));
             DocumentBuilder.BuildDocument(sources, newNotes.FullName);
             Validate(newNotes);
+        }
+
+        [Theory]
+        [InlineData("DB009-00010", "DB/HeadersFooters/Src/Content-Controls.docx", "DB/HeadersFooters/Dest/Fax.docx", "Templafy")]
+        [InlineData("DB009-00020", "DB/HeadersFooters/Src/Letterhead.docx", "DB/HeadersFooters/Dest/Fax.docx", "Templafy")]
+        [InlineData("DB009-00030", "DB/HeadersFooters/Src/Letterhead-with-Watermark.docx", "DB/HeadersFooters/Dest/Fax.docx", "Templafy")]
+        [InlineData("DB009-00040", "DB/HeadersFooters/Src/Logo.docx", "DB/HeadersFooters/Dest/Fax.docx", "Templafy")]
+        [InlineData("DB009-00050", "DB/HeadersFooters/Src/Watermark-1.docx", "DB/HeadersFooters/Dest/Fax.docx", "Templafy")]
+        [InlineData("DB009-00060", "DB/HeadersFooters/Src/Watermark-2.docx", "DB/HeadersFooters/Dest/Fax.docx", "Templafy")]
+        [InlineData("DB009-00070", "DB/HeadersFooters/Src/Disclaimer.docx", "DB/HeadersFooters/Dest/Fax.docx", "Templafy")]
+        [InlineData("DB009-00080", "DB/HeadersFooters/Src/Footer.docx", "DB/HeadersFooters/Dest/Fax.docx", "Templafy")]
+        [InlineData("DB009-00110", "DB/HeadersFooters/Src/Content-Controls.docx", "DB/HeadersFooters/Dest/Letter.docx", "Templafy")]
+        [InlineData("DB009-00120", "DB/HeadersFooters/Src/Letterhead.docx", "DB/HeadersFooters/Dest/Letter.docx", "Templafy")]
+        [InlineData("DB009-00130", "DB/HeadersFooters/Src/Letterhead-with-Watermark.docx", "DB/HeadersFooters/Dest/Letter.docx", "Templafy")]
+        [InlineData("DB009-00140", "DB/HeadersFooters/Src/Logo.docx", "DB/HeadersFooters/Dest/Letter.docx", "Templafy")]
+        [InlineData("DB009-00150", "DB/HeadersFooters/Src/Watermark-1.docx", "DB/HeadersFooters/Dest/Letter.docx", "Templafy")]
+        [InlineData("DB009-00160", "DB/HeadersFooters/Src/Watermark-2.docx", "DB/HeadersFooters/Dest/Letter.docx", "Templafy")]
+        [InlineData("DB009-00170", "DB/HeadersFooters/Src/Disclaimer.docx", "DB/HeadersFooters/Dest/Letter.docx", "Templafy")]
+        [InlineData("DB009-00180", "DB/HeadersFooters/Src/Footer.docx", "DB/HeadersFooters/Dest/Letter.docx", "Templafy")]
+
+        public void DB009_ImportIntoHeadersFooters(string testId, string src, string dest, string insertId)
+        {
+            ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            // Load the source document
+            FileInfo sourceDocxFi = new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, src));
+            WmlDocument wmlSourceDocument = new WmlDocument(sourceDocxFi.FullName);
+
+            ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            // Load the dest document
+            FileInfo destDocxFi = new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, dest));
+            WmlDocument wmlDestDocument = new WmlDocument(destDocxFi.FullName);
+
+            ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            // Create the dir for the test
+            var rootTempDir = TestUtil.TempDir;
+            var thisTestTempDir = new DirectoryInfo(Path.Combine(rootTempDir.FullName, testId));
+            if (thisTestTempDir.Exists)
+                Assert.True(false, "Duplicate test id: " + testId);
+            else
+                thisTestTempDir.Create();
+            var tempDirFullName = thisTestTempDir.FullName;
+
+            ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            // Copy src DOCX to temp directory, for ease of review
+
+            while (true)
+            {
+                try
+                {
+                    ////////// CODE TO REPEAT UNTIL SUCCESS //////////
+                    var sourceDocxCopiedToDestFileName = new FileInfo(Path.Combine(tempDirFullName, sourceDocxFi.Name));
+                    if (!sourceDocxCopiedToDestFileName.Exists)
+                        wmlSourceDocument.SaveAs(sourceDocxCopiedToDestFileName.FullName);
+                    //////////////////////////////////////////////////
+                    break;
+                }
+                catch (IOException)
+                {
+                    System.Threading.Thread.Sleep(50);
+                }
+            }
+
+            ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            // Copy dest DOCX to temp directory, for ease of review
+
+            while (true)
+            {
+                try
+                {
+                    ////////// CODE TO REPEAT UNTIL SUCCESS //////////
+                    var destDocxCopiedToDestFileName = new FileInfo(Path.Combine(tempDirFullName, destDocxFi.Name));
+                    if (!destDocxCopiedToDestFileName.Exists)
+                        wmlDestDocument.SaveAs(destDocxCopiedToDestFileName.FullName);
+                    //////////////////////////////////////////////////
+                    break;
+                }
+                catch (IOException)
+                {
+                    System.Threading.Thread.Sleep(50);
+                }
+            }
+
+            List<Source> sources = new List<Source>()
+            {
+                new Source(wmlDestDocument),
+                new Source(wmlSourceDocument, insertId),
+            };
+
+            var outFi = new FileInfo(Path.Combine(tempDirFullName, "Output.docx"));
+            DocumentBuilder.BuildDocument(sources, outFi.FullName);
+            Validate(outFi);
         }
 
         private class DocumentInfo
@@ -496,6 +587,8 @@ namespace OxPt
             "The 'http://schemas.openxmlformats.org/wordprocessingml/2006/main:oddHBand' attribute is not declared.",
             "The 'http://schemas.openxmlformats.org/wordprocessingml/2006/main:oddVBand' attribute is not declared.",
             "The element has unexpected child element 'http://schemas.openxmlformats.org/wordprocessingml/2006/main:updateFields'.",
+            "The attribute 'http://schemas.openxmlformats.org/wordprocessingml/2006/main:name' has invalid value 'useWord2013TrackBottomHyphenation'. The Enumeration constraint failed.",
+            "The 'http://schemas.microsoft.com/office/word/2012/wordml:restartNumberingAfterBreak' attribute is not declared.",
         };
 
         private void ValidateUniqueDocPrIds(FileInfo fi)
@@ -521,4 +614,4 @@ namespace OxPt
         }
     }
 }
-#endif
+// #endif

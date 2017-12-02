@@ -372,47 +372,62 @@ namespace OpenXmlPowerTools
                     CopyStartingParts(doc, output, images);
                 }
 
-                int sourceNum = 0;
+                int sourceNum2 = 0;
                 foreach (Source source in sources)
                 {
                     if (source.InsertId != null)
                     {
                         while (true)
                         {
-                            XDocument mainXDoc = output.MainDocumentPart.GetXDocument();
-                            if (!mainXDoc.Descendants(PtOpenXml.Insert).Any(d => (string)d.Attribute(PtOpenXml.Id) == source.InsertId))
-                                break;
-                            using (OpenXmlMemoryStreamDocument streamDoc = new OpenXmlMemoryStreamDocument(source.WmlDocument))
-                            using (WordprocessingDocument doc = streamDoc.GetWordprocessingDocument())
-                            {
-#if TestForUnsupportedDocuments
-                                // throws exceptions if a document contains unsupported content
-                                TestForUnsupportedDocument(doc, sources.IndexOf(source));
+#if false
+                            modify AppendDocument so that it can take a part.
+                            for each in main document part, header parts, footer parts
+                                are there any PtOpenXml.Insert elements in any of them?
+                            if so, then open and process all.
 #endif
-                                if (source.KeepSections && source.DiscardHeadersAndFootersInKeptSections)
-                                    RemoveHeadersAndFootersFromSections(doc);
-                                else if (source.KeepSections)
-                                    ProcessSectionsForLinkToPreviousHeadersAndFooters(doc);
+                            bool foundInMainDocPart = false;
+                            XDocument mainXDoc = output.MainDocumentPart.GetXDocument();
+                            if (mainXDoc.Descendants(PtOpenXml.Insert).Any(d => (string)d.Attribute(PtOpenXml.Id) == source.InsertId))
+                                foundInMainDocPart = true;
+                            if (foundInMainDocPart)
+                            {
+                                using (OpenXmlMemoryStreamDocument streamDoc = new OpenXmlMemoryStreamDocument(source.WmlDocument))
+                                using (WordprocessingDocument doc = streamDoc.GetWordprocessingDocument())
+                                {
+#if TestForUnsupportedDocuments
+                                    // throws exceptions if a document contains unsupported content
+                                    TestForUnsupportedDocument(doc, sources.IndexOf(source));
+#endif
+                                    if (foundInMainDocPart)
+                                    {
+                                        if (source.KeepSections && source.DiscardHeadersAndFootersInKeptSections)
+                                            RemoveHeadersAndFootersFromSections(doc);
+                                        else if (source.KeepSections)
+                                            ProcessSectionsForLinkToPreviousHeadersAndFooters(doc);
 
-                                List<XElement> contents = doc.MainDocumentPart.GetXDocument()
-                                    .Root
-                                    .Element(W.body)
-                                    .Elements()
-                                    .Skip(source.Start)
-                                    .Take(source.Count)
-                                    .ToList();
-                                try
-                                {
-                                    AppendDocument(doc, output, contents, source.KeepSections, source.InsertId, images);
-                                }
-                                catch (DocumentBuilderInternalException dbie)
-                                {
-                                    if (dbie.Message.Contains("{0}"))
-                                        throw new DocumentBuilderException(string.Format(dbie.Message, sourceNum));
-                                    else
-                                        throw dbie;
+                                        List<XElement> contents = doc.MainDocumentPart.GetXDocument()
+                                            .Root
+                                            .Element(W.body)
+                                            .Elements()
+                                            .Skip(source.Start)
+                                            .Take(source.Count)
+                                            .ToList();
+                                        try
+                                        {
+                                            AppendDocument(doc, output, contents, source.KeepSections, source.InsertId, images);
+                                        }
+                                        catch (DocumentBuilderInternalException dbie)
+                                        {
+                                            if (dbie.Message.Contains("{0}"))
+                                                throw new DocumentBuilderException(string.Format(dbie.Message, sourceNum2));
+                                            else
+                                                throw dbie;
+                                        }
+                                    }
                                 }
                             }
+                            else
+                                break;
                         }
                     }
                     else
@@ -443,13 +458,13 @@ namespace OpenXmlPowerTools
                             catch (DocumentBuilderInternalException dbie)
                             {
                                 if (dbie.Message.Contains("{0}"))
-                                    throw new DocumentBuilderException(string.Format(dbie.Message, sourceNum));
+                                    throw new DocumentBuilderException(string.Format(dbie.Message, sourceNum2));
                                 else
                                     throw dbie;
                             }
                         }
                     }
-                    ++sourceNum;
+                    ++sourceNum2;
                 }
                 if (!sources.Any(s => s.KeepSections))
                 {
@@ -510,8 +525,81 @@ namespace OpenXmlPowerTools
 
                     }
                 }
-                AdjustDocPrIds(output);
+
+                // Now can process PtOpenXml:Insert elements in headers / footers
+                int sourceNum = 0;
+                foreach (Source source in sources)
+                {
+                    if (source.InsertId != null)
+                    {
+                        while (true)
+                        {
+#if false
+                            this uses an overload of AppendDocument that takes a part.
+                            for each in main document part, header parts, footer parts
+                                are there any PtOpenXml.Insert elements in any of them?
+                            if so, then open and process all.
+#endif
+                            bool foundInHeadersFooters = false;
+                            if (output.MainDocumentPart.HeaderParts.Any(hp =>
+                            {
+                                var hpXDoc = hp.GetXDocument();
+                                return hpXDoc.Descendants(PtOpenXml.Insert).Any(d => (string)d.Attribute(PtOpenXml.Id) == source.InsertId);
+                            }))
+                                foundInHeadersFooters = true;
+                            if (output.MainDocumentPart.FooterParts.Any(fp =>
+                            {
+                                var hpXDoc = fp.GetXDocument();
+                                return hpXDoc.Descendants(PtOpenXml.Insert).Any(d => (string)d.Attribute(PtOpenXml.Id) == source.InsertId);
+                            }))
+                                foundInHeadersFooters = true;
+
+                            if (foundInHeadersFooters)
+                            {
+                                using (OpenXmlMemoryStreamDocument streamDoc = new OpenXmlMemoryStreamDocument(source.WmlDocument))
+                                using (WordprocessingDocument doc = streamDoc.GetWordprocessingDocument())
+                                {
+#if TestForUnsupportedDocuments
+                                    // throws exceptions if a document contains unsupported content
+                                    TestForUnsupportedDocument(doc, sources.IndexOf(source));
+#endif
+                                    var partList = output.MainDocumentPart.HeaderParts.Cast<OpenXmlPart>().Concat(output.MainDocumentPart.FooterParts.Cast<OpenXmlPart>()).ToList();
+                                    foreach (var part in partList)
+                                    {
+                                        var partXDoc = part.GetXDocument();
+                                        if (!partXDoc.Descendants(PtOpenXml.Insert).Any(d => (string)d.Attribute(PtOpenXml.Id) == source.InsertId))
+                                            continue;
+                                        List<XElement> contents = doc.MainDocumentPart.GetXDocument()
+                                            .Root
+                                            .Element(W.body)
+                                            .Elements()
+                                            .Skip(source.Start)
+                                            .Take(source.Count)
+                                            .ToList();
+                                        try
+                                        {
+                                            AppendDocument(doc, output, part, contents, source.KeepSections, source.InsertId, images);
+                                        }
+                                        catch (DocumentBuilderInternalException dbie)
+                                        {
+                                            if (dbie.Message.Contains("{0}"))
+                                                throw new DocumentBuilderException(string.Format(dbie.Message, sourceNum));
+                                            else
+                                                throw dbie;
+                                        }
+                                    }
+                                }
+                            }
+                            else
+                                break;
+                        }
+                    }
+                    ++sourceNum;
             }
+
+            AdjustDocPrIds(output);
+            }
+
             foreach (var part in output.GetAllParts())
                 if (part.Annotation<XDocument>() != null)
                     part.PutXDocument();
@@ -1396,6 +1484,43 @@ namespace OpenXmlPowerTools
                 newMainXDoc.Root.Element(W.body).Add(newContent);
         }
 
+        /// ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        /// New method to support new functionality
+        private static void AppendDocument(WordprocessingDocument sourceDocument, WordprocessingDocument newDocument, OpenXmlPart part,
+            List<XElement> newContent, bool keepSection, string insertId, List<ImageData> images)
+        {
+            // Append contents
+            XDocument partXDoc = part.GetXDocument();
+            partXDoc.Declaration.Standalone = "yes";
+            partXDoc.Declaration.Encoding = "UTF-8";
+
+            FixRanges(part.GetXDocument(), newContent);
+            AddRelationships(sourceDocument.MainDocumentPart, part, newContent);
+            CopyRelatedPartsForContentParts(sourceDocument.MainDocumentPart, part,
+                newContent, images);
+
+            // never keep sections for content to be inserted into a header/footer
+            List<XElement> adjustedContents = newContent.Where(e => e.Name != W.sectPr).ToList();
+            adjustedContents.DescendantsAndSelf(W.sectPr).Remove();
+            newContent = adjustedContents;
+
+            CopyNumbering(sourceDocument, newDocument, newContent, images);
+            CopyComments(sourceDocument, newDocument, newContent, images);
+            AdjustUniqueIds(sourceDocument, newDocument, newContent);
+            RemoveGfxdata(newContent);
+
+            if (insertId == null)
+                throw new OpenXmlPowerToolsException("Internal error");
+
+            XElement insertElementToReplace = partXDoc
+                .Descendants(PtOpenXml.Insert)
+                .FirstOrDefault(i => (string)i.Attribute(PtOpenXml.Id) == insertId);
+            if (insertElementToReplace != null)
+                insertElementToReplace.AddAnnotation(new ReplaceSemaphore());
+            partXDoc.Elements().First().ReplaceWith((XElement)InsertTransform(partXDoc.Root, newContent));
+        }
+        /// ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
         private static void CopyCustomXml(WordprocessingDocument sourceDocument, WordprocessingDocument newDocument,
             IEnumerable<XElement> newContent)
         {
@@ -1515,7 +1640,10 @@ namespace OpenXmlPowerTools
                 }
                 if (e.Name == A.blip)
                 {
+                    // <a:blip r:embed="rId6" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" />
                     string relId = (string)e.Attribute(R.link);
+                    //if (relId == null)
+                    //    relId = (string)e.Attribute(R.embed);
                     if (string.IsNullOrEmpty(relId))
                         continue;
                     var tempExternalRelationship = newPart.ExternalRelationships.FirstOrDefault(h => h.Id == relId);
