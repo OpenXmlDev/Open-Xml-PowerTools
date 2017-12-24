@@ -2281,17 +2281,38 @@ namespace OpenXmlPowerTools
                 var ipp1 = oldChart.Parts.FirstOrDefault(z => z.RelationshipId == relId);
                 if (ipp1 != null)
                 {
-                    EmbeddedPackagePart oldPart = (EmbeddedPackagePart)ipp1.OpenXmlPart;
-                    EmbeddedPackagePart newPart = newChart.AddEmbeddedPackagePart(oldPart.ContentType);
-                    using (Stream oldObject = oldPart.GetStream(FileMode.Open, FileAccess.Read))
-                    using (Stream newObject = newPart.GetStream(FileMode.Create, FileAccess.ReadWrite))
+                    var oldRelatedPart = ipp1.OpenXmlPart;
+                    if (oldRelatedPart is EmbeddedPackagePart)
                     {
-                        int byteCount;
-                        byte[] buffer = new byte[65536];
-                        while ((byteCount = oldObject.Read(buffer, 0, 65536)) != 0)
-                            newObject.Write(buffer, 0, byteCount);
+                        EmbeddedPackagePart oldPart = (EmbeddedPackagePart)ipp1.OpenXmlPart;
+                        EmbeddedPackagePart newPart = newChart.AddEmbeddedPackagePart(oldPart.ContentType);
+                        using (Stream oldObject = oldPart.GetStream(FileMode.Open, FileAccess.Read))
+                        using (Stream newObject = newPart.GetStream(FileMode.Create, FileAccess.ReadWrite))
+                        {
+                            int byteCount;
+                            byte[] buffer = new byte[65536];
+                            while ((byteCount = oldObject.Read(buffer, 0, 65536)) != 0)
+                                newObject.Write(buffer, 0, byteCount);
+                        }
+                        dataReference.Attribute(R.id).Value = newChart.GetIdOfPart(newPart);
                     }
-                    dataReference.Attribute(R.id).Value = newChart.GetIdOfPart(newPart);
+                    else if (oldRelatedPart is EmbeddedObjectPart)
+                    {
+                        EmbeddedObjectPart oldPart = (EmbeddedObjectPart)ipp1.OpenXmlPart;
+                        var relType = oldRelatedPart.RelationshipType;
+                        var conType = oldRelatedPart.ContentType;
+                        string id = "R" + Guid.NewGuid().ToString().Replace("-", "").Substring(0, 8);
+                        var newPart = newChart.AddExtendedPart(relType, conType, ".bin", id);
+                        using (Stream oldObject = oldPart.GetStream(FileMode.Open, FileAccess.Read))
+                        using (Stream newObject = newPart.GetStream(FileMode.Create, FileAccess.ReadWrite))
+                        {
+                            int byteCount;
+                            byte[] buffer = new byte[65536];
+                            while ((byteCount = oldObject.Read(buffer, 0, 65536)) != 0)
+                                newObject.Write(buffer, 0, byteCount);
+                        }
+                        dataReference.Attribute(R.id).Value = newChart.GetIdOfPart(newPart);
+                    }
                 }
                 else
                 {
