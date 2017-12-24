@@ -1010,12 +1010,15 @@ namespace OpenXmlPowerTools
 
             foreach (XElement style in fromStyles.Root.Elements(W.style))
             {
-                string id = style.Attribute(W.styleId).Value;
-                if (toStyles
+                var fromId = (string)style.Attribute(W.styleId);
+                var fromName = (string)style.Elements(W.name).Attributes(W.val).FirstOrDefault();
+
+                var toStyle = toStyles
                     .Root
                     .Elements(W.style)
-                    .Where(o => o.Attribute(W.styleId).Value == id)
-                    .Count() == 0)
+                    .FirstOrDefault(st => (string)st.Elements(W.name).Attributes(W.val).FirstOrDefault() == fromName);
+
+                if (toStyle == null)
                 {
 #if MergeStylesWithSameNames
                     var linkElement = style.Element(W.link);
@@ -1025,22 +1028,22 @@ namespace OpenXmlPowerTools
                         var linkedStyle = toStyles.Root.Elements(W.style)
                             .First(o => o.Attribute(W.styleId).Value == linkedId);
                         if (linkedStyle.Element(W.link) != null)
-                            newIds.Add(id, linkedStyle.Element(W.link).Attribute(W.val).Value);
+                            newIds.Add(fromId, linkedStyle.Element(W.link).Attribute(W.val).Value);
                         continue;
                     }
 
-                    string name = (string)style.Elements(W.name).Attributes(W.val).FirstOrDefault();
-                    var namedStyle = toStyles
-                        .Root
-                        .Elements(W.style)
-                        .Where(st => st.Element(W.name) != null)
-                        .FirstOrDefault(o => (string)o.Element(W.name).Attribute(W.val) == name);
-                    if (namedStyle != null)
-                    {
-                        if (! newIds.ContainsKey(id))
-                            newIds.Add(id, namedStyle.Attribute(W.styleId).Value);
-                        continue;
-                    }
+                    //string name = (string)style.Elements(W.name).Attributes(W.val).FirstOrDefault();
+                    //var namedStyle = toStyles
+                    //    .Root
+                    //    .Elements(W.style)
+                    //    .Where(st => st.Element(W.name) != null)
+                    //    .FirstOrDefault(o => (string)o.Element(W.name).Attribute(W.val) == name);
+                    //if (namedStyle != null)
+                    //{
+                    //    if (! newIds.ContainsKey(fromId))
+                    //        newIds.Add(fromId, namedStyle.Attribute(W.styleId).Value);
+                    //    continue;
+                    //}
 #endif
 
                     int number = 1;
@@ -1199,6 +1202,14 @@ namespace OpenXmlPowerTools
                     newStyle.Descendants().Where(d => d.Name.NamespaceName != W.w).Remove();
                     newStyle.Descendants().Attributes().Where(d => d.Name.NamespaceName != W.w).Remove();
                     toStyles.Root.Add(newStyle);
+                }
+                else
+                {
+                    var toId = (string)toStyle.Attribute(W.styleId);
+                    if (fromId != toId)
+                    {
+                        newIds.Add(fromId, toId);
+                    }
                 }
             }
 
