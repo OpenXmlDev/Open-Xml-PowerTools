@@ -73,6 +73,7 @@ namespace OpenXmlPowerTools
             public string ContentLocation;
             public string ContentTransferEncoding;
             public string ContentType;
+            public string CharSet;
             public string Text;
             public byte[] Binary;
         }
@@ -153,6 +154,7 @@ namespace OpenXmlPowerTools
                     string contentLocation = null;
                     string contentTransferEncoding = null;
                     string partContentType = null;
+                    string partCharSet = null;
                     byte[] partBinary = null;
 
                     foreach (var item in partPriamble)
@@ -176,6 +178,29 @@ namespace OpenXmlPowerTools
                         .Select(l => l + Environment.NewLine)
                         .StringConcatenate();
 
+                    if (partContentType != null && partContentType.Contains(";"))
+                    {
+                        string thisPartContentType = null;
+                        var spl = partContentType.Split(';').Select(s => s.Trim()).ToArray();
+                        foreach (var s in spl)
+                        {
+                            if (s.StartsWith("charset"))
+                            {
+                                var begText = "charset=\"";
+                                var begLen = begText.Length;
+                                partCharSet = s.Substring(begLen, s.Length - begLen - 1);
+                                continue;
+                            }
+                            if (thisPartContentType == null)
+                            {
+                                thisPartContentType = s;
+                                continue;
+                            }
+                            throw new OpenXmlPowerToolsException("Unexpected content in MHTML");
+                        }
+                        partContentType = thisPartContentType;
+                    }
+
                     if (contentTransferEncoding != null && contentTransferEncoding.ToUpper() == "BASE64")
                     {
                         partBinary = Convert.FromBase64String(partText);
@@ -186,6 +211,7 @@ namespace OpenXmlPowerTools
                         ContentLocation = contentLocation,
                         ContentTransferEncoding = contentTransferEncoding,
                         ContentType = partContentType,
+                        CharSet = partCharSet,
                         Text = partText,
                         Binary = partBinary,
                     };
