@@ -37,6 +37,7 @@ namespace OpenXmlPowerTools
     public class GlobalValidationRule
     {
         public string[] RuleNames;
+        public string[] RuleDescriptions;
         public Func<GlobalValidationRule, WordprocessingDocument, WordprocessingDocument, XElement, WmlToXmlSettings, List<WmlToXmlValidationError>> GlobalRuleLambda;
         public bool IsOnlyWarning;
         public string Message;
@@ -45,6 +46,7 @@ namespace OpenXmlPowerTools
     public class BlockLevelContentValidationRule
     {
         public string[] RuleNames;
+        public string[] RuleDescriptions;
         public Regex StyleNameRegex;
         public Func<XElement, BlockLevelContentValidationRule, WordprocessingDocument, XElement, WmlToXmlSettings, List<WmlToXmlValidationError>> BlockLevelContentRuleLambda;
         public bool IsOnlyWarning;
