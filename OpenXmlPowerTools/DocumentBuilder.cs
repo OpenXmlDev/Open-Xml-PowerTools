@@ -1764,11 +1764,7 @@ namespace OpenXmlPowerTools
         private static void CopyNumbering(WordprocessingDocument sourceDocument, WordprocessingDocument newDocument,
             IEnumerable<XElement> newContent, List<ImageData> images)
         {
-            // Note that this does not need to use a map as CopyComments method does, as it needs to update only
-            // a single attribute value.  The problem in the CopyComments method is that there are multiple elements
-            // for which we need to update attribute values.  Searching for those elements in the paragraphs collection
-            // causes the problem that must be solved by first creating a map, and then wholesale updating all
-            // attributes appropriately using the map.
+            Dictionary<int, int> numIdMap = new Dictionary<int, int>();
             int number = 1;
             int abstractNumber = 0;
             XDocument oldNumbering = null;
@@ -1808,26 +1804,25 @@ namespace OpenXmlPowerTools
                             newNumbering.Add(new XElement(W.numbering, NamespaceAttributes));
                         }
                     }
-                    string numId = idElement.Attribute(W.val).Value;
-                    if (numId != "0")
+                    int numId = (int)idElement.Attribute(W.val);
+                    if (numId != 0)
                     {
                         XElement element = oldNumbering
                             .Descendants(W.num)
-                            .Where(p => ((string)p.Attribute(W.numId)) == numId)
+                            .Where(p => ((int)p.Attribute(W.numId)) == numId)
                             .FirstOrDefault();
                         if (element == null)
                             continue;
 
                         // Copy abstract numbering element, if necessary (use matching NSID)
-                        string abstractNumId = element
+                        int abstractNumId = (int)element
                             .Elements(W.abstractNumId)
                             .First()
-                            .Attribute(W.val)
-                            .Value;
+                            .Attribute(W.val);
                         XElement abstractElement = oldNumbering
                             .Descendants()
                             .Elements(W.abstractNum)
-                            .Where(p => ((string)p.Attribute(W.abstractNumId)) == abstractNumId)
+                            .Where(p => ((int)p.Attribute(W.abstractNumId)) == abstractNumId)
                             .First();
                         XElement nsidElement = abstractElement
                             .Element(W.nsid);
@@ -1877,13 +1872,17 @@ namespace OpenXmlPowerTools
                         string newAbstractId = newAbstractElement.Attribute(W.abstractNumId).Value;
 
                         // Copy numbering element, if necessary (use matching element with no overrides)
-                        XElement newElement = newNumbering
+                        XElement newElement;
+                        if (numIdMap.ContainsKey(numId))
+                        {
+                            newElement = newNumbering
                                 .Descendants()
                                 .Elements(W.num)
                                 .Where(e => e.Annotation<FromPreviousSourceSemaphore>() == null)
-                                .Where(p => ((string)p.Elements(W.abstractNumId).First().Attribute(W.val)) == newAbstractId)
-                                .FirstOrDefault();
-                        if (newElement == null)
+                                .Where(p => ((int)p.Attribute(W.numId)) == numIdMap[numId])
+                                .First();
+                        }
+                        else
                         {
                             newElement = new XElement(element);
                             newElement
@@ -1891,6 +1890,7 @@ namespace OpenXmlPowerTools
                                 .First()
                                 .Attribute(W.val).Value = newAbstractId;
                             newElement.Attribute(W.numId).Value = number.ToString();
+                            numIdMap.Add(numId, number);
                             number++;
                             newNumbering.Root.Add(newElement);
                         }
