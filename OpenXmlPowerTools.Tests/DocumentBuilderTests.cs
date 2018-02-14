@@ -612,6 +612,30 @@ namespace OxPt
             ValidateUniqueDocPrIds(processedDestDocx);
         }
 
+
+        [Fact]
+        public void DB012_NumberingsWithSameAbstractNumbering()
+        {
+            // This document has three numbering definitions that use the same abstract numbering definition.
+            string name = "DB012-Lists-With-Different-Numberings.docx";
+            FileInfo sourceDocx = new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, name));
+
+            List<Source> sources = null;
+            sources = new List<Source>()
+            {
+                new Source(new WmlDocument(sourceDocx.FullName)),
+            };
+            var processedDestDocx = new FileInfo(Path.Combine(TestUtil.TempDir.FullName,
+                sourceDocx.Name.Replace(".docx", "-processed-by-DocumentBuilder.docx")));
+            DocumentBuilder.BuildDocument(sources, processedDestDocx.FullName);
+
+            using (WordprocessingDocument wDoc = WordprocessingDocument.Open(processedDestDocx.FullName, false))
+            {
+                var numberingRoot = wDoc.MainDocumentPart.NumberingDefinitionsPart.GetXDocument().Root;
+                Assert.Equal(3, numberingRoot.Elements(W.num).Count());
+            }
+        }
+
         [Fact]
         public void DB013a_LocalizedStyleIds_Heading()
         {
