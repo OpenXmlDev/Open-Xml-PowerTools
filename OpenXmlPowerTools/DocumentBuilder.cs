@@ -1576,7 +1576,8 @@ namespace OpenXmlPowerTools
             {
                 var val = (string)ignorable;
                 val = val + " " + v;
-                root.Attribute(MC.Ignorable).Value = val;
+                ignorable.Remove();
+                root.SetAttributeValue(MC.Ignorable, val);
             }
         }
 
