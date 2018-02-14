@@ -1372,8 +1372,8 @@ namespace OpenXmlPowerTools
             if (temp.DataPart == null)
             {
                 var ct = oldPart.ContentType;
-                MediaDataPartType mdpt = GetMediadataPartTypeFromContentType(ct);
-                MediaDataPart newPart = newContentPart.OpenXmlPackage.CreateMediaDataPart(mdpt);
+                var ext = Path.GetExtension(oldPart.Uri.OriginalString);
+                MediaDataPart newPart = newContentPart.OpenXmlPackage.CreateMediaDataPart(ct, ext);
                 newPart.FeedData(oldPart.GetStream());
                 string id = null;
                 string relationshipType = null;
@@ -1430,8 +1430,6 @@ namespace OpenXmlPowerTools
                 }
                 else
                 {
-                    var ct = oldPart.ContentType;
-                    MediaDataPartType mdpt = GetMediadataPartTypeFromContentType(ct);
                     MediaDataPart newPart = (MediaDataPart)temp.DataPart;
                     string id = null;
                     string relationshipType = null;
@@ -1473,51 +1471,6 @@ namespace OpenXmlPowerTools
                     imageReference.Attribute(attributeName).Value = id;
                 }
             }
-        }
-
-        private static MediaDataPartType GetMediadataPartTypeFromContentType(string ct)
-        {
-            MediaDataPartType mdpt = MediaDataPartType.Wmv;
-
-            if (ct == "audio/aiff")
-                mdpt = MediaDataPartType.Aiff;
-            else if (ct == "video/x-ms-asf-plugin")
-                mdpt = MediaDataPartType.Asx;
-            else if (ct == "video/avi")
-                mdpt = MediaDataPartType.Avi;
-            else if (ct == "audio/midi")
-                mdpt = MediaDataPartType.Midi;
-            else if (ct == "audio/mp3")
-                mdpt = MediaDataPartType.Mp3;
-            else if (ct == "audio/mpeg")
-                mdpt = MediaDataPartType.MpegAudio;
-            else if (ct == "audio/mpegurl")
-                mdpt = MediaDataPartType.MpegUrl;
-            else if (ct == "video/mpeg")
-                mdpt = MediaDataPartType.MpegVideo;
-            else if (ct == "video/mpg")
-                mdpt = MediaDataPartType.Mpg;
-            else if (ct == "audio/ogg")
-                mdpt = MediaDataPartType.OggAudio;
-            else if (ct == "video/ogg")
-                mdpt = MediaDataPartType.OggVideo;
-            else if (ct == "video/quicktime")
-                mdpt = MediaDataPartType.Quicktime;
-            else if (ct == "video/vc1")
-                mdpt = MediaDataPartType.VC1;
-            else if (ct == "audio/wav")
-                mdpt = MediaDataPartType.Wav;
-            else if (ct == "audio/x-ms-wma")
-                mdpt = MediaDataPartType.Wma;
-            else if (ct == "video/x-ms-wmv")
-                mdpt = MediaDataPartType.Wmv;
-            else if (ct == "video/x-ms-wmx")
-                mdpt = MediaDataPartType.Wmx;
-            else if (ct == "video/x-ms-wvx")
-                mdpt = MediaDataPartType.Wvx;
-            else if (ct == "audio/unknown")
-                mdpt = MediaDataPartType.Wav;
-            return mdpt;
         }
 
         private static void CopyRelatedMediaExternalRelationship(OpenXmlPart oldContentPart, OpenXmlPart newContentPart, XElement imageReference, XName attributeName,
