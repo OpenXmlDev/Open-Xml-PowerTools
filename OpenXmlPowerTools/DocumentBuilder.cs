@@ -1208,7 +1208,8 @@ namespace OpenXmlPowerTools
                     var toId = (string)toStyle.Attribute(W.styleId);
                     if (fromId != toId)
                     {
-                        newIds.Add(fromId, toId);
+                        if (! newIds.ContainsKey(fromId))
+                            newIds.Add(fromId, toId);
                     }
                 }
             }
