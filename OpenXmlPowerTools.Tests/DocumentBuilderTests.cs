@@ -702,6 +702,28 @@ namespace OxPt
             }
         }
 
+        [Fact]
+        public void DB014_KeepWebExtensions()
+        {
+            FileInfo source = new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, "DB014-WebExtensions.docx"));
+            List<Source> sources = null;
+
+            sources = new List<Source>()
+            {
+                new Source(new WmlDocument(source.FullName)),
+            };
+            var processedDestDocx = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, "DB014-WebExtensions.docx"));
+            DocumentBuilder.BuildDocument(sources, processedDestDocx.FullName);
+            Validate(processedDestDocx);
+
+            using (WordprocessingDocument wDoc = WordprocessingDocument.Open(processedDestDocx.FullName, false))
+            {
+                Assert.NotNull(wDoc.WebExTaskpanesPart);
+                Assert.Equal(2, wDoc.WebExTaskpanesPart.Taskpanes.ChildElements.Count);
+                Assert.Equal(2, wDoc.WebExTaskpanesPart.WebExtensionParts.Count());
+            }
+        }
+
         private void Validate(FileInfo fi)
         {
             using (WordprocessingDocument wDoc = WordprocessingDocument.Open(fi.FullName, true))
