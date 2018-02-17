@@ -1535,6 +1535,7 @@ namespace OpenXmlPowerTools
             AdjustUniqueIds(sourceDocument, newDocument, newContent);
             RemoveGfxdata(newContent);
             CopyCustomXml(sourceDocument, newDocument, newContent);
+            CopyWebExtensions(sourceDocument, newDocument);
             if (insertId != null)
             {
                 XElement insertElementToReplace = newMainXDoc
@@ -1566,6 +1567,22 @@ namespace OpenXmlPowerTools
                 {
                     root.Add(new XAttribute(XNamespace.Xmlns + "pt14", PtOpenXml.ptOpenXml.NamespaceName));
                     AddToIgnorable(root, "pt14");
+                }
+            }
+        }
+
+        private static void CopyWebExtensions(WordprocessingDocument sourceDocument, WordprocessingDocument newDocument)
+        {
+            if (sourceDocument.WebExTaskpanesPart != null && newDocument.WebExTaskpanesPart == null)
+            {
+                newDocument.AddWebExTaskpanesPart();
+                newDocument.WebExTaskpanesPart.GetXDocument().Add(sourceDocument.WebExTaskpanesPart.GetXDocument().Root);
+
+                foreach (var sourceWebExtensionPart in sourceDocument.WebExTaskpanesPart.WebExtensionParts)
+                {
+                    var newWebExtensionpart = newDocument.WebExTaskpanesPart.AddNewPart<WebExtensionPart>(
+                        sourceDocument.WebExTaskpanesPart.GetIdOfPart(sourceWebExtensionPart));
+                    newWebExtensionpart.GetXDocument().Add(sourceWebExtensionPart.GetXDocument().Root);
                 }
             }
         }
