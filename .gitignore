@@ -30,3 +30,9 @@ TestResults/
 # NuGet Packages
 *.nupkg
 **/packages/*
+*.lock.json
+*.nuget.props
+*.nuget.targets
+
+# Visual Studio
+.vs/
