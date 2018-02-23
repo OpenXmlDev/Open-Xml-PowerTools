@@ -47,48 +47,29 @@ See:
 Build Instructions
 ==================
 
-Recently, we've updated the GitHub repo so that it pulls the Open-Xml-Sdk via NuGet.  The video at the following link shows how to clone and build the Open-Xml-PowerTools
-when pulling the Open-Xml-Sdk via NuGet.  It uses Visual Studio 2017 Community Edition.
+**Prerequisites:**
 
-[Build Open-Xml-PowerTools](http://ericwhite.com/blog/2017/03/24/building-open-xml-powertools-when-pulling-the-open-xml-sdk-via-nuget/)
+- Visual Studo 2015 or Visual Studio 2017
+- [PowerShell Tools for Visual Studio](https://github.com/adamdriscoll/poshtools)
+- Powershell 3.0+ (only for cmdlets)
 
-The following instructions are somewhat outdated at this point.
+**Build**
 
-For this release, you need Visual Studio 2013 or 2015 installed.  The following video shows gitting and building the Open-Xml-Sdk and
-Open-Xml-PowerTools using [Visual Studio 2015 Community Edition](https://www.visualstudio.com/en-us/products/visual-studio-community-vs.aspx), which is free.
-
-If you are using Visual Studio 2013, make sure that you have **Update 4 for Visual Studio 2013**.  Previous versions of Visual Studio 2013 do not work.
-
-You can use Visual Studio 2012 to build the Open-Xml-Sdk and Open-Xml-PowerTools libraries and run the examples.  The xUnit tests do not work with Visual Studio 2012.
-
-The following video walks through the process building Open-Xml-PowerTools:
-
-[Installing, Building, and Running Open-Xml-PowerTools 4.0](https://www.youtube.com/watch?v=60w-yPDSQD0)
-
-In order to build Open-Xml-PowerTools 4.0 and later, you need to retrieve both the Open-Xml-Sdk and the Open-Xml-PowerTools repos from GitHub.  The projects are set up expecting that
-the Open-Xml-Sdk repo and the Open-Xml-PowerTools repo are siblings to each other in the file system.  The Open-Xml-PowerTools projects
-look for the Open-Xml-Sdk in a directory with that exact name (Open-Xml-Sdk).
-
-If you want to use the Open-Xml-PowerTools Cmdlets, one easy way to do this is to put both the Open-Xml-Sdk and the Open-Xml-PowerTools repos in
-the ~/Documents/WindowsPowerShell/Modules directory.  PowerShell by default looks for modules in this directory, so if we place these repos in this
-directory, after building the Open-Xml-Sdk, we can import the Open-Xml-PowerTools module and start using the Cmdlets.  If the WindowsPowerShell/Modules directory
-doesn't exist, you can create it.
-
-If you don't care about the Open-Xml-PowerTools Cmdlets, then you can put the two repos into any directory you like, so long as you make them
-siblings to each other.
-
-The short form of the installation instructions are:
-- Make sure you are running PowerShell 3.0 or later
-- If necessary, set your execution policy.  Run PowerShell as administrator and Set-ExecutionPolicy Unrestricted (or RemoteSigned)
-- cd ~/Documents/WindowsPowerShell/Modules
-- git clone https://github.com/OfficeDev/Open-Xml-Sdk
-- git clone https://github.com/OfficeDev/Open-Xml-PowerTools
-- Using Visual Studio, open Open-Xml-Sdk/Open-XML-SDK.sln
-- Build the solution.  To validate the build, open the Test Explorer (pick TEST -> Windows -> Test Explorer from the menu).  Click Run All.
-- To start using the Open-Xml-PowerTools Cmdlets, in PowerShell, Import-Module Open-Xml-PowerTools
-- Using Visual Studio, open Open-Xml-PowerTools/OpenXmlPowerToolsExamples.sln
+- Open `OpenXmlPowerTools.sln` in Visual Studio
+- Rebuild the project
 - Build the solution.  To validate the build, open the Test Explorer.  Click Run All.
 - To run an example, set the example as the startup project, and press F5.
+
+**Cmdlets**
+- Make sure you are running PowerShell 3.0 or later
+- If necessary, set your execution policy.  Run PowerShell as administrator and Set-ExecutionPolicy Unrestricted (or RemoteSigned)
+- Build using steps above
+- Build the solution.  To validate the build, open the Test Explorer (pick TEST -> Windows -> Test Explorer from the menu).  Click Run All.
+- To start using the Open-Xml-PowerTools Cmdlets, open a PowerShel prompt and load the module
+
+	```ps
+	Import-Module Open-Xml-PowerTools [OpenXmlPowerTools Root]\OpenXmlPowerTools.Cmdlet\bin\[flavor]\Open-XML-PowerTools.psd1
+	```
 
 Change Log
 ==========
