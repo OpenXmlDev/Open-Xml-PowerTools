@@ -1,4 +1,6 @@
-﻿Open-XML-PowerTools
+﻿[![Build status](https://ci.appveyor.com/api/projects/status/au9umdxcu7pnnacm?svg=true)](https://ci.appveyor.com/project/openxmlsdk/open-xml-powertools)
+
+Open-XML-PowerTools
 ===================
 The Open XML PowerTools provides guidance and example code for programming with Open XML
 Documents (DOCX, XLSX, and PPTX).  It is based on, and extends the functionality
