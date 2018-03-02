@@ -49,27 +49,20 @@ Build Instructions
 
 **Prerequisites:**
 
-- Visual Studo 2015 or Visual Studio 2017
-- [PowerShell Tools for Visual Studio](https://github.com/adamdriscoll/poshtools)
-- Powershell 3.0+ (only for cmdlets)
+- Visual Studio 2017 Update 5 or .NET CLI toolchain
 
 **Build**
+ 
+ With Visual Studio:
 
 - Open `OpenXmlPowerTools.sln` in Visual Studio
 - Rebuild the project
 - Build the solution.  To validate the build, open the Test Explorer.  Click Run All.
 - To run an example, set the example as the startup project, and press F5.
 
-**Cmdlets**
-- Make sure you are running PowerShell 3.0 or later
-- If necessary, set your execution policy.  Run PowerShell as administrator and Set-ExecutionPolicy Unrestricted (or RemoteSigned)
-- Build using steps above
-- Build the solution.  To validate the build, open the Test Explorer (pick TEST -> Windows -> Test Explorer from the menu).  Click Run All.
-- To start using the Open-Xml-PowerTools Cmdlets, open a PowerShel prompt and load the module
+With .NET CLI toolchain:
 
-	```ps
-	Import-Module Open-Xml-PowerTools [OpenXmlPowerTools Root]\OpenXmlPowerTools.Cmdlet\bin\[flavor]\Open-XML-PowerTools.psd1
-	```
+- Run `dotnet build OpenXmlPowerTools.sln`
 
 Change Log
 ==========
@@ -200,5 +193,4 @@ Procedures for enhancing the core C# modules
 - Modify the code
 - Write xUnit tests
 - Write an example if necessary
-- Run xUnit tests on VS2015 Community Edition
-- Run xUnit tests on VS2013 Update 4
+- Run xUnit tests
