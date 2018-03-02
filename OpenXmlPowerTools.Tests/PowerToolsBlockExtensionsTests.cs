@@ -48,7 +48,7 @@ namespace OpenXmlPowerTools.Tests
                     // by using the strongly typed SDK classes.
                     XDocument content = part.GetXDocument();
                     List<XElement> paragraphElements = content.Descendants(W.p).ToList();
-                    Assert.Equal(1, paragraphElements.Count);
+                    Assert.Single(paragraphElements);
                     Assert.Equal("First", paragraphElements[0].Value);
 
                     // This demonstrates the usage of the EndPowerToolsBlock method to
@@ -69,7 +69,7 @@ namespace OpenXmlPowerTools.Tests
                     // XDocument, i.e., the annotation, rather reading the part's stream again.
                     content = part.GetXDocument();
                     paragraphElements = content.Descendants(W.p).ToList();
-                    Assert.Equal(1, paragraphElements.Count);
+                    Assert.Single(paragraphElements);
                     Assert.Equal("First", paragraphElements[0].Value);
 
                     // To make the GetXDocument read the parts' streams, we need to begin
@@ -121,7 +121,7 @@ namespace OpenXmlPowerTools.Tests
                     // added through the SDK, not what we added through the PowerTools functionality.
                     body = part.Document.Body;
                     List<Paragraph> paragraphs = body.Elements<Paragraph>().ToList();
-                    Assert.Equal(1, paragraphs.Count);
+                    Assert.Single(paragraphs);
                     Assert.Equal("Added through SDK", paragraphs[0].InnerText);
 
                     // Now, let's end the PowerTools Block, which reloads the root element of this

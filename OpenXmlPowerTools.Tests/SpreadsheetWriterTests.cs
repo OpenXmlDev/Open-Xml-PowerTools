@@ -347,7 +347,7 @@ namespace OxPt
                 }
 #endif
 
-                Assert.Equal(0, errors.Count());
+                Assert.Empty(errors);
             }
         }
 

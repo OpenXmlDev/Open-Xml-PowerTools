@@ -139,7 +139,7 @@ namespace OxPt
             ConvertToHtmlNoCssClasses(sourceDocx, oxPtConvertedDestHtml);
         }
 
-        public static void CopyFormattingAssembledDocx(FileInfo source, FileInfo dest)
+        private static void CopyFormattingAssembledDocx(FileInfo source, FileInfo dest)
         {
             var ba = File.ReadAllBytes(source.FullName);
             using (MemoryStream ms = new MemoryStream())
@@ -188,7 +188,7 @@ namespace OxPt
             }
         }
 
-        public static void ConvertToHtml(FileInfo sourceDocx, FileInfo destFileName)
+        private static void ConvertToHtml(FileInfo sourceDocx, FileInfo destFileName)
         {
             byte[] byteArray = File.ReadAllBytes(sourceDocx.FullName);
             using (MemoryStream memoryStream = new MemoryStream())
@@ -282,7 +282,7 @@ namespace OxPt
             }
         }
 
-        public static void ConvertToHtmlNoCssClasses(FileInfo sourceDocx, FileInfo destFileName)
+        private static void ConvertToHtmlNoCssClasses(FileInfo sourceDocx, FileInfo destFileName)
         {
             byte[] byteArray = File.ReadAllBytes(sourceDocx.FullName);
             using (MemoryStream memoryStream = new MemoryStream())

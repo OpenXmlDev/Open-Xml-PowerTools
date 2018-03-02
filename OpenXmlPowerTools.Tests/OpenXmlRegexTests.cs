@@ -276,11 +276,11 @@ namespace OpenXmlPowerTools.Tests
                     "Text can be enclosed in ‘changed normal double quotes’ and in ‘changed double angle quotation marks’.",
                     innerText);
 
-                Assert.True(p.Elements(W.ins).Any(e => InnerText(e) == "‘changed normal double quotes’"));
-                Assert.True(p.Elements(W.ins).Any(e => InnerText(e) == "‘changed double angle quotation marks’"));
+                Assert.Contains(p.Elements(W.ins), e => InnerText(e) == "‘changed normal double quotes’");
+                Assert.Contains(p.Elements(W.ins), e => InnerText(e) == "‘changed double angle quotation marks’");
 
-                Assert.True(p.Elements(W.del).Any(e => InnerDelText(e) == "“normal double quotes”"));
-                Assert.True(p.Elements(W.del).Any(e => InnerDelText(e) == "«double angle quotation marks»"));
+                Assert.Contains(p.Elements(W.del), e => InnerDelText(e) == "“normal double quotes”");
+                Assert.Contains(p.Elements(W.del), e => InnerDelText(e) == "«double angle quotation marks»");
             }
         }
 
@@ -314,8 +314,8 @@ namespace OpenXmlPowerTools.Tests
                     "Text can be enclosed in ‘changed normal double quotes’ and in ‘changed double angle quotation marks’.",
                     innerText);
 
-                Assert.True(p.Elements(W.ins).Any(e => InnerText(e) == "‘changed normal double quotes’"));
-                Assert.True(p.Elements(W.ins).Any(e => InnerText(e) == "‘changed double angle quotation marks’"));
+                Assert.Contains(p.Elements(W.ins), e => InnerText(e) == "‘changed normal double quotes’");
+                Assert.Contains(p.Elements(W.ins), e => InnerText(e) == "‘changed double angle quotation marks’");
             }
         }
 
@@ -344,10 +344,9 @@ namespace OpenXmlPowerTools.Tests
                 Assert.Equal(1, count);
                 Assert.Equal("We can also use symbols such as \uF028 or \uF028.", innerText);
 
-                Assert.True(p.Descendants(W.ins).Any(
-                    ins => ins.Descendants(W.sym).Any(
+                Assert.Contains(p.Descendants(W.ins), ins => ins.Descendants(W.sym).Any(
                         sym => sym.Attribute(W.font).Value == "Wingdings" && 
-                               sym.Attribute(W._char).Value == "F028")));
+                               sym.Attribute(W._char).Value == "F028"));
             }
         }
 

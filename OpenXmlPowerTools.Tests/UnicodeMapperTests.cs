@@ -76,7 +76,7 @@ namespace OpenXmlPowerTools.Tests
             List<XElement> textRuns = UnicodeMapper.StringToCoalescedRunList(textString, null);
             List<XElement> mixedRuns = UnicodeMapper.StringToCoalescedRunList(mixedString, null);
 
-            Assert.Equal(1, textRuns.Count);
+            Assert.Single(textRuns);
             Assert.Equal(5, mixedRuns.Count);
 
             Assert.Equal("First", mixedRuns.Elements(W.t).Skip(0).First().Value);

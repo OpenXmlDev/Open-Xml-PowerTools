@@ -93,24 +93,8 @@ namespace OxPt
         [InlineData("RP/RP048-Deleted-Inserted-Para-Mark.docx")]
         [InlineData("RP/RP049-Deleted-Para-Before-Table.docx")]
         [InlineData("RP/RP050-Deleted-Footnote.docx")]
-        //[InlineData("RP/")]
         [InlineData("RP/RP052-Deleted-Para-Mark.docx")]
-        //[InlineData("RP/")]
-        //[InlineData("RP/")]
-        //[InlineData("RP/")]
-        //[InlineData("RP/")]
-        //[InlineData("RP/")]
-        //[InlineData("RP/")]
-        //[InlineData("RP/")]
-        //[InlineData("RP/")]
-        //[InlineData("RP/")]
-
         public void RP001(string name)
-        {
-            DoTest(name);
-        }
-
-        public void DoTest(string name)
         {
             var sourceFi = new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, name));
             var baselineAcceptedFi = new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, name.Replace(".docx", "-Accepted.docx")));

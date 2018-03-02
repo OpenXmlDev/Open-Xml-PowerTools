@@ -47,9 +47,11 @@ namespace OxPt
         [InlineData("CZ-1010", "CZ/CZ002-Multi-Paragraphs.docx", "CZ/CZ002-Multi-Paragraphs-Mod.docx", 1)]
         [InlineData("CZ-1020", "CZ/CZ003-Multi-Paragraphs.docx", "CZ/CZ003-Multi-Paragraphs-Mod.docx", 1)]
         [InlineData("CZ-1030", "CZ/CZ004-Multi-Paragraphs-in-Cell.docx", "CZ/CZ004-Multi-Paragraphs-in-Cell-Mod.docx", 1)]
-
         public void CZ001_CompareTrackedInPrev(string testId, string name1, string name2, int revisionCount)
         {
+            // TODO: Do we need to keep the revision count parameter?
+            Assert.Equal(1, revisionCount);
+
             FileInfo source1Docx = new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, name1));
             FileInfo source2Docx = new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, name2));
 

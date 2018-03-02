@@ -133,12 +133,12 @@ namespace OpenXmlPowerTools.Tests
         public void CanRemoveGoBackBookmarks()
         {
             XDocument partDocument = XDocument.Parse(GoBackBookmarkDocumentXmlString);
-            Assert.True(partDocument
+            Assert.Contains(partDocument
                 .Descendants(W.bookmarkStart)
-                .Any(e => e.Attribute(W.name).Value == "_GoBack" && e.Attribute(W.id).Value == "0"));
-            Assert.True(partDocument
+, e => e.Attribute(W.name).Value == "_GoBack" && e.Attribute(W.id).Value == "0");
+            Assert.Contains(partDocument
                 .Descendants(W.bookmarkEnd)
-                .Any(e => e.Attribute(W.id).Value == "0"));
+, e => e.Attribute(W.id).Value == "0");
 
             using (var stream = new MemoryStream())
             using (WordprocessingDocument wordDocument = WordprocessingDocument.Create(stream, DocumentType))

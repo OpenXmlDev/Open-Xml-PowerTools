@@ -49,7 +49,7 @@ namespace OpenXmlPowerTools.Tests
                         // Assert that we can see the paragraph added through the PowerTools.
                         Body body = part.Document.Body;
                         List<Paragraph> paragraphs = body.Elements<Paragraph>().ToList();
-                        Assert.Equal(1, paragraphs.Count);
+                        Assert.Single(paragraphs);
                         Assert.Equal("Added through PowerTools", paragraphs[0].InnerText);
 
                         // Add a paragraph through the SDK.

@@ -71,7 +71,7 @@ namespace OxPt
                 metrics = MetricsGetter.GetPptxMetrics(pmlDocument, settings);
             }
 
-            Assert.NotEqual(null, metrics);
+            Assert.NotNull(metrics);
         }
     }
 }

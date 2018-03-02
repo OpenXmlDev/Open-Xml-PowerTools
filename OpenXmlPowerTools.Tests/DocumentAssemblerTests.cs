@@ -163,7 +163,7 @@ namespace OxPt
                     Console.WriteLine(z);
 #endif
 
-                    Assert.Equal(0, valErrors.Count());
+                    Assert.Empty(valErrors);
                 }
             }
 
@@ -186,8 +186,8 @@ namespace OxPt
         }
 
         [Theory]
-        [InlineData("DA024-TrackedRevisions.docx", "DA-Data.xml", true)]
-        public void DA102_Throws(string name, string data, bool err)
+        [InlineData("DA024-TrackedRevisions.docx", "DA-Data.xml")]
+        public void DA102_Throws(string name, string data)
         {
             FileInfo templateDocx = new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, name));
             FileInfo dataFile = new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, data));
@@ -226,7 +226,7 @@ namespace OxPt
                 {
                     OpenXmlValidator v = new OpenXmlValidator();
                     var valErrors = v.Validate(wDoc).Where(ve => !s_ExpectedErrors.Contains(ve.Description));
-                    Assert.Equal(0, valErrors.Count());
+                    Assert.Empty(valErrors);
                 }
             }
 

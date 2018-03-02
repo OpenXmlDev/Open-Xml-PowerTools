@@ -47,7 +47,7 @@ namespace OpenXmlPowerTools.Tests
                         // Assert that we can see the paragraph added through the strongly typed classes.
                         XDocument content = part.GetXDocument();
                         List<XElement> paragraphElements = content.Descendants(W.p).ToList();
-                        Assert.Equal(1, paragraphElements.Count);
+                        Assert.Single(paragraphElements);
                         Assert.Equal("Added through SDK", paragraphElements[0].Value);
 
                         // Add a paragraph through the PowerTools.
