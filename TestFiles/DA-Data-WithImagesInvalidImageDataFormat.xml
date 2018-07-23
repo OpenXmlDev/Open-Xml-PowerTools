@@ -3,13 +3,13 @@
   <CustomerID>1</CustomerID>
   <Name>Cheryl</Name>
   <HighValueCustomer>True</HighValueCustomer>
-  <CustomerLogo>../../../TestFiles/img.png</CustomerLogo>
+  <CustomerLogo>../../../../TestFiles/img.png</CustomerLogo>
   <Orders>
     <Order>
       <ProductDescription>Unicycle</ProductDescription>
       <Quantity>3</Quantity>
       <OrderDate>9/5/2001</OrderDate>
-	  <Thumbnail>../../../TestFiles/img2.png</Thumbnail>
+	  <Thumbnail>../../../../TestFiles/img2.png</Thumbnail>
     </Order>
     <Order>
       <ProductDescription>Tricycle</ProductDescription>
