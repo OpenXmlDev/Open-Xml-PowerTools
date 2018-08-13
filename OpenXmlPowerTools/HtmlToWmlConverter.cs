@@ -29,7 +29,6 @@ using OpenXmlPowerTools;
 using OpenXmlPowerTools.HtmlToWml;
 using OpenXmlPowerTools.HtmlToWml.CSS;
 using System.Text.RegularExpressions;
-using System.Windows.Forms;
 
 namespace OpenXmlPowerTools
 {

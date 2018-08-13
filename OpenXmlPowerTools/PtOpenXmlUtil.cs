@@ -678,13 +678,15 @@ namespace OpenXmlPowerTools
             if (rPr == null)
                 throw new OpenXmlPowerToolsException("Internal Error, should have run properties");
             var languageType = (string)r.Attribute(PtOpenXml.LanguageType);
-            decimal? sz = null;
+            decimal? szn = null;
             if (languageType == "bidi")
-                sz = (decimal?)rPr.Elements(W.szCs).Attributes(W.val).FirstOrDefault();
+                szn = (decimal?)rPr.Elements(W.szCs).Attributes(W.val).FirstOrDefault();
             else
-                sz = (decimal?)rPr.Elements(W.sz).Attributes(W.val).FirstOrDefault();
-            if (sz == null)
-                sz = 22m;
+                szn = (decimal?)rPr.Elements(W.sz).Attributes(W.val).FirstOrDefault();
+            if (szn == null)
+                szn = 22m;
+
+            var sz = szn.GetValueOrDefault();
 
             // unknown font families will throw ArgumentException, in which case just return 0
             if (!KnownFamilies.Contains(fontName))
@@ -743,66 +745,9 @@ namespace OpenXmlPowerTools
                 runText = sb.ToString();
             }
 
-            try
-            {
-                using (Font f = new Font(ff, (float)sz / 2f, fs))
-                {
-                    System.Windows.Forms.TextFormatFlags tff = System.Windows.Forms.TextFormatFlags.NoPadding;
-                    Size proposedSize = new Size(int.MaxValue, int.MaxValue);
-                    var sf = System.Windows.Forms.TextRenderer.MeasureText(runText, f, proposedSize, tff); // sf returns size in pixels
-                    var dpi = 96m;
-                    var twip = (int)(((sf.Width / dpi) * 1440m) / multiplier + tabLength * 1440m);
-                    return twip;
-                }
-            }
-            catch (ArgumentException)
-            {
-                try
-                {
-                    var fs2 = FontStyle.Regular;
-                    using (Font f = new Font(ff, (float)sz / 2f, fs2))
-                    {
-                        System.Windows.Forms.TextFormatFlags tff = System.Windows.Forms.TextFormatFlags.NoPadding;
-                        Size proposedSize = new Size(int.MaxValue, int.MaxValue);
-                        var sf = System.Windows.Forms.TextRenderer.MeasureText(runText, f, proposedSize, tff); // sf returns size in pixels
-                        var dpi = 96m;
-                        var twip = (int)(((sf.Width / dpi) * 1440m) / multiplier + tabLength * 1440m);
-                        return twip;
-                    }
-                }
-                catch (ArgumentException)
-                {
-                    var fs2 = FontStyle.Bold;
-                    try
-                    {
-                        using (Font f = new Font(ff, (float)sz / 2f, fs2))
-                        {
-                            System.Windows.Forms.TextFormatFlags tff = System.Windows.Forms.TextFormatFlags.NoPadding;
-                            Size proposedSize = new Size(int.MaxValue, int.MaxValue);
-                            var sf = System.Windows.Forms.TextRenderer.MeasureText(runText, f, proposedSize, tff); // sf returns size in pixels
-                            var dpi = 96m;
-                            var twip = (int)(((sf.Width / dpi) * 1440m) / multiplier + tabLength * 1440m);
-                            return twip;
-                        }
-                    }
-                    catch (ArgumentException)
-                    {
-                        // if both regular and bold fail, then get metrics for Times New Roman
-                        // use the original FontStyle (in fs)
-                        FontFamily ff2;
-                        ff2 = new FontFamily("Times New Roman");
-                        using (Font f = new Font(ff2, (float)sz / 2f, fs))
-                        {
-                            System.Windows.Forms.TextFormatFlags tff = System.Windows.Forms.TextFormatFlags.NoPadding;
-                            Size proposedSize = new Size(int.MaxValue, int.MaxValue);
-                            var sf = System.Windows.Forms.TextRenderer.MeasureText(runText, f, proposedSize, tff); // sf returns size in pixels
-                            var dpi = 96m;
-                            var twip = (int)(((sf.Width / dpi) * 1440m) / multiplier + tabLength * 1440m);
-                            return twip;
-                        }
-                    }
-                }
-            }
+            var w = MetricsGetter.GetTextWidth(ff, fs, sz, runText);
+
+            return (int) (w / 96m * 1440m / multiplier + tabLength * 1440m);
         }
 
         public static bool GetBoolProp(XElement runProps, XName xName)

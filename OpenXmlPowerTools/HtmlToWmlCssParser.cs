@@ -808,12 +808,10 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
                     }
                     if (number) { return false; }
 
-                    try
+                    if (ColorParser.IsValidName(m_value))
                     {
-                        KnownColor kc = (KnownColor)Enum.Parse(typeof(KnownColor), m_value, true);
                         return true;
                     }
-                    catch { }
                 }
                 return false;
             }
@@ -835,13 +833,10 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
             }
             else
             {
-                try
+                if (ColorParser.TryFromName(m_value, out var c))
                 {
-                    KnownColor kc = (KnownColor)Enum.Parse(typeof(KnownColor), m_value, true);
-                    Color c = Color.FromKnownColor(kc);
                     return c;
                 }
-                catch { }
             }
             int r = ConvertFromHex(hex.Substring(0, 2));
             int g = ConvertFromHex(hex.Substring(2, 2));
@@ -1523,8 +1518,7 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
                         return false;
                     }
 
-                    KnownColor kc;
-                    if (Enum.TryParse(m_val, true, out kc))
+                    if (ColorParser.IsValidName(m_val))
                     {
                         return true;
                     }
@@ -1649,13 +1643,10 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
             }
             else
             {
-                try
+                if (ColorParser.TryFromName(m_val, out var c))
                 {
-                    KnownColor kc = (KnownColor)Enum.Parse(typeof(KnownColor), m_val, true);
-                    Color c = Color.FromKnownColor(kc);
                     return c;
                 }
-                catch { }
             }
             if (hex.Length == 3)
             {

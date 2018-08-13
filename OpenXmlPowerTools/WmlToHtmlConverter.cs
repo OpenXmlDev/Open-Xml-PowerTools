@@ -47,7 +47,6 @@ using System.Drawing;
 using System.Globalization;
 using System.Linq;
 using System.Text;
-using System.Windows.Forms;
 using System.Xml.Linq;
 using DocumentFormat.OpenXml.Packaging;
 
@@ -2370,74 +2369,9 @@ namespace OpenXmlPowerTools
                 runText = sb.ToString();
             }
 
-            try
-            {
-                using (Font f = new Font(ff, (float) sz/2f, fs))
-                {
-                    const TextFormatFlags tff = TextFormatFlags.NoPadding;
-                    var proposedSize = new Size(int.MaxValue, int.MaxValue);
-                    var sf = TextRenderer.MeasureText(runText, f, proposedSize, tff);
-                        // sf returns size in pixels
-                    const decimal dpi = 96m;
-                    var twip = (int) (((sf.Width/dpi)*1440m)/multiplier + tabLength*1440m);
-                    return twip;
-                }
-            }
-            catch (ArgumentException)
-            {
-                try
-                {
-                    const FontStyle fs2 = FontStyle.Regular;
-                    using (Font f = new Font(ff, (float) sz/2f, fs2))
-                    {
-                        const TextFormatFlags tff = TextFormatFlags.NoPadding;
-                        var proposedSize = new Size(int.MaxValue, int.MaxValue);
-                        var sf = TextRenderer.MeasureText(runText, f, proposedSize, tff);
-                            // sf returns size in pixels
-                        const decimal dpi = 96m;
-                        var twip = (int) (((sf.Width/dpi)*1440m)/multiplier + tabLength*1440m);
-                        return twip;
-                    }
-                }
-                catch (ArgumentException)
-                {
-                    const FontStyle fs2 = FontStyle.Bold;
-                    try
-                    {
-                        using (var f = new Font(ff, (float) sz/2f, fs2))
-                        {
-                            const TextFormatFlags tff = TextFormatFlags.NoPadding;
-                            var proposedSize = new Size(int.MaxValue, int.MaxValue);
-                            var sf = TextRenderer.MeasureText(runText, f, proposedSize, tff);
-                                // sf returns size in pixels
-                            const decimal dpi = 96m;
-                            var twip = (int) (((sf.Width/dpi)*1440m)/multiplier + tabLength*1440m);
-                            return twip;
-                        }
-                    }
-                    catch (ArgumentException)
-                    {
-                        // if both regular and bold fail, then get metrics for Times New Roman
-                        // use the original FontStyle (in fs)
-                        var ff2 = new FontFamily("Times New Roman");
-                        using (var f = new Font(ff2, (float) sz/2f, fs))
-                        {
-                            const TextFormatFlags tff = TextFormatFlags.NoPadding;
-                            var proposedSize = new Size(int.MaxValue, int.MaxValue);
-                            var sf = TextRenderer.MeasureText(runText, f, proposedSize, tff);
-                                // sf returns size in pixels
-                            const decimal dpi = 96m;
-                            var twip = (int) (((sf.Width/dpi)*1440m)/multiplier + tabLength*1440m);
-                            return twip;
-                        }
-                    }
-                }
-            }
-            catch (OverflowException)
-            {
-                // This happened on Azure but interestingly enough not while testing locally.
-                return 0;
-            }
+            var w = MetricsGetter.GetTextWidth(ff, fs, sz, runText);
+
+            return (int)(w / 96m * 1440m / multiplier + tabLength * 1440m);
         }
 
         private static void InsertAppropriateNonbreakingSpaces(WordprocessingDocument wordDoc)

@@ -68,7 +68,7 @@ namespace OpenXmlPowerTools
 
                     if (!string.IsNullOrEmpty(foreColor))
                     {
-                        int colorValue = System.Drawing.Color.FromName(foreColor).ToArgb();
+                        int colorValue = ColorParser.FromName(foreColor).ToArgb();
                         if (colorValue == 0)
                             throw new OpenXmlPowerToolsException(String.Format("Add-DocxText: The specified color {0} is unsupported, Please specify the valid color. Ex, Red, Green", foreColor));
 
@@ -81,7 +81,7 @@ namespace OpenXmlPowerTools
 
                     if (!string.IsNullOrEmpty(backColor))
                     {
-                        int colorShade = System.Drawing.Color.FromName(backColor).ToArgb();
+                        int colorShade = ColorParser.FromName(backColor).ToArgb();
                         if (colorShade == 0)
                             throw new OpenXmlPowerToolsException(String.Format("Add-DocxText: The specified color {0} is unsupported, Please specify the valid color. Ex, Red, Green", foreColor));
 

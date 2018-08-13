@@ -124,7 +124,11 @@ namespace OxPt
             PresentationBuilder.BuildPresentation(sources, processedDestPptx.FullName);
         }
 
+#if NETCOREAPP2_0
+        [Fact(Skip="Bug in netcore 2.0 : https://github.com/OfficeDev/Open-Xml-PowerTools/pull/238#issuecomment-412375570")]
+#else
         [Fact]
+#endif
         public void PB006_VideoFormats()
         {
             // This presentation contains videos with content types video/mp4, video/quicktime, video/unknown, video/x-ms-asf, and video/x-msvideo.

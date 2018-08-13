@@ -36,3 +36,7 @@ TestResults/
 
 # Visual Studio
 .vs/
+
+# JetBrains
+.idea/
+_ReSharper.Caches/

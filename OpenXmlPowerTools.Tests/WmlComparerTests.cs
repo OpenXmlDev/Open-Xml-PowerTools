@@ -171,8 +171,8 @@ namespace OxPt
                     return new WmlRevisedDocumentInfo()
                     {
                         RevisedDocument = new WmlDocument(revisedCopiedToDestDocx.FullName),
-                        Color = Color.FromName(z.Element("Color").Value),
-                        Revisor = z.Element("Revisor").Value,
+                        Color = ColorParser.FromName(z.Element("Color")?.Value),
+                        Revisor = z.Element("Revisor")?.Value,
                     };
                 })
                 .ToList();
