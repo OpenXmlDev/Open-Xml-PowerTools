@@ -1,5 +1,9 @@
 ﻿[![Build status](https://ci.appveyor.com/api/projects/status/au9umdxcu7pnnacm?svg=true)](https://ci.appveyor.com/project/openxmlsdk/open-xml-powertools)
 
+NuGet Feed for CI build: https://ci.appveyor.com/nuget/open-xml-powertools
+
+No NuGet.org feed at this time. We are working on it.
+
 Open-XML-PowerTools
 ===================
 The Open XML PowerTools provides guidance and example code for programming with Open XML
