@@ -408,9 +408,15 @@ namespace OpenXmlPowerTools
             }
         }
 
-        private static bool HasAPageBreak(XElement element)
+         private static bool HasAPageBreak(XElement element)
         {
-            return element.Descendants().Any(dl => dl.Name == W.br && dl.Attribute(W.type).Value == "page");
+            if(element != null && element.Descendants() != null)
+            {
+                var validElements = element.Descendants().Where(el => el.Name == W.br).ToList();
+                return validElements.Descendants().Any(dl => dl != null && dl.Attribute(W.type).Value != null && dl.Attribute(W.type).Value == "page");
+
+            }
+            return false;
         }
 
         private static object ConvertToHtmlTransform(WordprocessingDocument wordDoc,
