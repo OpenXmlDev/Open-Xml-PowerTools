@@ -1,12 +1,38 @@
-os: Visual Studio 2017
+# Build and Publish Pipeline
 
 environment:
-  image: Visual Studio 2017
-  Configuration: Release
+  matrix:
+  # Use Ubuntu to build and test the netstandard2.0 target framework on Linux
+  - APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu
+    SOLUTION: 'OpenXmlPowerTools.sln'
+    CONFIGURATION: 'Release'
+    PROJECT_LOAD_STYLE: 'netstandard2_0'
+  # Use Visual Studio 2019 on Windows to build, test, and pack all target frameworks (later)
+  - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
+    SOLUTION: 'OpenXmlPowerTools.sln'
+    CONFIGURATION: 'Release'
+    PROJECT_LOAD_STYLE: 'All'
+
+matrix:
+  fast_finish: true
+
+install:
+- pwsh: dotnet tool install --global GitVersion.Tool --version 5.*
+
+before_build:
+- pwsh: dotnet-gitversion /l console /config GitVersion.yml /output buildserver /updateprojectfiles
 
 build_script:
-  - cmd: dotnet restore
-  - cmd: dotnet build
+- pwsh: dotnet build $env:SOLUTION --configfile NuGet.config -c $env:CONFIGURATION -p:ProjectLoadStyle=$env:PROJECT_LOAD_STYLE
 
 test_script:
-  - cmd: dotnet test .\OpenXmlPowerTools.Tests
+- pwsh: dotnet test $env:SOLUTION --no-build -c $env:CONFIGURATION -p:ProjectLoadStyle=$env:PROJECT_LOAD_STYLE
+
+for:
+- # Windows image
+  matrix:
+    only:
+    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
+
+  deploy_script:
+  - pwsh: Write-Host "Will pack and publish NuGet package later"

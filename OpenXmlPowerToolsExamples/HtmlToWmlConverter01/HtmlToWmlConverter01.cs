@@ -4,14 +4,8 @@
 using System;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Xml;
 using System.Xml.Linq;
-using DocumentFormat.OpenXml.Packaging;
-using DocumentFormat.OpenXml.Validation;
 using OpenXmlPowerTools;
-using OpenXmlPowerTools.HtmlToWml;
 
 /*******************************************************************************************
  * HtmlToWmlConverter expects the HTML to be passed as an XElement, i.e. as XML.  While the HTML test files that
@@ -19,116 +13,22 @@ using OpenXmlPowerTools.HtmlToWml;
  * The best solution is to use the HtmlAgilityPack, which can parse HTML and save as XML.  The HtmlAgilityPack
  * is licensed under the Ms-PL (same as Open-Xml-PowerTools) so it is convenient to include it in your solution,
  * and thereby you can convert HTML to XML that can be processed by the HtmlToWmlConverter.
- * 
+ *
  * A convenient way to get the DLL that has been checked out with HtmlToWmlConverter is to clone the repo at
  * https://github.com/EricWhiteDev/HtmlAgilityPack
- * 
+ *
  * That repo contains only the DLL that has been checked out with HtmlToWmlConverter.
- * 
+ *
  * Of course, you can also get the HtmlAgilityPack source and compile it to get the DLL.  You can find it at
  * http://codeplex.com/HtmlAgilityPack
- * 
+ *
  * We don't include the HtmlAgilityPack in Open-Xml-PowerTools, to simplify installation.  The example files
  * in this module do not require HtmlAgilityPack to run.
 *******************************************************************************************/
 
-class HtmlToWmlConverterExample
+internal class HtmlToWmlConverterExample
 {
-    static void Main(string[] args)
-    {
-        var n = DateTime.Now;
-        var tempDi = new DirectoryInfo(string.Format("ExampleOutput-{0:00}-{1:00}-{2:00}-{3:00}{4:00}{5:00}", n.Year - 2000, n.Month, n.Day, n.Hour, n.Minute, n.Second));
-        tempDi.Create();
-
-        foreach (var file in Directory.GetFiles("../../", "*.html") /* .Where(f => f.Contains("Test-01")) */ )
-        {
-            ConvertToDocx(file, tempDi.FullName);
-        }
-    }
-
-    private static void ConvertToDocx(string file, string destinationDir)
-    {
-        bool s_ProduceAnnotatedHtml = true;
-
-        var sourceHtmlFi = new FileInfo(file);
-        Console.WriteLine("Converting " + sourceHtmlFi.Name);
-        var sourceImageDi = new DirectoryInfo(destinationDir);
-
-        var destCssFi = new FileInfo(Path.Combine(destinationDir, sourceHtmlFi.Name.Replace(".html", "-2.css")));
-        var destDocxFi = new FileInfo(Path.Combine(destinationDir, sourceHtmlFi.Name.Replace(".html", "-3-ConvertedByHtmlToWml.docx")));
-        var annotatedHtmlFi = new FileInfo(Path.Combine(destinationDir, sourceHtmlFi.Name.Replace(".html", "-4-Annotated.txt")));
-
-        XElement html = HtmlToWmlReadAsXElement.ReadAsXElement(sourceHtmlFi);
-        
-        string usedAuthorCss = HtmlToWmlConverter.CleanUpCss((string)html.Descendants().FirstOrDefault(d => d.Name.LocalName.ToLower() == "style"));
-        File.WriteAllText(destCssFi.FullName, usedAuthorCss);
-
-        HtmlToWmlConverterSettings settings = HtmlToWmlConverter.GetDefaultSettings();
-        // image references in HTML files contain the path to the subdir that contains the images, so base URI is the name of the directory
-        // that contains the HTML files
-        settings.BaseUriForImages = sourceHtmlFi.DirectoryName;
-
-        WmlDocument doc = HtmlToWmlConverter.ConvertHtmlToWml(defaultCss, usedAuthorCss, userCss, html, settings, null, s_ProduceAnnotatedHtml ? annotatedHtmlFi.FullName : null);
-        doc.SaveAs(destDocxFi.FullName);
-    }
-
-    public class HtmlToWmlReadAsXElement
-    {
-        public static XElement ReadAsXElement(FileInfo sourceHtmlFi)
-        {
-            string htmlString = File.ReadAllText(sourceHtmlFi.FullName);
-            XElement html = null;
-            try
-            {
-                html = XElement.Parse(htmlString);
-            }
-#if USE_HTMLAGILITYPACK
-            catch (XmlException)
-            {
-                HtmlDocument hdoc = new HtmlDocument();
-                hdoc.Load(sourceHtmlFi.FullName, Encoding.Default);
-                hdoc.OptionOutputAsXml = true;
-                hdoc.Save(sourceHtmlFi.FullName, Encoding.Default);
-                StringBuilder sb = new StringBuilder(File.ReadAllText(sourceHtmlFi.FullName, Encoding.Default));
-                sb.Replace("&amp;", "&");
-                sb.Replace("&nbsp;", "\xA0");
-                sb.Replace("&quot;", "\"");
-                sb.Replace("&lt;", "~lt;");
-                sb.Replace("&gt;", "~gt;");
-                sb.Replace("&#", "~#");
-                sb.Replace("&", "&amp;");
-                sb.Replace("~lt;", "&lt;");
-                sb.Replace("~gt;", "&gt;");
-                sb.Replace("~#", "&#");
-                File.WriteAllText(sourceHtmlFi.FullName, sb.ToString(), Encoding.Default);
-                html = XElement.Parse(sb.ToString());
-            }
-#else
-            catch (XmlException e)
-            {
-                throw e;
-            }
-#endif
-            // HtmlToWmlConverter expects the HTML elements to be in no namespace, so convert all elements to no namespace.
-            html = (XElement)ConvertToNoNamespace(html);
-            return html;
-        }
-
-        private static object ConvertToNoNamespace(XNode node)
-        {
-            XElement element = node as XElement;
-            if (element != null)
-            {
-                return new XElement(element.Name.LocalName,
-                    element.Attributes().Where(a => !a.IsNamespaceDeclaration),
-                    element.Nodes().Select(n => ConvertToNoNamespace(n)));
-            }
-            return node;
-        }
-    }
-
-    static string defaultCss =
-        @"html, address,
+    private const string DefaultCss = @"html, address,
 blockquote,
 body, dd, div,
 dl, dt, fieldset, form,
@@ -201,5 +101,104 @@ BDO[DIR=""rtl""] { direction: rtl; unicode-bidi: bidi-override }
 
 ";
 
-    static string userCss = @"";
+    private const string UserCss = @"";
+
+    private static void Main()
+    {
+        DateTime n = DateTime.Now;
+        var tempDi = new DirectoryInfo(
+            $"ExampleOutput-{n.Year - 2000:00}-{n.Month:00}-{n.Day:00}-{n.Hour:00}{n.Minute:00}{n.Second:00}");
+
+        tempDi.Create();
+
+        foreach (string file in Directory.GetFiles("../../../", "*.html") /* .Where(f => f.Contains("Test-01")) */)
+        {
+            ConvertToDocx(file, tempDi.FullName);
+        }
+    }
+
+    private static void ConvertToDocx(string file, string destinationDir)
+    {
+        const bool produceAnnotatedHtml = true;
+
+        var sourceHtmlFi = new FileInfo(file);
+        Console.WriteLine("Converting " + sourceHtmlFi.Name);
+        var sourceImageDi = new DirectoryInfo(destinationDir);
+
+        var destCssFi = new FileInfo(Path.Combine(destinationDir, sourceHtmlFi.Name.Replace(".html", "-2.css")));
+        var destDocxFi =
+            new FileInfo(Path.Combine(destinationDir, sourceHtmlFi.Name.Replace(".html", "-3-ConvertedByHtmlToWml.docx")));
+        var annotatedHtmlFi = new FileInfo(Path.Combine(destinationDir, sourceHtmlFi.Name.Replace(".html", "-4-Annotated.txt")));
+
+        XElement html = HtmlToWmlReadAsXElement.ReadAsXElement(sourceHtmlFi);
+
+        string usedAuthorCss =
+            HtmlToWmlConverter.CleanUpCss((string)html.Descendants().FirstOrDefault(d => d.Name.LocalName.ToLower() == "style"));
+        File.WriteAllText(destCssFi.FullName, usedAuthorCss);
+
+        HtmlToWmlConverterSettings settings = HtmlToWmlConverter.GetDefaultSettings();
+
+        // image references in HTML files contain the path to the subdir that contains the images, so base URI is the name of the directory
+        // that contains the HTML files
+        settings.BaseUriForImages = sourceHtmlFi.DirectoryName;
+
+        WmlDocument doc = HtmlToWmlConverter.ConvertHtmlToWml(DefaultCss, usedAuthorCss, UserCss, html, settings, null,
+            produceAnnotatedHtml ? annotatedHtmlFi.FullName : null);
+
+        doc.SaveAs(destDocxFi.FullName);
+    }
+
+    public class HtmlToWmlReadAsXElement
+    {
+        public static XElement ReadAsXElement(FileInfo sourceHtmlFi)
+        {
+            string htmlString = File.ReadAllText(sourceHtmlFi.FullName);
+
+#if USE_HTMLAGILITYPACK
+            XElement html;
+
+            try
+            {
+                html = XElement.Parse(htmlString);
+            }
+            catch (XmlException)
+            {
+                HtmlDocument hdoc = new HtmlDocument();
+                hdoc.Load(sourceHtmlFi.FullName, Encoding.Default);
+                hdoc.OptionOutputAsXml = true;
+                hdoc.Save(sourceHtmlFi.FullName, Encoding.Default);
+                StringBuilder sb = new StringBuilder(File.ReadAllText(sourceHtmlFi.FullName, Encoding.Default));
+                sb.Replace("&amp;", "&");
+                sb.Replace("&nbsp;", "\xA0");
+                sb.Replace("&quot;", "\"");
+                sb.Replace("&lt;", "~lt;");
+                sb.Replace("&gt;", "~gt;");
+                sb.Replace("&#", "~#");
+                sb.Replace("&", "&amp;");
+                sb.Replace("~lt;", "&lt;");
+                sb.Replace("~gt;", "&gt;");
+                sb.Replace("~#", "&#");
+                File.WriteAllText(sourceHtmlFi.FullName, sb.ToString(), Encoding.Default);
+                html = XElement.Parse(sb.ToString());
+            }
+#else
+            XElement html = XElement.Parse(htmlString);
+#endif
+            // HtmlToWmlConverter expects the HTML elements to be in no namespace, so convert all elements to no namespace.
+            html = (XElement)ConvertToNoNamespace(html);
+            return html;
+        }
+
+        private static object ConvertToNoNamespace(XNode node)
+        {
+            if (node is XElement element)
+            {
+                return new XElement(element.Name.LocalName,
+                    element.Attributes().Where(a => !a.IsNamespaceDeclaration),
+                    element.Nodes().Select(ConvertToNoNamespace));
+            }
+
+            return node;
+        }
+    }
 }

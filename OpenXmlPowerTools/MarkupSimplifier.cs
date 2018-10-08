@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Xml.Linq;
 using System.Xml.Schema;
@@ -41,7 +40,6 @@ namespace OpenXmlPowerTools
         public bool ReplaceTabsWithSpaces;
     }
 
-    [SuppressMessage("ReSharper", "InconsistentNaming")]
     public static class MarkupSimplifier
     {
         public static WmlDocument SimplifyMarkup(WmlDocument doc, SimplifyMarkupSettings settings)
@@ -49,7 +47,10 @@ namespace OpenXmlPowerTools
             using (var streamDoc = new OpenXmlMemoryStreamDocument(doc))
             {
                 using (WordprocessingDocument document = streamDoc.GetWordprocessingDocument())
+                {
                     SimplifyMarkup(document, settings);
+                }
+
                 return streamDoc.GetModifiedWmlDocument();
             }
         }
@@ -61,17 +62,31 @@ namespace OpenXmlPowerTools
                 settings.RemoveRsidInfo = true;
                 RemoveElementsForDocumentComparison(doc);
             }
+
             if (settings.RemoveRsidInfo)
+            {
                 RemoveRsidInfoInSettings(doc);
+            }
+
             if (settings.AcceptRevisions)
+            {
                 RevisionAccepter.AcceptRevisions(doc);
+            }
+
             foreach (OpenXmlPart part in doc.ContentParts())
+            {
                 SimplifyMarkupForPart(part, settings);
+            }
 
             if (doc.MainDocumentPart.StyleDefinitionsPart != null)
+            {
                 SimplifyMarkupForPart(doc.MainDocumentPart.StyleDefinitionsPart, settings);
+            }
+
             if (doc.MainDocumentPart.StylesWithEffectsPart != null)
+            {
                 SimplifyMarkupForPart(doc.MainDocumentPart.StylesWithEffectsPart, settings);
+            }
 
             if (settings.RemoveComments)
             {
@@ -118,11 +133,13 @@ namespace OpenXmlPowerTools
                 .Descendants(W.bookmarkStart)
                 .Where(b => (string) b.Attribute(W.name) == "_GoBack")
                 .ToList();
+
             foreach (XElement item in bookmarkStart)
             {
                 IEnumerable<XElement> bookmarkEnd = mainXDoc
                     .Descendants(W.bookmarkEnd)
                     .Where(be => (int) be.Attribute(W.id) == (int) item.Attribute(W.id));
+
                 bookmarkEnd.Remove();
             }
 
@@ -144,46 +161,54 @@ namespace OpenXmlPowerTools
         {
             // After transforming to single character runs, Rsid info will be invalid, so
             // remove from the part.
-            XDocument xDoc = part.GetXDocument();
-            var newRoot = (XElement) RemoveRsidTransform(xDoc.Root);
+            XElement root = part.GetXElement();
+            var newRoot = (XElement) RemoveRsidTransform(root);
             newRoot = (XElement) SingleCharacterRunTransform(newRoot);
-            xDoc.Elements().First().ReplaceWith(newRoot);
-            part.PutXDocument();
+            root.ReplaceWith(newRoot);
+            part.PutXElement();
         }
 
         public static void TransformToSingleCharacterRuns(WordprocessingDocument doc)
         {
             if (RevisionAccepter.HasTrackedRevisions(doc))
+            {
                 throw new OpenXmlPowerToolsException(
                     "Transforming a document to single character runs is not supported for " +
                     "a document with tracked revisions.");
+            }
 
             foreach (OpenXmlPart part in doc.ContentParts())
+            {
                 TransformPartToSingleCharacterRuns(part);
+            }
         }
 
         private static object RemoveCustomXmlAndContentControlsTransform(
-            XNode node, SimplifyMarkupSettings simplifyMarkupSettings)
+            XNode node,
+            SimplifyMarkupSettings simplifyMarkupSettings)
         {
-            XElement element = node as XElement;
-            if (element != null)
+            if (node is XElement element)
             {
                 if (simplifyMarkupSettings.RemoveSmartTags &&
                     element.Name == W.smartTag)
+                {
                     return element
                         .Elements()
                         .Select(e =>
                             RemoveCustomXmlAndContentControlsTransform(e,
                                 simplifyMarkupSettings));
+                }
 
                 if (simplifyMarkupSettings.RemoveContentControls &&
                     element.Name == W.sdt)
+                {
                     return element
                         .Elements(W.sdtContent)
                         .Elements()
                         .Select(e =>
                             RemoveCustomXmlAndContentControlsTransform(e,
                                 simplifyMarkupSettings));
+                }
 
                 return new XElement(element.Name,
                     element.Attributes(),
@@ -195,52 +220,50 @@ namespace OpenXmlPowerTools
 
         private static object RemoveRsidTransform(XNode node)
         {
-            var element = node as XElement;
-            if (element == null) return node;
+            if (node is XElement element)
+            {
+                return element.Name == W.rsid
+                    ? null
+                    : new XElement(element.Name,
+                        element
+                            .Attributes()
+                            .Where(a => a.Name != W.rsid &&
+                                        a.Name != W.rsidDel &&
+                                        a.Name != W.rsidP &&
+                                        a.Name != W.rsidR &&
+                                        a.Name != W.rsidRDefault &&
+                                        a.Name != W.rsidRPr &&
+                                        a.Name != W.rsidSect &&
+                                        a.Name != W.rsidTr),
+                        element.Nodes().Select(RemoveRsidTransform));
+            }
 
-            if (element.Name == W.rsid)
-                return null;
-
-            return new XElement(element.Name,
-                element
-                    .Attributes()
-                    .Where(a => (a.Name != W.rsid) &&
-                                (a.Name != W.rsidDel) &&
-                                (a.Name != W.rsidP) &&
-                                (a.Name != W.rsidR) &&
-                                (a.Name != W.rsidRDefault) &&
-                                (a.Name != W.rsidRPr) &&
-                                (a.Name != W.rsidSect) &&
-                                (a.Name != W.rsidTr)),
-                element.Nodes().Select(n => RemoveRsidTransform(n)));
+            return node;
         }
 
         private static object MergeAdjacentRunsTransform(XNode node)
         {
-            var element = node as XElement;
-            if (element == null) return node;
+            if (node is XElement element)
+            {
+                return element.Name == W.p
+                    ? WordprocessingMLUtil.CoalesceAdjacentRunsWithIdenticalFormatting(element)
+                    : new XElement(element.Name,
+                        element.Attributes(),
+                        element.Nodes().Select(MergeAdjacentRunsTransform));
+            }
 
-            if (element.Name == W.p)
-                return WordprocessingMLUtil.CoalesceAdjacentRunsWithIdenticalFormatting(element);
-
-            return new XElement(element.Name,
-                element.Attributes(),
-                element.Nodes().Select(n => MergeAdjacentRunsTransform(n)));
+            return node;
         }
 
-        private static object RemoveEmptyRunsAndRunPropertiesTransform(
-            XNode node)
+        private static object RemoveEmptyRunsAndRunPropertiesTransform(XNode node)
         {
-            var element = node as XElement;
-            if (element != null)
+            if (node is XElement element)
             {
-                if (((element.Name == W.r) || (element.Name == W.rPr) || (element.Name == W.pPr)) &&
-                    !element.Elements().Any())
-                    return null;
-
-                return new XElement(element.Name,
-                    element.Attributes(),
-                    element.Nodes().Select(n => RemoveEmptyRunsAndRunPropertiesTransform(n)));
+                return (element.Name == W.r || element.Name == W.rPr || element.Name == W.pPr) && !element.Elements().Any()
+                    ? null
+                    : new XElement(element.Name,
+                        element.Attributes(),
+                        element.Nodes().Select(RemoveEmptyRunsAndRunPropertiesTransform));
             }
 
             return node;
@@ -249,37 +272,40 @@ namespace OpenXmlPowerTools
         private static object MergeAdjacentInstrText(
             XNode node)
         {
-            var element = node as XElement;
-            if (element != null)
+            if (node is XElement element)
             {
-                if ((element.Name == W.r) && element.Elements(W.instrText).Any())
+                if (element.Name == W.r && element.Elements(W.instrText).Any())
                 {
-                    IEnumerable<IGrouping<bool, XElement>> grouped =
-                        element.Elements().GroupAdjacent(e => e.Name == W.instrText);
+                    IEnumerable<IGrouping<bool, XElement>> grouped = element
+                        .Elements()
+                        .GroupAdjacent(e => e.Name == W.instrText);
+
                     return new XElement(W.r,
                         grouped.Select(g =>
                         {
                             if (g.Key == false)
+                            {
                                 return (object) g;
+                            }
 
                             // If .doc files are converted to .docx by the Binary to Open XML Translator,
                             // the w:instrText elements might be empty, in which case newInstrText would
                             // be an empty string.
                             string newInstrText = g.Select(i => (string) i).StringConcatenate();
                             if (string.IsNullOrEmpty(newInstrText))
+                            {
                                 return new XElement(W.instrText);
+                            }
 
                             return new XElement(W.instrText,
-                                (newInstrText[0] == ' ') || (newInstrText[newInstrText.Length - 1] == ' ')
-                                    ? new XAttribute(XNamespace.Xml + "space", "preserve")
-                                    : null,
+                                XmlUtil.GetXmlSpaceAttribute(newInstrText),
                                 newInstrText);
                         }));
                 }
 
                 return new XElement(element.Name,
                     element.Attributes(),
-                    element.Nodes().Select(n => MergeAdjacentInstrText(n)));
+                    element.Nodes().Select(MergeAdjacentInstrText));
             }
 
             return node;
@@ -299,77 +325,103 @@ namespace OpenXmlPowerTools
             SimplifyMarkupSettings settings,
             SimplifyMarkupParameters parameters)
         {
-            var element = node as XElement;
-            if (element == null) return node;
+            if (!(node is XElement element)) return node;
 
             if (settings.RemovePermissions &&
-                ((element.Name == W.permEnd) ||
-                 (element.Name == W.permStart)))
+                (element.Name == W.permEnd ||
+                 element.Name == W.permStart))
+            {
                 return null;
+            }
 
             if (settings.RemoveProof &&
-                ((element.Name == W.proofErr) ||
-                 (element.Name == W.noProof)))
+                (element.Name == W.proofErr ||
+                 element.Name == W.noProof))
+            {
                 return null;
+            }
 
             if (settings.RemoveSoftHyphens &&
-                (element.Name == W.softHyphen))
+                element.Name == W.softHyphen)
+            {
                 return null;
+            }
 
             if (settings.RemoveLastRenderedPageBreak &&
-                (element.Name == W.lastRenderedPageBreak))
+                element.Name == W.lastRenderedPageBreak)
+            {
                 return null;
+            }
 
             if (settings.RemoveBookmarks &&
-                ((element.Name == W.bookmarkStart) ||
-                 (element.Name == W.bookmarkEnd)))
+                (element.Name == W.bookmarkStart ||
+                 element.Name == W.bookmarkEnd))
+            {
                 return null;
+            }
 
             if (settings.RemoveGoBackBookmark &&
-                (((element.Name == W.bookmarkStart) && ((int) element.Attribute(W.id) == parameters.GoBackId)) ||
-                 ((element.Name == W.bookmarkEnd) && ((int) element.Attribute(W.id) == parameters.GoBackId))))
+                (element.Name == W.bookmarkStart && (int) element.Attribute(W.id) == parameters.GoBackId ||
+                 element.Name == W.bookmarkEnd && (int) element.Attribute(W.id) == parameters.GoBackId))
+            {
                 return null;
+            }
 
             if (settings.RemoveWebHidden &&
-                (element.Name == W.webHidden))
+                element.Name == W.webHidden)
+            {
                 return null;
+            }
 
             if (settings.ReplaceTabsWithSpaces &&
-                (element.Name == W.tab) && 
-                (element.Parent != null && element.Parent.Name == W.r))
+                element.Name == W.tab && element.Parent != null && element.Parent.Name == W.r)
+            {
                 return new XElement(W.t, new XAttribute(XNamespace.Xml + "space", "preserve"), " ");
+            }
 
             if (settings.RemoveComments &&
-                ((element.Name == W.commentRangeStart) ||
-                 (element.Name == W.commentRangeEnd) ||
-                 (element.Name == W.commentReference) ||
-                 (element.Name == W.annotationRef)))
+                (element.Name == W.commentRangeStart ||
+                 element.Name == W.commentRangeEnd ||
+                 element.Name == W.commentReference ||
+                 element.Name == W.annotationRef))
+            {
                 return null;
+            }
 
             if (settings.RemoveComments &&
-                (element.Name == W.rStyle) &&
-                (element.Attribute(W.val).Value == "CommentReference"))
+                element.Name == W.rStyle &&
+                element.Attribute(W.val)?.Value == "CommentReference")
+            {
                 return null;
+            }
 
             if (settings.RemoveEndAndFootNotes &&
-                ((element.Name == W.endnoteReference) ||
-                 (element.Name == W.footnoteReference)))
+                (element.Name == W.endnoteReference ||
+                 element.Name == W.footnoteReference))
+            {
                 return null;
+            }
 
             if (settings.RemoveFieldCodes)
             {
                 if (element.Name == W.fldSimple)
+                {
                     return element.Elements().Select(e => SimplifyMarkupTransform(e, settings, parameters));
+                }
 
-                if ((element.Name == W.fldData) ||
-                    (element.Name == W.fldChar) ||
-                    (element.Name == W.instrText))
+                if (element.Name == W.fldData ||
+                    element.Name == W.fldChar ||
+                    element.Name == W.instrText)
+                {
                     return null;
+                }
             }
 
             if (settings.RemoveHyperlinks &&
-                (element.Name == W.hyperlink))
+                element.Name == W.hyperlink)
+            {
                 return element.Elements();
+            }
 
             return new XElement(element.Name,
                 element.Attributes(),
@@ -386,19 +438,18 @@ namespace OpenXmlPowerTools
                 source.Validate(schema, null, true);
                 havePsvi = true;
             }
+
+            // Remove comments, processing instructions, and text nodes that are
+            // children of XDocument. Only white space text nodes are allowed as
+            // children of a document, so we can remove all text nodes.
             return new XDocument(
                 source.Declaration,
                 source.Nodes().Select(n =>
-                {
-                    // Remove comments, processing instructions, and text nodes that are
-                    // children of XDocument.  Only white space text nodes are allowed as
-                    // children of a document, so we can remove all text nodes.
-                    if (n is XComment || n is XProcessingInstruction || n is XText)
-                        return null;
-
-                    var e = n as XElement;
-                    return e != null ? NormalizeElement(e, havePsvi) : n;
-                }));
+                    n is XComment || n is XProcessingInstruction || n is XText
+                        ? null
+                        : n is XElement e
+                            ? NormalizeElement(e, havePsvi)
+                            : n));
         }
 
         // TODO: Check whether this can be removed.
@@ -411,10 +462,11 @@ namespace OpenXmlPowerTools
 
         private static IEnumerable<XAttribute> NormalizeAttributes(XElement element, bool havePsvi)
         {
-            return element.Attributes()
+            return element
+                .Attributes()
                 .Where(a => !a.IsNamespaceDeclaration &&
-                            (a.Name != Xsi.schemaLocation) &&
-                            (a.Name != Xsi.noNamespaceSchemaLocation))
+                            a.Name != XSI.schemaLocation &&
+                            a.Name != XSI.noNamespaceSchemaLocation)
                 .OrderBy(a => a.Name.NamespaceName)
                 .ThenBy(a => a.Name.LocalName)
                 .Select(a =>
@@ -422,8 +474,8 @@ namespace OpenXmlPowerTools
                     if (havePsvi)
                     {
                         IXmlSchemaInfo schemaInfo = a.GetSchemaInfo();
-                        XmlSchemaType schemaType = schemaInfo != null ? schemaInfo.SchemaType : null;
-                        XmlTypeCode? typeCode = schemaType != null ? schemaType.TypeCode : (XmlTypeCode?) null;
+                        XmlSchemaType schemaType = schemaInfo?.SchemaType;
+                        XmlTypeCode? typeCode = schemaType?.TypeCode;
 
                         switch (typeCode)
                         {
@@ -439,8 +491,7 @@ namespace OpenXmlPowerTools
                                 return new XAttribute(a.Name, (float) a);
                             case XmlTypeCode.HexBinary:
                             case XmlTypeCode.Language:
-                                return new XAttribute(a.Name,
-                                    ((string) a).ToLower());
+                                return new XAttribute(a.Name, ((string) a).ToLower());
                         }
                     }
 
@@ -452,11 +503,14 @@ namespace OpenXmlPowerTools
         {
             // trim comments and processing instructions from normalized tree
             if (node is XComment || node is XProcessingInstruction)
+            {
                 return null;
+            }
 
-            var e = node as XElement;
-            if (e != null)
+            if (node is XElement e)
+            {
                 return NormalizeElement(e, havePsvi);
+            }
 
             // Only thing left is XCData and XText, so clone them
             return node;
@@ -467,8 +521,8 @@ namespace OpenXmlPowerTools
             if (havePsvi)
             {
                 IXmlSchemaInfo schemaInfo = element.GetSchemaInfo();
-                XmlSchemaType schemaType = schemaInfo != null ? schemaInfo.SchemaType : null;
-                XmlTypeCode? typeCode = schemaType != null ? schemaType.TypeCode : (XmlTypeCode?) null;
+                XmlSchemaType schemaType = schemaInfo?.SchemaType;
+                XmlTypeCode? typeCode = schemaType?.TypeCode;
 
                 switch (typeCode)
                 {
@@ -476,27 +530,33 @@ namespace OpenXmlPowerTools
                         return new XElement(element.Name,
                             NormalizeAttributes(element, true),
                             (bool) element);
+
                     case XmlTypeCode.DateTime:
                         return new XElement(element.Name,
                             NormalizeAttributes(element, true),
                             (DateTime) element);
+
                     case XmlTypeCode.Decimal:
                         return new XElement(element.Name,
                             NormalizeAttributes(element, true),
                             (decimal) element);
+
                     case XmlTypeCode.Double:
                         return new XElement(element.Name,
                             NormalizeAttributes(element, true),
                             (double) element);
+
                     case XmlTypeCode.Float:
                         return new XElement(element.Name,
                             NormalizeAttributes(element, true),
                             (float) element);
+
                     case XmlTypeCode.HexBinary:
                     case XmlTypeCode.Language:
                         return new XElement(element.Name,
                             NormalizeAttributes(element, true),
                             ((string) element).ToLower());
+
                     default:
                         return new XElement(element.Name,
                             NormalizeAttributes(element, true),
@@ -522,8 +582,11 @@ namespace OpenXmlPowerTools
                         .GetXDocument()
                         .Descendants(W.bookmarkStart)
                         .FirstOrDefault(bm => (string) bm.Attribute(W.name) == "_GoBack");
+
                     if (goBackBookmark != null)
+                    {
                         parameters.GoBackId = (int) goBackBookmark.Attribute(W.id);
+                    }
                 }
             }
 
@@ -532,11 +595,15 @@ namespace OpenXmlPowerTools
 
             // Need to do this first to enable simplifying hyperlinks.
             if (settings.RemoveContentControls || settings.RemoveSmartTags)
+            {
                 newRoot = (XElement) RemoveCustomXmlAndContentControlsTransform(newRoot, settings);
+            }
 
             // This may touch many elements, so needs to be its own transform.
             if (settings.RemoveRsidInfo)
+            {
                 newRoot = (XElement) RemoveRsidTransform(newRoot);
+            }
 
             var prevNewRoot = new XDocument(newRoot);
             while (true)
@@ -551,7 +618,9 @@ namespace OpenXmlPowerTools
                     settings.RemoveWebHidden ||
                     settings.RemoveGoBackBookmark ||
                     settings.RemoveHyperlinks)
+                {
                     newRoot = (XElement) SimplifyMarkupTransform(newRoot, settings, parameters);
+                }
 
                 // Remove runs and run properties that have become empty due to previous transforms.
                 newRoot = (XElement) RemoveEmptyRunsAndRunPropertiesTransform(newRoot);
@@ -566,7 +635,9 @@ namespace OpenXmlPowerTools
                 newRoot = (XElement) SeparateRunChildrenIntoSeparateRuns(newRoot);
 
                 if (XNode.DeepEquals(prevNewRoot.Root, newRoot))
+                {
                     break;
+                }
 
                 prevNewRoot = new XDocument(newRoot);
             }
@@ -592,15 +663,21 @@ namespace OpenXmlPowerTools
                     new XAttribute(XNamespace.Xmlns + "wpi", WPI.wpi),
                     new XAttribute(XNamespace.Xmlns + "wne", WNE.wne),
                     new XAttribute(XNamespace.Xmlns + "wps", WPS.wps),
-                    new XAttribute(MC.Ignorable, "w14 wp14 w15 w16se"),
+                    new XAttribute(MC.Ignorable, "w14 wp14 w15 w16se")
                 };
 
                 XDocument newXDoc = Normalize(new XDocument(newRoot), null);
                 newRoot = newXDoc.Root;
                 if (newRoot != null)
+                {
                     foreach (XAttribute nsAttr in nsAttrs)
+                    {
                         if (newRoot.Attribute(nsAttr.Name) == null)
+                        {
                             newRoot.Add(nsAttr);
+                        }
+                    }
+                }
 
                 part.PutXDocument(newXDoc);
             }
@@ -612,76 +689,58 @@ namespace OpenXmlPowerTools
 
         private static object SeparateRunChildrenIntoSeparateRuns(XNode node)
         {
-            var element = node as XElement;
-            if (element == null) return node;
-
-            if (element.Name == W.r)
+            if (node is XElement element)
             {
-                IEnumerable<XElement> runChildren = element.Elements().Where(e => e.Name != W.rPr);
-                XElement rPr = element.Element(W.rPr);
-                return runChildren.Select(rc => new XElement(W.r, rPr, rc));
+                if (element.Name == W.r)
+                {
+                    IEnumerable<XElement> runChildren = element.Elements().Where(e => e.Name != W.rPr);
+                    XElement rPr = element.Element(W.rPr);
+                    return runChildren.Select(rc => new XElement(W.r, rPr, rc));
+                }
+
+                return new XElement(element.Name,
+                    element.Attributes(),
+                    element.Nodes().Select(SeparateRunChildrenIntoSeparateRuns));
             }
 
-            return new XElement(element.Name,
-                element.Attributes(),
-                element.Nodes().Select(n => SeparateRunChildrenIntoSeparateRuns(n)));
+            return node;
         }
 
         private static object SingleCharacterRunTransform(XNode node)
         {
-            var element = node as XElement;
-            if (element == null) return node;
-
-            if (element.Name == W.r)
-                return element.Elements()
-                    .Where(e => e.Name != W.rPr)
-                    .GroupAdjacent(sr => sr.Name == W.t)
-                    .Select(g =>
-                    {
-                        if (g.Key)
+            if (node is XElement element)
+            {
+                if (element.Name == W.r)
+                    return element.Elements()
+                        .Where(e => e.Name != W.rPr)
+                        .GroupAdjacent(sr => sr.Name == W.t)
+                        .Select(g =>
                         {
-                            string s = g.Select(t => (string) t).StringConcatenate();
-                            return s.Select(c =>
+                            if (g.Key)
+                            {
+                                string s = g.Select(t => (string) t).StringConcatenate();
+                                return s.Select(c =>
+                                    new XElement(W.r,
+                                        element.Elements(W.rPr),
+                                        new XElement(W.t,
+                                            XmlUtil.GetXmlSpaceAttribute(c),
+                                            c)));
+                            }
+
+                            return g.Select(sr =>
                                 new XElement(W.r,
                                     element.Elements(W.rPr),
-                                    new XElement(W.t,
-                                        c == ' ' ? new XAttribute(XNamespace.Xml + "space", "preserve") : null,
-                                        c)));
-                        }
+                                    new XElement(sr.Name,
+                                        sr.Attributes(),
+                                        sr.Nodes().Select(SingleCharacterRunTransform))));
+                        });
 
-                        return g.Select(sr =>
-                            new XElement(W.r,
-                                element.Elements(W.rPr),
-                                new XElement(sr.Name,
-                                    sr.Attributes(),
-                                    sr.Nodes().Select(n => SingleCharacterRunTransform(n)))));
-                    });
-
-            return new XElement(element.Name,
-                element.Attributes(),
-                element.Nodes().Select(n => SingleCharacterRunTransform(n)));
-        }
-
-        private static class Xsi
-        {
-            private static readonly XNamespace xsi = "http://www.w3.org/2001/XMLSchema-instance";
-
-            public static readonly XName schemaLocation = xsi + "schemaLocation";
-            public static readonly XName noNamespaceSchemaLocation = xsi + "noNamespaceSchemaLocation";
-        }
-
-        public class InternalException : Exception
-        {
-            public InternalException(string message) : base(message)
-            {
+                return new XElement(element.Name,
+                    element.Attributes(),
+                    element.Nodes().Select(SingleCharacterRunTransform));
             }
-        }
 
-        public class InvalidSettingsException : Exception
-        {
-            public InvalidSettingsException(string message) : base(message)
-            {
-            }
+            return node;
         }
 
         private class SimplifyMarkupParameters

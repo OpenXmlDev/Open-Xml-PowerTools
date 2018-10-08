@@ -1,0 +1,36 @@
+# Publish Pipeline
+# Pushes NuGet packages to Azure Artifacts feed
+
+trigger:
+  tags:
+    include:
+    - v*
+
+pool:
+  vmImage: windows-latest
+
+resources:
+  pipelines:
+  - pipeline: 'OpenXmlPowerTools-Publish'
+    source: '$(AzureDevOpsBuildPipeline)'
+
+steps:
+- script: echo $(Build.SourceBranch)
+  displayName: 'Print SourceBranch'
+
+- task: DownloadPipelineArtifact@2
+  displayName: 'Download NuGet packages'
+  inputs:
+    source: 'specific'
+    project: '$(AzureDevOpsProject)'
+    pipeline: '$(AzureDevOpsBuildPipeline)'
+    runVersion: 'latest'
+    patterns: '**/*.nupkg'
+    targetPath: '$(Build.ArtifactStagingDirectory)'
+
+- task: DotNetCoreCLI@2
+  displayName: 'Push NuGet packages'
+  inputs:
+    command: 'push'
+    publishVstsFeed: '$(AzureDevOpsArtifactsFeed)'
+    packagesToPush: '$(Build.ArtifactStagingDirectory)/**/*.nupkg'

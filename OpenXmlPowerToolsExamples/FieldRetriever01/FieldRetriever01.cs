@@ -5,28 +5,29 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Xml.Linq;
 using DocumentFormat.OpenXml.Packaging;
 using OpenXmlPowerTools;
 
-class FieldRetriever01
+internal class FieldRetriever01
 {
-    static void Main(string[] args)
+    private static void Main()
     {
-        var n = DateTime.Now;
-        var tempDi = new DirectoryInfo(string.Format("ExampleOutput-{0:00}-{1:00}-{2:00}-{3:00}{4:00}{5:00}", n.Year - 2000, n.Month, n.Day, n.Hour, n.Minute, n.Second));
+        DateTime n = DateTime.Now;
+        var tempDi = new DirectoryInfo(
+            $"ExampleOutput-{n.Year - 2000:00}-{n.Month:00}-{n.Day:00}-{n.Hour:00}{n.Minute:00}{n.Second:00}");
+
         tempDi.Create();
 
-        var docWithFooter = new FileInfo("../../DocWithFooter1.docx");
+        var docWithFooter = new FileInfo("../../../DocWithFooter1.docx");
         var scrubbedDocument = new FileInfo(Path.Combine(tempDi.FullName, "DocWithFooterScrubbed1.docx"));
         File.Copy(docWithFooter.FullName, scrubbedDocument.FullName);
         using (WordprocessingDocument wDoc = WordprocessingDocument.Open(scrubbedDocument.FullName, true))
         {
-            ScrubFooter(wDoc, new [] { "PAGE" });
+            ScrubFooter(wDoc, new[] { "PAGE" });
         }
 
-        docWithFooter = new FileInfo("../../DocWithFooter2.docx");
+        docWithFooter = new FileInfo("../../../DocWithFooter2.docx");
         scrubbedDocument = new FileInfo(Path.Combine(tempDi.FullName, "DocWithFooterScrubbed2.docx"));
         File.Copy(docWithFooter.FullName, scrubbedDocument.FullName);
         using (WordprocessingDocument wDoc = WordprocessingDocument.Open(scrubbedDocument.FullName, true))
@@ -37,7 +38,7 @@ class FieldRetriever01
 
     private static void ScrubFooter(WordprocessingDocument wDoc, string[] fieldTypesToKeep)
     {
-        foreach (var footer in wDoc.MainDocumentPart.FooterParts)
+        foreach (FooterPart footer in wDoc.MainDocumentPart!.FooterParts)
         {
             FieldRetriever.AnnotateWithFieldInfo(footer);
             XElement root = footer.GetXDocument().Root;
@@ -49,40 +50,42 @@ class FieldRetriever01
     private static void RemoveAllButSpecificFields(XElement root, string[] fieldTypesToRetain)
     {
         var cachedAnnotationInformation = root.Annotation<Dictionary<int, List<XElement>>>();
-        List<XElement> runsToKeep = new List<XElement>();
-        foreach (var item in cachedAnnotationInformation)
+        var runsToKeep = new List<XElement>();
+        foreach (KeyValuePair<int, List<XElement>> item in cachedAnnotationInformation)
         {
-            var runsForField = root
+            List<XElement> runsForField = root
                 .Descendants()
                 .Where(d =>
                 {
-                    Stack<FieldRetriever.FieldElementTypeInfo> stack = d.Annotation<Stack<FieldRetriever.FieldElementTypeInfo>>();
+                    var stack = d.Annotation<Stack<FieldRetriever.FieldElementTypeInfo>>();
                     if (stack == null)
                         return false;
                     if (stack.Any(stackItem => stackItem.Id == item.Key))
                         return true;
+
                     return false;
                 })
                 .Select(d => d.AncestorsAndSelf(W.r).FirstOrDefault())
                 .GroupAdjacent(o => o)
                 .Select(g => g.First())
                 .ToList();
-            foreach (var r in runsForField)
+            foreach (XElement r in runsForField)
                 runsToKeep.Add(r);
         }
-        foreach (var paragraph in root.Descendants(W.p).ToList())
+
+        foreach (XElement paragraph in root.Descendants(W.p).ToList())
         {
             if (paragraph.Elements(W.r).Any(r => runsToKeep.Contains(r)))
             {
                 paragraph.Elements(W.r)
                     .Where(r => !runsToKeep.Contains(r) &&
-                        !r.Elements(W.tab).Any())
+                                !r.Elements(W.tab).Any())
                     .Remove();
                 paragraph.Elements(W.r)
                     .Where(r => !runsToKeep.Contains(r))
                     .Elements()
                     .Where(rc => rc.Name != W.rPr &&
-                        rc.Name != W.tab)
+                                 rc.Name != W.tab)
                     .Remove();
             }
             else
@@ -90,6 +93,7 @@ class FieldRetriever01
                 paragraph.Remove();
             }
         }
+
         root.Descendants(W.tbl).Remove();
     }
 }

@@ -1,15 +1,13 @@
 <Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFrameworks>net45;net46;netcoreapp2.0</TargetFrameworks>
+    <TargetFrameworks>$(SamplesFrameworks)</TargetFrameworks>
+    <IsPackable>false</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\OpenXmlPowerTools\OpenXmlPowerTools.csproj" />
-    <PackageReference Include="DocumentFormat.OpenXml" Version="2.8.1" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Reference Include="WindowsBase" />
-  </ItemGroup>
 </Project>

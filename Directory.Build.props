@@ -1,7 +1,101 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project>
+  <PropertyGroup>
+    <NoWarn>$(NoWarn);SA0001</NoWarn>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+
+    <!--
+      The following values for ProjectLoadStyle are supported:
+      - netstandard2_0:  .NET Standard 2.0
+      - net461:          .NET Framework 4.6.1
+      - All:             Will build for all platforms
+
+      The choice of targeting .NET Standard 2.0 and .NET Framework 4.6.1 is based on Microsoft's
+      recommendations regarding cross-platform targeting:
+      - DO start with including a netstandard2.0 target
+      - CONSIDER adding a target for net461 when you're offering a netstandard2.0 target.
+
+      See https://docs.microsoft.com/en-us/dotnet/standard/library-guidance/cross-platform-targeting
+    -->
+    <ProjectLoadStyle Condition=" '$(ProjectLoadStyle)' == '' ">net461</ProjectLoadStyle>
+
+    <__InvalidProjectLoadStyle>false</__InvalidProjectLoadStyle>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <DocumentFormatOpenXmlVersion>2.14.0</DocumentFormatOpenXmlVersion>
+    <SystemDrawingCommonVersion>4.7.0</SystemDrawingCommonVersion>
+    <SystemIOPackagingVersion>4.7.0</SystemIOPackagingVersion>
+  </PropertyGroup>
+
+  <Choose>
+    <When Condition=" '$(ProjectLoadStyle)' == 'netstandard2_0' ">
+      <PropertyGroup>
+        <ProductTargetFrameworks>netstandard2.0</ProductTargetFrameworks>
+        <TestTargetFrameworks>net5.0</TestTargetFrameworks>
+        <SamplesFrameworks>net5.0</SamplesFrameworks>
+      </PropertyGroup>
+      <ItemGroup>
+        <PackageReference Include="DocumentFormat.OpenXml" Version="$(DocumentFormatOpenXmlVersion)" />
+      </ItemGroup>
+    </When>
+    <When Condition=" '$(ProjectLoadStyle)' == 'net461' ">
+      <PropertyGroup>
+        <ProductTargetFrameworks>net461</ProductTargetFrameworks>
+        <TestTargetFrameworks>net461</TestTargetFrameworks>
+        <SamplesFrameworks>net461</SamplesFrameworks>
+      </PropertyGroup>
+      <ItemGroup>
+        <PackageReference Include="DocumentFormat.OpenXml" Version="$(DocumentFormatOpenXmlVersion)" />
+      </ItemGroup>
+      <ItemGroup>
+        <Reference Include="System" />
+        <Reference Include="System.Xml" />
+        <Reference Include="WindowsBase" />
+      </ItemGroup>
+    </When>
+    <When Condition=" '$(ProjectLoadStyle)' == 'All' ">
+      <PropertyGroup>
+        <!--
+          .NET Standard target must be first to avoid a ResXFileCodeGenerator issue
+          (tracked at https://github.com/dotnet/project-system/issues/1519)
+        -->
+        <ProductTargetFrameworks>netstandard2.0;net461</ProductTargetFrameworks>
+        <TestTargetFrameworks>net461;net5.0</TestTargetFrameworks>
+        <SamplesFrameworks>net461;net5.0</SamplesFrameworks>
+      </PropertyGroup>
+      <ItemGroup>
+        <PackageReference Include="DocumentFormat.OpenXml" Version="$(DocumentFormatOpenXmlVersion)" />
+      </ItemGroup>
+      <ItemGroup Condition=" '$(TargetFramework)' == 'net461' ">
+        <Reference Include="System" />
+        <Reference Include="System.Xml" />
+        <Reference Include="WindowsBase" />
+      </ItemGroup>
+    </When>
+    <Otherwise>
+      <PropertyGroup>
+        <ProductTargetFrameworks>netstandard2.0</ProductTargetFrameworks>
+        <TestTargetFrameworks>net5.0</TestTargetFrameworks>
+        <SamplesFrameworks>net5.0</SamplesFrameworks>
+        <__InvalidProjectLoadStyle>true</__InvalidProjectLoadStyle>
+      </PropertyGroup>
+      <ItemGroup>
+        <PackageReference Include="DocumentFormat.OpenXml" Version="$(DocumentFormatOpenXmlVersion)" />
+      </ItemGroup>
+    </Otherwise>
+  </Choose>
+
+  <Target Name="UnknownProjectLoadStyle" BeforeTargets="Build" Condition="$(__InvalidProjectLoadStyle)">
+    <Warning Text="Unknown ProjectLoadStyle '$(ProjectLoadStyle)' set. Please verify settings in Directory.Build.props and environment variables to a known value. For now, default values will be used." />
+  </Target>
+
   <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <LangVersion>9.0</LangVersion>
   </PropertyGroup>
 
   <PropertyGroup>

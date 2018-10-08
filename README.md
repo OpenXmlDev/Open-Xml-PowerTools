@@ -36,7 +36,7 @@ See License in the project root for license information.
 
 News
 ====
-New Release!  Version 4.6.0
+New Release!  Version 4.4.
 
 This version has a completely re-written WmlComparer.cs, which now supports nested tables and text boxes.  WmlComparer.cs is a module that compares two DOCX files and
 produces a DOCX with revision tracking markup.  It enables retrieving a list of revisions.
@@ -74,12 +74,6 @@ With .NET CLI toolchain:
 
 Change Log
 ==========
-
-Version 4.6 : November 16, 2020
-- Various small bug fixes
-
-Version 4.5 : January 21, 2020
-- Various changes and fixes to DocumentBuilder
 
 Version 4.3 : June 13, 2016
 - New WmlComparer module

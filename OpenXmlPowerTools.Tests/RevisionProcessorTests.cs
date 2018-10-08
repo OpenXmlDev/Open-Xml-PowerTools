@@ -3,27 +3,26 @@
 
 using System;
 using System.Collections.Generic;
-using System.Drawing;
-using System.Drawing.Imaging;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml.Linq;
-using DocumentFormat.OpenXml.Packaging;
+using System.Threading;
 using OpenXmlPowerTools;
 using Xunit;
 
 #if !ELIDE_XUNIT_TESTS
 
+// ReSharper disable once CheckNamespace
 namespace OxPt
 {
+    [SuppressMessage("ReSharper", "InconsistentNaming")]
     public class RpTests
     {
         ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         // perf settings
-        public static bool m_CopySourceFilesToTempDir = true;
-        public static bool m_OpenTempDirInExplorer = false;
+        private static readonly bool CopySourceFilesToTempDir = true;
+
+        private static readonly bool OpenTempDirInExplorer = false;
         ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
         [Theory]
@@ -81,24 +80,27 @@ namespace OxPt
         [InlineData("RP/RP052-Deleted-Para-Mark.docx")]
         public void RP001(string name)
         {
-            DirectoryInfo sourceDir = new DirectoryInfo("../../../../TestFiles/");
-            var sourceFi = new FileInfo(Path.Combine(sourceDir.FullName, name));
-            var baselineAcceptedFi = new FileInfo(Path.Combine(sourceDir.FullName, name.Replace(".docx", "-Accepted.docx")));
-            var baselineRejectedFi = new FileInfo(Path.Combine(sourceDir.FullName, name.Replace(".docx", "-Rejected.docx")));
+            var sourceFi = new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, name));
+            var baselineAcceptedFi =
+                new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, name.Replace(".docx", "-Accepted.docx")));
+            var baselineRejectedFi =
+                new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, name.Replace(".docx", "-Rejected.docx")));
 
-            WmlDocument sourceWml = new WmlDocument(sourceFi.FullName);
+            var sourceWml = new WmlDocument(sourceFi.FullName);
             WmlDocument afterRejectingWml = RevisionProcessor.RejectRevisions(sourceWml);
             WmlDocument afterAcceptingWml = RevisionProcessor.AcceptRevisions(sourceWml);
 
-            var processedAcceptedFi = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, sourceFi.Name.Replace(".docx", "-Accepted.docx")));
+            var processedAcceptedFi =
+                new FileInfo(Path.Combine(TestUtil.TempDir.FullName, sourceFi.Name.Replace(".docx", "-Accepted.docx")));
             afterAcceptingWml.SaveAs(processedAcceptedFi.FullName);
 
-            var processedRejectedFi = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, sourceFi.Name.Replace(".docx", "-Rejected.docx")));
+            var processedRejectedFi =
+                new FileInfo(Path.Combine(TestUtil.TempDir.FullName, sourceFi.Name.Replace(".docx", "-Rejected.docx")));
             afterRejectingWml.SaveAs(processedRejectedFi.FullName);
 
-            ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // Copy source files to temp dir
-            if (m_CopySourceFilesToTempDir)
+            if (CopySourceFilesToTempDir)
             {
                 while (true)
                 {
@@ -113,39 +115,44 @@ namespace OxPt
                     }
                     catch (IOException)
                     {
-                        System.Threading.Thread.Sleep(50);
+                        Thread.Sleep(50);
                     }
                 }
             }
 
-            ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // create batch file to copy properly processed documents to the TestFiles directory.
             while (true)
             {
                 try
                 {
                     ////////// CODE TO REPEAT UNTIL SUCCESS //////////
-                    var batchFileName = "Copy-Gen-Files-To-TestFiles.bat";
+                    const string batchFileName = "Copy-Gen-Files-To-TestFiles.bat";
                     var batchFi = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, batchFileName));
                     var batch = "";
                     batch += "copy " + processedAcceptedFi.FullName + " " + baselineAcceptedFi.FullName + Environment.NewLine;
                     batch += "copy " + processedRejectedFi.FullName + " " + baselineRejectedFi.FullName + Environment.NewLine;
                     if (batchFi.Exists)
+                    {
                         File.AppendAllText(batchFi.FullName, batch);
+                    }
                     else
+                    {
                         File.WriteAllText(batchFi.FullName, batch);
+                    }
+
                     //////////////////////////////////////////////////
                     break;
                 }
                 catch (IOException)
                 {
-                    System.Threading.Thread.Sleep(50);
+                    Thread.Sleep(50);
                 }
             }
 
-            ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // Open Windows Explorer
-            if (m_OpenTempDirInExplorer)
+            if (OpenTempDirInExplorer)
             {
                 while (true)
                 {
@@ -158,24 +165,25 @@ namespace OxPt
                             File.WriteAllText(semaphorFi.FullName, "");
                             TestUtil.Explorer(TestUtil.TempDir);
                         }
+
                         //////////////////////////////////////////////////
                         break;
                     }
                     catch (IOException)
                     {
-                        System.Threading.Thread.Sleep(50);
+                        Thread.Sleep(50);
                     }
                 }
             }
 
-            ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // Use WmlComparer to see if accepted baseline is same as processed
             if (baselineAcceptedFi.Exists)
             {
                 var baselineAcceptedWml = new WmlDocument(baselineAcceptedFi.FullName);
-                WmlComparerSettings wmlComparerSettings = new WmlComparerSettings();
+                var wmlComparerSettings = new WmlComparerSettings();
                 WmlDocument result = WmlComparer.Compare(baselineAcceptedWml, afterAcceptingWml, wmlComparerSettings);
-                var revisions = WmlComparer.GetRevisions(result, wmlComparerSettings);
+                List<WmlComparer.WmlComparerRevision> revisions = WmlComparer.GetRevisions(result, wmlComparerSettings);
                 if (revisions.Any())
                 {
                     Assert.True(false, "Regression Error: Accepted baseline document did not match processed document");
@@ -186,14 +194,14 @@ namespace OxPt
                 Assert.True(false, "No Accepted baseline document");
             }
 
-            ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // Use WmlComparer to see if rejected baseline is same as processed
             if (baselineRejectedFi.Exists)
             {
                 var baselineRejectedWml = new WmlDocument(baselineRejectedFi.FullName);
-                WmlComparerSettings wmlComparerSettings = new WmlComparerSettings();
+                var wmlComparerSettings = new WmlComparerSettings();
                 WmlDocument result = WmlComparer.Compare(baselineRejectedWml, afterRejectingWml, wmlComparerSettings);
-                var revisions = WmlComparer.GetRevisions(result, wmlComparerSettings);
+                List<WmlComparer.WmlComparerRevision> revisions = WmlComparer.GetRevisions(result, wmlComparerSettings);
                 if (revisions.Any())
                 {
                     Assert.True(false, "Regression Error: Rejected baseline document did not match processed document");

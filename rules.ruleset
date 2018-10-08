@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<RuleSet Name="rules" ToolsVersion="15.0">
+<RuleSet Name="rules" ToolsVersion="16.0">
   <Rules AnalyzerId="StyleCop.Analyzers" RuleNamespace="StyleCop.Analyzers">
     <Rule Id="SA0000" Action="None" />
     <Rule Id="SA0001" Action="None" />
@@ -70,7 +70,6 @@
     <Rule Id="SA1405" Action="None" />
     <Rule Id="SA1407" Action="None" />
     <Rule Id="SA1408" Action="None" />
-    <Rule Id="SA1412" Action="None" />
     <Rule Id="SA1413" Action="None" />
     <Rule Id="SA1500" Action="None" />
     <Rule Id="SA1501" Action="None" />
@@ -89,11 +88,7 @@
     <Rule Id="SA1518" Action="None" />
     <Rule Id="SA1519" Action="None" />
     <Rule Id="SA1520" Action="None" />
-    <Rule Id="SA1633" Action="Warning" />
-    <Rule Id="SA1634" Action="Warning" />
-    <Rule Id="SA1635" Action="Warning" />
-    <Rule Id="SA1636" Action="Warning" />
-    <Rule Id="SA1637" Action="Warning" />
+    <Rule Id="SA1633" Action="None" />
     <Rule Id="SA1649" Action="None" />
   </Rules>
 </RuleSet>

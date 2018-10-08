@@ -1076,6 +1076,55 @@ namespace OpenXmlPowerTools
                 return null;
             }
         }
+
+        /// <summary>
+        /// Gets or creates the given container's first child element having the given
+        /// <see cref="XName"/>.
+        /// </summary>
+        /// <param name="container">The container <see cref="XElement"/>.</param>
+        /// <param name="childName">The child element's <see cref="XName"/>.</param>
+        /// <returns>The container's first child <see cref="XElement"/>.</returns>
+        public static XElement GetOrCreateFirstChild(this XElement container, XName childName)
+        {
+            if (container == null) throw new ArgumentNullException(nameof(container));
+            if (childName == null) throw new ArgumentNullException(nameof(childName));
+
+            XElement child = container.Element(childName);
+            if (child == null)
+            {
+                child = new XElement(childName);
+                container.AddFirst(child);
+            }
+
+            return child;
+        }
+
+        /// <summary>
+        /// Gets the given element's parent element or throws an <see cref="ArgumentException"/>
+        /// in case the element does not have a parent.
+        /// </summary>
+        /// <param name="element">The element.</param>
+        /// <returns>The element's parent.</returns>
+        public static XElement GetParent(this XElement element)
+        {
+            if (element == null) throw new ArgumentNullException(nameof(element));
+
+            return element.Parent ?? throw new ArgumentException("Element does not have a parent.");
+        }
+
+        /// <summary>
+        /// Moves the given element to a new parent.
+        /// </summary>
+        /// <param name="element">The element.</param>
+        /// <param name="parent">The new parent.</param>
+        public static void MoveTo(this XElement element, XElement parent)
+        {
+            if (element == null) throw new ArgumentNullException(nameof(element));
+            if (parent == null) throw new ArgumentNullException(nameof(parent));
+
+            element.Remove();
+            parent.Add(element);
+        }
     }
 
     public class ExecutableRunner

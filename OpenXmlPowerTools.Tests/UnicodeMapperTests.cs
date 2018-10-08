@@ -3,11 +3,7 @@
 
 /***************************************************************************
 
-Copyright (c) Microsoft Corporation 2016.
-
-This code is licensed using the Microsoft Public License (Ms-PL).  The text of the license can be found here:
-
-http://www.microsoft.com/resources/sharedsource/licensingbasics/publiclicense.mspx
+Copyright (c) Thomas Barnekow 2016.
 
 Developer: Thomas Barnekow
 Email: thomas@barnekow.info
@@ -65,7 +61,7 @@ namespace OpenXmlPowerTools.Tests
 
             XElement element = UnicodeMapper.CharToRunChild(UnicodeMapper.FormFeed);
             Assert.Equal(W.br, element.Name);
-            Assert.Equal("page", element.Attribute(W.type).Value);
+            Assert.Equal("page", element.Attribute(W.type)?.Value);
 
             Assert.Equal(W.br, UnicodeMapper.CharToRunChild('\r').Name);
         }
@@ -118,11 +114,11 @@ namespace OpenXmlPowerTools.Tests
             Assert.Equal(charFromSym1, charFromSym3);
             Assert.NotEqual(charFromSym1, charFromSym4);
 
-            Assert.Equal("F028", symFromChar1.Attribute(W._char).Value);
-            Assert.Equal("Wingdings", symFromChar1.Attribute(W.font).Value);
+            Assert.Equal("F028", symFromChar1.Attribute(W._char)?.Value);
+            Assert.Equal("Wingdings", symFromChar1.Attribute(W.font)?.Value);
 
-            Assert.Equal("F028", symFromChar4.Attribute(W._char).Value);
-            Assert.Equal("Webdings", symFromChar4.Attribute(W.font).Value);
+            Assert.Equal("F028", symFromChar4.Attribute(W._char)?.Value);
+            Assert.Equal("Webdings", symFromChar4.Attribute(W.font)?.Value);
         }
 
         [Fact]

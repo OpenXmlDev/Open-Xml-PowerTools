@@ -411,6 +411,8 @@ namespace OpenXmlPowerTools.HtmlToWml
 
         private static Dictionary<XName, int> Order_rPr = new Dictionary<XName, int>
         {
+            { W.moveFrom, 5 },
+            { W.moveTo, 7 },
             { W.ins, 10 },
             { W.del, 20 },
             { W.rStyle, 30 },

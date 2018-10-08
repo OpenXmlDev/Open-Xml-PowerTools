@@ -1,17 +1,10 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System;
 using System.Collections.Generic;
-using System.Drawing;
-using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml.Linq;
 using DocumentFormat.OpenXml.Packaging;
-using DocumentFormat.OpenXml.Validation;
 using OpenXmlPowerTools;
 using Xunit;
 
@@ -114,8 +107,8 @@ namespace OxPt
             PresentationBuilder.BuildPresentation(sources, processedDestPptx.FullName);
         }
 
-#if NETCOREAPP2_0
-        [Fact(Skip="Bug in netcore 2.0 : https://github.com/OfficeDev/Open-Xml-PowerTools/pull/238#issuecomment-412375570")]
+#if NETCOREAPP3_1_OR_GREATER
+        [Fact(Skip="Bug in netcore 2.0 and later : https://github.com/OfficeDev/Open-Xml-PowerTools/pull/238#issuecomment-412375570")]
 #else
         [Fact]
 #endif

@@ -5,53 +5,62 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Xml.Linq;
 using DocumentFormat.OpenXml.Packaging;
-using DocumentFormat.OpenXml.Validation;
 using OpenXmlPowerTools;
 
-class Program
+internal class Program
 {
-    static void Main(string[] args)
+    private static void Main()
     {
-        var n = DateTime.Now;
-        var tempDi = new DirectoryInfo(string.Format("ExampleOutput-{0:00}-{1:00}-{2:00}-{3:00}{4:00}{5:00}", n.Year - 2000, n.Month, n.Day, n.Hour, n.Minute, n.Second));
+        DateTime n = DateTime.Now;
+        var tempDi = new DirectoryInfo(
+            $"ExampleOutput-{n.Year - 2000:00}-{n.Month:00}-{n.Day:00}-{n.Hour:00}{n.Minute:00}{n.Second:00}");
+
         tempDi.Create();
 
-        WmlDocument doc1 = new WmlDocument(@"..\..\Template.docx");
-        using (MemoryStream mem = new MemoryStream())
+        var doc1 = new WmlDocument(@"..\..\..\Template.docx");
+
+        using (var mem = new MemoryStream())
         {
             mem.Write(doc1.DocumentByteArray, 0, doc1.DocumentByteArray.Length);
+
             using (WordprocessingDocument doc = WordprocessingDocument.Open(mem, true))
             {
-                XDocument xDoc = doc.MainDocumentPart.GetXDocument();
-                XElement frontMatterPara = xDoc.Root.Descendants(W.txbxContent).Elements(W.p).FirstOrDefault();
+                XElement root = doc.MainDocumentPart.GetXElement() ?? throw new ArgumentException();
+
+                XElement frontMatterPara = root.Descendants(W.txbxContent).Elements(W.p).First();
                 frontMatterPara.ReplaceWith(
                     new XElement(PtOpenXml.Insert,
                         new XAttribute("Id", "Front")));
-                XElement tbl = xDoc.Root.Element(W.body).Elements(W.tbl).FirstOrDefault();
+
+                XElement tbl = root.Elements(W.body).Elements(W.tbl).First();
+
                 XElement firstCell = tbl.Descendants(W.tr).First().Descendants(W.p).First();
                 firstCell.ReplaceWith(
                     new XElement(PtOpenXml.Insert,
                         new XAttribute("Id", "Liz")));
+
                 XElement secondCell = tbl.Descendants(W.tr).Skip(1).First().Descendants(W.p).First();
                 secondCell.ReplaceWith(
                     new XElement(PtOpenXml.Insert,
                         new XAttribute("Id", "Eric")));
-                doc.MainDocumentPart.PutXDocument();
+
+                doc.MainDocumentPart.PutXElement();
             }
+
             doc1.DocumentByteArray = mem.ToArray();
         }
 
         string outFileName = Path.Combine(tempDi.FullName, "Out.docx");
-        List<Source> sources = new List<Source>()
-            {
-                new Source(doc1, true),
-                new Source(new WmlDocument(@"..\..\Insert-01.docx"), "Liz"),
-                new Source(new WmlDocument(@"..\..\Insert-02.docx"), "Eric"),
-                new Source(new WmlDocument(@"..\..\FrontMatter.docx"), "Front"),
-            };
+        var sources = new List<Source>
+        {
+            new(doc1, true),
+            new(new WmlDocument(@"..\..\..\Insert-01.docx"), "Liz"),
+            new(new WmlDocument(@"..\..\..\Insert-02.docx"), "Eric"),
+            new(new WmlDocument(@"..\..\..\FrontMatter.docx"), "Front")
+        };
+
         DocumentBuilder.BuildDocument(sources, outFileName);
     }
 }

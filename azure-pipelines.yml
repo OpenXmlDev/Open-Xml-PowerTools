@@ -1,0 +1,58 @@
+# Build Pipeline
+# Builds, tests, and packs OpenXmlPowerTools solution and publishes NuGet package as pipeline artifact
+
+trigger:
+  branches:
+    include:
+    - master
+    - vNext
+    - feature*
+
+pool:
+  vmImage: 'windows-latest'
+
+variables:
+  solution: 'OpenXmlPowerTools.sln'
+  buildConfiguration: 'Release'
+
+steps:
+- task: gitversion/setup@0
+  displayName: 'Set up GitVersion'
+  inputs:
+    versionSpec: '5.x'
+
+- task: gitversion/execute@0
+  displayName: 'Execute GitVersion'
+  inputs:
+    useConfigFile: true
+    configFilePath: 'GitVersion.yml'
+    additionalArguments: '/updateprojectfiles'
+
+- task: DotNetCoreCLI@2
+  displayName: 'Build $(buildConfiguration) configuration'
+  inputs:
+    command: 'build'
+    projects: '$(solution)'
+    arguments: '-c $(buildConfiguration) -p:ProjectLoadStyle=All'
+    feedsToUse: 'config'
+    nugetConfigPath: 'NuGet.config'
+
+- task: DotNetCoreCLI@2
+  displayName: 'Test $(buildConfiguration) configuration'
+  inputs:
+    command: 'test'
+    projects: '$(solution)'
+    arguments: '--no-build -c $(buildConfiguration) -p:ProjectLoadStyle=All'
+
+- task: DotNetCoreCLI@2
+  displayName: 'Pack NuGet packages'
+  inputs:
+    command: 'custom'
+    custom: 'pack'
+    arguments: '$(solution) --no-build -c $(buildConfiguration) -p:ProjectLoadStyle=All -o $(Build.ArtifactStagingDirectory)'
+
+- task: PublishPipelineArtifact@1
+  inputs:
+    targetPath: '$(Build.ArtifactStagingDirectory)'
+    artifactType: 'pipeline'
+    artifactName: 'drop'

@@ -1,0 +1,36 @@
+assembly-versioning-scheme: MajorMinorPatch
+mode: ContinuousDelivery
+next-version: 4.7.0
+branches:
+  main:
+    mode: ContinuousDelivery
+    tag: ''
+    regex: ^master$|^main$|^DokuMate$
+    source-branches:
+    - develop
+    - release
+    is-release-branch: false
+    is-mainline: true
+  develop:
+    mode: ContinuousDeployment
+    tag: useBranchName
+    regex: ^dev(elop)?(ment)?$|^vNext$
+    source-branches: []
+    is-release-branch: false
+    is-mainline: false
+  feature:
+    mode: ContinuousDelivery
+    tag: useBranchName
+    regex: ^features?[/-]
+    source-branches:
+    - develop
+    - main
+    - release
+    - feature
+    - support
+    - hotfix
+    is-release-branch: false
+    is-mainline: false
+ignore:
+  sha: []
+merge-message-formats: {}

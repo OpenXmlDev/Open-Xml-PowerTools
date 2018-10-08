@@ -5,14 +5,10 @@
 
 // DO_CONVERSION_VIA_WORD is defined in the project OpenXmlPowerTools.Tests.OA.csproj, but not in the OpenXmlPowerTools.Tests.csproj
 
-using System;
-using System.Collections.Generic;
-using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using System.Xml.Linq;
 using DocumentFormat.OpenXml.Packaging;
 using OpenXmlPowerTools;
@@ -22,7 +18,9 @@ using Xunit;
 using Word = Microsoft.Office.Interop.Word;
 #endif
 
-#if !ELIDE_XUNIT_TESTS
+// TODO: Revisit. Test only supported on Windows.
+// NET5_0_WINDOWS_OR_GREATER not (!) defined, only NET6_0_WINDOWS_OR_GREATER.
+#if !ELIDE_XUNIT_TESTS && NETFRAMEWORK
 
 namespace OxPt
 {
@@ -89,7 +87,7 @@ namespace OxPt
         [InlineData("HC051-Shaded-Text-02.docx")]
         [InlineData("HC060-Image-with-Hyperlink.docx")]
         [InlineData("HC061-Hyperlink-in-Field.docx")]
-        
+
         public void HC001(string name)
         {
             DirectoryInfo sourceDir = new DirectoryInfo("../../../../TestFiles/");
