@@ -37,6 +37,10 @@ namespace OxPt
 {
     public class CaTests
     {
+        /*
+         * This test was removed because it depends on the Coalesce method, which is only ever used
+         * by this test.
+         *
         [Theory]
         [InlineData("CA/CA001-Plain.docx", 60)]
         [InlineData("CA/CA002-Bookmark.docx", 7)]
@@ -57,7 +61,7 @@ namespace OxPt
         //[InlineData("", 0)]
         //[InlineData("", 0)]
         //[InlineData("", 0)]
-        
+
         public void CA001_ContentAtoms(string name, int contentAtomCount)
         {
             FileInfo sourceDocx = new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, name));
@@ -96,6 +100,7 @@ namespace OxPt
                 Assert.Equal(contentAtomCount, contentAtomList.Count());
             }
         }
+        */
 
         [Theory]
         [InlineData("HC009-Test-04.docx")]
