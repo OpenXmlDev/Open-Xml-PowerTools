@@ -50,7 +50,9 @@ namespace OpenXmlPowerTools
         public bool RemoveLastRenderedPageBreak;
         public bool RemoveMarkupForDocumentComparison;
         public bool RemovePermissions;
-        public bool RemoveProof;
+        public bool RemoveProof; // now redundant and included only for backward compatibility
+        public bool RemoveProofingErrors;
+        public bool RemoveSuppressProofing;
         public bool RemoveRsidInfo;
         public bool RemoveSmartTags;
         public bool RemoveSoftHyphens;
@@ -324,9 +326,12 @@ namespace OpenXmlPowerTools
                  (element.Name == W.permStart)))
                 return null;
 
-            if (settings.RemoveProof &&
-                ((element.Name == W.proofErr) ||
-                 (element.Name == W.noProof)))
+            if ((settings.RemoveProofingErrors || settings.RemoveProof) &&
+                (element.Name == W.proofErr))
+                return null;
+
+            if ((settings.RemoveSuppressProofing || settings.RemoveProof) &&
+                (element.Name == W.noProof))
                 return null;
 
             if (settings.RemoveSoftHyphens &&
@@ -564,6 +569,8 @@ namespace OpenXmlPowerTools
                     settings.RemoveFieldCodes ||
                     settings.RemovePermissions ||
                     settings.RemoveProof ||
+                    settings.RemoveProofingErrors ||
+                    settings.RemoveSuppressProofing ||
                     settings.RemoveBookmarks ||
                     settings.RemoveWebHidden ||
                     settings.RemoveGoBackBookmark ||
