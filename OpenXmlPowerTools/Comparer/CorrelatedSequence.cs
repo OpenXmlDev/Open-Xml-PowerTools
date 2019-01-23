@@ -13,8 +13,8 @@ namespace OpenXmlPowerTools
         public CorrelatedSequence()
         {
 #if DEBUG
-            SourceFile = new StackTrace(true).GetFrame(1).GetFileName();
-            SourceLine = new StackTrace(true).GetFrame(1).GetFileLineNumber();
+            SourceFile = new System.Diagnostics.StackTrace(true).GetFrame(1).GetFileName();
+            SourceLine = new System.Diagnostics.StackTrace(true).GetFrame(1).GetFileLineNumber();
 #endif
         }
 
