@@ -724,6 +724,89 @@ namespace OxPt
             }
         }
 
+        [Theory]
+        [InlineData("DB100-00010", "DB/GlossaryDocuments/CellLevelContentControl-built.docx", "DB/GlossaryDocuments/BaseDocument.docx,0,4", "DB/GlossaryDocuments/CellLevelContentControl.docx", "DB/GlossaryDocuments/BaseDocument.docx,4", null, null, null)]
+        [InlineData("DB100-00020", "DB/GlossaryDocuments/InlineContentControl-built.docx", "DB/GlossaryDocuments/BaseDocument.docx,0,4", "DB/GlossaryDocuments/InlineContentControl.docx", "DB/GlossaryDocuments/BaseDocument.docx,4", null, null, null)]
+        [InlineData("DB100-00030", "DB/GlossaryDocuments/MultilineWithBulletPoints-built.docx", "DB/GlossaryDocuments/BaseDocument.docx,0,4", "DB/GlossaryDocuments/MultilineWithBulletPoints.docx", "DB/GlossaryDocuments/BaseDocument.docx,4", null, null, null)]
+        [InlineData("DB100-00040", "DB/GlossaryDocuments/NestedContentControl-built.docx", "DB/GlossaryDocuments/BaseDocument.docx,0,4", "DB/GlossaryDocuments/NestedContentControl.docx", "DB/GlossaryDocuments/BaseDocument.docx,4", null, null, null)]
+        [InlineData("DB100-00050", "DB/GlossaryDocuments/RowLevelContentControl-built.docx", "DB/GlossaryDocuments/BaseDocument.docx,0,4", "DB/GlossaryDocuments/RowLevelContentControl.docx", "DB/GlossaryDocuments/BaseDocument.docx,4", null, null, null)]
+        [InlineData("DB100-00060", "DB/GlossaryDocuments/ContentControlDanishProofingLanguage-built.docx", "DB/GlossaryDocuments/BaseDocument.docx,0,4", "DB/GlossaryDocuments/ContentControlDanishProofingLanguage.docx", "DB/GlossaryDocuments/BaseDocument.docx,4", null, null, null)]
+        [InlineData("DB100-00070", "DB/GlossaryDocuments/ContentControlEnglishProofingLanguage-built.docx", "DB/GlossaryDocuments/BaseDocument.docx,0,4", "DB/GlossaryDocuments/ContentControlEnglishProofingLanguage.docx", "DB/GlossaryDocuments/BaseDocument.docx,4", null, null, null)]
+        [InlineData("DB100-00080", "DB/GlossaryDocuments/ContentControlMixedProofingLanguage-built.docx", "DB/GlossaryDocuments/BaseDocument.docx,0,4", "DB/GlossaryDocuments/ContentControlMixedProofingLanguage.docx", "DB/GlossaryDocuments/BaseDocument.docx,4", null, null, null)]
+        [InlineData("DB100-00090", "DB/GlossaryDocuments/ContentControlWithContent-built.docx", "DB/GlossaryDocuments/BaseDocument.docx,0,4", "DB/GlossaryDocuments/ContentControlWithContent.docx", "DB/GlossaryDocuments/BaseDocument.docx,4", null, null, null)]
+        [InlineData("DB100-00100", "DB/GlossaryDocuments/FooterContent-built.docx", "DB/GlossaryDocuments/BaseDocument.docx,0,4", "DB/GlossaryDocuments/FooterContent.docx", "DB/GlossaryDocuments/BaseDocument.docx,4", null, null, null)]
+        [InlineData("DB100-00110", "DB/GlossaryDocuments/HeaderContent-built.docx", "DB/GlossaryDocuments/BaseDocument.docx,0,4", "DB/GlossaryDocuments/HeaderContent.docx", "DB/GlossaryDocuments/BaseDocument.docx,4", null, null, null)]
+        [InlineData("DB100-00200", null, "DB/GlossaryDocuments/BaseDocument.docx", "DB/GlossaryDocuments/CellLevelContentControl.docx", "DB/GlossaryDocuments/NestedContentControl.docx", null, null, null)]
+
+        public void WithGlossaryDocuments(string testId, string baseline, string src1, string src2, string src3, string src4, string src5, string src6)
+        {
+            var rawSources = new string[] { src1, src2, src3, src4, src5, src6, };
+            var sourcesStr = rawSources.Where(s => s != null).ToArray();
+
+            ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            // Load the source documents
+            List<Source> sources = sourcesStr.Select(s =>
+            {
+                var spl = s.Split(',');
+                if (spl.Length == 1)
+                {
+                    var sourceFi = new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, s));
+                    var wmlSource = new WmlDocument(sourceFi.FullName);
+                    return new Source(wmlSource);
+                }
+                else if (spl.Length == 2)
+                {
+                    var start = int.Parse(spl[1]);
+                    var sourceFi = new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, spl[0]));
+                    return new Source(sourceFi.FullName, start, true);
+                }
+                else
+                {
+                    var start = int.Parse(spl[1]);
+                    var count = int.Parse(spl[2]);
+                    var sourceFi = new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, spl[0]));
+                    return new Source(sourceFi.FullName, start, count, true);
+                }
+            })
+                .ToList();
+
+            ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            // Create the dir for the test
+            var rootTempDir = TestUtil.TempDir;
+            var thisTestTempDir = new DirectoryInfo(Path.Combine(rootTempDir.FullName, testId));
+            if (thisTestTempDir.Exists)
+                Assert.True(false, "Duplicate test id: " + testId);
+            else
+                thisTestTempDir.Create();
+            var tempDirFullName = thisTestTempDir.FullName;
+
+            ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            // Copy sources to temp directory, for ease of review
+
+            foreach (var item in sources)
+            {
+                var fi = new FileInfo(item.WmlDocument.FileName);
+                var sourceCopiedToDestFi = new FileInfo(Path.Combine(tempDirFullName, fi.Name));
+                if (!sourceCopiedToDestFi.Exists)
+                    File.Copy(item.WmlDocument.FileName, sourceCopiedToDestFi.FullName);
+            }
+
+            if (baseline != null)
+            {
+                var baselineFi = new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, baseline));
+                var baselineCopiedToDestFileName = new FileInfo(Path.Combine(tempDirFullName, baselineFi.Name));
+                File.Copy(baselineFi.FullName, baselineCopiedToDestFileName.FullName);
+            }
+
+            ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            // Use DocumentBuilder to build the destination document
+
+            var outFi = new FileInfo(Path.Combine(tempDirFullName, "Output.docx"));
+            DocumentBuilderSettings settings = new DocumentBuilderSettings();
+            DocumentBuilder.BuildDocument(sources, outFi.FullName, settings);
+            Validate(outFi);
+        }
+
         private void Validate(FileInfo fi)
         {
             using (WordprocessingDocument wDoc = WordprocessingDocument.Open(fi.FullName, true))
