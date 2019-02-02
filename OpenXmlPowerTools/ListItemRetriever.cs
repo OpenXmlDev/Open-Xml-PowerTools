@@ -1,34 +1,5 @@
-﻿/***************************************************************************
-
-Copyright (c) Microsoft Corporation 2012-2015.
-
-This code is licensed using the Microsoft Public License (Ms-PL).  The text of the license can be found here:
-
-http://www.microsoft.com/resources/sharedsource/licensingbasics/publiclicense.mspx
-
-Published at http://OpenXmlDeveloper.org
-Resource Center and Documentation: http://openxmldeveloper.org/wiki/w/wiki/powertools-for-open-xml.aspx
-
-Developer: Eric White
-Blog: http://www.ericwhite.com
-Twitter: @EricWhiteDev
-Email: eric@ericwhite.com
-
-Version: 2.7.00
- * Complete re-write - new architecture enables much more accurate rendering of list items.
-
-Version: 2.6.03
- * Fixed: Empty paragraphs were not counted properly
- * Fixed: Numbered styles were not processed properly if they derived from another style
- * Now has a dependency on FormattingAssembler.cs
-
-Version: 2.6.00
- * Enhancements to support HtmlConverter.cs
-
-Relevant Screen-Casts
- * https://www.youtube.com/watch?v=w9h1VQ3eR_Q
-
-***************************************************************************/
+﻿// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
 using System.Collections.Generic;

@@ -26,9 +26,8 @@ It supports scenarios such as:
 - Extracting data (along with formatting) from spreadsheets.
 
 Copyright (c) Microsoft Corporation 2012-2017
-Portions Copyright (c) Eric White 2016-2017
-Licensed under the Microsoft Public License.
-See License.txt in the project root for license information.
+Licensed under the MIT License.
+See License in the project root for license information.
 
 News
 ====

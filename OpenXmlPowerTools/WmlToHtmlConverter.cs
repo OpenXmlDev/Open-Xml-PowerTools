@@ -1,44 +1,5 @@
-﻿/***************************************************************************
-
-Copyright (c) Microsoft Corporation 2012-2015.
-
-This code is licensed using the Microsoft Public License (Ms-PL).  The text of the license can be found here:
-
-http://www.microsoft.com/resources/sharedsource/licensingbasics/publiclicense.mspx
-
-Published at http://OpenXmlDeveloper.org
-Resource Center and Documentation: http://openxmldeveloper.org/wiki/w/wiki/powertools-for-open-xml.aspx
-
-Developer: Eric White
-Blog: http://www.ericwhite.com
-Twitter: @EricWhiteDev
-Email: eric@ericwhite.com
-
-Version: 3.1.12
- * Improve layout of list items, using "display: inline-block" with a width rule.
- * Streamline HTML, omitting unnecessary formatting-related HTML (e.g., <b>bold</b>, <i>italic</i>).
- * Use HTML5 instead of HTML4 meta tags (e.g., for charset).
- * Produce correctly formatted decimal numbers (e.g., "0.5in" instead of "0,5in") also for non-US locales.
- * Produce correct color rules (e.g., "#000000" instead of "#auto").
- * Added quick fix to CalcWidthOfRunInTwips to better accommodate &nbsp; entities in the layout.
- * Make ProcessImage() publicly accessible.
- * Refactor and streamline code.
-
-Version: 2.7.03
- * Support for RTL languages.
-
-Version: 2.7.00
- * Uses new ListItemRetriever.
- * Better support for RTL languages.
-
-Version: 2.6.01
- * Add languageCultureName parameter to GetListItemText methods.  This enables a single implementation to handle
-   more than one language/culture where appropriate.
-
-Version: 2.6.00
- * Re-write to support styles and rich content
-
-***************************************************************************/
+﻿// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
 using System.Collections.Generic;
