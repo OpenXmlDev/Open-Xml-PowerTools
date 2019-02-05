@@ -1,11 +1,11 @@
-﻿[![Build status](https://ci.appveyor.com/api/projects/status/au9umdxcu7pnnacm?svg=true)](https://ci.appveyor.com/project/openxmlsdk/open-xml-powertools)
-
-NuGet Feed for CI build: https://ci.appveyor.com/nuget/open-xml-powertools
-
-No NuGet.org feed at this time. We are working on it.
-
-Open-XML-PowerTools
+[ARCHIVED] Open-XML-PowerTools
 ===================
+This repository is no longer maintained by Microsoft. It has been archived and can still be forked and cloned for use and continued developement. 
+
+If you're looking for a fork of this project that is actively maintained, try the following: 
+
+[https://github.com/EricWhiteDev/Open-Xml-PowerTools](https://github.com/EricWhiteDev/Open-Xml-PowerTools)
+
 The Open XML PowerTools provides guidance and example code for programming with Open XML
 Documents (DOCX, XLSX, and PPTX).  It is based on, and extends the functionality
 of the [Open XML SDK](https://github.com/OfficeDev/Open-XML-SDK).
