@@ -20,6 +20,9 @@ refactored version shortly.
 Unfortunately, this development came right as I am starting a 10-day vacation, so will need to balance making the necessary
 enhancements with my other vacation activities!  But stay tuned, I expect to make progress in the next couple of days.
 
+I will post major announcements here in the README.md, but if you want to stay more abreast of developments, follow my blog
+at [www.ericwhite.com/blog](http://www.ericwhite.com/blog).  Also, follow me on twitter: @EricWhiteDev.
+
 Warm Regards,
 
 Eric White
