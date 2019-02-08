@@ -1,0 +1,31 @@
+﻿<!DOCTYPE HTML>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8" />
+    <title></title>
+    <meta name="Generator" content="PowerTools for Open XML" />
+    <style>
+        span {
+            white-space: pre-wrap;
+        }
+        body {
+            margin: 1cm auto;
+            max-width: 20cm;
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <p dir="ltr">This is a test.</p>
+<code>
+    if (element.Name == XhtmlNoNamespace.strong)
+        return element.Nodes().Select(n => Transform(n, settings, wDoc, nextExpected));
+
+    if (element.Name == XhtmlNoNamespace.style)
+        return null;
+
+    if (element.Name == XhtmlNoNamespace.sub)
+        return element.Nodes().Select(n => Transform(n, settings, wDoc, nextExpected));
+</code>
+</body>
+</html>

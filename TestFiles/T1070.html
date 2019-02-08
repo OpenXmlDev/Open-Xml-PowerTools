@@ -1,0 +1,28 @@
+<html>
+<head>
+<style type="text/css">
+body {
+counter-reset: chapter; 
+}
+h1:before {
+content: "Chapter " counter(chapter) ". ";
+counter-increment: chapter; 
+}
+h1 {
+counter-reset: section; 
+}
+h2:before {
+content: counter(chapter) "." counter(section) " ";
+counter-increment: section;
+}
+</style>
+</head>
+<body>
+    <h1>Html Heading</h1>
+    <p>fzz</p>
+    <h2>Html Heading</h2>
+    <p class="note">fzz</p>
+    <p>fzz</p>
+    <p class="note">fzz</p>
+</body>
+</html>

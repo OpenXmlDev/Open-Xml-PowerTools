@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
@@ -11,15 +14,17 @@ using DocumentFormat.OpenXml.Packaging;
 using OpenXmlPowerTools;
 using Xunit;
 
-namespace OpenXmlPowerTools.Tests
+#if !ELIDE_XUNIT_TESTS
+
+namespace OxPt
 {
-    public class RevisionAccepterTests
+    public class RaTests
     {
         [Theory]
         [InlineData("RA001-Tracked-Revisions-01.docx")]
         [InlineData("RA001-Tracked-Revisions-02.docx")]
 
-        public void RA001_RevisionAccepter(string name)
+        public void RA001(string name)
         {
             FileInfo sourceDocx = new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, name));
 
@@ -31,3 +36,5 @@ namespace OpenXmlPowerTools.Tests
 
     }
 }
+
+#endif

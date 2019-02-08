@@ -1,0 +1,32 @@
+<html>
+<head>
+<style type="text/css">
+body {
+counter-reset: chapter;
+}
+h1:before {
+content: "Chapter " counter(chapter) ". ";
+counter-increment: chapter;
+}
+h1 {
+counter-reset: section; 
+}
+h2:before {
+content: counter(chapter) "." counter(section) " ";
+counter-increment: section;
+}
+</style>
+</head>
+<body>
+    <h1>Html Heading</h1>
+    <p>fzz</p>
+    <h2>H2</h2>
+<p>bar</p>
+<h2>hhh2</h2>
+<p>baz</p>
+<h1>zzz</h1>
+<p>111</p>
+<p>TODO why doesn't this work?</p>
+<h2>uuu</h2>
+</body>
+</html>

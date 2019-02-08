@@ -1,0 +1,25 @@
+<html>
+<head>
+<style type="text/css">
+body { font: calibri 11pt; }
+table { table-layout: fixed; }
+th { width: 10em; }
+td { width: 6em; }
+table { border: medium solid red; }
+td { border: thin solid blue; }
+</style>
+</head>
+<body>
+<table>
+<caption style="border: thin solid red;">This is a simple 3x3 table</caption>
+<tr id="row1">
+<th>Header 1 </th><td>Cell 1 </td><td>Cell 2</td></tr>
+<tr id="row2">
+<th>Header 2 </th><td>Cell 3 </td><td>Cell 4</td></tr>
+<tr id="row3">
+<th>Header 3 </th><td>Cell 5 </td><td>Cell 6</td></tr>
+</table>
+        <p>Word is incorrectly calculating column widths.  Word is also using the wrong font for the table.  Word always uses 11pt calibri regardless
+           of font set for the table, or body.  Word always calculates column widths (when speced by em or ex) based on 12pt calibri.</p>
+    </body>
+</html>

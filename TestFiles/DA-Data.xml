@@ -15,4 +15,10 @@
       <OrderDate>8/6/2000</OrderDate>
     </Order>
   </Orders>
+  <TotalQuantity>6</TotalQuantity>
+  <Description><![CDATA[This
+is a multiline
+description that
+contains details about
+Cheryl.]]></Description>
 </Customer>

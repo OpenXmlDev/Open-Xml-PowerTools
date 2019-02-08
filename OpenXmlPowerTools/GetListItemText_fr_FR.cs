@@ -1,26 +1,5 @@
-﻿/***************************************************************************
-
-Copyright (c) Microsoft Corporation 2012-2013.
-
-This code is licensed using the Microsoft Public License (Ms-PL).  The text of the license can be found here:
-
-http://www.microsoft.com/resources/sharedsource/licensingbasics/publiclicense.mspx
-
-Published at http://OpenXmlDeveloper.org
-Resource Center and Documentation: http://openxmldeveloper.org/wiki/w/wiki/powertools-for-open-xml.aspx
-
-Developer: Eric White
-Blog: http://www.ericwhite.com
-Twitter: @EricWhiteDev
-Email: eric@ericwhite.com
-
-Version: 2.6.01
- * Add languageCultureName parameter to GetListItemText methods.  This enables a single implementation to handle
-   more than one language/culture where appropriate.
-
-Version: 2.6.00
-
-***************************************************************************/
+﻿// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
 using System.Collections.Generic;
@@ -149,6 +128,15 @@ namespace OpenXmlPowerTools
 
                 result += OneThroughNineteen[tens * 10 + ones];
                 return result.Substring(0, 1).ToUpper() + result.Substring(1);
+            }
+            if (numFmt == "ordinal")
+            {
+                string suffix;
+                if (levelNumber == 1)
+                    suffix = "er";
+                else
+                    suffix = "e";
+                return levelNumber.ToString() + suffix;
             }
             if (numFmt == "ordinalText")
             {

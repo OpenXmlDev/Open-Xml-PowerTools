@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
@@ -12,9 +15,11 @@ using DocumentFormat.OpenXml.Validation;
 using Sw = OpenXmlPowerTools;
 using Xunit;
 
-namespace OpenXmlPowerTools.Tests
+#if !ELIDE_XUNIT_TESTS
+
+namespace OxPt
 {
-    public class SpreadsheetWriterTests
+    public class SwTests
     {
         [Fact]
         public void SW001_Simple()
@@ -91,7 +96,7 @@ namespace OpenXmlPowerTools.Tests
                     }
                 }
             };
-            var outXlsx = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, "SW001-Simple.xlsx"));
+            var outXlsx = new FileInfo(Path.Combine(Sw.TestUtil.TempDir.FullName, "SW001-Simple.xlsx"));
             Sw.SpreadsheetWriter.Write(outXlsx.FullName, wb);
             Validate(outXlsx);
         }
@@ -299,7 +304,7 @@ namespace OpenXmlPowerTools.Tests
                     }
                 }
             };
-            var outXlsx = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, "SW002-DataTypes.xlsx"));
+            var outXlsx = new FileInfo(Path.Combine(Sw.TestUtil.TempDir.FullName, "SW002-DataTypes.xlsx"));
             Sw.SpreadsheetWriter.Write(outXlsx.FullName, wb);
             Validate(outXlsx);
         }
@@ -327,7 +332,7 @@ namespace OpenXmlPowerTools.Tests
                 }
 #endif
 
-                Assert.Equal(0, errors.Count());
+                Assert.Empty(errors);
             }
         }
 
@@ -337,3 +342,5 @@ namespace OpenXmlPowerTools.Tests
         };
     }
 }
+
+#endif

@@ -1,0 +1,36 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Data>
+  <Row>
+    <Link>http://blogs.msdn.com/b/ericwhite/archive/2007/12/11/openxml-content-types-in-an-xml-document.aspx</Link>
+    <Title>OpenXML Content Types in an XML Document</Title>
+    <Summary>Sometimes you need to programmatically access a variety of parts in Open XML documents based on the content types of the parts. In this case it is helpful to have a list of the content types in a programmatically accessible form.</Summary>
+    <Author>Eric White</Author>
+    <Keyword>OPC</Keyword>
+    <ArticlePages>1</ArticlePages>
+    <Code>None</Code>
+    <TechnicalLevel>100</TechnicalLevel>
+    <MediaType>Article</MediaType>
+  </Row>
+  <Row>
+    <Link>http://blogs.msdn.com/b/ericwhite/archive/2008/01/17/how-to-extract-comments-from-open-xml-documents.aspx</Link>
+    <Title>How to Extract Comments from Open XML Documents</Title>
+    <Summary>How to Extract Comments from Open XML Documents</Summary>
+    <Author>Eric White</Author>
+    <Keyword>Open XML SDK, WordprocessingML</Keyword>
+    <ArticlePages>5</ArticlePages>
+    <Code>C#</Code>
+    <TechnicalLevel>300</TechnicalLevel>
+    <MediaType>Article</MediaType>
+  </Row>
+  <Row>
+    <Link>http://blogs.msdn.com/b/ericwhite/archive/2008/06/11/processing-open-xml-documents-server-side-using-powershell.aspx</Link>
+    <Title>Automated Processing of Open XML Documents using PowerShell</Title>
+    <Summary>Processing Open XML documents using PowerShell is a powerful approach for creating, modifying, and transforming Open XML documents.  The PowerTools for Open XML are examples and guidance that show how to do this.  They consist of PowerShell cmdlets, and a number of example scripts that demonstrate the use of the cmdlets.  Examples include automated word processing document and spreadsheet generation, and preparing documents for distribution external to a company, including removing comments, accepting revisions, applying a uniform theme to them, and applying a watermark to them.</Summary>
+    <Author>Eric White</Author>
+    <Keyword>PowerTools, DOCX Generation, XLSX Generation, Tools, Open XML SDK</Keyword>
+    <ArticlePages>4</ArticlePages>
+    <Code>None</Code>
+    <TechnicalLevel>200</TechnicalLevel>
+    <MediaType>Article</MediaType>
+  </Row>
+</Data>

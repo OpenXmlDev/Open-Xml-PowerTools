@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
@@ -11,9 +14,11 @@ using DocumentFormat.OpenXml.Packaging;
 using OpenXmlPowerTools;
 using Xunit;
 
-namespace OpenXmlPowerTools.Tests
+#if !ELIDE_XUNIT_TESTS
+
+namespace OxPt
 {
-    public class ChartUpdaterTests
+    public class CuTests
     {
         [Theory]
         [InlineData("CU001-Chart-Cached-Data-01.docx")]
@@ -38,9 +43,9 @@ namespace OpenXmlPowerTools.Tests
         [InlineData("CU018-Chart-Cached-Data-41.pptx")]
         [InlineData("CU019-Chart-Embedded-Xlsx-41.pptx")]
 
-        public void CU001_ChartUpdater(string chartFileName)
+        public void CU001(string name)
         {
-            FileInfo templateFile = new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, chartFileName));
+            FileInfo templateFile = new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, name));
 
             if (templateFile.Extension.ToLower() == ".docx")
             {
@@ -229,3 +234,5 @@ namespace OpenXmlPowerTools.Tests
         }
     }
 }
+
+#endif

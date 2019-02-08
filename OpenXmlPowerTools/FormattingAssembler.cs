@@ -1,29 +1,5 @@
-﻿/***************************************************************************
-
-Copyright (c) Microsoft Corporation 2012-2013.
-
-This code is licensed using the Microsoft Public License (Ms-PL).  The text of the license can be found here:
-
-http://www.microsoft.com/resources/sharedsource/licensingbasics/publiclicense.mspx
-
-Published at http://OpenXmlDeveloper.org
-Resource Center and Documentation: http://openxmldeveloper.org/wiki/w/wiki/powertools-for-open-xml.aspx
-
-Developer: Eric White
-Blog: http://www.ericwhite.com
-Twitter: @EricWhiteDev
-Email: eric@ericwhite.com
-
-Version: 3.1.10
- * Add pt14:ListItemRun attribute
-
-Version: 2.7.03
- * Support for RTL languages
-
-Version: 2.6.00
- * Enhance to support the HtmlConverter
-
-***************************************************************************/
+﻿// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
 using System.Collections.Generic;
@@ -327,8 +303,17 @@ namespace OpenXmlPowerTools
                             }
                         }
 
+                        var paragraphLevel = ListItemRetriever.GetParagraphLevel(element);
+                        ListItemRetriever.LevelNumbers levelNums = element.Annotation<ListItemRetriever.LevelNumbers>();
+                        string levelNumsString = levelNums
+                            .LevelNumbersArray
+                            .Take(paragraphLevel + 1)
+                            .Select(i => i.ToString() + ".")
+                            .StringConcatenate()
+                            .TrimEnd('.');
+
                         var listItemRun = new XElement(W.r,
-                            new XAttribute(PtOpenXml.ListItemRun, "1"),
+                            new XAttribute(PtOpenXml.ListItemRun, levelNumsString),
                             element.Attribute(PtOpenXml.FontName),
                             element.Attribute(PtOpenXml.LanguageType),
                             listItemRunProps,
@@ -402,12 +387,13 @@ namespace OpenXmlPowerTools
                         XElement newPara = new XElement(W.p,
                             element.Attribute(PtOpenXml.FontName),
                             element.Attribute(PtOpenXml.LanguageType),
+                            element.Attribute(PtOpenXml.Unid),
                             new XAttribute(PtOpenXml.AbstractNumId, abstractNumId),
                             newParaProps,
                             listItemRun,
                             suffix != null ?
                                 new XElement(W.r,
-                                    new XAttribute(PtOpenXml.ListItemRun, "2"),
+                                    new XAttribute(PtOpenXml.ListItemRun, levelNumsString),
                                     listItemRunProps,
                                     suffix) : null,
                             element.Elements().Where(e => e.Name != W.pPr).Select(n => NormalizeListItemsTransform(fai, wDoc, n, settings)));
@@ -452,7 +438,8 @@ namespace OpenXmlPowerTools
             PtOpenXml.AbstractNumId,
             PtOpenXml.StyleName,
             PtOpenXml.LanguageType,
-            PtOpenXml.ListItemRun
+            PtOpenXml.ListItemRun,
+            PtOpenXml.Unid,
         };
 
         public static void NormalizePropsForPart(XDocument pxd, FormattingAssemblerSettings settings)
@@ -604,268 +591,9 @@ namespace OpenXmlPowerTools
             pxd.Root.Descendants().Where(d => d.Name.Namespace == PtOpenXml.pt).Remove();
             if (settings.OrderElementsPerStandard)
             {
-                XElement newRoot = (XElement)TransformAndOrderElements(pxd.Root);
+                XElement newRoot = (XElement)WordprocessingMLUtil.WmlOrderElementsPerStandard(pxd.Root);
                 pxd.Root.ReplaceWith(newRoot);
             }
-        }
-
-        private static Dictionary<XName, int> Order_pPr = new Dictionary<XName, int>
-        {
-            { W.pStyle, 10 },
-            { W.keepNext, 20 },
-            { W.keepLines, 30 },
-            { W.pageBreakBefore, 40 },
-            { W.framePr, 50 },
-            { W.widowControl, 60 },
-            { W.numPr, 70 },
-            { W.suppressLineNumbers, 80 },
-            { W.pBdr, 90 },
-            { W.shd, 100 },
-            { W.tabs, 120 },
-            { W.suppressAutoHyphens, 130 },
-            { W.kinsoku, 140 },
-            { W.wordWrap, 150 },
-            { W.overflowPunct, 160 },
-            { W.topLinePunct, 170 },
-            { W.autoSpaceDE, 180 },
-            { W.autoSpaceDN, 190 },
-            { W.bidi, 200 },
-            { W.adjustRightInd, 210 },
-            { W.snapToGrid, 220 },
-            { W.spacing, 230 },
-            { W.ind, 240 },
-            { W.contextualSpacing, 250 },
-            { W.mirrorIndents, 260 },
-            { W.suppressOverlap, 270 },
-            { W.jc, 280 },
-            { W.textDirection, 290 },
-            { W.textAlignment, 300 },
-            { W.textboxTightWrap, 310 },
-            { W.outlineLvl, 320 },
-            { W.divId, 330 },
-            { W.cnfStyle, 340 },
-            { W.rPr, 350 },
-            { W.sectPr, 360 },
-            { W.pPrChange, 370 },
-        };
-
-        private static Dictionary<XName, int> Order_rPr = new Dictionary<XName, int>
-        {
-            { W.ins, 10 },
-            { W.del, 20 },
-            { W.rStyle, 30 },
-            { W.rFonts, 40 },
-            { W.b, 50 },
-            { W.bCs, 60 },
-            { W.i, 70 },
-            { W.iCs, 80 },
-            { W.caps, 90 },
-            { W.smallCaps, 100 },
-            { W.strike, 110 },
-            { W.dstrike, 120 },
-            { W.outline, 130 },
-            { W.shadow, 140 },
-            { W.emboss, 150 },
-            { W.imprint, 160 },
-            { W.noProof, 170 },
-            { W.snapToGrid, 180 },
-            { W.vanish, 190 },
-            { W.webHidden, 200 },
-            { W.color, 210 },
-            { W.spacing, 220 },
-            { W._w, 230 },
-            { W.kern, 240 },
-            { W.position, 250 },
-            { W.sz, 260 },
-            { W14.wShadow, 270 },
-            { W14.wTextOutline, 280 },
-            { W14.wTextFill, 290 },
-            { W14.wScene3d, 300 },
-            { W14.wProps3d, 310 },
-            { W.szCs, 320 },
-            { W.highlight, 330 },
-            { W.u, 340 },
-            { W.effect, 350 },
-            { W.bdr, 360 },
-            { W.shd, 370 },
-            { W.fitText, 380 },
-            { W.vertAlign, 390 },
-            { W.rtl, 400 },
-            { W.cs, 410 },
-            { W.em, 420 },
-            { W.lang, 430 },
-            { W.eastAsianLayout, 440 },
-            { W.specVanish, 450 },
-            { W.oMath, 460 },
-        };
-
-        private static Dictionary<XName, int> Order_tblPr = new Dictionary<XName, int>
-        {
-            { W.tblStyle, 10 },
-            { W.tblpPr, 20 },
-            { W.tblOverlap, 30 },
-            { W.bidiVisual, 40 },
-            { W.tblStyleRowBandSize, 50 },
-            { W.tblStyleColBandSize, 60 },
-            { W.tblW, 70 },
-            { W.jc, 80 },
-            { W.tblCellSpacing, 90 },
-            { W.tblInd, 100 },
-            { W.tblBorders, 110 },
-            { W.shd, 120 },
-            { W.tblLayout, 130 },
-            { W.tblCellMar, 140 },
-            { W.tblLook, 150 },
-            { W.tblCaption, 160 },
-            { W.tblDescription, 170 },
-        };
-
-        private static Dictionary<XName, int> Order_tblBorders = new Dictionary<XName, int>
-        {
-            { W.top, 10 },
-            { W.left, 20 },
-            { W.start, 30 },
-            { W.bottom, 40 },
-            { W.right, 50 },
-            { W.end, 60 },
-            { W.insideH, 70 },
-            { W.insideV, 80 },
-        };
-
-        private static Dictionary<XName, int> Order_tcPr = new Dictionary<XName, int>
-        {
-            { W.cnfStyle, 10 },
-            { W.tcW, 20 },
-            { W.gridSpan, 30 },
-            { W.hMerge, 40 },
-            { W.vMerge, 50 },
-            { W.tcBorders, 60 },
-            { W.shd, 70 },
-            { W.noWrap, 80 },
-            { W.tcMar, 90 },
-            { W.textDirection, 100 },
-            { W.tcFitText, 110 },
-            { W.vAlign, 120 },
-            { W.hideMark, 130 },
-            { W.headers, 140 },
-        };
-
-        private static Dictionary<XName, int> Order_tcBorders = new Dictionary<XName, int>
-        {
-            { W.top, 10 },
-            { W.start, 20 },
-            { W.left, 30 },
-            { W.bottom, 40 },
-            { W.right, 50 },
-            { W.end, 60 },
-            { W.insideH, 70 },
-            { W.insideV, 80 },
-            { W.tl2br, 90 },
-            { W.tr2bl, 100 },
-        };
-
-        private static Dictionary<XName, int> Order_pBdr = new Dictionary<XName, int>
-        {
-            { W.top, 10 },
-            { W.left, 20 },
-            { W.bottom, 30 },
-            { W.right, 40 },
-            { W.between, 50 },
-            { W.bar, 60 },
-        };
-
-        private static object TransformAndOrderElements(XNode node)
-        {
-            XElement element = node as XElement;
-            if (element != null)
-            {
-                if (element.Name == W.pPr)
-                    return new XElement(element.Name,
-                        element.Attributes(),
-                        element.Elements().Select(e => (XElement)TransformAndOrderElements(e)).OrderBy(e =>
-                        {
-                            if (Order_pPr.ContainsKey(e.Name))
-                                return Order_pPr[e.Name];
-                            return 999;
-                        }));
-
-                if (element.Name == W.rPr)
-                    return new XElement(element.Name,
-                        element.Attributes(),
-                        element.Elements().Select(e => (XElement)TransformAndOrderElements(e)).OrderBy(e =>
-                        {
-                            if (Order_rPr.ContainsKey(e.Name))
-                                return Order_rPr[e.Name];
-                            return 999;
-                        }));
-
-                if (element.Name == W.tblPr)
-                    return new XElement(element.Name,
-                        element.Attributes(),
-                        element.Elements().Select(e => (XElement)TransformAndOrderElements(e)).OrderBy(e =>
-                        {
-                            if (Order_tblPr.ContainsKey(e.Name))
-                                return Order_tblPr[e.Name];
-                            return 999;
-                        }));
-
-                if (element.Name == W.tcPr)
-                    return new XElement(element.Name,
-                        element.Attributes(),
-                        element.Elements().Select(e => (XElement)TransformAndOrderElements(e)).OrderBy(e =>
-                        {
-                            if (Order_tcPr.ContainsKey(e.Name))
-                                return Order_tcPr[e.Name];
-                            return 999;
-                        }));
-
-                if (element.Name == W.tcBorders)
-                    return new XElement(element.Name,
-                        element.Attributes(),
-                        element.Elements().Select(e => (XElement)TransformAndOrderElements(e)).OrderBy(e =>
-                        {
-                            if (Order_tcBorders.ContainsKey(e.Name))
-                                return Order_tcBorders[e.Name];
-                            return 999;
-                        }));
-
-                if (element.Name == W.tblBorders)
-                    return new XElement(element.Name,
-                        element.Attributes(),
-                        element.Elements().Select(e => (XElement)TransformAndOrderElements(e)).OrderBy(e =>
-                        {
-                            if (Order_tblBorders.ContainsKey(e.Name))
-                                return Order_tblBorders[e.Name];
-                            return 999;
-                        }));
-
-                if (element.Name == W.pBdr)
-                    return new XElement(element.Name,
-                        element.Attributes(),
-                        element.Elements().Select(e => (XElement)TransformAndOrderElements(e)).OrderBy(e =>
-                        {
-                            if (Order_pBdr.ContainsKey(e.Name))
-                                return Order_pBdr[e.Name];
-                            return 999;
-                        }));
-
-                if (element.Name == W.p)
-                    return new XElement(element.Name,
-                        element.Attributes(),
-                        element.Elements(W.pPr).Select(e => (XElement)TransformAndOrderElements(e)),
-                        element.Elements().Where(e => e.Name != W.pPr).Select(e => (XElement)TransformAndOrderElements(e)));
-
-                if (element.Name == W.r)
-                    return new XElement(element.Name,
-                        element.Attributes(),
-                        element.Elements(W.rPr).Select(e => (XElement)TransformAndOrderElements(e)),
-                        element.Elements().Where(e => e.Name != W.rPr).Select(e => (XElement)TransformAndOrderElements(e)));
-
-                return new XElement(element.Name,
-                    element.Attributes(),
-                    element.Nodes().Select(n => TransformAndOrderElements(n)));
-            }
-            return node;
         }
 
         private static void AssembleListItemInformation(WordprocessingDocument wordDoc, ListItemRetrieverSettings settings)

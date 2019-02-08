@@ -1,19 +1,11 @@
-﻿/***************************************************************************
- 
-Copyright (c) Microsoft Corporation 2014.
- 
-This code is licensed using the Microsoft Public License (Ms-PL).  The text of the license can be found here:
- 
-http://www.microsoft.com/resources/sharedsource/licensingbasics/publiclicense.mspx
- 
-Published at http://OpenXmlDeveloper.org
-Resource Center and Documentation: http://openxmldeveloper.org/wiki/w/wiki/powertools-for-open-xml.aspx
- 
-***************************************************************************/
+﻿// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
+using System.IO.Packaging;
 using System.Linq;
 using System.Text;
 using System.Xml.Linq;
@@ -27,10 +19,18 @@ namespace OpenXmlPowerTools
     {
         public bool IncludeTextInContentControls;
         public bool IncludeXlsxTableCellData;
+        public bool RetrieveNamespaceList;
+        public bool RetrieveContentTypeList;
     }
 
     public class MetricsGetter
     {
+        private static Lazy<Graphics> Graphics { get; } = new Lazy<Graphics>(() =>
+        {
+            Image image = new Bitmap(1, 1);
+            return System.Drawing.Graphics.FromImage(image);
+        });
+
         public static XElement GetMetrics(string fileName, MetricsGetterSettings settings)
         {
             FileInfo fi = new FileInfo(fileName);
@@ -56,19 +56,21 @@ namespace OpenXmlPowerTools
 
         public static XElement GetDocxMetrics(WmlDocument wmlDoc, MetricsGetterSettings settings)
         {
-            WmlDocument converted = new WmlDocument(wmlDoc, true);
-            WmlDocument noTrackedRevisions = new WmlDocument(converted);
-
             try
             {
-                using (OpenXmlMemoryStreamDocument noTrackedStreamDoc = new OpenXmlMemoryStreamDocument(noTrackedRevisions))
-                using (WordprocessingDocument noTrackedDocument = noTrackedStreamDoc.GetWordprocessingDocument())
-                using (OpenXmlMemoryStreamDocument streamDoc = new OpenXmlMemoryStreamDocument(converted))
-                using (WordprocessingDocument document = streamDoc.GetWordprocessingDocument())
+                using (MemoryStream ms = new MemoryStream())
                 {
-                    if (RevisionAccepter.HasTrackedRevisions(noTrackedDocument))
-                        RevisionAccepter.AcceptRevisions(noTrackedDocument);
-                    return GetWmlMetrics(converted.FileName, false, document, noTrackedDocument, settings);
+                    ms.Write(wmlDoc.DocumentByteArray, 0, wmlDoc.DocumentByteArray.Length);
+                    using (WordprocessingDocument document = WordprocessingDocument.Open(ms, true))
+                    {
+                        bool hasTrackedRevisions = RevisionAccepter.HasTrackedRevisions(document);
+                        if (hasTrackedRevisions)
+                            RevisionAccepter.AcceptRevisions(document);
+                        XElement metrics1 = GetWmlMetrics(wmlDoc.FileName, false, document, settings);
+                        if (hasTrackedRevisions)
+                            metrics1.Add(new XElement(H.RevisionTracking, new XAttribute(H.Val, true)));
+                        return metrics1;
+                    }
                 }
             }
             catch (OpenXmlPowerToolsException e)
@@ -77,30 +79,86 @@ namespace OpenXmlPowerTools
                 {
                     using (MemoryStream ms = new MemoryStream())
                     {
-                        WmlDocument fixedWmlDoc = new WmlDocument(converted);
-                        ms.Write(converted.DocumentByteArray, 0, converted.DocumentByteArray.Length);
+                        ms.Write(wmlDoc.DocumentByteArray, 0, wmlDoc.DocumentByteArray.Length);
 #if !NET35
                         UriFixer.FixInvalidUri(ms, brokenUri => FixUri(brokenUri));
 #endif
-                        converted = new WmlDocument("dummy.docx", ms.ToArray());
+                        wmlDoc = new WmlDocument("dummy.docx", ms.ToArray());
                     }
-                    noTrackedRevisions = new WmlDocument(converted);
-                    using (OpenXmlMemoryStreamDocument noTrackedStreamDoc = new OpenXmlMemoryStreamDocument(noTrackedRevisions))
-                    using (WordprocessingDocument noTrackedDocument = noTrackedStreamDoc.GetWordprocessingDocument())
-                    using (OpenXmlMemoryStreamDocument streamDoc = new OpenXmlMemoryStreamDocument(converted))
-                    using (WordprocessingDocument document = streamDoc.GetWordprocessingDocument())
+                    using (MemoryStream ms = new MemoryStream())
                     {
-                        if (RevisionAccepter.HasTrackedRevisions(noTrackedDocument))
-                            RevisionAccepter.AcceptRevisions(noTrackedDocument);
-                        return GetWmlMetrics(converted.FileName, true, document, noTrackedDocument, settings);
+                        ms.Write(wmlDoc.DocumentByteArray, 0, wmlDoc.DocumentByteArray.Length);
+                        using (WordprocessingDocument document = WordprocessingDocument.Open(ms, true))
+                        {
+                            bool hasTrackedRevisions = RevisionAccepter.HasTrackedRevisions(document);
+                            if (hasTrackedRevisions)
+                                RevisionAccepter.AcceptRevisions(document);
+                            XElement metrics2 = GetWmlMetrics(wmlDoc.FileName, true, document, settings);
+                            if (hasTrackedRevisions)
+                                metrics2.Add(new XElement(H.RevisionTracking, new XAttribute(H.Val, true)));
+                            return metrics2;
+                        }
                     }
                 }
             }
             var metrics = new XElement(H.Metrics,
-                new XAttribute(H.FileName, converted.FileName),
+                new XAttribute(H.FileName, wmlDoc.FileName),
                 new XAttribute(H.FileType, "WordprocessingML"),
                 new XAttribute(H.Error, "Unknown error, metrics not determined"));
             return metrics;
+        }
+
+        private static int _getTextWidth(FontFamily ff, FontStyle fs, decimal sz, string text)
+        {
+            try
+            {
+                using (var f = new Font(ff, (float)sz / 2f, fs))
+                {
+                    var proposedSize = new Size(int.MaxValue, int.MaxValue);
+                    var sf = Graphics.Value.MeasureString(text, f, proposedSize);
+                    return (int) sf.Width;
+                }
+            }
+            catch
+            {
+                return 0;
+            }
+        }
+
+        public static int GetTextWidth(FontFamily ff, FontStyle fs, decimal sz, string text)
+        {
+            try
+            {
+                return _getTextWidth(ff, fs, sz, text);
+            }
+            catch (ArgumentException)
+            {
+                try
+                {
+                    const FontStyle fs2 = FontStyle.Regular;
+                    return _getTextWidth(ff, fs2, sz, text);
+                }
+                catch (ArgumentException)
+                {
+                    const FontStyle fs2 = FontStyle.Bold;
+                    try
+                    {
+                        return _getTextWidth(ff, fs2, sz, text);
+                    }
+                    catch (ArgumentException)
+                    {
+                        // if both regular and bold fail, then get metrics for Times New Roman
+                        // use the original FontStyle (in fs)
+                        var ff2 = new FontFamily("Times New Roman");
+                        return _getTextWidth(ff2, fs, sz, text);
+                    }
+                }
+            }
+            catch (OverflowException)
+            {
+                // This happened on Azure but interestingly enough not while testing locally.
+                return 0;
+            }
         }
 
         private static Uri FixUri(string brokenUri)
@@ -108,25 +166,88 @@ namespace OpenXmlPowerTools
             return new Uri("http://broken-link/");
         }
 
-        private static XElement GetWmlMetrics(string fileName, bool invalidHyperlink, WordprocessingDocument document, WordprocessingDocument noTrackedDocument, MetricsGetterSettings settings)
+        private static XElement GetWmlMetrics(string fileName, bool invalidHyperlink, WordprocessingDocument wDoc, MetricsGetterSettings settings)
         {
             var parts = new XElement(H.Parts,
-                document.GetAllParts().Select(part =>
+                wDoc.GetAllParts().Select(part =>
                 {
-                    return GetMetricsForWmlPart(noTrackedDocument, part, settings);
+                    return GetMetricsForWmlPart(part, settings);
                 }));
             if (!parts.HasElements)
                 parts = null;
             var metrics = new XElement(H.Metrics,
                 new XAttribute(H.FileName, fileName),
                 new XAttribute(H.FileType, "WordprocessingML"),
-                GetStyleHierarchy(document),
-                GetMiscWmlMetrics(document, noTrackedDocument, invalidHyperlink),
-                parts);
+                GetStyleHierarchy(wDoc),
+                GetMiscWmlMetrics(wDoc, invalidHyperlink),
+                parts,
+                settings.RetrieveNamespaceList ? RetrieveNamespaceList(wDoc) : null,
+                settings.RetrieveContentTypeList ? RetrieveContentTypeList(wDoc) : null
+                );
             return metrics;
         }
 
-        private static List<XElement> GetMiscWmlMetrics(WordprocessingDocument document, WordprocessingDocument noTrackedDocument, bool invalidHyperlink)
+        private static XElement RetrieveContentTypeList(OpenXmlPackage oxPkg)
+        {
+            Package pkg = oxPkg.Package;
+
+            var nonRelationshipParts = pkg.GetParts().Cast<ZipPackagePart>().Where(p => p.ContentType != "application/vnd.openxmlformats-package.relationships+xml");
+            var contentTypes = nonRelationshipParts
+                .Select(p => p.ContentType)
+                .OrderBy(t => t)
+                .Distinct();
+            var xe = new XElement(H.ContentTypes,
+                contentTypes.Select(ct => new XElement(H.ContentType, new XAttribute(H.Val, ct))));
+            return xe;
+        }
+
+        private static XElement RetrieveNamespaceList(OpenXmlPackage oxPkg)
+        {
+            Package pkg = oxPkg.Package;
+
+            var nonRelationshipParts = pkg.GetParts().Cast<ZipPackagePart>().Where(p => p.ContentType != "application/vnd.openxmlformats-package.relationships+xml");
+            var xmlParts = nonRelationshipParts
+                .Where(p => p.ContentType.ToLower().EndsWith("xml"));
+
+            var uniqueNamespaces = new HashSet<string>();
+            foreach (var xp in xmlParts)
+            {
+                using (Stream st = xp.GetStream())
+                {
+                    try
+                    {
+                        XDocument xdoc = XDocument.Load(st);
+                        var namespaces = xdoc
+                            .Descendants()
+                            .Attributes()
+                            .Where(a => a.IsNamespaceDeclaration)
+                            .Select(a => string.Format("{0}|{1}", a.Name.LocalName, a.Value))
+                            .OrderBy(t => t)
+                            .Distinct()
+                            .ToList();
+                        foreach (var item in namespaces)
+		                    uniqueNamespaces.Add(item);
+                    }
+                    // if catch exception, forget about it.  Just trying to get a most complete survey possible of all namespaces in all documents.
+                    // if caught exception, chances are the document is bad anyway.
+                    catch (Exception)
+                    {
+                        continue;
+                    }
+                }
+            }
+            var xe = new XElement(H.Namespaces,
+                uniqueNamespaces.OrderBy(t => t).Select(n =>
+                {
+                    var spl = n.Split('|');
+                    return new XElement(H.Namespace,
+                        new XAttribute(H.NamespacePrefix, spl[0]),
+                        new XAttribute(H.NamespaceName, spl[1]));
+                }));
+            return xe;
+        }
+
+        private static List<XElement> GetMiscWmlMetrics(WordprocessingDocument document, bool invalidHyperlink)
         {
             List<XElement> metrics = new List<XElement>();
             List<string> notes = new List<string>();
@@ -212,9 +333,6 @@ namespace OpenXmlPowerTools
 
             metrics.Add(new XElement(H.ElementCount, new XAttribute(H.Val, elementCount)));
             metrics.Add(new XElement(H.AverageParagraphLength, new XAttribute(H.Val, (int)((double)textCount / (double)paragraphCount))));
-
-            if (RevisionAccepter.HasTrackedRevisions(wDoc))
-                metrics.Add(new XElement(H.RevisionTracking, new XAttribute(H.Val, true)));
 
             if (wDoc.GetAllParts().Any(part => part.ContentType == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
                 metrics.Add(new XElement(H.EmbeddedXlsx, new XAttribute(H.Val, true)));
@@ -575,7 +693,9 @@ namespace OpenXmlPowerTools
                         new XAttribute(H.FileName, smlDoc.FileName),
                         new XAttribute(H.FileType, "SpreadsheetML"),
                         metrics,
-                        GetTableInfoForWorkbook(sDoc, settings));
+                        GetTableInfoForWorkbook(sDoc, settings),
+                        settings.RetrieveNamespaceList ? RetrieveNamespaceList(sDoc) : null,
+                        settings.RetrieveContentTypeList ? RetrieveContentTypeList(sDoc) : null);
                 }
             }
         }
@@ -663,7 +783,9 @@ namespace OpenXmlPowerTools
                     return new XElement(H.Metrics,
                         new XAttribute(H.FileName, pmlDoc.FileName),
                         new XAttribute(H.FileType, "PresentationML"),
-                        metrics);
+                        metrics,
+                        settings.RetrieveNamespaceList ? RetrieveNamespaceList(pDoc) : null,
+                        settings.RetrieveContentTypeList ? RetrieveContentTypeList(pDoc) : null);
                 }
             }
         }
@@ -710,7 +832,7 @@ namespace OpenXmlPowerTools
             return styleHierarchy;
         }
 
-        private static XElement GetMetricsForWmlPart(WordprocessingDocument noTrackedDocument, OpenXmlPart part, MetricsGetterSettings settings)
+        private static XElement GetMetricsForWmlPart(OpenXmlPart part, MetricsGetterSettings settings)
         {
             XElement contentControls = null;
             if (part is MainDocumentPart ||
@@ -719,10 +841,7 @@ namespace OpenXmlPowerTools
                 part is FootnotesPart ||
                 part is EndnotesPart)
             {
-                var noTrackedPart = noTrackedDocument.GetAllParts().FirstOrDefault(p => p.Uri == part.Uri);
-                if (noTrackedPart == null)
-                    throw new OpenXmlPowerToolsException("Internal error");
-                var xd = noTrackedPart.GetXDocument();
+                var xd = part.GetXDocument();
                 contentControls = (XElement)GetContentControlsTransform(xd.Root, settings);
                 if (!contentControls.HasElements)
                     contentControls = null;
@@ -837,6 +956,7 @@ namespace OpenXmlPowerTools
         public static XName ContentControl = "ContentControl";
         public static XName ContentControls = "ContentControls";
         public static XName ContentType = "ContentType";
+        public static XName ContentTypes = "ContentTypes";
         public static XName CustomXmlMarkup = "CustomXmlMarkup";
         public static XName DLL = "DLL";
         public static XName DefaultDialogValuesFile = "DefaultDialogValuesFile";
@@ -894,6 +1014,10 @@ namespace OpenXmlPowerTools
         public static XName MultiFontRun = "MultiFontRun";
         public static XName MultiServerQueue = "MultiServerQueue";
         public static XName Name = "Name";
+        public static XName Namespaces = "Namespaces";
+        public static XName Namespace = "Namespace";
+        public static XName NamespaceName = "NamespaceName";
+        public static XName NamespacePrefix = "NamespacePrefix";
         public static XName Note = "Note";
         public static XName NumberingFormatList = "NumberingFormatList";
         public static XName ObjectDisposedException = "ObjectDisposedException";

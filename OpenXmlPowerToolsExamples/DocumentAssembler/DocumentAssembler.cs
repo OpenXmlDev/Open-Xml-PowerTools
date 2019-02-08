@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
+using System;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Xml.Linq;
-using DocumentFormat.OpenXml.Packaging;
-using OpenXmlPowerTools;
 
 namespace OpenXmlPowerTools
 {
@@ -49,7 +46,7 @@ namespace OpenXmlPowerTools
             if (templateError)
             {
                 Console.WriteLine("Errors in template.");
-                Console.WriteLine("See AssembledDoc.docx to determine the errors in the template.");
+                Console.WriteLine("See {0} to determine the errors in the template.", assembledDoc.Name);
             }
 
             wmlAssembledDoc.SaveAs(assembledDoc.FullName);

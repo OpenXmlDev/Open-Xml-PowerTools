@@ -2,6 +2,7 @@
 *.pdb
 *.cache
 *.dll
+Thumbs.db
 
 # output files from the OpenXmlPowerTools examples
 **/DocumentAssembler/AssembledDoc.docx
@@ -24,7 +25,18 @@
 *Settings.settings
 [Bb]in/
 [Oo]bj/
+TestResults/
 
 # NuGet Packages
 *.nupkg
 **/packages/*
+*.lock.json
+*.nuget.props
+*.nuget.targets
+
+# Visual Studio
+.vs/
+
+# JetBrains
+.idea/
+_ReSharper.Caches/

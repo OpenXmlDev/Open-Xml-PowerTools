@@ -1,4 +1,7 @@
-﻿/***************************************************************************
+﻿// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
+/***************************************************************************
 
 Copyright (c) Microsoft Corporation 2014.
 
@@ -28,16 +31,17 @@ class ListItemRetriever01
 
     static void Main(string[] args)
     {
-        var thisDir = new DirectoryInfo(".");
-        foreach (var xmlFile in thisDir.GetFiles("*.xml"))
-            xmlFile.Delete();
+        var n = DateTime.Now;
+        var tempDi = new DirectoryInfo(string.Format("ExampleOutput-{0:00}-{1:00}-{2:00}-{3:00}{4:00}{5:00}", n.Year - 2000, n.Month, n.Day, n.Hour, n.Minute, n.Second));
+        tempDi.Create();
+
         using (WordprocessingDocument wDoc =
             WordprocessingDocument.Open("../../NumberedListTest.docx", false))
         {
             int abstractNumId = 0;
             XElement xml = ConvertDocToXml(wDoc, abstractNumId);
             Console.WriteLine(xml);
-            xml.Save("Out.xml");
+            xml.Save(Path.Combine(tempDi.FullName, "Out.xml"));
         }
     }
 

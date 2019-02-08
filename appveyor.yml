@@ -1,0 +1,12 @@
+os: Visual Studio 2017
+
+environment:
+  image: Visual Studio 2017
+  Configuration: Release
+
+build_script:
+  - cmd: dotnet restore
+  - cmd: dotnet build
+
+test_script:
+  - cmd: dotnet test .\OpenXmlPowerTools.Tests

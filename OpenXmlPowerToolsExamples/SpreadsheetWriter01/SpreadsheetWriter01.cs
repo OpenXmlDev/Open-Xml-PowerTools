@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -14,6 +17,10 @@ namespace SpreadsheetWriterExample
     {
         static void Main(string[] args)
         {
+            var n = DateTime.Now;
+            var tempDi = new DirectoryInfo(string.Format("ExampleOutput-{0:00}-{1:00}-{2:00}-{3:00}{4:00}{5:00}", n.Year - 2000, n.Month, n.Day, n.Hour, n.Minute, n.Second));
+            tempDi.Create();
+
             WorkbookDfn wb = new WorkbookDfn
             {
                 Worksheets = new WorksheetDfn[]
@@ -86,7 +93,7 @@ namespace SpreadsheetWriterExample
                     }
                 }
             };
-            SpreadsheetWriter.Write("../../Test1.xlsx", wb);
+            SpreadsheetWriter.Write(Path.Combine(tempDi.FullName, "Test1.xlsx"), wb);
         }
     }
 }
