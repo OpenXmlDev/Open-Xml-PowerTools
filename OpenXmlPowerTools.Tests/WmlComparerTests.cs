@@ -126,7 +126,8 @@ namespace OxPt
 
         public void WC001_Consolidate(string testId, string originalName, string revisedDocumentsXml)
         {
-            FileInfo originalDocx = new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, originalName));
+            DirectoryInfo sourceDir = new DirectoryInfo("../../../../TestFiles/");
+            FileInfo originalDocx = new FileInfo(Path.Combine(sourceDir.FullName, originalName));
 
             var rootTempDir = TestUtil.TempDir;
             var thisTestTempDir = new DirectoryInfo(Path.Combine(rootTempDir.FullName, testId));
@@ -148,7 +149,7 @@ namespace OxPt
                 .Elements()
                 .Select(z =>
                 {
-                    FileInfo revisedDocx = new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, z.Element("DocName").Value));
+                    FileInfo revisedDocx = new FileInfo(Path.Combine(sourceDir.FullName, z.Element("DocName").Value));
                     var revisedCopiedToDestDocx = new FileInfo(Path.Combine(thisTestTempDir.FullName, revisedDocx.Name));
                     var wml1 = new WmlDocument(revisedDocx.FullName);
                     var wml2 = WordprocessingMLUtil.BreakLinkToTemplate(wml1);
@@ -217,7 +218,7 @@ namespace OxPt
                     .Elements()
                     .Select(z =>
                     {
-                        FileInfo revisedDocx = new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, z.Element("DocName").Value));
+                        FileInfo revisedDocx = new FileInfo(Path.Combine(sourceDir.FullName, z.Element("DocName").Value));
                         var revisedCopiedToDestDocx = new FileInfo(Path.Combine(thisTestTempDir.FullName, revisedDocx.Name));
                         return revisedCopiedToDestDocx;
                     })
@@ -344,8 +345,9 @@ namespace OxPt
 
         public void WC002_Consolidate_Bulk_Test(string testId, string name1, string name2)
         {
-            FileInfo source1Docx = new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, name1));
-            FileInfo source2Docx = new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, name2));
+            DirectoryInfo sourceDir = new DirectoryInfo("../../../../TestFiles/");
+            FileInfo source1Docx = new FileInfo(Path.Combine(sourceDir.FullName, name1));
+            FileInfo source2Docx = new FileInfo(Path.Combine(sourceDir.FullName, name2));
 
             var rootTempDir = TestUtil.TempDir;
             var thisTestTempDir = new DirectoryInfo(Path.Combine(rootTempDir.FullName, testId));
@@ -373,8 +375,8 @@ namespace OxPt
 
             if (s_OpenWord)
             {
-                FileInfo source1DocxForWord = new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, name1));
-                FileInfo source2DocxForWord = new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, name2));
+                FileInfo source1DocxForWord = new FileInfo(Path.Combine(sourceDir.FullName, name1));
+                FileInfo source2DocxForWord = new FileInfo(Path.Combine(sourceDir.FullName, name2));
 
                 var source1CopiedToDestDocxForWord = new FileInfo(Path.Combine(thisTestTempDir.FullName, source1Docx.Name.Replace(".docx", "-For-Word.docx")));
                 var source2CopiedToDestDocxForWord = new FileInfo(Path.Combine(thisTestTempDir.FullName, source2Docx.Name.Replace(".docx", "-For-Word.docx")));
@@ -601,8 +603,9 @@ namespace OxPt
 
         public void WC003_Compare(string testId, string name1, string name2, int revisionCount)
         {
-            FileInfo source1Docx = new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, name1));
-            FileInfo source2Docx = new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, name2));
+            DirectoryInfo sourceDir = new DirectoryInfo("../../../../TestFiles/");
+            FileInfo source1Docx = new FileInfo(Path.Combine(sourceDir.FullName, name1));
+            FileInfo source2Docx = new FileInfo(Path.Combine(sourceDir.FullName, name2));
 
             var rootTempDir = TestUtil.TempDir;
             var thisTestTempDir = new DirectoryInfo(Path.Combine(rootTempDir.FullName, testId));
@@ -625,8 +628,8 @@ namespace OxPt
 
             if (s_OpenWord)
             {
-                FileInfo source1DocxForWord = new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, name1));
-                FileInfo source2DocxForWord = new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, name2));
+                FileInfo source1DocxForWord = new FileInfo(Path.Combine(sourceDir.FullName, name1));
+                FileInfo source2DocxForWord = new FileInfo(Path.Combine(sourceDir.FullName, name2));
 
                 var source1CopiedToDestDocxForWord = new FileInfo(Path.Combine(thisTestTempDir.FullName, source1Docx.Name.Replace(".docx", "-For-Word.docx")));
                 var source2CopiedToDestDocxForWord = new FileInfo(Path.Combine(thisTestTempDir.FullName, source2Docx.Name.Replace(".docx", "-For-Word.docx")));
@@ -801,8 +804,8 @@ namespace OxPt
 
         public void WC003_Throws(string name1, string name2, int revisionCount)
         {
-            FileInfo source1Docx = new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, name1));
-            FileInfo source2Docx = new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, name2));
+            FileInfo source1Docx = new FileInfo(Path.Combine(sourceDir.FullName, name1));
+            FileInfo source2Docx = new FileInfo(Path.Combine(sourceDir.FullName, name2));
 
             var source1CopiedToDestDocx = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, source1Docx.Name));
             var source2CopiedToDestDocx = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, source2Docx.Name));
@@ -887,7 +890,8 @@ namespace OxPt
 
         public void WC004_Compare_To_Self(string testId, string name)
         {
-            FileInfo sourceDocx = new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, name));
+            DirectoryInfo sourceDir = new DirectoryInfo("../../../../TestFiles/");
+            FileInfo sourceDocx = new FileInfo(Path.Combine(sourceDir.FullName, name));
 
             var rootTempDir = TestUtil.TempDir;
             var thisTestTempDir = new DirectoryInfo(Path.Combine(rootTempDir.FullName, testId));
@@ -922,8 +926,9 @@ namespace OxPt
 
         public void WC005_Compare_CaseInsensitive(string testId, string name1, string name2, int revisionCount)
         {
-            FileInfo source1Docx = new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, name1));
-            FileInfo source2Docx = new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, name2));
+            DirectoryInfo sourceDir = new DirectoryInfo("../../../../TestFiles/");
+            FileInfo source1Docx = new FileInfo(Path.Combine(sourceDir.FullName, name1));
+            FileInfo source2Docx = new FileInfo(Path.Combine(sourceDir.FullName, name2));
 
             var rootTempDir = TestUtil.TempDir;
             var thisTestTempDir = new DirectoryInfo(Path.Combine(rootTempDir.FullName, testId));
@@ -943,8 +948,8 @@ namespace OxPt
 
             if (s_OpenWord)
             {
-                FileInfo source1DocxForWord = new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, name1));
-                FileInfo source2DocxForWord = new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, name2));
+                FileInfo source1DocxForWord = new FileInfo(Path.Combine(sourceDir.FullName, name1));
+                FileInfo source2DocxForWord = new FileInfo(Path.Combine(sourceDir.FullName, name2));
 
                 var source1CopiedToDestDocxForWord = new FileInfo(Path.Combine(thisTestTempDir.FullName, source1Docx.Name.Replace(".docx", "-For-Word.docx")));
                 var source2CopiedToDestDocxForWord = new FileInfo(Path.Combine(thisTestTempDir.FullName, source2Docx.Name.Replace(".docx", "-For-Word.docx")));

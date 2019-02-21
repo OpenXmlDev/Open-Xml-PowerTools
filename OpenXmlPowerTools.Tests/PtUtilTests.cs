@@ -24,7 +24,8 @@ namespace OxPt
         [InlineData("PU/PU001-Test001.mht")]
         public void PU001(string name)
         {
-            FileInfo sourceMht = new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, name));
+            DirectoryInfo sourceDir = new DirectoryInfo("../../../../TestFiles/");
+            FileInfo sourceMht = new FileInfo(Path.Combine(sourceDir.FullName, name));
             var src = File.ReadAllText(sourceMht.FullName);
             var p = MhtParser.Parse(src);
             Assert.True(p.ContentType != null);

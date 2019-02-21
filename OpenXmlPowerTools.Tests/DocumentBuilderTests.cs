@@ -26,7 +26,8 @@ namespace OxPt
         public void DB001_DocumentBuilderKeepSections()
         {
             string name = "DB001-Sections.docx";
-            FileInfo sourceDocx = new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, name));
+            DirectoryInfo sourceDir = new DirectoryInfo("../../../../TestFiles/");
+            FileInfo sourceDocx = new FileInfo(Path.Combine(sourceDir.FullName, name));
 
             List<Source> sources = null;
             sources = new List<Source>()
@@ -40,8 +41,9 @@ namespace OxPt
         [Fact]
         public void DB002_DocumentBuilderKeepSectionsDiscardHeaders()
         {
-            FileInfo source1Docx = new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, "DB002-Sections-With-Headers.docx"));
-            FileInfo source2Docx = new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, "DB002-Landscape-Section.docx"));
+            DirectoryInfo sourceDir = new DirectoryInfo("../../../../TestFiles/");
+            FileInfo source1Docx = new FileInfo(Path.Combine(sourceDir.FullName, "DB002-Sections-With-Headers.docx"));
+            FileInfo source2Docx = new FileInfo(Path.Combine(sourceDir.FullName, "DB002-Landscape-Section.docx"));
 
             List<Source> sources = null;
             sources = new List<Source>()
@@ -57,8 +59,9 @@ namespace OxPt
         [Fact]
         public void DB003_DocumentBuilderOnlyDefaultHeader()
         {
-            FileInfo source1Docx = new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, "DB003-Only-Default-Header.docx"));
-            FileInfo source2Docx = new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, "DB002-Landscape-Section.docx"));
+            DirectoryInfo sourceDir = new DirectoryInfo("../../../../TestFiles/");
+            FileInfo source1Docx = new FileInfo(Path.Combine(sourceDir.FullName, "DB003-Only-Default-Header.docx"));
+            FileInfo source2Docx = new FileInfo(Path.Combine(sourceDir.FullName, "DB002-Landscape-Section.docx"));
 
             List<Source> sources = null;
             sources = new List<Source>()
@@ -74,8 +77,9 @@ namespace OxPt
         [Fact]
         public void DB004_DocumentBuilderNoHeaders()
         {
-            FileInfo source1Docx = new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, "DB004-No-Headers.docx"));
-            FileInfo source2Docx = new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, "DB002-Landscape-Section.docx"));
+            DirectoryInfo sourceDir = new DirectoryInfo("../../../../TestFiles/");
+            FileInfo source1Docx = new FileInfo(Path.Combine(sourceDir.FullName, "DB004-No-Headers.docx"));
+            FileInfo source2Docx = new FileInfo(Path.Combine(sourceDir.FullName, "DB002-Landscape-Section.docx"));
 
             List<Source> sources = null;
             sources = new List<Source>()
@@ -91,8 +95,9 @@ namespace OxPt
         [Fact]
         public void DB005_HeadersWithRefsToImages()
         {
-            FileInfo source1Docx = new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, "DB005-Headers-With-Images.docx"));
-            FileInfo source2Docx = new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, "DB002-Landscape-Section.docx"));
+            DirectoryInfo sourceDir = new DirectoryInfo("../../../../TestFiles/");
+            FileInfo source1Docx = new FileInfo(Path.Combine(sourceDir.FullName, "DB005-Headers-With-Images.docx"));
+            FileInfo source2Docx = new FileInfo(Path.Combine(sourceDir.FullName, "DB002-Landscape-Section.docx"));
 
             List<Source> sources = null;
             sources = new List<Source>()
@@ -108,9 +113,10 @@ namespace OxPt
         [Fact]
         public void DB006_Example_DocumentBuilder01()
         {
-            FileInfo source1 = new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, "DB006-Source1.docx"));
-            FileInfo source2 = new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, "DB006-Source2.docx"));
-            FileInfo source3 = new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, "DB006-Source3.docx"));
+            DirectoryInfo sourceDir = new DirectoryInfo("../../../../TestFiles/");
+            FileInfo source1 = new FileInfo(Path.Combine(sourceDir.FullName, "DB006-Source1.docx"));
+            FileInfo source2 = new FileInfo(Path.Combine(sourceDir.FullName, "DB006-Source2.docx"));
+            FileInfo source3 = new FileInfo(Path.Combine(sourceDir.FullName, "DB006-Source3.docx"));
             List<Source> sources = null;
 
             // Create new document from 10 paragraphs starting at paragraph 5 of Source1.docx
@@ -174,10 +180,11 @@ namespace OxPt
         [Fact]
         public void DB007_Example_DocumentBuilder02_WhitePaper()
         {
-            FileInfo spec = new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, "DB007-Spec.docx"));
-            FileInfo whitePaper = new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, "DB007-WhitePaper.docx"));
-            FileInfo paperAbstract = new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, "DB007-Abstract.docx"));
-            FileInfo authorBio = new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, "DB007-AuthorBiography.docx"));
+            DirectoryInfo sourceDir = new DirectoryInfo("../../../../TestFiles/");
+            FileInfo spec = new FileInfo(Path.Combine(sourceDir.FullName, "DB007-Spec.docx"));
+            FileInfo whitePaper = new FileInfo(Path.Combine(sourceDir.FullName, "DB007-WhitePaper.docx"));
+            FileInfo paperAbstract = new FileInfo(Path.Combine(sourceDir.FullName, "DB007-Abstract.docx"));
+            FileInfo authorBio = new FileInfo(Path.Combine(sourceDir.FullName, "DB007-AuthorBiography.docx"));
 
             List<Source> sources = null;
             sources = new List<Source>()
@@ -195,7 +202,8 @@ namespace OxPt
         [Fact]
         public void DB008_DeleteParasWithGivenStyle()
         {
-            FileInfo notes = new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, "DB007-Notes.docx"));
+            DirectoryInfo sourceDir = new DirectoryInfo("../../../../TestFiles/");
+            FileInfo notes = new FileInfo(Path.Combine(sourceDir.FullName, "DB007-Notes.docx"));
 
             List<Source> sources = null;
             // Delete all paragraphs with a specific style.
@@ -250,12 +258,13 @@ namespace OxPt
         {
             ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // Load the source document
-            FileInfo sourceDocxFi = new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, src));
+            DirectoryInfo sourceDir = new DirectoryInfo("../../../../TestFiles/");
+            FileInfo sourceDocxFi = new FileInfo(Path.Combine(sourceDir.FullName, src));
             WmlDocument wmlSourceDocument = new WmlDocument(sourceDocxFi.FullName);
 
             ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // Load the dest document
-            FileInfo destDocxFi = new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, dest));
+            FileInfo destDocxFi = new FileInfo(Path.Combine(sourceDir.FullName, dest));
             WmlDocument wmlDestDocument = new WmlDocument(destDocxFi.FullName);
 
             ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -357,7 +366,8 @@ namespace OxPt
         {
             ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // Load the source document
-            FileInfo sourceDocxFi = new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, src));
+            DirectoryInfo sourceDir = new DirectoryInfo("../../../../TestFiles/");
+            FileInfo sourceDocxFi = new FileInfo(Path.Combine(sourceDir.FullName, src));
             WmlDocument wmlSourceDocument = new WmlDocument(sourceDocxFi.FullName);
 
             ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -460,7 +470,8 @@ namespace OxPt
         [Fact]
         public void DB009_ShredDocument()
         {
-            FileInfo spec = new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, "DB007-Spec.docx"));
+            DirectoryInfo sourceDir = new DirectoryInfo("../../../../TestFiles/");
+            FileInfo spec = new FileInfo(Path.Combine(sourceDir.FullName, "DB007-Spec.docx"));
             // Shred a document into multiple parts for each section
             List<DocumentInfo> documentList;
             using (WordprocessingDocument doc = WordprocessingDocument.Open(spec.FullName, false))
@@ -534,10 +545,11 @@ namespace OxPt
         [Fact]
         public void DB010_InsertUsingInsertId()
         {
-            FileInfo front = new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, "DB010-FrontMatter.docx"));
-            FileInfo insert01 = new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, "DB010-Insert-01.docx"));
-            FileInfo insert02 = new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, "DB010-Insert-02.docx"));
-            FileInfo template = new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, "DB010-Template.docx"));
+            DirectoryInfo sourceDir = new DirectoryInfo("../../../../TestFiles/");
+            FileInfo front = new FileInfo(Path.Combine(sourceDir.FullName, "DB010-FrontMatter.docx"));
+            FileInfo insert01 = new FileInfo(Path.Combine(sourceDir.FullName, "DB010-Insert-01.docx"));
+            FileInfo insert02 = new FileInfo(Path.Combine(sourceDir.FullName, "DB010-Insert-02.docx"));
+            FileInfo template = new FileInfo(Path.Combine(sourceDir.FullName, "DB010-Template.docx"));
 
             WmlDocument doc1 = new WmlDocument(template.FullName);
             using (MemoryStream mem = new MemoryStream())
@@ -580,8 +592,9 @@ namespace OxPt
         public void DB011_BodyAndHeaderWithShapes()
         {
             // Both of theses documents have a shape with a DocProperties ID of 1.
-            FileInfo source1 = new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, "DB011-Header-With-Shape.docx"));
-            FileInfo source2 = new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, "DB011-Body-With-Shape.docx"));
+            DirectoryInfo sourceDir = new DirectoryInfo("../../../../TestFiles/");
+            FileInfo source1 = new FileInfo(Path.Combine(sourceDir.FullName, "DB011-Header-With-Shape.docx"));
+            FileInfo source2 = new FileInfo(Path.Combine(sourceDir.FullName, "DB011-Body-With-Shape.docx"));
             List<Source> sources = null;
 
             sources = new List<Source>()
@@ -603,7 +616,8 @@ namespace OxPt
         {
             // This document has three numbering definitions that use the same abstract numbering definition.
             string name = "DB012-Lists-With-Different-Numberings.docx";
-            FileInfo sourceDocx = new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, name));
+            DirectoryInfo sourceDir = new DirectoryInfo("../../../../TestFiles/");
+            FileInfo sourceDocx = new FileInfo(Path.Combine(sourceDir.FullName, name));
 
             List<Source> sources = null;
             sources = new List<Source>()
@@ -626,9 +640,10 @@ namespace OxPt
         {
             // Each of these documents have changed the font color of the Heading 1 style, one to red, the other to green.
             // One of the documents were created with English as the Word display language, the other with Danish as the language.
+            DirectoryInfo sourceDir = new DirectoryInfo("../../../../TestFiles/");
             FileInfo source1 =
-                new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, "DB013a-Red-Heading1-English.docx"));
-            FileInfo source2 = new FileInfo(Path.Combine(TestUtil.SourceDir.FullName,
+                new FileInfo(Path.Combine(sourceDir.FullName, "DB013a-Red-Heading1-English.docx"));
+            FileInfo source2 = new FileInfo(Path.Combine(sourceDir.FullName,
                 "DB013a-Green-Heading1-Danish.docx"));
             List<Source> sources = null;
 
@@ -659,9 +674,10 @@ namespace OxPt
         {
             // Each of these documents have changed the font color of the List Paragraph style, one to orange, the other to blue.
             // One of the documents were created with English as the Word display language, the other with Danish as the language.
+            DirectoryInfo sourceDir = new DirectoryInfo("../../../../TestFiles/");
             FileInfo source1 =
-                new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, "DB013b-Orange-List-Danish.docx"));
-            FileInfo source2 = new FileInfo(Path.Combine(TestUtil.SourceDir.FullName,
+                new FileInfo(Path.Combine(sourceDir.FullName, "DB013b-Orange-List-Danish.docx"));
+            FileInfo source2 = new FileInfo(Path.Combine(sourceDir.FullName,
                 "DB013b-Blue-List-English.docx"));
             List<Source> sources = null;
 
@@ -690,7 +706,8 @@ namespace OxPt
         [Fact]
         public void DB014_KeepWebExtensions()
         {
-            FileInfo source = new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, "DB014-WebExtensions.docx"));
+            DirectoryInfo sourceDir = new DirectoryInfo("../../../../TestFiles/");
+            FileInfo source = new FileInfo(Path.Combine(sourceDir.FullName, "DB014-WebExtensions.docx"));
             List<Source> sources = null;
 
             sources = new List<Source>()
@@ -735,21 +752,24 @@ namespace OxPt
                 var spl = s.Split(',');
                 if (spl.Length == 1)
                 {
-                    var sourceFi = new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, s));
+                    DirectoryInfo sourceDir = new DirectoryInfo("../../../../TestFiles/");
+                    var sourceFi = new FileInfo(Path.Combine(sourceDir.FullName, s));
                     var wmlSource = new WmlDocument(sourceFi.FullName);
                     return new Source(wmlSource);
                 }
                 else if (spl.Length == 2)
                 {
                     var start = int.Parse(spl[1]);
-                    var sourceFi = new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, spl[0]));
+                    DirectoryInfo sourceDir = new DirectoryInfo("../../../../TestFiles/");
+                    var sourceFi = new FileInfo(Path.Combine(sourceDir.FullName, spl[0]));
                     return new Source(sourceFi.FullName, start, true);
                 }
                 else
                 {
                     var start = int.Parse(spl[1]);
                     var count = int.Parse(spl[2]);
-                    var sourceFi = new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, spl[0]));
+                    DirectoryInfo sourceDir = new DirectoryInfo("../../../../TestFiles/");
+                    var sourceFi = new FileInfo(Path.Combine(sourceDir.FullName, spl[0]));
                     return new Source(sourceFi.FullName, start, count, true);
                 }
             })
@@ -778,7 +798,8 @@ namespace OxPt
 
             if (baseline != null)
             {
-                var baselineFi = new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, baseline));
+                DirectoryInfo sourceDir = new DirectoryInfo("../../../../TestFiles/");
+                var baselineFi = new FileInfo(Path.Combine(sourceDir.FullName, baseline));
                 var baselineCopiedToDestFileName = new FileInfo(Path.Combine(tempDirFullName, baselineFi.Name));
                 File.Copy(baselineFi.FullName, baselineCopiedToDestFileName.FullName);
             }

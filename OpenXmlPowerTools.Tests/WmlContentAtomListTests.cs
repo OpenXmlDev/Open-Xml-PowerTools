@@ -49,7 +49,7 @@ namespace OxPt
 
         public void CA001_ContentAtoms(string name, int contentAtomCount)
         {
-            FileInfo sourceDocx = new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, name));
+            FileInfo sourceDocx = new FileInfo(Path.Combine(sourceDir.FullName, name));
 
             var thisGuid = Guid.NewGuid().ToString().Replace("-", "");
             var sourceCopiedToDestDocx = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, sourceDocx.Name.Replace(".docx", string.Format("-{0}-1-Source.docx", thisGuid))));
@@ -91,7 +91,8 @@ namespace OxPt
         [InlineData("HC009-Test-04.docx")]
         public void CA002_Annotations(string name)
         {
-            FileInfo sourceDocx = new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, name));
+            DirectoryInfo sourceDir = new DirectoryInfo("../../../../TestFiles/");
+            FileInfo sourceDocx = new FileInfo(Path.Combine(sourceDir.FullName, name));
 
 #if COPY_FILES_FOR_DEBUGGING
             var sourceCopiedToDestDocx = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, sourceDocx.Name.Replace(".docx", "-1-Source.docx")));
@@ -119,7 +120,8 @@ namespace OxPt
 
         public void CA003_ContentAtoms_Throws(string name)
         {
-            FileInfo sourceDocx = new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, name));
+            DirectoryInfo sourceDir = new DirectoryInfo("../../../../TestFiles/");
+            FileInfo sourceDocx = new FileInfo(Path.Combine(sourceDir.FullName, name));
             var thisGuid = Guid.NewGuid().ToString().Replace("-", "");
             var sourceCopiedToDestDocx = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, sourceDocx.Name.Replace(".docx", string.Format("-{0}-1-Source.docx", thisGuid))));
             if (!sourceCopiedToDestDocx.Exists)
