@@ -1,8 +1,31 @@
-﻿[![Build status](https://ci.appveyor.com/api/projects/status/au9umdxcu7pnnacm?svg=true)](https://ci.appveyor.com/project/openxmlsdk/open-xml-powertools)
-
-NuGet Feed for CI build: https://ci.appveyor.com/nuget/open-xml-powertools
+﻿NuGet Feed for CI build: https://ci.appveyor.com/nuget/open-xml-powertools
 
 No NuGet.org feed at this time. We are working on it.
+
+News
+====
+Welcome, Open-Xml-PowerTools users.  As you may have learned from the repo at OfficeDev/Open-Xml-PowerTools,
+Microsoft is going to archive that repo, and will not be maintaining that repo in the future.  The good folks at
+Microsoft asked if I would maintain this repo going forward, and I said "yes, absolutely".
+
+At this moment, this repo is an exact clone of the OfficeDev repo, but that is going to change in the near future.
+
+I plan to:
+- Merge vNext into Master
+- Make significant enhancements to vNext
+
+For those of you awaiting the enhancements to DocumentAssembler, I am nearly done with them, and expect to post an updated,
+refactored version shortly.
+
+Unfortunately, this development came right as I am starting a 10-day vacation, so will need to balance making the necessary
+enhancements with my other vacation activities!  But stay tuned, I expect to make progress in the next couple of days.
+
+I will post major announcements here in the README.md, but if you want to stay more abreast of developments, follow my blog
+at [www.ericwhite.com/blog](http://www.ericwhite.com/blog).  Also, follow me on twitter: @EricWhiteDev.
+
+Warm Regards,
+
+Eric White
 
 Open-XML-PowerTools
 ===================
@@ -26,9 +49,8 @@ It supports scenarios such as:
 - Extracting data (along with formatting) from spreadsheets.
 
 Copyright (c) Microsoft Corporation 2012-2017
-Portions Copyright (c) Eric White 2016-2017
-Licensed under the Microsoft Public License.
-See License.txt in the project root for license information.
+Licensed under the MIT License.
+See License in the project root for license information.
 
 News
 ====

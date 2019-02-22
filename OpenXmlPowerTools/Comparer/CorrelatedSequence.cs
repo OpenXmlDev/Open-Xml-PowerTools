@@ -1,5 +1,7 @@
-﻿using System;
-using System.Diagnostics;
+﻿// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
+using System;
 using System.Text;
 
 namespace OpenXmlPowerTools
@@ -14,8 +16,8 @@ namespace OpenXmlPowerTools
         public CorrelatedSequence()
         {
 #if DEBUG
-            SourceFile = new StackTrace(true).GetFrame(1).GetFileName();
-            SourceLine = new StackTrace(true).GetFrame(1).GetFileLineNumber();
+            SourceFile = new System.Diagnostics.StackTrace(true).GetFrame(1).GetFileName();
+            SourceLine = new System.Diagnostics.StackTrace(true).GetFrame(1).GetFileLineNumber();
 #endif
         }
 

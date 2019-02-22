@@ -1,4 +1,7 @@
-﻿/*Author:Martin.Holzherr;Date:20080922;Context:"PEG Support for C#";Licence:CPOL
+﻿// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
+/*Author:Martin.Holzherr;Date:20080922;Context:"PEG Support for C#";Licence:CPOL
  * <<History>> 
  *  20080922;V1.0 created
  *  20080929;UTF16BE;Added UTF16BE read support to <<FileLoader.LoadFile(out string src)>>
