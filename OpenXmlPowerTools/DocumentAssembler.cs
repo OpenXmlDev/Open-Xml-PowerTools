@@ -1,4 +1,5 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
+// Portions copyright (c) Lowell Stewart 2018-2019.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
@@ -18,7 +19,7 @@ using System.Collections;
 
 namespace OpenXmlPowerTools
 {
-    public class DocumentAssembler
+    public class DocumentAssembler : DocumentAssemblerBase
     {
         public static WmlDocument AssembleDocument(WmlDocument templateDoc, XmlDocument data, out bool templateError)
         {
@@ -28,32 +29,39 @@ namespace OpenXmlPowerTools
 
         public static WmlDocument AssembleDocument(WmlDocument templateDoc, XElement data, out bool templateError)
         {
+            var dataSource = new XmlMetadataProcessor(data);
             byte[] byteArray = templateDoc.DocumentByteArray;
             using (MemoryStream mem = new MemoryStream())
             {
                 mem.Write(byteArray, 0, (int)byteArray.Length);
                 using (WordprocessingDocument wordDoc = WordprocessingDocument.Open(mem, true))
                 {
-                    if (RevisionAccepter.HasTrackedRevisions(wordDoc))
-                        throw new OpenXmlPowerToolsException("Invalid DocumentAssembler template - contains tracked revisions");
-
-                    var te = new TemplateError();
-                    foreach (var part in wordDoc.ContentParts())
-                    {
-                        ProcessTemplatePart(data, te, part);
-                    }
-                    templateError = te.HasError;
+                    templateError = DocumentAssemblerBase.AssembleDocument(wordDoc, dataSource);
                 }
                 WmlDocument assembledDocument = new WmlDocument("TempFileName.docx", mem.ToArray());
                 return assembledDocument;
             }
         }
+    }
 
-        private static void ProcessTemplatePart(XElement data, TemplateError te, OpenXmlPart part)
+    public class DocumentAssemblerBase
+    {
+        protected static bool AssembleDocument(WordprocessingDocument wordDoc, IDataContext data)
         {
-            XDocument xDoc = part.GetXDocument();
+            if (RevisionAccepter.HasTrackedRevisions(wordDoc))
+                throw new OpenXmlPowerToolsException("Invalid DocumentAssembler template - contains tracked revisions");
 
-            var xDocRoot = RemoveGoBackBookmarks(xDoc.Root);
+            var te = new TemplateError();
+            foreach (var part in wordDoc.ContentParts())
+            {
+                ProcessTemplatePart(data, te, part);
+            }
+            return te.HasError;
+        }
+
+        private static XElement PrepareTemplatePart(IMetadataParser data, TemplateError te, XElement xDocRoot)
+        {
+            xDocRoot = RemoveGoBackBookmarks(xDocRoot);
 
             // content controls in cells can surround the W.tc element, so transform so that such content controls are within the cell content
             xDocRoot = (XElement)NormalizeContentControlsInCells(xDocRoot);
@@ -71,12 +79,19 @@ namespace OpenXmlPowerTools
             // any EndRepeat, EndConditional that remain are orphans, so replace with an error
             ProcessOrphanEndRepeatEndConditional(xDocRoot, te);
 
+            return xDocRoot;
+        }
+
+        private static void ProcessTemplatePart(IDataContext data, TemplateError te, OpenXmlPart part)
+        {
+            XDocument xDoc = part.GetXDocument();
+            XElement xDocRoot = PrepareTemplatePart(data, te, xDoc.Root);
+
             // do the actual content replacement
             xDocRoot = (XElement)ContentReplacementTransform(xDocRoot, data, te);
 
             xDoc.Elements().First().ReplaceWith(xDocRoot);
             part.PutXDocument();
-            return;
         }
 
         private static XName[] s_MetaToForceToBlock = new XName[] {
@@ -292,7 +307,7 @@ namespace OpenXmlPowerTools
             "EndConditional",
         };
 
-        private static object TransformToMetadata(XNode node, XElement data, TemplateError te)
+        private static object TransformToMetadata(XNode node, IMetadataParser parser, TemplateError te)
         {
             XElement element = node as XElement;
             if (element != null)
@@ -310,9 +325,9 @@ namespace OpenXmlPowerTools
                             .Trim()
                             .Replace('“', '"')
                             .Replace('”', '"');
-                        if (ccContents.StartsWith("<"))
+                        if (ccContents.StartsWith(parser.DelimiterOpen))
                         {
-                            XElement xml = TransformXmlTextToMetadata(te, ccContents);
+                            XElement xml = TransformContentToMetadata(te, ccContents, parser);
                             if (xml.Name == W.p || xml.Name == W.r)  // this means there was an error processing the XML.
                             {
                                 if (element.Parent.Name == W.p)
@@ -331,11 +346,11 @@ namespace OpenXmlPowerTools
                         }
                         return new XElement(element.Name,
                             element.Attributes(),
-                            element.Nodes().Select(n => TransformToMetadata(n, data, te)));
+                            element.Nodes().Select(n => TransformToMetadata(n, parser, te)));
                     }
                     return new XElement(element.Name,
                         element.Attributes(),
-                        element.Nodes().Select(n => TransformToMetadata(n, data, te)));
+                        element.Nodes().Select(n => TransformToMetadata(n, parser, te)));
                 }
                 if (element.Name == W.p)
                 {
@@ -345,36 +360,39 @@ namespace OpenXmlPowerTools
                         .Select(t => (string)t)
                         .StringConcatenate()
                         .Trim();
-                    int occurances = paraContents.Select((c, i) => paraContents.Substring(i)).Count(sub => sub.StartsWith("<#"));
-                    if (paraContents.StartsWith("<#") && paraContents.EndsWith("#>") && occurances == 1)
+                    int occurances = paraContents.Select((c, i) => paraContents.Substring(i)).Count(sub => sub.StartsWith(parser.EmbedOpen));
+                    if (paraContents.StartsWith(parser.EmbedOpen) && paraContents.EndsWith(parser.EmbedClose) && occurances == 1)
                     {
-                        var xmlText = paraContents.Substring(2, paraContents.Length - 4).Trim();
-                        XElement xml = TransformXmlTextToMetadata(te, xmlText);
+                        var content = paraContents.Substring(parser.EmbedOpen.Length, paraContents.Length - parser.EmbedOpen.Length - parser.EmbedClose.Length).Trim();
+                        XElement xml = TransformContentToMetadata(te, content, parser);
                         if (xml.Name == W.p || xml.Name == W.r)
                             return xml;
                         xml.Add(element);
                         return xml;
                     }
-                    if (paraContents.Contains("<#"))
+                    if (paraContents.Contains(parser.EmbedOpen))
                     {
                         List<RunReplacementInfo> runReplacementInfo = new List<RunReplacementInfo>();
                         var thisGuid = Guid.NewGuid().ToString();
-                        var r = new Regex("<#.*?#>");
+                        var r = new Regex(Regex.Escape(parser.EmbedOpen) + ".*?" + Regex.Escape(parser.EmbedClose));
                         XElement xml = null;
                         OpenXmlRegex.Replace(new[] { element }, r, thisGuid, (para, match) =>
                         {
                             var matchString = match.Value.Trim();
-                            var xmlText = matchString.Substring(2, matchString.Length - 4).Trim().Replace('“', '"').Replace('”', '"');
+                            var content = matchString.Substring(
+                                    parser.EmbedOpen.Length,
+                                    matchString.Length - parser.EmbedOpen.Length - parser.EmbedClose.Length
+                                ).Trim().Replace('“', '"').Replace('”', '"');
                             try
                             {
-                                xml = XElement.Parse(xmlText);
+                                xml = parser.TransformContentToMetadata(content);
                             }
-                            catch (XmlException e)
+                            catch (MetadataParseException e)
                             {
                                 RunReplacementInfo rri = new RunReplacementInfo()
                                 {
                                     Xml = null,
-                                    XmlExceptionMessage = "XmlException: " + e.Message,
+                                    ParseExceptionMessage = "ParseException: " + e.Message,
                                     SchemaValidationMessage = null,
                                 };
                                 runReplacementInfo.Add(rri);
@@ -386,7 +404,7 @@ namespace OpenXmlPowerTools
                                 RunReplacementInfo rri = new RunReplacementInfo()
                                 {
                                     Xml = null,
-                                    XmlExceptionMessage = null,
+                                    ParseExceptionMessage = null,
                                     SchemaValidationMessage = "Schema Validation Error: " + schemaError,
                                 };
                                 runReplacementInfo.Add(rri);
@@ -395,7 +413,7 @@ namespace OpenXmlPowerTools
                             RunReplacementInfo rri2 = new RunReplacementInfo()
                             {
                                 Xml = xml,
-                                XmlExceptionMessage = null,
+                                ParseExceptionMessage = null,
                                 SchemaValidationMessage = null,
                             };
                             runReplacementInfo.Add(rri2);
@@ -408,8 +426,8 @@ namespace OpenXmlPowerTools
                             var runToReplace = newPara.Descendants(W.r).FirstOrDefault(rn => rn.Value == thisGuid && rn.Parent.Name != PA.Content);
                             if (runToReplace == null)
                                 throw new OpenXmlPowerToolsException("Internal error");
-                            if (rri.XmlExceptionMessage != null)
-                                runToReplace.ReplaceWith(CreateRunErrorMessage(rri.XmlExceptionMessage, te));
+                            if (rri.ParseExceptionMessage != null)
+                                runToReplace.ReplaceWith(CreateRunErrorMessage(rri.ParseExceptionMessage, te));
                             else if (rri.SchemaValidationMessage != null)
                                 runToReplace.ReplaceWith(CreateRunErrorMessage(rri.SchemaValidationMessage, te));
                             else
@@ -426,21 +444,21 @@ namespace OpenXmlPowerTools
 
                 return new XElement(element.Name,
                     element.Attributes(),
-                    element.Nodes().Select(n => TransformToMetadata(n, data, te)));
+                    element.Nodes().Select(n => TransformToMetadata(n, parser, te)));
             }
             return node;
         }
 
-        private static XElement TransformXmlTextToMetadata(TemplateError te, string xmlText)
+        private static XElement TransformContentToMetadata(TemplateError te, string content, IMetadataParser parser)
         {
             XElement xml;
             try
             {
-                xml = XElement.Parse(xmlText);
+                xml = parser.TransformContentToMetadata(content);
             }
-            catch (XmlException e)
+            catch (MetadataParseException e)
             {
-                return CreateParaErrorMessage("XmlException: " + e.Message, te);
+                return CreateParaErrorMessage("ParseException: " + e.Message, te);
             }
             string schemaError = ValidatePerSchema(xml);
             if (schemaError != null)
@@ -451,7 +469,7 @@ namespace OpenXmlPowerTools
         private class RunReplacementInfo
         {
             public XElement Xml;
-            public string XmlExceptionMessage;
+            public string ParseExceptionMessage;
             public string SchemaValidationMessage;
         }
 
@@ -590,7 +608,7 @@ namespace OpenXmlPowerTools
             public bool HasError = false;
         }
 
-        static object ContentReplacementTransform(XNode node, XElement data, TemplateError templateError)
+        static object ContentReplacementTransform(XNode node, IDataContext data, TemplateError templateError)
         {
             XElement element = node as XElement;
             if (element != null)
@@ -600,18 +618,18 @@ namespace OpenXmlPowerTools
                     XElement para = element.Descendants(W.p).FirstOrDefault();
                     XElement run = element.Descendants(W.r).FirstOrDefault();
 
-                    var xPath = (string) element.Attribute(PA.Select);
+                    var selector = (string) element.Attribute(PA.Select);
                     var optionalString = (string) element.Attribute(PA.Optional);
                     bool optional = (optionalString != null && optionalString.ToLower() == "true");
 
                     string newValue;
                     try
                     {
-                        newValue = EvaluateXPathToString(data, xPath, optional);
+                        newValue = data.EvaluateText(selector, optional);
                     }
-                    catch (XPathException e)
+                    catch (EvaluationException e)
                     {
-                        return CreateContextErrorMessage(element, "XPathException: " + e.Message, templateError);
+                        return CreateContextErrorMessage(element, "EvaluationException: " + e.Message, templateError);
                     }
 
                     if (para != null)
@@ -646,27 +664,23 @@ namespace OpenXmlPowerTools
                     var optionalString = (string)element.Attribute(PA.Optional);
                     bool optional = (optionalString != null && optionalString.ToLower() == "true");
 
-                    IEnumerable<XElement> repeatingData;
+                    IDataContext[] repeatingData;
                     try
                     {
-                        repeatingData = data.XPathSelectElements(selector);
+                        repeatingData = data.EvaluateList(selector, optional);
                     }
-                    catch (XPathException e)
+                    catch (EvaluationException e)
                     {
-                        return CreateContextErrorMessage(element, "XPathException: " + e.Message, templateError);
+                        return CreateContextErrorMessage(element, e.Message, templateError);
                     }
                     if (!repeatingData.Any())
                     {
-                        if (optional)
-                        {
-                            return null;
-                            //XElement para = element.Descendants(W.p).FirstOrDefault();
-                            //if (para != null)
-                            //    return new XElement(W.p, new XElement(W.r));
-                            //else
-                            //    return new XElement(W.r);
-                        }
-                        return CreateContextErrorMessage(element, "Repeat: Select returned no data", templateError);
+                        return null;
+                        //XElement para = element.Descendants(W.p).FirstOrDefault();
+                        //if (para != null)
+                        //    return new XElement(W.p, new XElement(W.r));
+                        //else
+                        //    return new XElement(W.r);
                     }
                     var newContent = repeatingData.Select(d =>
                         {
@@ -674,6 +688,7 @@ namespace OpenXmlPowerTools
                                 .Elements()
                                 .Select(e => ContentReplacementTransform(e, d, templateError))
                                 .ToList();
+                            d.Release();
                             return content;
                         })
                         .ToList();
@@ -681,14 +696,14 @@ namespace OpenXmlPowerTools
                 }
                 if (element.Name == PA.Table)
                 {
-                    IEnumerable<XElement> tableData;
+                    IDataContext[] tableData;
                     try
                     {
-                        tableData = data.XPathSelectElements((string)element.Attribute(PA.Select));
+                        tableData = data.EvaluateList((string)element.Attribute(PA.Select), true);
                     }
-                    catch (XPathException e)
+                    catch (EvaluationException e)
                     {
-                        return CreateContextErrorMessage(element, "XPathException: " + e.Message, templateError);
+                        return CreateContextErrorMessage(element, "EvaluationException: " + e.Message, templateError);
                     }
                     if (tableData.Count() == 0)
                         return CreateContextErrorMessage(element, "Table Select returned no data", templateError);
@@ -716,13 +731,13 @@ namespace OpenXmlPowerTools
                                     {
                                         XElement paragraph = tc.Elements(W.p).FirstOrDefault();
                                         XElement cellRun = paragraph.Elements(W.r).FirstOrDefault();
-                                        string xPath = paragraph.Value;
+                                        string selector = paragraph.Value;
                                         string newValue = null;
                                         try
                                         {
-                                            newValue = EvaluateXPathToString(d, xPath, false);
+                                            newValue = d.EvaluateText(selector, false);
                                         }
-                                        catch (XPathException e)
+                                        catch (EvaluationException e)
                                         {
                                             XElement errorCell = new XElement(W.tc,
                                                 tc.Elements().Where(z => z.Name != W.p),
@@ -747,27 +762,21 @@ namespace OpenXmlPowerTools
                 }
                 if (element.Name == PA.Conditional)
                 {
-                    string xPath = (string)element.Attribute(PA.Select);
+                    string selector = (string)element.Attribute(PA.Select);
                     var match = (string)element.Attribute(PA.Match);
                     var notMatch = (string)element.Attribute(PA.NotMatch);
+                    bool testValue;
 
-                    if (match == null && notMatch == null)
-                        return CreateContextErrorMessage(element, "Conditional: Must specify either Match or NotMatch", templateError);
-                    if (match != null && notMatch != null)
-                        return CreateContextErrorMessage(element, "Conditional: Cannot specify both Match and NotMatch", templateError);
-
-                    string testValue = null; 
-                   
                     try
                     {
-                        testValue = EvaluateXPathToString(data, xPath, false);
+                        testValue = data.EvaluateBool(selector, match, notMatch);
                     }
-	                catch (XPathException e)
+                    catch (EvaluationException e)
                     {
                         return CreateContextErrorMessage(element, e.Message, templateError);
                     }
                   
-                    if ((match != null && testValue == match) || (notMatch != null && testValue != notMatch))
+                    if (testValue)
                     {
                         var content = element.Elements().Select(e => ContentReplacementTransform(e, data, templateError));
                         return content;
@@ -814,20 +823,86 @@ namespace OpenXmlPowerTools
                         new XElement(W.t, errorMessage)));
             return errorPara;
         }
+    }
 
-        private static string EvaluateXPathToString(XElement element, string xPath, bool optional )
+    public class XmlMetadataParser : IMetadataParser
+    {
+        public string DelimiterOpen => "<";
+        public string DelimiterClose => ">";
+        public string EmbedOpen => "<#";
+        public string EmbedClose => "#>";
+
+        public XElement TransformContentToMetadata(string xmlText)
+        {
+            XElement xml;
+            try
+            {
+                xml = XElement.Parse(xmlText);
+            }
+            catch (XmlException e)
+            {
+                throw new MetadataParseException(e.Message, e.InnerException);
+            }
+            return xml;
+        }
+    }
+
+    public class XmlMetadataProcessor : XmlMetadataParser, IDataContext
+    {
+        private XElement _element;
+
+        public XmlMetadataProcessor(XElement data)
+        {
+            _element = data;
+        }
+
+        public IDataContext[] EvaluateList(string selector, bool optional)
+        {
+            IEnumerable<XElement> repeatingData;
+            try
+            {
+                repeatingData = _element.XPathSelectElements(selector);
+            }
+            catch (XPathException e)
+            {
+                throw new EvaluationException("XPathException: " + e.Message);
+            }
+            var newContent = repeatingData.Select(d => new XmlMetadataProcessor(d)).ToArray();
+
+            if (!newContent.Any())
+            {
+                if (!optional)
+                    throw new EvaluationException("Repeat: Select returned no data");
+            }
+
+            return newContent;
+        }
+
+        public bool EvaluateBool(string xPath, string match, string notMatch)
+        {
+            if (match == null && notMatch == null)
+                throw new EvaluationException("Conditional: Must specify either Match or NotMatch");
+            if (match != null && notMatch != null)
+                throw new EvaluationException("Conditional: Cannot specify both Match and NotMatch");
+
+            string testValue = EvaluateText(xPath, false);
+
+            return (match != null && testValue == match) || (notMatch != null && testValue != notMatch);
+        }
+
+        public string EvaluateText(string xPath, bool optional)
         {
             object xPathSelectResult;
             try
             {
                 //support some cells in the table may not have an xpath expression.
                 if (String.IsNullOrWhiteSpace(xPath)) return String.Empty;
-                
-                xPathSelectResult = element.XPathEvaluate(xPath);
+
+                xPathSelectResult = _element.XPathEvaluate(xPath);
             }
             catch (XPathException e)
             {
-                throw new XPathException("XPathException: " + e.Message, e);
+                throw new EvaluationException("XPathException: " + e.Message, e);
             }
 
             if ((xPathSelectResult is IEnumerable) && !(xPathSelectResult is string))
@@ -836,15 +911,15 @@ namespace OpenXmlPowerTools
                 if (!selectedData.Any())
                 {
                     if (optional) return string.Empty;
-                    throw new XPathException(string.Format("XPath expression ({0}) returned no results", xPath));
+                    throw new EvaluationException(string.Format("XPath expression ({0}) returned no results", xPath));
                 }
                 if (selectedData.Count() > 1)
                 {
-                    throw new XPathException(string.Format("XPath expression ({0}) returned more than one node", xPath));
+                    throw new EvaluationException(string.Format("XPath expression ({0}) returned more than one node", xPath));
                 }
 
-                XObject selectedDatum = selectedData.First(); 
-                
+                XObject selectedDatum = selectedData.First();
+
                 if (selectedDatum is XElement) return ((XElement) selectedDatum).Value;
 
                 if (selectedDatum is XAttribute) return ((XAttribute) selectedDatum).Value;
@@ -853,5 +928,11 @@ namespace OpenXmlPowerTools
             return xPathSelectResult.ToString();
 
         }
+
+        public void Release()
+        {
+            _element = null;
+        }
+
     }
 }
