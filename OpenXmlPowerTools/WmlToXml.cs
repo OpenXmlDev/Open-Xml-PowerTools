@@ -1351,6 +1351,8 @@ namespace OpenXmlPowerTools
                             ApplyRunContentTypes(settings, ctai, wDoc, blc, settings.RunContentTypeRules, part, partXDoc);
                         break;
                     }
+                    else
+                        ApplyRunContentTypes(settings, ctai, wDoc, blc, settings.RunContentTypeRules, part, partXDoc);
                 }
             }
 
