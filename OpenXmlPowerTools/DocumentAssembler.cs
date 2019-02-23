@@ -19,7 +19,7 @@ using System.Collections;
 
 namespace OpenXmlPowerTools
 {
-    public class DocumentAssembler : DocumentAssemblerBase
+    public partial class DocumentAssembler : DocumentAssemblerBase
     {
         public static WmlDocument AssembleDocument(WmlDocument templateDoc, XmlDocument data, out bool templateError)
         {
@@ -44,7 +44,7 @@ namespace OpenXmlPowerTools
         }
     }
 
-    public class DocumentAssemblerBase
+    public partial class DocumentAssemblerBase
     {
         protected static bool AssembleDocument(WordprocessingDocument wordDoc, IDataContext data)
         {
@@ -631,32 +631,7 @@ namespace OpenXmlPowerTools
                     {
                         return CreateContextErrorMessage(element, "EvaluationException: " + e.Message, templateError);
                     }
-
-                    if (para != null)
-                    {
-
-                        XElement p = new XElement(W.p, para.Elements(W.pPr));
-                        foreach(string line in newValue.Split('\n'))
-                        {
-                            p.Add(new XElement(W.r,
-                                    para.Elements(W.r).Elements(W.rPr).FirstOrDefault(),
-                                (p.Elements().Count() > 1) ? new XElement(W.br) : null,
-                                new XElement(W.t, line)));
-                        }
-                        return p;
-                    }
-                    else
-                    {
-                        List<XElement> list = new List<XElement>();
-                        foreach(string line in newValue.Split('\n'))
-                        {
-                            list.Add(new XElement(W.r,
-                                run.Elements().Where(e => e.Name != W.t),
-                                (list.Count > 0) ? new XElement(W.br) : null,
-                                new XElement(W.t, line)));
-                        }
-                        return list;
-                    }
+                    return ReplaceValue(para, run, newValue);
                 }
                 if (element.Name == PA.Repeat)
                 {
@@ -788,6 +763,34 @@ namespace OpenXmlPowerTools
                     element.Nodes().Select(n => ContentReplacementTransform(n, data, templateError)));
             }
             return node;
+        }
+
+        private static object ReplaceValue(XElement para, XElement run, string newValue)
+        {
+            if (para != null)
+            {
+                XElement p = new XElement(W.p, para.Elements(W.pPr));
+                foreach (string line in newValue.Split('\n'))
+                {
+                    p.Add(new XElement(W.r,
+                            para.Elements(W.r).Elements(W.rPr).FirstOrDefault(),
+                        (p.Elements().Count() > 1) ? new XElement(W.br) : null,
+                        new XElement(W.t, line)));
+                }
+                return p;
+            }
+            else
+            {
+                List<XElement> list = new List<XElement>();
+                foreach (string line in newValue.Split('\n'))
+                {
+                    list.Add(new XElement(W.r,
+                        run.Elements().Where(e => e.Name != W.t),
+                        (list.Count > 0) ? new XElement(W.br) : null,
+                        new XElement(W.t, line)));
+                }
+                return list;
+            }
         }
 
         private static object CreateContextErrorMessage(XElement element, string errorMessage, TemplateError templateError)
