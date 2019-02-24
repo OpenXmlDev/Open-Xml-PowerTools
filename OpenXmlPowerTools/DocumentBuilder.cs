@@ -1172,9 +1172,10 @@ namespace OpenXmlPowerTools
             {
                 string oldRid = footerReference.Attribute(R.id).Value;
                 var oldFooterPart2 = sourceDocument.MainDocumentPart.GetPartById(oldRid);
-                if (!(oldFooterPart2 is FooterPart oldFooterPart))
+                if (!(oldFooterPart2 is FooterPart))
                     throw new DocumentBuilderException("Invalid document - invalid footer part.");
 
+                FooterPart oldFooterPart = (FooterPart)oldFooterPart2;
                 XDocument oldFooterXDoc = oldFooterPart.GetXDocument();
                 if (oldFooterXDoc != null && oldFooterXDoc.Root != null)
                     CopyNumbering(sourceDocument, newDocument, new[] { oldFooterXDoc.Root }, images);
@@ -1579,13 +1580,15 @@ namespace OpenXmlPowerTools
                         newComments.Add(new XElement(W.comments, NamespaceAttributes));
                     }
                 }
-                if (!int.TryParse((string)comment.Attribute(W.id), out int id))
+                int id;
+                if (!int.TryParse((string)comment.Attribute(W.id), out id))
                     throw new DocumentBuilderException("Invalid document - invalid comment id");
                 XElement element = oldComments
                     .Descendants()
                     .Elements(W.comment)
                     .Where(p => {
-                        if (! int.TryParse((string)p.Attribute(W.id), out int thisId))
+                        int thisId;
+                        if (! int.TryParse((string)p.Attribute(W.id), out thisId))
                             throw new DocumentBuilderException("Invalid document - invalid comment id");
                         return thisId == id;
                     })
@@ -1633,7 +1636,8 @@ namespace OpenXmlPowerTools
             foreach (var item in newContent.DescendantsAndSelf().Where(bm => bm.Name == W.bookmarkStart ||
                 bm.Name == W.bookmarkEnd))
             {
-                if (!int.TryParse((string)item.Attribute(W.id), out int id))
+                int id;
+                if (!int.TryParse((string)item.Attribute(W.id), out id))
                     throw new DocumentBuilderException("Invalid document - invalid value for bookmark ID");
                 if (!bookmarkIdMap.ContainsKey(id))
                     bookmarkIdMap.Add(id, ++maxId);
@@ -2268,7 +2272,8 @@ namespace OpenXmlPowerTools
                             .Elements(W.abstractNumId)
                             .First()
                             .Attribute(W.val);
-                        if (!int.TryParse(abstractNumIdStr, out int abstractNumId))
+                        int abstractNumId;
+                        if (!int.TryParse(abstractNumIdStr, out abstractNumId))
                             throw new DocumentBuilderException("Invalid document - invalid value for abstractNumId");
 
                         XElement abstractElement = oldNumbering
@@ -2429,7 +2434,8 @@ namespace OpenXmlPowerTools
                             .Elements(W.abstractNumId)
                             .First()
                             .Attribute(W.val);
-                        if (!int.TryParse(abstractNumIdStr, out int abstractNumId))
+                        int abstractNumId;
+                        if (!int.TryParse(abstractNumIdStr, out abstractNumId))
                             throw new DocumentBuilderException("Invalid document - invalid value for abstractNumId");
                         XElement abstractElement = oldNumbering
                             .Descendants()
@@ -2590,7 +2596,8 @@ namespace OpenXmlPowerTools
                             .Elements(W.abstractNumId)
                             .First()
                             .Attribute(W.val);
-                        if (!int.TryParse(abstractNumIdStr, out int abstractNumId))
+                        int abstractNumId;
+                        if (!int.TryParse(abstractNumIdStr, out abstractNumId))
                             throw new DocumentBuilderException("Invalid document - invalid value for abstractNumId");
                         XElement abstractElement = oldNumbering
                             .Descendants()
