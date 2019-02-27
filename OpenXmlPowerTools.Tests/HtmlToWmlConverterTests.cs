@@ -283,6 +283,7 @@ namespace OxPt
         [InlineData("T1840.html")]
         [InlineData("T1850.html")]
         [InlineData("T1860.html")]
+        [InlineData("T1870.html")]
 
         public void HW001(string name)
         {
