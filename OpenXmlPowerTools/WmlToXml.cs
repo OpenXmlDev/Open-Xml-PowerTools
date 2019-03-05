@@ -95,6 +95,13 @@ namespace OpenXmlPowerTools
         public int Tests;
     }
 
+    public class ContentTypeHierarchyInfo
+    {
+        public string DocumentType;
+        public XElement ContentTypeHierarchyDefinition;
+        public Func<XElement, WmlToXmlSettings, bool> ContentTypeHierarchyLambda;
+    }
+
     public class WmlToXmlSettings
     {
         public List<ContentTypeRule> GlobalContentTypeRules;
@@ -105,8 +112,7 @@ namespace OpenXmlPowerTools
         public List<BlockLevelContentValidationRule> BlockLevelContentValidationRules;
         public ListItemRetrieverSettings ListItemRetrieverSettings;
         public bool? InjectCommentForContentTypes;
-        public XElement ContentTypeHierarchyDefinition;
-        public Func<XElement, WmlToXmlSettings, bool> ContentTypeHierarchyLambda;
+        public ContentTypeHierarchyInfo[] ContentTypeHierarchyInfoList;
         public Dictionary<string, Func<string, OpenXmlPart, XElement, WmlToXmlSettings, object>> XmlGenerationLambdas;
         public DirectoryInfo ImageBase;
         public bool WriteImageFiles = true;
@@ -407,10 +413,17 @@ namespace OpenXmlPowerTools
     </ContentTypeXml>
 #endif
 
-            var hierarchyDefinition = settings
-                .ContentTypeHierarchyDefinition
-                .Elements("DocumentType")
-                .FirstOrDefault(e => (string)e.Attribute("DocumentType") == settings.DocumentType);
+            // if we don't find content type hierarchy info in the list, then this document type does not have hierarchy.
+            var contentTypeHierarchyInfo = settings.ContentTypeHierarchyInfoList.FirstOrDefault(cthi => cthi.DocumentType == settings.DocumentType;
+            if (contentTypeHierarchyInfo == null)
+                return contentTypeXml;
+
+            //var hierarchyDefinition = settings
+            //    .ContentTypeHierarchyDefinition
+            //    .Elements("DocumentType")
+            //    .FirstOrDefault(e => (string)e.Attribute("DocumentType") == settings.DocumentType);
+
+            var hierarchyDefinition = contentTypeHierarchyInfo.ContentTypeHierarchyDefinition;
 
             if (hierarchyDefinition == null)
                 throw new OpenXmlPowerToolsException("Invalid content type hierarchy definition - no hierarchy definition for specified document type");
