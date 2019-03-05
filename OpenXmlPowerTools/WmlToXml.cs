@@ -29,6 +29,7 @@ namespace OpenXmlPowerTools
         public Regex[] RegexArray;
         public Func<XElement, ContentTypeRule, WordprocessingDocument, WmlToXmlSettings, bool> MatchLambda;
         public bool ApplyRunContentTypes = true;
+        public string[] DocumentTypeCollection;
     }
 
     public enum ValidationErrorType
@@ -112,7 +113,7 @@ namespace OpenXmlPowerTools
         public Action<WmlToXmlProgressInfo> ProgressFunction;
         public XDocument ContentTypeRegexExtension;
         public string DefaultLang;
-        public string ValidationDocumentType;
+        public string DocumentType;
         public Action<XDocument, XDocument, WmlToXmlSettings, OpenXmlPart> ApplyContentTypesCustom;
         public Dictionary<string, WmlToXmlContentTypeMetrics> ContentTypeCount = new Dictionary<string, WmlToXmlContentTypeMetrics>();
         public object UserData;
@@ -198,6 +199,9 @@ namespace OpenXmlPowerTools
   </Extension>
 </Extensions>
 #endif
+            if (settings.DocumentType == null || settings.DocumentType == "")
+                throw new OpenXmlPowerToolsException("DocumentType must be set");
+
             if (settings.ContentTypeRegexExtension != null)
             {
                 foreach (var ext in settings.ContentTypeRegexExtension.Root.Elements("Extension"))
@@ -320,6 +324,9 @@ namespace OpenXmlPowerTools
 
         public static XElement ProduceContentTypeXml(WordprocessingDocument wDoc, WmlToXmlSettings settings)
         {
+            if (settings.DocumentType == null || settings.DocumentType == "")
+                throw new OpenXmlPowerToolsException("DocumentType must be set");
+
             var mainPart = wDoc.MainDocumentPart;
             var mainXDoc = mainPart.GetXDocument();
 
@@ -392,7 +399,22 @@ namespace OpenXmlPowerTools
 
         private static XElement HierarchyPerSettings(XElement contentTypeXml, WmlToXmlSettings settings)
         {
-            var hierarchyDefinition = settings.ContentTypeHierarchyDefinition;
+#if false
+<Root>
+  <DocumentType DocumentType="AuthoritativeText">
+    <ContentTypeXml IsRoot="true">
+      <VolumeContainer />
+    </ContentTypeXml>
+#endif
+
+            var hierarchyDefinition = settings
+                .ContentTypeHierarchyDefinition
+                .Elements("DocumentType")
+                .FirstOrDefault(e => (string)e.Attribute("DocumentType") == settings.DocumentType);
+
+            if (hierarchyDefinition == null)
+                throw new OpenXmlPowerToolsException("Invalid content type hierarchy definition - no hierarchy definition for specified document type");
+
             HashSet<XName> hierarchyElements = new HashSet<XName>(hierarchyDefinition.DescendantsAndSelf().Select(d => d.Name).Distinct());
 
             Stack<XElement> stack = new Stack<XElement>();
@@ -1279,6 +1301,13 @@ namespace OpenXmlPowerTools
                 // Apply the Document rules first, then apply the DocumentType rules, then apply the Global rules.  First one that matches, wins.
                 foreach (var rule in settings.DocumentContentTypeRules.Concat(settings.DocumentTypeContentTypeRules).Concat(settings.GlobalContentTypeRules))
                 {
+                    if (rule.DocumentTypeCollection != null)
+                    {
+                        if (!rule.DocumentTypeCollection.Any(dt => dt == settings.DocumentType))
+                            continue;
+                    }
+
+
                     if (settings.ContentTypeCount.ContainsKey(rule.ContentType))
                         settings.ContentTypeCount[rule.ContentType].Tests = settings.ContentTypeCount[rule.ContentType].Tests + 1;
                     else
@@ -1432,6 +1461,8 @@ namespace OpenXmlPowerTools
                         if (rule.StyleName != null && rule.StyleName != runStyle)
                             continue;
 
+                        if (rule.StyleNameRegex != null)
+                            throw new OpenXmlPowerToolsException("Invalid Run ContentType Rule - StyleNameRegex not allowed");
                         if (rule.RegexArray != null)
                             throw new OpenXmlPowerToolsException("Invalid Run ContentType Rule - Regex not allowed");
                         if (rule.MatchLambda != null)
@@ -1879,10 +1910,10 @@ namespace OpenXmlPowerTools
                 {
                     foreach (var vr in settings.GlobalValidationRules)
                     {
-                        if (settings.ValidationDocumentType != null &&
+                        if (settings.DocumentType != null &&
                             vr.DocumentTypeInfoCollection != null)
                         {
-                            var thisdti = vr.DocumentTypeInfoCollection.FirstOrDefault(dti => dti.DocumentType == settings.ValidationDocumentType);
+                            var thisdti = vr.DocumentTypeInfoCollection.FirstOrDefault(dti => dti.DocumentType == settings.DocumentType);
                             if (thisdti == null)
                                 throw new OpenXmlPowerToolsException("Incorrect setup of Validation Rules");
 
@@ -1933,10 +1964,10 @@ namespace OpenXmlPowerTools
 
                         foreach (var vr in settings.BlockLevelContentValidationRules)
                         {
-                            if (settings.ValidationDocumentType != null &&
+                            if (settings.DocumentType != null &&
                                 vr.DocumentTypeInfoCollection != null)
                             {
-                                if (!vr.DocumentTypeInfoCollection.Any(dti => dti.DocumentType == settings.ValidationDocumentType))
+                                if (!vr.DocumentTypeInfoCollection.Any(dti => dti.DocumentType == settings.DocumentType))
                                     continue;
                             }
 
