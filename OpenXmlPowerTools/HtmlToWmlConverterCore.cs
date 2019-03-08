@@ -768,6 +768,13 @@ namespace OpenXmlPowerTools.HtmlToWml
 
         private static object Transform(XNode node, HtmlToWmlConverterSettings settings, WordprocessingDocument wDoc, NextExpected nextExpected, bool preserveWhiteSpace)
         {
+            var result = TransformInner(node, settings, wDoc, nextExpected, preserveWhiteSpace);
+            settings?.OnTransform?.Invoke(node, result);
+            return result;
+        }
+
+        private static object TransformInner(XNode node, HtmlToWmlConverterSettings settings, WordprocessingDocument wDoc, NextExpected nextExpected, bool preserveWhiteSpace)
+        { 
             XElement element = node as XElement;
             if (element != null)
             {
