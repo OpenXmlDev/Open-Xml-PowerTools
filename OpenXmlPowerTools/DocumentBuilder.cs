@@ -160,6 +160,7 @@ namespace OpenXmlPowerTools
     public class DocumentBuilderSettings
     {
         public HashSet<string> CustomXmlGuidList = null;
+        public bool NormalizeStyleIds = false;
     }
 
     public static class DocumentBuilder
@@ -349,6 +350,10 @@ namespace OpenXmlPowerTools
                     new XElement(W.body)));
             if (sources.Count > 0)
             {
+                // the following function makes sure that for a given style name, the same style ID is used for all documents.
+                if (settings != null && settings.NormalizeStyleIds)
+                    sources = NormalizeStyleNamesAndIds(sources);
+
                 using (OpenXmlMemoryStreamDocument streamDoc = new OpenXmlMemoryStreamDocument(sources[0].WmlDocument))
                 using (WordprocessingDocument doc = streamDoc.GetWordprocessingDocument())
                 {
@@ -616,6 +621,339 @@ namespace OpenXmlPowerTools
             foreach (var part in output.GetAllParts())
                 if (part.Annotation<XDocument>() != null)
                     part.PutXDocument();
+        }
+
+        // there are two scenarios that need to be handled
+        // - if I find a style name that maps to a style ID different from one already mapped
+        // - if a style name maps to a style ID that is already used for a different style
+        // - then need to correct things
+        //   - make a complete list of all things that need to be changed, for every correction
+        //   - do the corrections all at one
+        //   - mark the document as changed, and change it in the sources.
+        private static List<Source> NormalizeStyleNamesAndIds(List<Source> sources)
+        {
+            Dictionary<string, string> styleNameMap = new Dictionary<string, string>();
+            HashSet<string> styleIds = new HashSet<string>();
+            List<Source> newSources = new List<Source>();
+
+            foreach (var src in sources)
+            {
+                var newSrc = AddAndRectify(src, styleNameMap, styleIds);
+                newSources.Add(newSrc);
+            }
+            return newSources;
+        }
+
+        private static Source AddAndRectify(Source src, Dictionary<string, string> styleNameMap, HashSet<string> styleIds)
+        {
+            bool modified = false;
+            using (MemoryStream ms = new MemoryStream())
+            {
+                ms.Write(src.WmlDocument.DocumentByteArray, 0, src.WmlDocument.DocumentByteArray.Length);
+                using (WordprocessingDocument wDoc = WordprocessingDocument.Open(ms, true))
+                {
+                    Dictionary<string, string> correctionList = new Dictionary<string, string>();
+                    var thisStyleNameMap = GetStyleNameMap(wDoc);
+                    foreach (var pair in thisStyleNameMap)
+                    {
+                        var styleName = pair.Key;
+                        var styleId = pair.Value;
+                        // if the styleNameMap does not contain an entry for this name
+                        if (!styleNameMap.ContainsKey(styleName))
+                        {
+                            // if the id is already used
+                            if (styleIds.Contains(styleId))
+                            {
+                                // this style uses a styleId that is used for another style.
+                                // randomly generate new styleId
+                                while (true)
+                                {
+                                    var newStyleId = GenStyleIdFromStyleName(styleName);
+                                    if (! styleIds.Contains(newStyleId))
+                                    {
+                                        correctionList.Add(styleId, newStyleId);
+                                        styleNameMap.Add(styleName, newStyleId);
+                                        styleIds.Add(newStyleId);
+                                        break;
+                                    }
+                                }
+                            }
+                            // otherwise we just add to the styleNameMap
+                            else
+                            {
+                                styleNameMap.Add(styleName, styleId);
+                                styleIds.Add(styleId);
+                            }
+                        }
+                        // but if the styleNameMap does contain an entry for this name
+                        else
+                        {
+                            // if the id is the same as the existing ID, then nothing to do
+                            if (styleNameMap[styleName] == styleId)
+                                continue;
+                            correctionList.Add(styleId, styleNameMap[styleName]);
+                        }
+                    }
+                    if (correctionList.Any())
+                    {
+                        modified = true;
+                        AdjustStyleIdsForDocument(wDoc, correctionList);
+                    }
+                }
+                if (modified)
+                {
+                    var newWmlDocument = new WmlDocument(src.WmlDocument.FileName, ms.ToArray());
+                    var newSrc = new Source(newWmlDocument, src.Start, src.Count, src.KeepSections);
+                    newSrc.DiscardHeadersAndFootersInKeptSections = src.DiscardHeadersAndFootersInKeptSections;
+                    newSrc.InsertId = src.InsertId;
+                    return newSrc;
+                }
+            }
+            return src;
+        }
+
+#if false
+application/vnd.ms-word.styles.textEffects+xml                                                      styles/style/@styleId
+application/vnd.ms-word.styles.textEffects+xml                                                      styles/style/basedOn/@val
+application/vnd.ms-word.styles.textEffects+xml                                                      styles/style/link/@val
+application/vnd.ms-word.styles.textEffects+xml                                                      styles/style/next/@val
+
+application/vnd.ms-word.stylesWithEffects+xml                                                       styles/style/@styleId
+application/vnd.ms-word.stylesWithEffects+xml                                                       styles/style/basedOn/@val
+application/vnd.ms-word.stylesWithEffects+xml                                                       styles/style/link/@val
+application/vnd.ms-word.stylesWithEffects+xml                                                       styles/style/next/@val
+
+application/vnd.openxmlformats-officedocument.wordprocessingml.comments+xml                         pPr/pStyle/@val
+application/vnd.openxmlformats-officedocument.wordprocessingml.comments+xml                         rPr/rStyle/@val
+application/vnd.openxmlformats-officedocument.wordprocessingml.comments+xml                         tblPr/tblStyle/@val
+
+application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml                    pPr/pStyle/@val
+application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml                    rPr/rStyle/@val
+application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml                    tblPr/tblStyle/@val
+
+application/vnd.openxmlformats-officedocument.wordprocessingml.endnotes+xml                         pPr/pStyle/@val
+application/vnd.openxmlformats-officedocument.wordprocessingml.endnotes+xml                         rPr/rStyle/@val
+application/vnd.openxmlformats-officedocument.wordprocessingml.endnotes+xml                         tblPr/tblStyle/@val
+
+application/vnd.openxmlformats-officedocument.wordprocessingml.footer+xml                           pPr/pStyle/@val
+application/vnd.openxmlformats-officedocument.wordprocessingml.footer+xml                           rPr/rStyle/@val
+application/vnd.openxmlformats-officedocument.wordprocessingml.footer+xml                           tblPr/tblStyle/@val
+
+application/vnd.openxmlformats-officedocument.wordprocessingml.footnotes+xml                        pPr/pStyle/@val
+application/vnd.openxmlformats-officedocument.wordprocessingml.footnotes+xml                        rPr/rStyle/@val
+application/vnd.openxmlformats-officedocument.wordprocessingml.footnotes+xml                        tblPr/tblStyle/@val
+
+application/vnd.openxmlformats-officedocument.wordprocessingml.header+xml                           pPr/pStyle/@val
+application/vnd.openxmlformats-officedocument.wordprocessingml.header+xml                           rPr/rStyle/@val
+application/vnd.openxmlformats-officedocument.wordprocessingml.header+xml                           tblPr/tblStyle/@val
+
+application/vnd.openxmlformats-officedocument.wordprocessingml.numbering+xml                        abstractNum/lvl/pStyle/@val
+application/vnd.openxmlformats-officedocument.wordprocessingml.numbering+xml                        abstractNum/numStyleLink/@val
+application/vnd.openxmlformats-officedocument.wordprocessingml.numbering+xml                        abstractNum/styleLink/@val
+
+application/vnd.openxmlformats-officedocument.wordprocessingml.settings+xml                         settings/clickAndTypeStyle/@val
+
+Name, not ID
+===================================
+application/vnd.ms-word.styles.textEffects+xml                                                      styles/style/name/@val
+application/vnd.openxmlformats-officedocument.wordprocessingml.stylesWithEffects+xml                styles/style/name/@val
+application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml                           styles/style/name/@val
+application/vnd.ms-word.stylesWithEffects+xml                                                       styles/style/name/@val
+application/vnd.openxmlformats-officedocument.wordprocessingml.stylesWithEffects+xml                latentStyles/lsdException/@name
+application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml                           latentStyles/lsdException/@name
+application/vnd.ms-word.stylesWithEffects+xml                                                       latentStyles/lsdException/@name
+application/vnd.ms-word.styles.textEffects+xml                                                      latentStyles/lsdException/@name
+#endif
+
+        private static void AdjustStyleIdsForDocument(WordprocessingDocument wDoc, Dictionary<string, string> correctionList)
+        {
+            // update styles part
+            UpdateStyleIdsForStylePart(wDoc.MainDocumentPart.StyleDefinitionsPart, correctionList);
+            if (wDoc.MainDocumentPart.StylesWithEffectsPart != null)
+                UpdateStyleIdsForStylePart(wDoc.MainDocumentPart.StylesWithEffectsPart, correctionList);
+
+            // update content parts
+            UpdateStyleIdsForContentPart(wDoc.MainDocumentPart, correctionList);
+            foreach (var part in wDoc.MainDocumentPart.HeaderParts)
+                UpdateStyleIdsForContentPart(part, correctionList);
+            foreach (var part in wDoc.MainDocumentPart.FooterParts)
+                UpdateStyleIdsForContentPart(part, correctionList);
+            if (wDoc.MainDocumentPart.FootnotesPart != null)
+                UpdateStyleIdsForContentPart(wDoc.MainDocumentPart.FootnotesPart, correctionList);
+            if (wDoc.MainDocumentPart.EndnotesPart != null)
+                UpdateStyleIdsForContentPart(wDoc.MainDocumentPart.EndnotesPart, correctionList);
+            if (wDoc.MainDocumentPart.WordprocessingCommentsPart != null)
+                UpdateStyleIdsForContentPart(wDoc.MainDocumentPart.WordprocessingCommentsPart, correctionList);
+            if (wDoc.MainDocumentPart.WordprocessingCommentsExPart != null)
+                UpdateStyleIdsForContentPart(wDoc.MainDocumentPart.WordprocessingCommentsExPart, correctionList);
+
+            // update numbering part
+            UpdateStyleIdsForNumberingPart(wDoc.MainDocumentPart.NumberingDefinitionsPart, correctionList);
+        }
+
+        private static void UpdateStyleIdsForNumberingPart(OpenXmlPart part, Dictionary<string, string> correctionList)
+        {
+#if false
+application/vnd.openxmlformats-officedocument.wordprocessingml.numbering+xml                        abstractNum/lvl/pStyle/@val
+application/vnd.openxmlformats-officedocument.wordprocessingml.numbering+xml                        abstractNum/numStyleLink/@val
+application/vnd.openxmlformats-officedocument.wordprocessingml.numbering+xml                        abstractNum/styleLink/@val
+#endif
+            var numXDoc = part.GetXDocument();
+            var numAttributeChangeList = correctionList
+                .Select(cor =>
+                    new
+                    {
+                        NewId = cor.Value,
+                        PStyleAttributesToChange = numXDoc
+                            .Descendants(W.pStyle)
+                            .Attributes(W.val)
+                            .Where(a => a.Value == cor.Key)
+                            .ToList(),
+                        NumStyleLinkAttributesToChange = numXDoc
+                            .Descendants(W.numStyleLink)
+                            .Attributes(W.val)
+                            .Where(a => a.Value == cor.Key)
+                            .ToList(),
+                        StyleLinkAttributesToChange = numXDoc
+                            .Descendants(W.styleLink)
+                            .Attributes(W.val)
+                            .Where(a => a.Value == cor.Key)
+                            .ToList(),
+                    }
+                )
+                .ToList();
+            foreach (var item in numAttributeChangeList)
+            {
+                foreach (var att in item.PStyleAttributesToChange)
+                    att.Value = item.NewId;
+                foreach (var att in item.NumStyleLinkAttributesToChange)
+                    att.Value = item.NewId;
+                foreach (var att in item.StyleLinkAttributesToChange)
+                    att.Value = item.NewId;
+            }
+            part.PutXDocument();
+        }
+
+        private static void UpdateStyleIdsForStylePart(OpenXmlPart part, Dictionary<string, string> correctionList)
+        {
+#if false
+application/vnd.ms-word.styles.textEffects+xml                                                      styles/style/@styleId
+application/vnd.ms-word.styles.textEffects+xml                                                      styles/style/basedOn/@val
+application/vnd.ms-word.styles.textEffects+xml                                                      styles/style/link/@val
+application/vnd.ms-word.styles.textEffects+xml                                                      styles/style/next/@val
+#endif
+            var styleXDoc = part.GetXDocument();
+            var styleAttributeChangeList = correctionList
+                .Select(cor =>
+                    new
+                    {
+                        NewId = cor.Value,
+                        StyleIdAttributesToChange = styleXDoc
+                            .Root
+                            .Elements(W.style)
+                            .Attributes(W.styleId)
+                            .Where(a => a.Value == cor.Key)
+                            .ToList(),
+                        BasedOnAttributesToChange = styleXDoc
+                            .Root
+                            .Elements(W.style)
+                            .Elements(W.basedOn)
+                            .Attributes(W.val)
+                            .Where(a => a.Value == cor.Key)
+                            .ToList(),
+                        NextAttributesToChange = styleXDoc
+                            .Root
+                            .Elements(W.style)
+                            .Elements(W.next)
+                            .Attributes(W.val)
+                            .Where(a => a.Value == cor.Key)
+                            .ToList(),
+                        LinkAttributesToChange = styleXDoc
+                            .Root
+                            .Elements(W.style)
+                            .Elements(W.link)
+                            .Attributes(W.val)
+                            .Where(a => a.Value == cor.Key)
+                            .ToList(),
+                    }
+                )
+                .ToList();
+            foreach (var item in styleAttributeChangeList)
+            {
+                foreach (var att in item.StyleIdAttributesToChange)
+                    att.Value = item.NewId;
+                foreach (var att in item.BasedOnAttributesToChange)
+                    att.Value = item.NewId;
+                foreach (var att in item.NextAttributesToChange)
+                    att.Value = item.NewId;
+                foreach (var att in item.LinkAttributesToChange)
+                    att.Value = item.NewId;
+            }
+            part.PutXDocument();
+        }
+
+        private static void UpdateStyleIdsForContentPart(OpenXmlPart part, Dictionary<string, string> correctionList)
+        {
+#if false
+application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml                    pPr/pStyle/@val
+application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml                    rPr/rStyle/@val
+application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml                    tblPr/tblStyle/@val
+#endif
+            var xDoc = part.GetXDocument();
+            var mainAttributeChangeList = correctionList
+                .Select(cor =>
+                    new
+                    {
+                        NewId = cor.Value,
+                        PStyleAttributesToChange = xDoc
+                            .Descendants(W.pStyle)
+                            .Attributes(W.val)
+                            .Where(a => a.Value == cor.Key)
+                            .ToList(),
+                        RStyleAttributesToChange = xDoc
+                            .Descendants(W.rStyle)
+                            .Attributes(W.val)
+                            .Where(a => a.Value == cor.Key)
+                            .ToList(),
+                        TblStyleAttributesToChange = xDoc
+                            .Descendants(W.tblStyle)
+                            .Attributes(W.val)
+                            .Where(a => a.Value == cor.Key)
+                            .ToList(),
+                    }
+                )
+                .ToList();
+            foreach (var item in mainAttributeChangeList)
+            {
+                foreach (var att in item.PStyleAttributesToChange)
+                    att.Value = item.NewId;
+                foreach (var att in item.RStyleAttributesToChange)
+                    att.Value = item.NewId;
+                foreach (var att in item.TblStyleAttributesToChange)
+                    att.Value = item.NewId;
+            }
+            part.PutXDocument();
+        }
+
+        private static string GenStyleIdFromStyleName(string styleName)
+        {
+            var newStyleId = styleName
+                .Replace("_", "")
+                .Replace("#", "")
+                .Replace(".", "") + ((new Random()).Next(990) + 9).ToString();
+            return newStyleId;
+        }
+
+        private static Dictionary<string, string> GetStyleNameMap(WordprocessingDocument wDoc)
+        {
+            var sxDoc = wDoc.MainDocumentPart.StyleDefinitionsPart.GetXDocument();
+            var thisDocumentDictionary = sxDoc
+                .Root
+                .Elements(W.style)
+                .ToDictionary(
+                    z => (string)z.Elements(W.name).Attributes(W.val).FirstOrDefault(),
+                    z => (string)z.Attribute(W.styleId));
+            return thisDocumentDictionary;
         }
 
 #if false
