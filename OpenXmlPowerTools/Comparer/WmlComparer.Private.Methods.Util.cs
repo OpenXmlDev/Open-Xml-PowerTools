@@ -35,6 +35,13 @@ namespace OpenXmlPowerTools
 
                     PackageRelationship relationshipForDeletedPart = partOfDeletedContent.GetRelationship(rId);
 
+                    // part is not allowed to be absolute
+                    // relationshipForDeletedPart.TargetUri -> could be absolute
+                    // ignore those parts (as they point to some external resource)
+                    if (relationshipForDeletedPart.TargetUri.IsAbsoluteUri)
+                    {
+                        continue;
+                    }
                     Uri targetUri = PackUriHelper
                         .ResolvePartUri(
                             new Uri(partOfDeletedContent.Uri.ToString(), UriKind.Relative),
