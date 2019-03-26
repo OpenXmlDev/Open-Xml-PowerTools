@@ -726,6 +726,29 @@ namespace OxPt
             }
         }
 
+        [Fact]
+        public void DB015_LatentStyles()
+        {
+            DirectoryInfo sourceDir = new DirectoryInfo("../../../../TestFiles/");
+            FileInfo source = new FileInfo(Path.Combine(sourceDir.FullName, "DB015-LatentStyles.docx"));
+            List<Source> sources = null;
+            
+            sources = new List<Source>()
+            {
+                new Source(new WmlDocument(source.FullName)),
+            };
+            var processedDestDocx = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, "DB015-LatentStyles.docx"));
+            DocumentBuilder.BuildDocument(sources, processedDestDocx.FullName);
+            Validate(processedDestDocx);
+
+            //using (WordprocessingDocument wDoc = WordprocessingDocument.Open(processedDestDocx.FullName, false))
+            //{
+            //    Assert.NotNull(wDoc.WebExTaskpanesPart);
+            //    Assert.Equal(2, wDoc.WebExTaskpanesPart.Taskpanes.ChildElements.Count);
+            //    Assert.Equal(2, wDoc.WebExTaskpanesPart.WebExtensionParts.Count());
+            //}
+        }
+
         [Theory]
         [InlineData("DB100-00010", "DB/GlossaryDocuments/CellLevelContentControl-built.docx", "DB/GlossaryDocuments/BaseDocument.docx,0,4", "DB/GlossaryDocuments/CellLevelContentControl.docx", "DB/GlossaryDocuments/BaseDocument.docx,4", null, null, null)]
         [InlineData("DB100-00020", "DB/GlossaryDocuments/InlineContentControl-built.docx", "DB/GlossaryDocuments/BaseDocument.docx,0,4", "DB/GlossaryDocuments/InlineContentControl.docx", "DB/GlossaryDocuments/BaseDocument.docx,4", null, null, null)]

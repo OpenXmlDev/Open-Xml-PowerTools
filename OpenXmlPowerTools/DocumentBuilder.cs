@@ -1777,6 +1777,59 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml
 #endif
         }
 
+        private static void MergeLatentStyles(XDocument fromStyles, XDocument toStyles)
+        {
+            var fromLatentStyles = fromStyles.Descendants(W.latentStyles).FirstOrDefault();
+            if (fromLatentStyles == null)
+                return;
+
+            var toLatentStyles = toStyles.Descendants(W.latentStyles).FirstOrDefault();
+            if (toLatentStyles == null)
+            {
+                var newLatentStylesElement = new XElement(W.latentStyles,
+                    fromLatentStyles.Attributes());
+                var globalDefaults = toStyles
+                    .Descendants(W.docDefaults)
+                    .FirstOrDefault();
+                if (globalDefaults == null)
+                {
+                    var firstStyle = toStyles
+                        .Root
+                        .Elements(W.style)
+                        .FirstOrDefault();
+                    if (firstStyle == null)
+                        toStyles.Root.Add(newLatentStylesElement);
+                    else
+                        firstStyle.AddBeforeSelf(newLatentStylesElement);
+                }
+                else
+                    globalDefaults.AddAfterSelf(newLatentStylesElement);
+            }
+            toLatentStyles = toStyles.Descendants(W.latentStyles).FirstOrDefault();
+            if (toLatentStyles == null)
+                throw new OpenXmlPowerToolsException("Internal error");
+
+            var toStylesHash = new HashSet<string>();
+            foreach (var lse in toLatentStyles.Elements(W.lsdException))
+                toStylesHash.Add((string)lse.Attribute(W.name));
+
+            foreach (var fls in fromLatentStyles.Elements(W.lsdException))
+            {
+                var name = (string)fls.Attribute(W.name);
+                if (toStylesHash.Contains(name))
+                    continue;
+                toLatentStyles.Add(fls);
+                toStylesHash.Add(name);
+            }
+
+            var count = toLatentStyles
+                .Elements(W.lsdException)
+                .Count();
+
+            toLatentStyles.SetAttributeValue(W.count, count);
+        }
+
+
 #if MergeStylesWithSameNames
         private static void ConvertToNewId(XElement element, Dictionary<string, string> newIds)
         {
@@ -1845,6 +1898,7 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml
                 {
                     XDocument newStyles = newDocument.MainDocumentPart.StyleDefinitionsPart.GetXDocument();
                     MergeStyles(sourceDocument, newDocument, oldStyles, newStyles, newContent);
+                    MergeLatentStyles(oldStyles, newStyles);
                 }
             }
 
@@ -1864,6 +1918,7 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml
                 {
                     XDocument newStyles = newDocument.MainDocumentPart.StylesWithEffectsPart.GetXDocument();
                     MergeStyles(sourceDocument, newDocument, oldStyles, newStyles, newContent);
+                    MergeLatentStyles(oldStyles, newStyles);
                 }
             }
 
@@ -3558,9 +3613,17 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml
                 newXDoc.Declaration.Standalone = Yes;
                 newXDoc.Declaration.Encoding = Utf8;
                 newXDoc.Add(new XElement(W.styles,
-                    new XAttribute(XNamespace.Xmlns + "w", W.w),
-                    stylesPart.GetXDocument().Descendants(W.docDefaults)));
+                    new XAttribute(XNamespace.Xmlns + "w", W.w)
+                    
+                    //,
+                    //stylesPart.GetXDocument().Descendants(W.docDefaults)
+                    
+                    //,
+                    //new XElement(W.latentStyles, stylesPart.GetXDocument().Descendants(W.latentStyles).Attributes())
+                    
+                    ));
                 MergeStyles(sourceDocument, newDocument, stylesPart.GetXDocument(), newXDoc, Enumerable.Empty<XElement>());
+                MergeLatentStyles(stylesPart.GetXDocument(), newXDoc);
             }
 
             // A Font Table part shall not have any implicit or explicit relationships to any other part.
