@@ -1196,14 +1196,37 @@ namespace OpenXmlPowerTools
             var partXDoc = part.GetXDocument();
             var styleXDoc = wDoc.MainDocumentPart.StyleDefinitionsPart.GetXDocument();
 
+            //var count1 = partXDoc.Descendants()
+            //    .Where(d => (d.Name == W.p || d.Name == W.tbl || d.Name == W.tr || d.Name == W.tc) && d.Attribute(PtOpenXml.ContentType) == null)
+            //    .Count();
+
             settings.ApplyContentTypesCustom?.Invoke(partXDoc, styleXDoc, settings, part); // this applies content types that are easy to find
                                                                                            // the function should add the ContentType attribute to paragraphs, which will then cause
                                                                                            // rules to not run for the paragraph
 
-            // in the following, filter for blc that does not have content type already set by ApplyContentTypesCustom
+            //var count2 = partXDoc.Descendants()
+            //    .Where(d => (d.Name == W.p || d.Name == W.tbl || d.Name == W.tr || d.Name == W.tc) && d.Attribute(PtOpenXml.ContentType) == null)
+            //    .Count();
+
+            var unassignedStyles = partXDoc.Descendants()
+                .Where(d => d.Name == W.p && d.Attribute(PtOpenXml.ContentType) == null)
+                .Select(d =>
+                {
+                    var styleId = (string)d.Elements(W.pPr).Elements(W.pStyle).Attributes(W.val).FirstOrDefault();
+                    return styleId;
+                })
+                .GroupBy(d => d)
+                .Select(g => new
+                {
+                    Style = g.Key,
+                    Count = g.Count(),
+                })
+                .OrderByDescending(p => p.Count)
+                .Select(p => string.Format("{0}{1}", p.Style.PadRight(20), p.Count) + Environment.NewLine)
+                .StringConcatenate();
+
             var blockContent = partXDoc.Descendants()
                 .Where(d => (d.Name == W.p || d.Name == W.tbl || d.Name == W.tr || d.Name == W.tc) && d.Attribute(PtOpenXml.ContentType) == null);
-
             int totalCount = 0;
             if (settings.ProgressFunction != null)
             {
@@ -1224,8 +1247,18 @@ namespace OpenXmlPowerTools
                 settings.ProgressFunction(pi);
             }
 
+            // in settings.ApplyContentTypesCustom, have applied block level content types.  Run content types need to be
+            // assigned for those paragraphs.
+            foreach (var blc in partXDoc
+                .Descendants(W.p)
+                .Where(d => d.Attribute(PtOpenXml.ContentType) != null))
+            {
+                ApplyRunContentTypes(settings, ctai, wDoc, blc, settings.RunContentTypeRules, part, partXDoc);
+            }
+
             var count = 0;
-            foreach (var blc in blockContent)
+            foreach (var blc in partXDoc.Descendants()
+                .Where(d => (d.Name == W.p || d.Name == W.tbl || d.Name == W.tr || d.Name == W.tc) && d.Attribute(PtOpenXml.ContentType) == null))
             {
                 if (settings.ProgressFunction != null)
                 {
@@ -1314,6 +1347,7 @@ namespace OpenXmlPowerTools
                 //Console.WriteLine(s9);
 
                 // Apply the Document rules first, then apply the DocumentType rules, then apply the Global rules.  First one that matches, wins.
+                bool needToApplyRunContentTypes = true;
                 foreach (var rule in settings.DocumentContentTypeRules.Concat(settings.DocumentTypeContentTypeRules).Concat(settings.GlobalContentTypeRules))
                 {
                     if (rule.DocumentTypeCollection != null)
@@ -1392,11 +1426,16 @@ namespace OpenXmlPowerTools
                             settings.ContentTypeCount.Add(rule.ContentType, new WmlToXmlContentTypeMetrics() { Count = 1, Tests = 1 });
                         AddContentTypeToBlockContent(settings, part, blc, rule.ContentType);
                         if (rule.ApplyRunContentTypes)
+                        {
                             ApplyRunContentTypes(settings, ctai, wDoc, blc, settings.RunContentTypeRules, part, partXDoc);
+                        }
+                        needToApplyRunContentTypes = false;
                         break;
                     }
-                    else
-                        ApplyRunContentTypes(settings, ctai, wDoc, blc, settings.RunContentTypeRules, part, partXDoc);
+                }
+                if (needToApplyRunContentTypes)
+                {
+                    ApplyRunContentTypes(settings, ctai, wDoc, blc, settings.RunContentTypeRules, part, partXDoc);
                 }
             }
 
@@ -1458,7 +1497,7 @@ namespace OpenXmlPowerTools
             XElement blockLevelContent, List<ContentTypeRule> runContentTypeRuleList, OpenXmlPart part, XDocument mainXDoc)
         {
             var runContent = blockLevelContent.Descendants()
-                .Where(d => d.Name == W.r || d.Name == W.hyperlink || d.Name == W.sdt || d.Name == W.bookmarkStart);
+                .Where(d => (d.Name == W.r || d.Name == W.hyperlink || d.Name == W.sdt || d.Name == W.bookmarkStart) && d.Attribute(PtOpenXml.ContentType) == null);
             foreach (var rlc in runContent)
             {
                 if (rlc.Name == W.r || rlc.Name == W.sdt)

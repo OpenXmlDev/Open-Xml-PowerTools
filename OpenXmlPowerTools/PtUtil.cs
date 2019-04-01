@@ -706,6 +706,49 @@ namespace OpenXmlPowerTools
             return stringBuilder.ToString();
         }
 
+        public static void ToStringNewLineOnAttributes(this XElement element, out StringBuilder stringBuilder)
+        {
+            var settings = new XmlWriterSettings
+            {
+                Indent = true,
+                OmitXmlDeclaration = true,
+                NewLineOnAttributes = true
+            };
+            stringBuilder = new StringBuilder();
+            using (var stringWriter = new StringWriter(stringBuilder))
+            using (XmlWriter xmlWriter = XmlWriter.Create(stringWriter, settings))
+                element.WriteTo(xmlWriter);
+        }
+
+        public static string ToStringNewLineOnAttributes(this XDocument document)
+        {
+            var settings = new XmlWriterSettings
+            {
+                Indent = true,
+                OmitXmlDeclaration = true,
+                NewLineOnAttributes = true
+            };
+            var stringBuilder = new StringBuilder();
+            using (var stringWriter = new StringWriter(stringBuilder))
+            using (XmlWriter xmlWriter = XmlWriter.Create(stringWriter, settings))
+                document.WriteTo(xmlWriter);
+            return stringBuilder.ToString();
+        }
+
+        public static void ToStringNewLineOnAttributes(this XDocument document, out StringBuilder stringBuilder)
+        {
+            var settings = new XmlWriterSettings
+            {
+                Indent = true,
+                OmitXmlDeclaration = true,
+                NewLineOnAttributes = true
+            };
+            stringBuilder = new StringBuilder();
+            using (var stringWriter = new StringWriter(stringBuilder))
+            using (XmlWriter xmlWriter = XmlWriter.Create(stringWriter, settings))
+                document.WriteTo(xmlWriter);
+        }
+
         public static IEnumerable<XElement> DescendantsTrimmed(this XElement element,
             XName trimName)
         {
@@ -1215,6 +1258,128 @@ namespace OpenXmlPowerTools
         }
 
         public static void Init()
+        {
+            Buckets = new Dictionary<string, BucketInfo>();
+        }
+    }
+
+    // this is fundamentally the same as PtBucketTimer, except that it is instance based,
+    // not a static class.
+    public class BucketTimer
+    {
+        public BucketTimer()
+        {
+            Buckets = new Dictionary<string, BucketInfo>();
+        }
+
+        private class BucketInfo
+        {
+            public int Count;
+            public TimeSpan Time;
+        }
+
+        private string LastBucket = null;
+        private DateTime LastTime;
+        private Dictionary<string, BucketInfo> Buckets;
+
+        public void Bucket(string bucket)
+        {
+            DateTime now = DateTime.Now;
+            if (LastBucket != null)
+                AddToBuckets(now);
+            LastBucket = bucket;
+            LastTime = now;
+        }
+
+        public void End()
+        {
+            DateTime now = DateTime.Now;
+            if (LastBucket != null)
+                AddToBuckets(now);
+            LastBucket = null;
+        }
+
+        private void AddToBuckets(DateTime now)
+        {
+            TimeSpan d = now - LastTime;
+            var bucketParts = LastBucket.Split('/');
+            var bucketList = bucketParts.Select((t, i) => bucketParts
+                .Take(i + 1)
+                .Select(z => z + "/")
+                .StringConcatenate()
+                .Trim('/'))
+                .ToList();
+
+            foreach (var b in bucketList)
+            {
+                if (Buckets.ContainsKey(b))
+                {
+                    Buckets[b].Count = Buckets[b].Count + 1;
+                    Buckets[b].Time += d;
+                }
+                else
+                {
+                    Buckets.Add(b, new BucketInfo()
+                    {
+                        Count = 1,
+                        Time = d,
+                    });
+                }
+            }
+            LastTime = now;
+        }
+
+        public string DumpBucketsByKey()
+        {
+            StringBuilder sb = new StringBuilder();
+            foreach (var bucket in Buckets.OrderBy(b => b.Key))
+            {
+                string ts = bucket.Value.Time.ToString();
+                if (ts.Contains('.'))
+                    ts = ts.Substring(0, ts.Length - 5);
+                string s = bucket.Key.PadRight(60, '-') + "  " + string.Format("{0:00000000}", bucket.Value.Count) + "  " + ts;
+                sb.Append(s + Environment.NewLine);
+            }
+            TimeSpan total = Buckets
+                .Aggregate(TimeSpan.Zero, (t, b) => t + b.Value.Time);
+            var tz = total.ToString();
+            sb.Append(string.Format("Total: {0}", tz.Substring(0, tz.Length - 5)));
+            return sb.ToString();
+        }
+
+        public string DumpBucketsToCsvByKey()
+        {
+            StringBuilder sb = new StringBuilder();
+            foreach (var bucket in Buckets.OrderBy(b => b.Key))
+            {
+                string ts = bucket.Value.Time.ToString();
+                if (ts.Contains('.'))
+                    ts = ts.Substring(0, ts.Length - 5);
+                string s = bucket.Key + "," + bucket.Value.Count.ToString() + "," + ts;
+                sb.Append(s + Environment.NewLine);
+            }
+            return sb.ToString();
+        }
+
+        public string DumpBucketsByTime()
+        {
+            StringBuilder sb = new StringBuilder();
+            foreach (var bucket in Buckets.OrderBy(b => b.Value.Time))
+            {
+                string ts = bucket.Value.Time.ToString();
+                if (ts.Contains('.'))
+                    ts = ts.Substring(0, ts.Length - 5);
+                string s = bucket.Key.PadRight(60, '-') + "  " + string.Format("{0:00000000}", bucket.Value.Count) + "  " + ts;
+                sb.Append(s + Environment.NewLine);
+            }
+            TimeSpan total = Buckets
+                .Aggregate(TimeSpan.Zero, (t, b) => t + b.Value.Time);
+            var tz = total.ToString();
+            sb.Append(string.Format("Total: {0}", tz.Substring(0, tz.Length - 5)));
+            return sb.ToString();
+        }
+
+        public void Init()
         {
             Buckets = new Dictionary<string, BucketInfo>();
         }
