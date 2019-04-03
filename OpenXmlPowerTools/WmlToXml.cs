@@ -124,6 +124,10 @@ namespace OpenXmlPowerTools
         public Dictionary<string, WmlToXmlContentTypeMetrics> ContentTypeCount = new Dictionary<string, WmlToXmlContentTypeMetrics>();
         public object UserData;
 
+#if PERF_METRICS
+        public BucketTimer BucketTimer;
+#endif
+
         // new approach will be to have a void constructor, and then set every property after constructing.
         public WmlToXmlSettings()
         {
@@ -242,6 +246,10 @@ namespace OpenXmlPowerTools
                 settings.ProgressFunction(pi);
             }
 
+#if PERF_METRICS
+            if (settings.BucketTimer != null)
+                settings.BucketTimer.Bucket("100-ValidateAndTransform/120-MarkupSimplifier");
+#endif
             SimplifyMarkupSettings markupSimplifierSettings = new SimplifyMarkupSettings()
             {
                 AcceptRevisions = true,
@@ -276,6 +284,10 @@ namespace OpenXmlPowerTools
                 settings.ProgressFunction(pi);
             }
 
+#if PERF_METRICS
+            if (settings.BucketTimer != null)
+                settings.BucketTimer.Bucket("100-ValidateAndTransform/130-FormattingAssembler");
+#endif
             FormattingAssemblerSettings formattingAssemblerSettings = new FormattingAssemblerSettings();
             formattingAssemblerSettings.RemoveStyleNamesFromParagraphAndRunProperties = false;
             formattingAssemblerSettings.RestrictToSupportedLanguages = false;
@@ -318,8 +330,16 @@ namespace OpenXmlPowerTools
                 settings.ProgressFunction(pi);
             }
 
+#if PERF_METRICS
+            if (settings.BucketTimer != null)
+                settings.BucketTimer.Bucket("100-ValidateAndTransform/140-AssembleListItemInformation");
+#endif
             ListItemRetrieverSettings listItemRetrieverSettings = new ListItemRetrieverSettings();
             AssembleListItemInformation(wDoc, settings.ListItemRetrieverSettings);
+#if PERF_METRICS
+            if (settings.BucketTimer != null)
+                settings.BucketTimer.Bucket("100-ValidateAndTransform/150-ApplyContentTypesForRuleSet");
+#endif
             ApplyContentTypesForRuleSet(settings, ctai, wDoc);
         }
 
@@ -607,50 +627,6 @@ namespace OpenXmlPowerTools
 
         // this is where we need to do the same type of run annotation as for complex fields, but for simple fields.
         // I think that we may need to split up the run following the simple field
-
-#if false
-<w:p pt:StyleName="Caption" pt:ContentType="Caption" pt:Level="2">
-  <w:r pt:ContentType="Span">
-    <w:t xml:space="preserve">Table </w:t>
-  </w:r>
-  <w:r>
-    <w:fldChar w:fldCharType="begin" />
-  </w:r>
-  <w:r>
-    <w:instrText xml:space="preserve"> STYLEREF 1 \s </w:instrText>
-  </w:r>
-  <w:r>
-    <w:fldChar w:fldCharType="separate" />
-  </w:r>
-  <w:r pt:ContentType="Span">
-    <w:t>1</w:t>
-  </w:r>
-  <w:r>
-    <w:fldChar w:fldCharType="end" />
-  </w:r>
-  <w:r pt:ContentType="Span">
-    <w:t>.</w:t>
-  </w:r>
-  <w:r>
-    <w:fldChar w:fldCharType="begin" />
-  </w:r>
-  <w:r>
-    <w:instrText xml:space="preserve"> SEQ Table \* ARABIC </w:instrText>
-  </w:r>
-  <w:r>
-    <w:fldChar w:fldCharType="separate" />
-  </w:r>
-  <w:r pt:ContentType="Span">
-    <w:t>1</w:t>
-  </w:r>
-  <w:r>
-    <w:fldChar w:fldCharType="end" />
-  </w:r>
-  <w:r pt:ContentType="Span">
-    <w:t>Type the title here</w:t>
-  </w:r>
-</w:p>
-#endif
 
         private static void AnnotateRunsThatUseFieldsForNumbering(XDocument mainXDoc)
         {
@@ -1200,9 +1176,17 @@ namespace OpenXmlPowerTools
             //    .Where(d => (d.Name == W.p || d.Name == W.tbl || d.Name == W.tr || d.Name == W.tc) && d.Attribute(PtOpenXml.ContentType) == null)
             //    .Count();
 
+#if PERF_METRICS
+                if (settings.BucketTimer != null)
+                    settings.BucketTimer.Bucket("100-ValidateAndTransform/160-ApplyContentTypesCustom");
+#endif
             settings.ApplyContentTypesCustom?.Invoke(partXDoc, styleXDoc, settings, part); // this applies content types that are easy to find
-                                                                                           // the function should add the ContentType attribute to paragraphs, which will then cause
-                                                                                           // rules to not run for the paragraph
+#if PERF_METRICS
+            if (settings.BucketTimer != null)
+                settings.BucketTimer.Bucket("100-ValidateAndTransform/170-ApplyRulesToPart");
+#endif
+            // the function should add the ContentType attribute to paragraphs, which will then cause
+            // rules to not run for the paragraph
 
             //var count2 = partXDoc.Descendants()
             //    .Where(d => (d.Name == W.p || d.Name == W.tbl || d.Name == W.tr || d.Name == W.tc) && d.Attribute(PtOpenXml.ContentType) == null)
