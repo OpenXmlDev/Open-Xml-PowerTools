@@ -215,25 +215,28 @@ namespace OpenXmlPowerTools
         public static object GetCellValue(SpreadsheetDocument document, WorksheetPart worksheet, int column, int row)
         {
             XDocument worksheetXDocument = worksheet.GetXDocument();
-            XElement cellValue = GetCell(worksheetXDocument, column, row);
+            XElement cell = GetCell(worksheetXDocument, column, row);
 
-            if (cellValue != null)
+            if (cell != null)
             {
-                if (cellValue.Attribute(NoNamespace.t) == null)
+                if (cell.Attribute(NoNamespace.t) == null)
                 {
-                    string value = cellValue.Element(S.v).Value;
+                    var cellValue = cell.Element(S.v);
+                    if (cellValue == null) return null;
+
+                    string value = cellValue.Value;
                     if (value.Contains("."))
                         return Convert.ToDouble(value);
                     return Convert.ToInt32(value);
                 }
-                switch (cellValue.Attribute(NoNamespace.t).Value)
+                switch (cell.Attribute(NoNamespace.t).Value)
                 {
                     case "b":
-                        return (cellValue.Element(S.v).Value == "1");
+                        return (cell.Element(S.v).Value == "1");
                     case "s":
-                        return GetSharedString(document, System.Convert.ToInt32(cellValue.Element(S.v).Value));
+                        return GetSharedString(document, System.Convert.ToInt32(cell.Element(S.v).Value));
                     case "inlineStr":
-                        return cellValue.Element(S._is).Element(S.t).Value;
+                        return cell.Element(S._is).Element(S.t).Value;
                 }
             }
             return null;
