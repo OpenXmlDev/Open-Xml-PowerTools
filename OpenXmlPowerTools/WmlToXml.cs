@@ -121,6 +121,7 @@ namespace OpenXmlPowerTools
         public string DefaultLang;
         public string DocumentType;
         public Action<XDocument, XDocument, WmlToXmlSettings, OpenXmlPart> ApplyContentTypesCustom;
+        public Action<WordprocessingDocument, WmlToXmlSettings> PreliminaryProcessing;
         public Dictionary<string, WmlToXmlContentTypeMetrics> ContentTypeCount = new Dictionary<string, WmlToXmlContentTypeMetrics>();
         public object UserData;
 
@@ -246,53 +247,10 @@ namespace OpenXmlPowerTools
                 settings.ProgressFunction(pi);
             }
 
-#if PERF_METRICS
-            if (settings.BucketTimer != null)
-                settings.BucketTimer.Bucket("100-ValidateAndTransform/120-MarkupSimplifier");
-#endif
-            SimplifyMarkupSettings markupSimplifierSettings = new SimplifyMarkupSettings()
+            if (settings.PreliminaryProcessing != null)
             {
-                AcceptRevisions = true,
-                NormalizeXml = true,
-                RemoveBookmarks = false,
-                RemoveComments = true,
-                RemoveContentControls = false,
-                RemoveEndAndFootNotes = false,
-                RemoveFieldCodes = false,
-                RemoveGoBackBookmark = true,
-                RemoveHyperlinks = false,
-                RemoveLastRenderedPageBreak = true,
-                RemoveMarkupForDocumentComparison = false,
-                RemovePermissions = true,
-                RemoveProof = true,
-                RemoveRsidInfo = true,
-                RemoveSmartTags = true,
-                RemoveSoftHyphens = false,
-                RemoveWebHidden = true,
-                ReplaceTabsWithSpaces = false,
-            };
-            MarkupSimplifier.SimplifyMarkup(wDoc, markupSimplifierSettings);
-
-            if (settings.ProgressFunction != null)
-            {
-                WmlToXmlProgressInfo pi = new WmlToXmlProgressInfo()
-                {
-                    ContentCount = 0,
-                    ContentTotal = 0,
-                    InProgressMessage = "Assemble formatting" + Environment.NewLine,
-                };
-                settings.ProgressFunction(pi);
+                settings.PreliminaryProcessing(wDoc, settings);
             }
-
-#if PERF_METRICS
-            if (settings.BucketTimer != null)
-                settings.BucketTimer.Bucket("100-ValidateAndTransform/130-FormattingAssembler");
-#endif
-            FormattingAssemblerSettings formattingAssemblerSettings = new FormattingAssemblerSettings();
-            formattingAssemblerSettings.RemoveStyleNamesFromParagraphAndRunProperties = false;
-            formattingAssemblerSettings.RestrictToSupportedLanguages = false;
-            formattingAssemblerSettings.RestrictToSupportedNumberingFormats = false;
-            FormattingAssembler.AssembleFormatting(wDoc, formattingAssemblerSettings);
 
             ContentTypeApplierInfo ctai = new ContentTypeApplierInfo();
 
@@ -1023,6 +981,15 @@ namespace OpenXmlPowerTools
                         throw new OpenXmlPowerToolsException("Entry for Hyperlink content type in XML generation lambdas is required");
                     }
                 }
+                if (element.Name == W.ins || element.Name == W.del)
+                {
+                    var newElement = new XElement(element.Name,
+                        element.Attributes(),
+                        element.Elements().Select(e => ProduceXmlTransform(part, e, settings)));
+                    return newElement;
+                }
+                if (element.Name == W.delText || element.Name == W.delInstrText)
+                    return element;
 
                 if (contentType != null)
                 {
@@ -1067,8 +1034,8 @@ namespace OpenXmlPowerTools
                     // todo this is not ideal in my mind.  Need to think about this more.  Maybe every content type
                     // must have a generation lambda.
 
-                    return new XElement(contentType, new XElement("Content",
-                        element.Elements().Select(rce => ProduceXmlTransform(part, rce, settings))));
+                    return new XElement(contentType, 
+                        element.Elements().Select(rce => ProduceXmlTransform(part, rce, settings)));
                 }
 
                 // ignore any other elements
