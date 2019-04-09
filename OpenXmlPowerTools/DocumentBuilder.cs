@@ -1829,6 +1829,14 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml
             toLatentStyles.SetAttributeValue(W.count, count);
         }
 
+        private static void MergeDocDefaultStyles(XDocument xDocument, XDocument newXDoc)
+        {
+            var docDefaultStyles = xDocument.Descendants(W.docDefaults);
+            foreach (var docDefaultStyle in docDefaultStyles)
+            {
+                newXDoc.Root.Add(docDefaultStyle);
+            }
+        }
 
 #if MergeStylesWithSameNames
         private static void ConvertToNewId(XElement element, Dictionary<string, string> newIds)
@@ -3622,6 +3630,7 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml
                     //new XElement(W.latentStyles, stylesPart.GetXDocument().Descendants(W.latentStyles).Attributes())
                     
                     ));
+                MergeDocDefaultStyles(stylesPart.GetXDocument(), newXDoc);
                 MergeStyles(sourceDocument, newDocument, stylesPart.GetXDocument(), newXDoc, Enumerable.Empty<XElement>());
                 MergeLatentStyles(stylesPart.GetXDocument(), newXDoc);
             }
