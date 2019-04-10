@@ -749,6 +749,29 @@ namespace OxPt
             //}
         }
 
+        [Fact]
+        public void DB0016_DocDefaultStyles()
+        {
+            string name = "DB0016-DocDefaultStyles.docx";
+            DirectoryInfo sourceDir = new DirectoryInfo("../../../../TestFiles/");
+            FileInfo sourceDocx = new FileInfo(Path.Combine(sourceDir.FullName, name));
+
+            List<Source> sources = null;
+            sources = new List<Source>()
+            {
+                new Source(new WmlDocument(sourceDocx.FullName), true),
+            };
+            var processedDestDocx = new FileInfo(Path.Combine(TestUtil.TempDir.FullName,
+                sourceDocx.Name.Replace(".docx", "-processed-by-DocumentBuilder.docx")));
+            DocumentBuilder.BuildDocument(sources, processedDestDocx.FullName);
+
+            using (WordprocessingDocument wDoc = WordprocessingDocument.Open(processedDestDocx.FullName, true))
+            {
+                var styles = wDoc.MainDocumentPart.StyleDefinitionsPart.GetXDocument().Root.Elements(W.docDefaults).ToArray();
+                Assert.Single(styles);
+            }
+        }
+
         [Theory]
         [InlineData("DB100-00010", "DB/GlossaryDocuments/CellLevelContentControl-built.docx", "DB/GlossaryDocuments/BaseDocument.docx,0,4", "DB/GlossaryDocuments/CellLevelContentControl.docx", "DB/GlossaryDocuments/BaseDocument.docx,4", null, null, null)]
         [InlineData("DB100-00020", "DB/GlossaryDocuments/InlineContentControl-built.docx", "DB/GlossaryDocuments/BaseDocument.docx,0,4", "DB/GlossaryDocuments/InlineContentControl.docx", "DB/GlossaryDocuments/BaseDocument.docx,4", null, null, null)]
