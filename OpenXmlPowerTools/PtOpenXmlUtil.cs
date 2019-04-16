@@ -948,6 +948,19 @@ namespace OpenXmlPowerTools
             return runContainerWithConsolidatedRuns;
         }
 
+        public static XName[] RelationshipAttNames = new XName[]
+        {
+            R.embed,
+            R.link,
+            R.id,
+            R.cs,
+            R.dm,
+            R.lo,
+            R.qs,
+            R.href,
+            R.pict,
+        };
+
         private static Dictionary<XName, int> Order_settings = new Dictionary<XName, int>
         {
             { W.writeProtection, 10}, 

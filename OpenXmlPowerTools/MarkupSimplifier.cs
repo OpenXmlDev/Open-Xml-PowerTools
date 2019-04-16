@@ -234,7 +234,14 @@ namespace OpenXmlPowerTools
             var element = node as XElement;
             if (element != null)
             {
-                if (((element.Name == W.r) || (element.Name == W.rPr) || (element.Name == W.pPr)) &&
+                if (element.Name == W.r && !element.Elements().Any())
+                    return null;
+
+                if (element.Name == W.rPr && element.Parent.Name != W.rPrChange &&
+                    !element.Elements().Any())
+                    return null;
+
+                if (element.Name == W.pPr && element.Parent.Name != W.pPrChange &&
                     !element.Elements().Any())
                     return null;
 
@@ -571,6 +578,8 @@ namespace OpenXmlPowerTools
                 prevNewRoot = new XDocument(newRoot);
             }
 
+            AdjustRevMarkIds(newRoot);
+
             if (settings.NormalizeXml)
             {
                 XAttribute[] nsAttrs =
@@ -607,6 +616,31 @@ namespace OpenXmlPowerTools
             else
             {
                 part.PutXDocument(new XDocument(newRoot));
+            }
+        }
+
+        private static void AdjustRevMarkIds(XElement newRoot)
+        {
+            int id = 1;
+            foreach (var revMu in newRoot
+                .Descendants()
+                .Where(d => d.Name == W.del ||
+                    d.Name == W.ins ||
+                    d.Name == W.rPrChange ||
+                    d.Name == W.pPrChange ||
+                    d.Name == W.tblPrChange ||
+                    d.Name == W.tblPrExChange ||
+                    d.Name == W.tcPrChange ||
+                    d.Name == W.trPrChange ||
+                    d.Name == W.sectPrChange ||
+                    d.Name == W.tblGridChange ||
+                    d.Name == W.cellDel ||
+                    d.Name == W.cellIns ||
+                    d.Name == W.cellMerge))
+            {
+                var idAtt = revMu.Attribute(W.id);
+                if (idAtt != null)
+                    idAtt.Value = (id++).ToString();
             }
         }
 
