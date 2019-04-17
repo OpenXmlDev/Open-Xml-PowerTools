@@ -991,6 +991,9 @@ namespace OpenXmlPowerTools
                 if (element.Name == W.delText || element.Name == W.delInstrText)
                     return element;
 
+                if (element.Name == W.tcPr)
+                    return element;
+
                 if (contentType != null)
                 {
 
