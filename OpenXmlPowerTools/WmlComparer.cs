@@ -101,7 +101,7 @@ namespace OpenXmlPowerTools
     {
         public static bool s_False = false;
         public static bool s_True = true;
-        public static bool s_SaveIntermediateFilesForDebugging = false;
+        public static bool s_SaveIntermediateFilesForDebugging = true;
 
         public static WmlDocument Compare(WmlDocument source1, WmlDocument source2, WmlComparerSettings settings)
         {
@@ -3564,7 +3564,14 @@ namespace OpenXmlPowerTools
             "type",
         };
 
-        private static object CloneBlockLevelContentForHashing(OpenXmlPart mainDocumentPart, XNode node, bool includeRelatedParts, WmlComparerSettings settings)
+        private static XElement CloneBlockLevelContentForHashing(OpenXmlPart mainDocumentPart, XNode node, bool includeRelatedParts, WmlComparerSettings settings)
+        {
+            var rValue = (XElement)CloneBlockLevelContentForHashingInternal(mainDocumentPart, node, includeRelatedParts, settings);
+            rValue.DescendantsAndSelf().Attributes().Where(a => a.IsNamespaceDeclaration).Remove();
+            return rValue;
+        }
+
+        private static object CloneBlockLevelContentForHashingInternal(OpenXmlPart mainDocumentPart, XNode node, bool includeRelatedParts, WmlComparerSettings settings)
         {
             var element = node as XElement;
             if (element != null)
@@ -3573,6 +3580,9 @@ namespace OpenXmlPowerTools
                     element.Name == W.bookmarkEnd ||
                     element.Name == W.pPr ||
                     element.Name == W.rPr)
+                    return null;
+
+                if (element.Name.Namespace == A14.a14)
                     return null;
 
                 if (element.Name == W.p)
@@ -3587,7 +3597,7 @@ namespace OpenXmlPowerTools
                                 a.Name != W.rsidSect &&
                                 a.Name != W.rsidTr &&
                                 a.Name.Namespace != PtOpenXml.pt),
-                        element.Nodes().Select(n => CloneBlockLevelContentForHashing(mainDocumentPart, n, includeRelatedParts, settings)));
+                        element.Nodes().Select(n => CloneBlockLevelContentForHashingInternal(mainDocumentPart, n, includeRelatedParts, settings)));
 
                     var groupedRuns = clonedPara
                         .Elements()
@@ -3621,35 +3631,35 @@ namespace OpenXmlPowerTools
                     var clonedRuns = element
                         .Elements()
                         .Where(e => e.Name != W.rPr)
-                        .Select(rc => new XElement(W.r, CloneBlockLevelContentForHashing(mainDocumentPart, rc, includeRelatedParts, settings)));
+                        .Select(rc => new XElement(W.r, CloneBlockLevelContentForHashingInternal(mainDocumentPart, rc, includeRelatedParts, settings)));
                     return clonedRuns;
                 }
 
                 if (element.Name == W.tbl)
                 {
                     var clonedTable = new XElement(W.tbl,
-                        element.Elements(W.tr).Select(n => CloneBlockLevelContentForHashing(mainDocumentPart, n, includeRelatedParts, settings)));
+                        element.Elements(W.tr).Select(n => CloneBlockLevelContentForHashingInternal(mainDocumentPart, n, includeRelatedParts, settings)));
                     return clonedTable;
                 }
 
                 if (element.Name == W.tr)
                 {
                     var clonedRow = new XElement(W.tr,
-                        element.Elements(W.tc).Select(n => CloneBlockLevelContentForHashing(mainDocumentPart, n, includeRelatedParts, settings)));
+                        element.Elements(W.tc).Select(n => CloneBlockLevelContentForHashingInternal(mainDocumentPart, n, includeRelatedParts, settings)));
                     return clonedRow;
                 }
 
                 if (element.Name == W.tc)
                 {
                     var clonedCell = new XElement(W.tc,
-                        element.Elements().Select(n => CloneBlockLevelContentForHashing(mainDocumentPart, n, includeRelatedParts, settings)));
+                        element.Elements().Select(n => CloneBlockLevelContentForHashingInternal(mainDocumentPart, n, includeRelatedParts, settings)));
                     return clonedCell;
                 }
 
                 if (element.Name == W.tcPr)
                 {
                     var clonedCellProps = new XElement(W.tcPr,
-                        element.Elements(W.gridSpan).Select(n => CloneBlockLevelContentForHashing(mainDocumentPart, n, includeRelatedParts, settings)));
+                        element.Elements(W.gridSpan).Select(n => CloneBlockLevelContentForHashingInternal(mainDocumentPart, n, includeRelatedParts, settings)));
                     return clonedCellProps;
                 }
 
@@ -3663,7 +3673,7 @@ namespace OpenXmlPowerTools
                 if (element.Name == W.txbxContent)
                 {
                     var clonedTextbox = new XElement(W.txbxContent,
-                        element.Elements().Select(n => CloneBlockLevelContentForHashing(mainDocumentPart, n, includeRelatedParts, settings)));
+                        element.Elements().Select(n => CloneBlockLevelContentForHashingInternal(mainDocumentPart, n, includeRelatedParts, settings)));
                     return clonedTextbox;
                 }
 
@@ -3726,7 +3736,7 @@ namespace OpenXmlPowerTools
 
                                     return null;
                                 }),
-                            element.Nodes().Select(n => CloneBlockLevelContentForHashing(mainDocumentPart, n, includeRelatedParts, settings)));
+                            element.Nodes().Select(n => CloneBlockLevelContentForHashingInternal(mainDocumentPart, n, includeRelatedParts, settings)));
                         return newElement;
                     }
                 }
@@ -3737,7 +3747,7 @@ namespace OpenXmlPowerTools
                         element.Attributes()
                             .Where(a => a.Name.Namespace != PtOpenXml.pt)
                             .Where(a => a.Name != "style" && a.Name != "id" && a.Name != "type"),
-                        element.Nodes().Select(n => CloneBlockLevelContentForHashing(mainDocumentPart, n, includeRelatedParts, settings)));
+                        element.Nodes().Select(n => CloneBlockLevelContentForHashingInternal(mainDocumentPart, n, includeRelatedParts, settings)));
                 }
 
                 if (element.Name == O.OLEObject)
@@ -3746,7 +3756,7 @@ namespace OpenXmlPowerTools
                         element.Attributes()
                             .Where(a => a.Name.Namespace != PtOpenXml.pt)
                             .Where(a => a.Name != "ObjectID" && a.Name != R.id),
-                        element.Nodes().Select(n => CloneBlockLevelContentForHashing(mainDocumentPart, n, includeRelatedParts, settings)));
+                        element.Nodes().Select(n => CloneBlockLevelContentForHashingInternal(mainDocumentPart, n, includeRelatedParts, settings)));
                     return o;
                 }
 
@@ -3755,7 +3765,7 @@ namespace OpenXmlPowerTools
                     var o = new XElement(element.Name,
                         element.Attributes()
                             .Where(a => a.Name.Namespace != PtOpenXml.pt),
-                        element.Nodes().Select(n => CloneBlockLevelContentForHashing(mainDocumentPart, n, includeRelatedParts, settings)));
+                        element.Nodes().Select(n => CloneBlockLevelContentForHashingInternal(mainDocumentPart, n, includeRelatedParts, settings)));
                     return o;
                 }
 
@@ -3764,14 +3774,14 @@ namespace OpenXmlPowerTools
                     return new XElement(element.Name,
                         element.Attributes()
                             .Where(a => a.Name.Namespace != PtOpenXml.pt && a.Name != "id"),
-                        element.Nodes().Select(n => CloneBlockLevelContentForHashing(mainDocumentPart, n, includeRelatedParts, settings)));
+                        element.Nodes().Select(n => CloneBlockLevelContentForHashingInternal(mainDocumentPart, n, includeRelatedParts, settings)));
                 }
 
                 return new XElement(element.Name,
                     element.Attributes()
                         .Where(a => a.Name.Namespace != PtOpenXml.pt)
                         .Where(a => !AttributesToTrimWhenCloning.Contains(a.Name)),
-                    element.Nodes().Select(n => CloneBlockLevelContentForHashing(mainDocumentPart, n, includeRelatedParts, settings)));
+                    element.Nodes().Select(n => CloneBlockLevelContentForHashingInternal(mainDocumentPart, n, includeRelatedParts, settings)));
             }
             if (settings.CaseInsensitive || settings.ConflateBreakingAndNonbreakingSpaces)
             {
