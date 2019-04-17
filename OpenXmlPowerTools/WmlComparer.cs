@@ -101,7 +101,7 @@ namespace OpenXmlPowerTools
     {
         public static bool s_False = false;
         public static bool s_True = true;
-        public static bool s_SaveIntermediateFilesForDebugging = true;
+        public static bool s_SaveIntermediateFilesForDebugging = false;
 
         public static WmlDocument Compare(WmlDocument source1, WmlDocument source2, WmlComparerSettings settings)
         {
