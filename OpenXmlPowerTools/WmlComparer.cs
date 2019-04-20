@@ -3777,6 +3777,14 @@ namespace OpenXmlPowerTools
                         element.Nodes().Select(n => CloneBlockLevelContentForHashingInternal(mainDocumentPart, n, includeRelatedParts, settings)));
                 }
 
+                if (element.Name == W.footnoteReference || element.Name == W.endnoteReference)
+                {
+                    return new XElement(element.Name,
+                        element.Attributes()
+                            .Where(a => a.Name.Namespace != PtOpenXml.pt && a.Name != W.id),
+                        element.Nodes().Select(n => CloneBlockLevelContentForHashingInternal(mainDocumentPart, n, includeRelatedParts, settings)));
+                }
+
                 return new XElement(element.Name,
                     element.Attributes()
                         .Where(a => a.Name.Namespace != PtOpenXml.pt)

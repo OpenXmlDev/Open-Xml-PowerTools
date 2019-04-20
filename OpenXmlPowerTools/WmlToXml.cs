@@ -114,8 +114,6 @@ namespace OpenXmlPowerTools
         public bool? InjectCommentForContentTypes;
         public List<ContentTypeHierarchyInfo> ContentTypeHierarchyInfoList;
         public Dictionary<string, Func<string, OpenXmlPart, XElement, WmlToXmlSettings, object>> XmlGenerationLambdas;
-        public DirectoryInfo ImageBase;
-        public bool WriteImageFiles = true;
         public Action<WmlToXmlProgressInfo> ProgressFunction;
         public XDocument ContentTypeRegexExtension;
         public string DefaultLang;
@@ -123,6 +121,13 @@ namespace OpenXmlPowerTools
         public Action<XDocument, XDocument, WmlToXmlSettings, OpenXmlPart> ApplyContentTypesCustom;
         public Action<WordprocessingDocument, WmlToXmlSettings> PreliminaryProcessing;
         public Dictionary<string, WmlToXmlContentTypeMetrics> ContentTypeCount = new Dictionary<string, WmlToXmlContentTypeMetrics>();
+
+        public string BinaryFileRelativeBase;
+        // first string is the relative path if writing zip
+        // second string is the name of the file
+        // stream is the stream
+        public Action<string, string, Stream> WriteBinaryFileLambda;
+
         public object UserData;
 
 #if PERF_METRICS
