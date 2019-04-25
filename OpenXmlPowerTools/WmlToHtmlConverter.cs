@@ -44,6 +44,7 @@ namespace OpenXmlPowerTools
         public bool FabricateCssClasses;
         public string GeneralCss;
         public string AdditionalCss;
+        public bool AcceptRevisions;
         public bool RestrictToSupportedLanguages;
         public bool RestrictToSupportedNumberingFormats;
         public Dictionary<string, Func<string, int, string, string>> ListItemImplementations;
@@ -56,6 +57,7 @@ namespace OpenXmlPowerTools
             FabricateCssClasses = true;
             GeneralCss = "span { white-space: pre-wrap; }";
             AdditionalCss = "";
+            AcceptRevisions = true;
             RestrictToSupportedLanguages = false;
             RestrictToSupportedNumberingFormats = false;
             ListItemImplementations = ListItemRetrieverSettings.DefaultListItemTextImplementations;
@@ -145,7 +147,10 @@ namespace OpenXmlPowerTools
 
         public static XElement ConvertToHtml(WordprocessingDocument wordDoc, WmlToHtmlConverterSettings htmlConverterSettings)
         {
-            RevisionAccepter.AcceptRevisions(wordDoc);
+            if (htmlConverterSettings.AcceptRevisions)
+            {
+                RevisionAccepter.AcceptRevisions(wordDoc);
+            }
             SimplifyMarkupSettings simplifyMarkupSettings = new SimplifyMarkupSettings
             {
                 RemoveComments = true,
@@ -434,6 +439,25 @@ namespace OpenXmlPowerTools
             if (element.Name == W.hyperlink && element.Attribute(W.anchor) != null)
             {
                 return ProcessHyperlinkToBookmark(wordDoc, settings, element);
+            }
+
+            // Transform http://www.datypic.com/sc/ooxml/t-w_CT_TrackChange.html
+            if (element.Name == W.ins || element.Name == W.del)
+            {
+                XName newName = element.Name == W.ins ? Xhtml.ins : Xhtml.del;
+                
+                return new XElement(newName, element.Elements()
+                    .Select(e => ConvertToHtmlTransform(wordDoc, settings, e, suppressTrailingWhiteSpace, currentMarginLeft))
+                    .ToList());
+            }
+
+            if (element.Name == W.delText)
+            {
+                // delText can stay if revisions were NOT accepted
+                if (!settings.AcceptRevisions)
+                {
+                    return new XText(element.Value);
+                }
             }
 
             // Transform contents of runs.
