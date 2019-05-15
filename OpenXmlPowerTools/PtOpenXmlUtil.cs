@@ -5827,6 +5827,7 @@ listSeparator
         public static XName Level = pt + "Level";
         public static XName IndentLevel = pt + "IndentLevel";
         public static XName ContentType = pt + "ContentType";
+        public static XName HierarchyElement = pt + "HierarchyElement";
 
         public static XName trPr = pt + "trPr";
         public static XName tcPr = pt + "tcPr";

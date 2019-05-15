@@ -113,7 +113,8 @@ namespace OpenXmlPowerTools
         public ListItemRetrieverSettings ListItemRetrieverSettings;
         public bool? InjectCommentForContentTypes;
         public List<ContentTypeHierarchyInfo> ContentTypeHierarchyInfoList;
-        public Dictionary<string, Func<string, OpenXmlPart, XElement, WmlToXmlSettings, object>> XmlGenerationLambdas;
+        public Dictionary<string, Func<string, OpenXmlPart, XElement, WmlToXmlSettings, object>> XmlBlockGenerationLambdas;
+        public Dictionary<string, Func<string, OpenXmlPart, XElement, WmlToXmlSettings, object>> XmlRunGenerationLambdas;
         public Action<WmlToXmlProgressInfo> ProgressFunction;
         public XDocument ContentTypeRegexExtension;
         public string DefaultLang;
@@ -951,9 +952,6 @@ namespace OpenXmlPowerTools
             var element = node as XElement;
             if (element != null)
             {
-                if (settings.XmlGenerationLambdas == null)
-                    throw new ArgumentOutOfRangeException("Xml Generation Lambdas are required");
-
                 var contentType = (string)element.Attribute(PtOpenXml.ContentType);
 
                 if (element.Name == W.t || element.Name == W.fldSimple)
@@ -961,9 +959,9 @@ namespace OpenXmlPowerTools
 
                 if (contentType == null && element.Name == W.r)
                 {
-                    if (settings.XmlGenerationLambdas.ContainsKey("Run"))
+                    if (settings.XmlRunGenerationLambdas.ContainsKey("Run"))
                     {
-                        var lamda = settings.XmlGenerationLambdas["Run"];
+                        var lamda = settings.XmlRunGenerationLambdas["Run"];
                         var newElement = lamda(contentType, part, element, settings);
                         return newElement;
                     }
@@ -975,9 +973,9 @@ namespace OpenXmlPowerTools
 
                 if (element.Name == W.hyperlink)
                 {
-                    if (settings.XmlGenerationLambdas.ContainsKey("Hyperlink"))
+                    if (settings.XmlRunGenerationLambdas.ContainsKey("Hyperlink"))
                     {
-                        var lamda = settings.XmlGenerationLambdas["Hyperlink"];
+                        var lamda = settings.XmlRunGenerationLambdas["Hyperlink"];
                         var newElement = lamda(contentType, part, element, settings);
                         return newElement;
                     }
@@ -1001,12 +999,11 @@ namespace OpenXmlPowerTools
 
                 if (contentType != null)
                 {
-
-                    if (settings.XmlGenerationLambdas != null)
+                    if (element.Name == W.r || element.Name == W.oMath)
                     {
-                        if (settings.XmlGenerationLambdas.ContainsKey(contentType))
+                        if (settings.XmlRunGenerationLambdas.ContainsKey(contentType))
                         {
-                            var lamda = settings.XmlGenerationLambdas[contentType];
+                            var lamda = settings.XmlRunGenerationLambdas[contentType];
                             var newElement = lamda(contentType, part, element, settings);
 
                             string lang = (string)element.Elements(W.pPr).Elements(W.rPr).Elements(W.lang).Attributes(W.val).FirstOrDefault();
@@ -1033,17 +1030,39 @@ namespace OpenXmlPowerTools
 
                             return newElement;
                         }
-
                     }
 
-                    // if no generation rules are set, or if there is no rule for this content type, then
-                    // generate the default, for now.
+                    if (settings.XmlBlockGenerationLambdas.ContainsKey(contentType))
+                    {
+                        var lamda = settings.XmlBlockGenerationLambdas[contentType];
+                        var newElement = lamda(contentType, part, element, settings);
 
-                    // todo this is not ideal in my mind.  Need to think about this more.  Maybe every content type
-                    // must have a generation lambda.
+                        string lang = (string)element.Elements(W.pPr).Elements(W.rPr).Elements(W.lang).Attributes(W.val).FirstOrDefault();
+                        if (lang == null)
+                            lang = settings.DefaultLang;
+                        if (lang != null && !lang.StartsWith("en"))  // TODO we are not generating lang if English, but this needs revised after analysis
+                        {
+                            var n = newElement as XElement;
+                            if (n != null)
+                            {
+                                n.Add(new XAttribute("Lang", lang));
+                                if (n.Attribute("Unid") == null && element.Attribute(PtOpenXml.Unid) != null)
+                                    n.Add(new XAttribute("Unid", element.Attribute(PtOpenXml.Unid).Value));
+                                return n;
+                            }
+                        }
 
-                    return new XElement(contentType, 
-                        element.Elements().Select(rce => ProduceXmlTransform(part, rce, settings)));
+                        var n2 = newElement as XElement;
+                        if (n2 != null && n2.Attribute("Unid") == null && element.Attribute(PtOpenXml.Unid) != null)
+                        {
+                            n2.Add(new XAttribute("Unid", element.Attribute(PtOpenXml.Unid).Value));
+                            return n2;
+                        }
+
+                        return newElement;
+                    }
+
+                    throw new OpenXmlPowerToolsException("Internal error - no XML generation lambda");
                 }
 
                 // ignore any other elements
