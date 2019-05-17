@@ -1,6 +1,6 @@
-﻿NuGet Feed for CI build: https://ci.appveyor.com/nuget/open-xml-powertools
+NuGet Feed for CI build: https://ci.appveyor.com/nuget/open-xml-powertools
 
-No NuGet.org feed at this time. We are working on it.
+[https://github.com/EricWhiteDev/Open-Xml-PowerTools](https://github.com/EricWhiteDev/Open-Xml-PowerTools)
 
 News
 ====
