@@ -23,10 +23,8 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Xunit;
-using OpenXmlPowerTools;
 
-namespace OxPt
+namespace OpenXmlPowerTools
 {
     public class TestUtil
     {
@@ -93,71 +91,6 @@ namespace OxPt
         {
             ProcessStartInfo psi = new ProcessStartInfo("C:/Windows/Explorer.exe", di.FullName);
             Process.Start(psi);
-        }
-
-        public static string CreateTestDir(string testId, out DirectoryInfo thisTestTempDir)
-        {
-            var rootTempDir = TestUtil.TempDir;
-            thisTestTempDir = new DirectoryInfo(Path.Combine(rootTempDir.FullName, testId));
-            if (thisTestTempDir.Exists)
-                Assert.True(false, "Duplicate test id: " + testId);
-            else
-                thisTestTempDir.Create();
-            var tempDirFullName = thisTestTempDir.FullName;
-            return tempDirFullName;
-        }
-
-        public static void AddToBatchFile(FileInfo testBaselineFi, FileInfo newlyCreatedFi)
-        {
-            while (true)
-            {
-                try
-                {
-                    ////////// CODE TO REPEAT UNTIL SUCCESS //////////
-                    var batchFileName = "Copy-Gen-Files-To-TestFiles.bat";
-                    var batchFi = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, batchFileName));
-                    var batch = "copy " + newlyCreatedFi.FullName + " " + testBaselineFi.FullName + Environment.NewLine;
-                    if (batchFi.Exists)
-                        File.AppendAllText(batchFi.FullName, batch);
-                    else
-                        File.WriteAllText(batchFi.FullName, batch);
-                    //////////////////////////////////////////////////
-                    break;
-                }
-                catch (IOException)
-                {
-                    System.Threading.Thread.Sleep(50);
-                }
-            }
-        }
-
-        public static void OpenWindowsExplorer(DirectoryInfo thisTestTempDir)
-        {
-            while (true)
-            {
-                try
-                {
-                    ////////// CODE TO REPEAT UNTIL SUCCESS //////////
-                    var semaphorFi = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, "z_ExplorerOpenedSemaphore.txt"));
-                    if (!semaphorFi.Exists)
-                    {
-                        File.WriteAllText(semaphorFi.FullName, "");
-                        TestUtil.Explorer(thisTestTempDir);
-                    }
-                    //////////////////////////////////////////////////
-                    break;
-                }
-                catch (IOException)
-                {
-                    System.Threading.Thread.Sleep(50);
-                }
-            }
-        }
-
-        public static void NoRef(object o)
-        {
-            var z = o;
-            o = z;
         }
     }
 }
