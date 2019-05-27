@@ -220,7 +220,7 @@ namespace OpenXmlPowerTools
         }
 
         private static object ConvertToHtmlTransform(WordprocessingDocument wordDoc,
-            WmlToHtmlConverterSettings settings, XNode node)
+            DocxToHtmlSettings settings, XNode node)
         {
             // Ignore element.
             return null;

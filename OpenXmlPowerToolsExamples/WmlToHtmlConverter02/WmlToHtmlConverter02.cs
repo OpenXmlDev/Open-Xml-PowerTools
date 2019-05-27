@@ -23,7 +23,7 @@ using DocumentFormat.OpenXml.Packaging;
 using OpenXmlPowerTools;
 using System.Collections.Generic;
 
-class WmlToHtmlConverterHelper
+class DocxToHtmlHelper
 {
     static void Main(string[] args)
     {
@@ -72,7 +72,7 @@ class WmlToHtmlConverterHelper
                 }
 
                 // TODO: Determine max-width from size of content area.
-                WmlToHtmlConverterSettings settings = new WmlToHtmlConverterSettings()
+                DocxToHtmlSettings settings = new DocxToHtmlSettings()
                 {
                     AdditionalCss = "body { margin: 1cm auto; max-width: 20cm; padding: 0; }",
                     PageTitle = pageTitle,
@@ -139,7 +139,7 @@ class WmlToHtmlConverterHelper
                         return img;
                     }
                 };
-                XElement htmlElement = WmlToHtmlConverter.ConvertToHtml(wDoc, settings);
+                XElement htmlElement = DocxToHtml.ConvertToHtml(wDoc, settings);
 
                 // Produce HTML document with <!DOCTYPE html > declaration to tell the browser
                 // we are using HTML5.

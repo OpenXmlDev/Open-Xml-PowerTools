@@ -16,13 +16,13 @@ http://www.microsoft.com/resources/sharedsource/licensingbasics/publiclicense.ms
  * IMPORTANT NOTE:
  * 
  * With versions 4.1 and later, the name of the HtmlConverter class has been
- * changed to WmlToHtmlConverter, to make it orthogonal with HtmlToWmlConverter.
+ * changed to DocxToHtml, to make it orthogonal with HtmlToWmlConverter.
  * 
  * There are thin wrapper classes, HtmlConverter, and HtmlConverterSettings,
  * which maintain backwards compat for code that uses the old name.
  * 
  * Other than the name change of the classes themselves, the functionality
- * in WmlToHtmlConverter is identical to the old HtmlConverter class.
+ * in DocxToHtml is identical to the old HtmlConverter class.
 ***************************************************************************/
 
 using System;
