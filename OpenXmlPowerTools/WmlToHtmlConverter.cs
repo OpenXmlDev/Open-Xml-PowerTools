@@ -75,8 +75,6 @@ namespace OpenXmlPowerTools
         }
     }
 
-    // TODO: Remove
-#if false  
     [SuppressMessage("ReSharper", "FieldCanBeMadeReadOnly.Global")]
     public class HtmlConverterSettings
     {
@@ -102,7 +100,6 @@ namespace OpenXmlPowerTools
             ListItemImplementations = ListItemRetrieverSettings.DefaultListItemTextImplementations;
         }
     }
-#endif
 
     public static class HtmlConverter
     {
@@ -2990,7 +2987,7 @@ namespace OpenXmlPowerTools
             return txformed;
         }
 
-#region Image Processing
+        #region Image Processing
 
         // Don't process wmf files (with contentType == "image/x-wmf") because GDI consumes huge amounts
         // of memory when dealing with wmf perhaps because it loads a DLL to do the rendering?
@@ -3221,11 +3218,9 @@ namespace OpenXmlPowerTools
             return null;
         }
 
-#endregion
+        #endregion
     }
 
-    // TODO: Remove
-#if false
     public static class HtmlConverterExtensions
     {
         public static void AddIfMissing(this Dictionary<string, string> style, string propName, string value)
@@ -3235,5 +3230,4 @@ namespace OpenXmlPowerTools
             style.Add(propName, value);
         }
     }
-#endif
 }
