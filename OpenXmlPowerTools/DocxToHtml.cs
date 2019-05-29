@@ -595,15 +595,23 @@ namespace OpenXmlPowerTools
             {
                 try
                 {
+                    var hyperlinkRelationship = wordDoc.MainDocumentPart
+                                .HyperlinkRelationships
+                                .FirstOrDefault(x => x.Id == (string)element.Attribute(R.id));
+
+                    if (hyperlinkRelationship == null)
+                    {
+                        var a2 = new XElement(Xhtml.a,
+                            element.Elements(W.r).Select(run => ConvertRun(wordDoc, settings, run, txMode, txState)));
+                        if (!a2.Nodes().Any())
+                            a2.Add(new XText(""));
+                        return a2;
+                    }
+
                     var a = new XElement(Xhtml.a,
                         new XAttribute("href",
-                            wordDoc.MainDocumentPart
-                                .HyperlinkRelationships
-                                .First(x => x.Id == (string)element.Attribute(R.id))
-                                .Uri
-                            ),
-                        element.Elements(W.r).Select(run => ConvertRun(wordDoc, settings, run, txMode, txState))
-                        );
+                            hyperlinkRelationship.Uri),
+                        element.Elements(W.r).Select(run => ConvertRun(wordDoc, settings, run, txMode, txState)));
                     if (!a.Nodes().Any())
                         a.Add(new XText(""));
                     return a;
@@ -2512,6 +2520,15 @@ namespace OpenXmlPowerTools
                             fontNameAtt,
                             runContainingTabToReplace.Elements(W.rPr),
                             new XElement(W.t, textAfterTab));
+
+                        var sourceParagraph = runContainingTabToReplace
+                            .Ancestors(W.p)
+                            .First();
+
+                        var dummyParagraph2 = new XElement(W.p,
+                            sourceParagraph.Attributes(),
+                            sourceParagraph.Element(W.pPr),
+                            dummyRun2);
 
                         InitializeStateGraphics(txState);
                         var widthOfTextAfterTab = FontMetrics.CalcWidthOfRunInTwips(dummyRun2, txState.Graphics);

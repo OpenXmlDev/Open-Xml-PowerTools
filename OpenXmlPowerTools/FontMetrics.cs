@@ -29,10 +29,16 @@ namespace OpenXmlPowerTools
 
         public static int CalcWidthOfRunInTwips(XElement r, Graphics graphics)
         {
+            var paragraph = r.Ancestors(W.p).FirstOrDefault();
+            if (paragraph == null)
+                return 0;
+
             var fontName = (string)r.Attribute(PtOpenXml.pt + "FontName") ??
-                           (string)r.Ancestors(W.p).First().Attribute(PtOpenXml.pt + "FontName");
+                           (string)paragraph.Attribute(PtOpenXml.pt + "FontName");
             if (fontName == null)
-                throw new OpenXmlPowerToolsException("Internal Error, should have FontName attribute");
+                //throw new OpenXmlPowerToolsException("Internal Error, should have FontName attribute");
+                return 0;
+
             if (UnknownFonts.Contains(fontName))
                 return 0;
 
