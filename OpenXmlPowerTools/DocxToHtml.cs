@@ -940,8 +940,14 @@ namespace OpenXmlPowerTools
             else
             {
                 var dateTimeRawString = (string)element.Attribute(W.date);
-                DateTime dateTime = DateTime.Parse(dateTimeRawString);
-                var dateTimeString = dateTime.ToString();
+                string dateTimeString;
+                if (dateTimeRawString != null)
+                {
+                    DateTime dateTime = DateTime.Parse(dateTimeRawString);
+                    dateTimeString = dateTime.ToString();
+                }
+                else
+                    dateTimeString = "";
                 string toolTipText = "";
                 if (element.Name == W.ins)
                 {
