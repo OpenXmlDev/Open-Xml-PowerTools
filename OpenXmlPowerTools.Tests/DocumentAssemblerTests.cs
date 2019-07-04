@@ -172,6 +172,20 @@ namespace OxPt
         }
 
         [Theory]
+        [InlineData("DA240-ListPunctuation.docx", "DA-DataList.xml", false)]
+        public void DA240(string name, string data, bool err)
+        {
+            DA101(name, data, err);
+            var assembledDocx = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, name.Replace(".docx", "-processed-by-DocumentAssembler.docx")));
+            WmlDocument afterAssembling = new WmlDocument(assembledDocx.FullName);
+
+            // when elements are inserted that begin or end with white space (such as the list punctuation
+            // in this example), make sure white space is preserved
+            string firstParaText = afterAssembling.MainDocumentPart.Element(W.body).Elements(W.p).First().Value;
+            Assert.Equal("The children’s names are Greg, Marcia, Peter, Jan, Bobby and Cindy.", firstParaText);
+        }
+
+        [Theory]
         [InlineData("DA024-TrackedRevisions.docx", "DA-Data.xml")]
         public void DA102_Throws(string name, string data)
         {
@@ -237,6 +251,7 @@ namespace OxPt
             "The 'http://schemas.openxmlformats.org/wordprocessingml/2006/main:noVBand' attribute is not declared.",
             "The 'http://schemas.openxmlformats.org/wordprocessingml/2006/main:oddHBand' attribute is not declared.",
             "The 'http://schemas.openxmlformats.org/wordprocessingml/2006/main:oddVBand' attribute is not declared.",
+            "The attribute 'http://schemas.openxmlformats.org/wordprocessingml/2006/main:name' has invalid value 'useWord2013TrackBottomHyphenation'. The Enumeration constraint failed.",
         };
     }
 }

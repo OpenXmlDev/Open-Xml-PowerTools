@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+<_odx>
+	<children>
+		<child>
+			<name>Greg</name>
+			<birth>09/30/1954</birth>
+			<p1>, </p1>
+			<p2>;</p2>
+		</child>
+		<child>
+			<name>Marcia</name>
+			<birth>08/05/1956</birth>
+			<p1>, </p1>
+			<p2>;</p2>
+		</child>
+		<child>
+			<name>Peter</name>
+			<birth>11/07/1957</birth>
+			<p1>, </p1>
+			<p2>;</p2>
+		</child>
+		<child>
+			<name>Jan</name>
+			<birth>04/29/1958</birth>
+			<p1>, </p1>
+			<p2>;</p2>
+		</child>
+		<child>
+			<name>Bobby</name>
+			<birth>12/19/1960</birth>
+			<p1> and </p1>
+			<p2>; and</p2>
+		</child>
+		<child>
+			<name>Cindy</name>
+			<birth>08/14/1961</birth>
+			<p1/>
+			<p2>.</p2>
+		</child>
+	</children>
+</_odx>
