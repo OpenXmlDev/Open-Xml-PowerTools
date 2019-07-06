@@ -1105,7 +1105,7 @@ namespace OpenXmlPowerTools
             var contentWithContentType = mainXDoc
                 .Root
                 .Descendants()
-                .Where(d => d.Name == W.p || d.Name == W.tbl || d.Name == W.tr || d.Name == W.tc)
+                .Where(d => d.Name == W.p || d.Name == W.tbl || d.Name == W.tr || d.Name == W.tc || d.Name == W.sectPr) // add W.sectPr because we are assigning content type to the last sectPr in the document
                 .Where(d => d.Attribute(PtOpenXml.ContentType) != null)
                 .ToList();
 
