@@ -971,6 +971,9 @@ namespace OpenXmlPowerTools
                     }
                 }
 
+                if (element.Name == W.smartTag)
+                    return element.Elements().Select(e => ProduceXmlTransform(part, e, settings));
+
                 if (element.Name == W.hyperlink)
                 {
                     if (settings.XmlRunGenerationLambdas.ContainsKey("Hyperlink"))
