@@ -6948,7 +6948,7 @@ namespace OpenXmlPowerTools
             {
                 var lastParagraph = contentParent.Elements(W.p).LastOrDefault();
                 if (lastParagraph == null)
-                    throw new OpenXmlPowerToolsException("Invalid document");
+                    lastParagraph = contentParent.Descendants(W.p).LastOrDefault();
                 var pPr = lastParagraph.Element(W.pPr);
                 if (pPr == null)
                 {
