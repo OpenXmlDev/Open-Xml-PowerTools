@@ -4179,7 +4179,11 @@ listSeparator
         public static readonly XName _pic = pic + "pic";
         public static readonly XName spPr = pic + "spPr";
     }
-
+    public static class SVG
+    {
+        public static readonly XNamespace svg = "http://schemas.microsoft.com/office/drawing/2016/SVG/main";
+        public static readonly XName svgBlip = svg + "svgBlip";
+    }
     public static class Plegacy
     {
         public static readonly XNamespace plegacy = "urn:schemas-microsoft-com:office:powerpoint";

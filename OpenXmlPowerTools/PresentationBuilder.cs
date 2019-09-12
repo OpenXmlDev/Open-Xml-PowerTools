@@ -635,7 +635,7 @@ namespace OpenXmlPowerTools
             IEnumerable<XElement> newContent, List<ImageData> images, List<MediaData> mediaList)
         {
             var relevantElements = newContent.DescendantsAndSelf()
-                .Where(d => d.Name == VML.imagedata || d.Name == VML.fill || d.Name == VML.stroke || d.Name == A.blip)
+                .Where(d => d.Name == VML.imagedata || d.Name == VML.fill || d.Name == VML.stroke || d.Name == A.blip || d.Name == SVG.svgBlip)
                 .ToList();
             foreach (XElement imageReference in relevantElements)
             {
