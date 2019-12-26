@@ -10,6 +10,8 @@ using System.Linq;
 using System.Text;
 using System.Xml.Linq;
 using DocumentFormat.OpenXml.Packaging;
+using DocumentFormat.OpenXml.Wordprocessing;
+using FontFamily = System.Drawing.FontFamily;
 
 // 200e lrm - LTR
 // 200f rlm - RTL
@@ -405,19 +407,23 @@ namespace OpenXmlPowerTools
             {
                 return ProcessParagraph(wordDoc, settings, element, suppressTrailingWhiteSpace, currentMarginLeft);
             }
-
+            
             // Transform hyperlinks to the XHTML h:a element.
             if (element.Name == W.hyperlink && element.Attribute(R.id) != null)
             {
                 try
                 {
-                    var a = new XElement(Xhtml.a,
-                        new XAttribute("href",
-                            wordDoc.MainDocumentPart
+                    var preFragmentUrl = wordDoc.MainDocumentPart
                                 .HyperlinkRelationships
                                 .First(x => x.Id == (string)element.Attribute(R.id))
-                                .Uri
-                            ),
+                                .Uri.AbsoluteUri;
+                    var anchor = wordDoc.MainDocumentPart.Document
+                                .Descendants<Hyperlink>()
+                                .First(x => x.Id == (string)element.Attribute(R.id))
+                                .Anchor;
+                    var fullUrl = preFragmentUrl +"#"+ anchor;
+                    var a = new XElement(Xhtml.a,
+                        new XAttribute("href",fullUrl),
                         element.Elements(W.r).Select(run => ConvertRun(wordDoc, settings, run))
                         );
                     if (!a.Nodes().Any())
