@@ -92,6 +92,9 @@ With .NET CLI toolchain:
 Change Log
 ==========
 
+Version 4.5 : January 21, 2020
+- Various changes and fixes to DocumentBuilder
+
 Version 4.3 : June 13, 2016
 - New WmlComparer module
 
