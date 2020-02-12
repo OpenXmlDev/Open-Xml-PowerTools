@@ -421,7 +421,9 @@ namespace OpenXmlPowerTools
                                 .Descendants<Hyperlink>()
                                 .First(x => x.Id == (string)element.Attribute(R.id))
                                 .Anchor;
-                    var fullUrl = preFragmentUrl +"#"+ anchor;
+                    var fullUrl = preFragmentUrl;
+                    if (anchor != null)
+                        fullUrl += "#" + anchor;
                     var a = new XElement(Xhtml.a,
                         new XAttribute("href",fullUrl),
                         element.Elements(W.r).Select(run => ConvertRun(wordDoc, settings, run))
@@ -2978,7 +2980,7 @@ namespace OpenXmlPowerTools
 
                     var content = g.DescendantsAndSelf(W.r).Select(run => ConvertRun(wordDoc, settings, run));
                     var a = parsed.Arguments.Length > 0
-                        ? new XElement(Xhtml.a, new XAttribute("href", parsed.Arguments[0]), content)
+                        ? new XElement(Xhtml.a, new XAttribute("href", string.Join("#", parsed.Arguments)), content)
                         : new XElement(Xhtml.a, content);
                     var a2 = a as XElement;
                     if (!a2.Nodes().Any())
