@@ -384,6 +384,169 @@ namespace OpenXmlPowerTools
                         }
                         AddTabAtLeftIndent(element.Element(PtOpenXml.pPr));
 
+                        XElement tabRun = suffix != null ?
+                                new XElement(W.r,
+                                    new XAttribute(PtOpenXml.ListItemRun, levelNumsString),
+                                    listItemRunProps,
+                                    suffix) : null;
+
+                        bool isDeleted = false;
+                        bool isInserted = false;
+                        XAttribute authorAtt = null;
+                        XAttribute dateAtt = null;
+
+                        var paraDelElement = newParaProps
+                            .Elements(W.rPr)
+                            .Elements(W.del)
+                            .FirstOrDefault();
+                        if (paraDelElement != null)
+                        {
+                            isDeleted = true;
+                            authorAtt = paraDelElement.Attribute(W.author);
+                            dateAtt = paraDelElement.Attribute(W.date);
+                        }
+
+                        var paraInsElement = newParaProps
+                            .Elements(W.rPr)
+                            .Elements(W.ins)
+                            .FirstOrDefault();
+                        if (paraInsElement != null)
+                        {
+                            isInserted = true;
+                            authorAtt = paraInsElement.Attribute(W.author);
+                            dateAtt = paraInsElement.Attribute(W.date);
+                        }
+
+                        var paragraphBefore = element
+                            .SiblingsBeforeSelfReverseDocumentOrder()
+                            .FirstOrDefault();
+                        if (paragraphBefore != null)
+                        {
+                            var paraInsElement2 = paragraphBefore
+                                .Elements(W.pPr)
+                                .Elements(W.rPr)
+                                .Elements(W.ins)
+                                .FirstOrDefault();
+                            if (paraInsElement2 != null)
+                            {
+                                isInserted = true;
+                                authorAtt = paraInsElement2.Attribute(W.author);
+                                dateAtt = paraInsElement2.Attribute(W.date);
+                            }
+                        }
+
+#if false
+    <w:p w14:paraId="448CD560"
+         w14:textId="77777777"
+         w:rsidR="003C33D5"
+         w:rsidRDefault="003C33D5"
+         w:rsidP="003C33D5">
+      <w:pPr>
+        <w:pStyle w:val="ListParagraph"/>
+        <w:numPr>
+          <w:ilvl w:val="0"/>
+          <w:numId w:val="1"/>
+        </w:numPr>
+        <w:pPrChange w:id="4"
+                     w:author="e"
+                     w:date="2020-02-07T18:26:00Z">
+          <w:pPr/>
+        </w:pPrChange>
+      </w:pPr>
+      <w:r>
+        <w:t>When you click Online Video, you can paste in the embed code for the video you want to add.</w:t>
+      </w:r>
+    </w:p>
+#endif
+
+                        var pPrChange = element
+                            .Elements(W.pPr)
+                            .Elements(W.pPrChange)
+                            .FirstOrDefault();
+
+                        if (pPrChange != null)
+                        {
+                            authorAtt = pPrChange.Attribute(W.author);
+                            dateAtt = pPrChange.Attribute(W.date);
+
+                            var thisNumPr = element
+                                .Elements(W.pPr)
+                                .Elements(W.numPr)
+                                .FirstOrDefault();
+
+                            var thisNumPrChange = pPrChange
+                                .Elements(W.numPr)
+                                .FirstOrDefault();
+
+                            if (thisNumPr != null && thisNumPrChange == null)
+                                isInserted = true;
+
+                            if (thisNumPr == null && thisNumPrChange != null)
+                                isDeleted = true;
+                        }
+
+                        if (isDeleted)
+                        {
+                            // convert listItemRun and tabRun to their deleted equivalents
+                            var highestId = wDoc
+                                .MainDocumentPart
+                                .GetXDocument()
+                                .Descendants()
+                                .Attributes(W.id)
+                                .Select(id =>
+                                {
+                                    int numId;
+                                    if (int.TryParse((string)id, out numId))
+                                        return numId;
+                                    else
+                                        return 0;
+                                })
+                                .Max();
+
+                            listItemRun = new XElement(W.del,
+                                new XAttribute(W.id, highestId + 1),
+                                authorAtt,
+                                dateAtt,
+                                (XElement)TransformToDeleted(listItemRun));
+                            tabRun = new XElement(W.del,
+                                new XAttribute(W.id, highestId + 2),
+                                authorAtt,
+                                dateAtt,
+                                (XElement)TransformToDeleted(tabRun));
+                        }
+                        else
+                        {
+                            if (isInserted)
+                            {
+                                // convert listItemRun and tabRun to their inserted equivalents
+                                var highestId = wDoc
+                                    .MainDocumentPart
+                                    .GetXDocument()
+                                    .Descendants()
+                                    .Attributes(W.id)
+                                    .Select(id =>
+                                    {
+                                        int numId;
+                                        if (int.TryParse((string)id, out numId))
+                                            return numId;
+                                        else
+                                            return 0;
+                                    })
+                                    .Max();
+
+                                listItemRun = new XElement(W.ins,
+                                    new XAttribute(W.id, highestId + 1),
+                                    authorAtt,
+                                    dateAtt,
+                                    listItemRun);
+                                tabRun = new XElement(W.ins,
+                                    new XAttribute(W.id, highestId + 2),
+                                    authorAtt,
+                                    dateAtt,
+                                    tabRun);
+                            }
+                        }
+
                         XElement newPara = new XElement(W.p,
                             element.Attribute(PtOpenXml.FontName),
                             element.Attribute(PtOpenXml.LanguageType),
@@ -391,11 +554,7 @@ namespace OpenXmlPowerTools
                             new XAttribute(PtOpenXml.AbstractNumId, abstractNumId),
                             newParaProps,
                             listItemRun,
-                            suffix != null ?
-                                new XElement(W.r,
-                                    new XAttribute(PtOpenXml.ListItemRun, levelNumsString),
-                                    listItemRunProps,
-                                    suffix) : null,
+                            tabRun,
                             element.Elements().Where(e => e.Name != W.pPr).Select(n => NormalizeListItemsTransform(fai, wDoc, n, settings)));
                         return newPara;
 
@@ -405,6 +564,21 @@ namespace OpenXmlPowerTools
                 return new XElement(element.Name,
                     element.Attributes(),
                     element.Nodes().Select(n => NormalizeListItemsTransform(fai, wDoc, n, settings)));
+            }
+            return node;
+        }
+
+        private static object TransformToDeleted(XNode node)
+        {
+            XElement element = node as XElement;
+            if (element != null)
+            {
+                if (element.Name == W.t)
+                    return new XElement(W.delText, element.Value);
+
+                return new XElement(element.Name,
+                    element.Attributes(),
+                    element.Nodes().Select(n => TransformToDeleted(n)));
             }
             return node;
         }

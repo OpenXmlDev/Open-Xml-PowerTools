@@ -1191,6 +1191,8 @@ listSeparator
 
         private static Dictionary<XName, int> Order_rPr = new Dictionary<XName, int>
         {
+            { W.moveFrom, 5 },
+            { W.moveTo, 7 },
             { W.ins, 10 },
             { W.del, 20 },
             { W.rStyle, 30 },
@@ -4179,7 +4181,11 @@ listSeparator
         public static readonly XName _pic = pic + "pic";
         public static readonly XName spPr = pic + "spPr";
     }
-
+    public static class SVG
+    {
+        public static readonly XNamespace svg = "http://schemas.microsoft.com/office/drawing/2016/SVG/main";
+        public static readonly XName svgBlip = svg + "svgBlip";
+    }
     public static class Plegacy
     {
         public static readonly XNamespace plegacy = "urn:schemas-microsoft-com:office:powerpoint";
