@@ -483,6 +483,7 @@ namespace OpenXmlPowerTools
                                   <xs:element name='Table'>
                                     <xs:complexType>
                                       <xs:attribute name='Select' type='xs:string' use='required' />
+                                      <xs:attribute name='Optional' type='xs:boolean' use='optional' />
                                     </xs:complexType>
                                   </xs:element>
                                 </xs:schema>",
@@ -521,6 +522,7 @@ namespace OpenXmlPowerTools
                                       <xs:attribute name='Select' type='xs:string' use='required' />
                                       <xs:attribute name='Match' type='xs:string' use='optional' />
                                       <xs:attribute name='NotMatch' type='xs:string' use='optional' />
+                                      <xs:attribute name='Optional' type='xs:boolean' use='optional' />
                                     </xs:complexType>
                                   </xs:element>
                                 </xs:schema>",
@@ -692,6 +694,10 @@ namespace OpenXmlPowerTools
                     }
                     if (tableData.Count() == 0)
                         return CreateContextErrorMessage(element, "Table Select returned no data", templateError);
+
+                    var optionalString = (string)element.Attribute(PA.Optional);
+                    bool optional = (optionalString != null && optionalString.ToLower() == "true");
+
                     XElement table = element.Element(W.tbl);
                     XElement protoRow = table.Elements(W.tr).Skip(1).FirstOrDefault();
                     var footerRowsBeforeTransform = table
@@ -720,7 +726,7 @@ namespace OpenXmlPowerTools
                                         string newValue = null;
                                         try
                                         {
-                                            newValue = EvaluateXPathToString(d, xPath, false);
+                                            newValue = EvaluateXPathToString(d, xPath, optional);
                                         }
                                         catch (XPathException e)
                                         {
@@ -750,6 +756,8 @@ namespace OpenXmlPowerTools
                     string xPath = (string)element.Attribute(PA.Select);
                     var match = (string)element.Attribute(PA.Match);
                     var notMatch = (string)element.Attribute(PA.NotMatch);
+                    var optionalString = (string)element.Attribute(PA.Optional);
+                    bool optional = (optionalString != null && optionalString.ToLower() == "true");
 
                     if (match == null && notMatch == null)
                         return CreateContextErrorMessage(element, "Conditional: Must specify either Match or NotMatch", templateError);
@@ -760,7 +768,7 @@ namespace OpenXmlPowerTools
                    
                     try
                     {
-                        testValue = EvaluateXPathToString(data, xPath, false);
+                        testValue = EvaluateXPathToString(data, xPath, optional);
                     }
 	                catch (XPathException e)
                     {
