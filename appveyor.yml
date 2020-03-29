@@ -1,4 +1,4 @@
-version: 4.6.{build}
+version: 5.0.{build}
 image: Visual Studio 2019
 skip_tags: true
 branches:
@@ -11,7 +11,8 @@ nuget:
 before_build:
   - ps: >-
       nuget restore
-      . "C:\Program Files (x86)\Microsoft SDKs\Windows\v10.0A\bin\NETFX 4.7.2 Tools\x64\sn.exe" -k ./OpenXmlPowerTools/OpenXmlPowerTools.snk
+
+      . "C:\Program Files (x86)\Microsoft SDKs\Windows\v10.0A\bin\NETFX 4.7.2 Tools\x64\sn.exe" -k ./PdfAValidator/PdfAValidator.snk
 build:
   project: OpenXmlPowerTools.sln
   publish_aspnet_core: true
@@ -21,7 +22,7 @@ dotnet_csproj:
   patch: true
   file: '**\*.csproj'
   version: "{version}"
-  package_version: "{version}"
+  package_version: "{version}-prerelease"
   assembly_version: "{version}"
   file_version: "{version}"
   informational_version: "{version}"
