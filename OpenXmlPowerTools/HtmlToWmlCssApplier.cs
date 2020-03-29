@@ -1,16 +1,14 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using OpenXmlPowerTools.HtmlToWml.CSS;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Xml.Linq;
-using OpenXmlPowerTools;
-using OpenXmlPowerTools.HtmlToWml;
-using OpenXmlPowerTools.HtmlToWml.CSS;
-using System.Globalization;
 
 #if false
 Sort:
@@ -96,10 +94,10 @@ Following is my new theory of the correct algorithm:
       compute value
       set the computed value
       return the computed value
-  
+
   ComputeValue
     this needs to be specifically coded for each property
-    if value is relative (em, ex, percentage, 
+    if value is relative (em, ex, percentage,
       if property is not on font-size
         GetComputedValue for font-size
         compute value accordingly
@@ -117,9 +115,9 @@ Following is my new theory of the correct algorithm:
 
 namespace OpenXmlPowerTools.HtmlToWml
 {
-    class CssApplier
+    internal class CssApplier
     {
-        private static List<PropertyInfo> PropertyInfoList = new List<PropertyInfo>()
+        private static readonly List<PropertyInfo> PropertyInfoList = new List<PropertyInfo>()
         {
             // color
             // Value:          <color> | inherit
@@ -169,9 +167,7 @@ namespace OpenXmlPowerTools.HtmlToWml
                 ComputedValue = (element, assignedValue, settings) =>
                 {
                     CssExpression valueForPercentage = null;
-                    if (element.Parent != null)
-                        valueForPercentage = GetComputedPropertyValue(null, element, "font-size", settings);
-                    return ComputeAbsoluteLength(element, assignedValue, settings, valueForPercentage);
+                    if (element.Parent != null) { valueForPercentage = GetComputedPropertyValue(null, element, "font-size", settings); } return ComputeAbsoluteLength(element, assignedValue, settings, valueForPercentage);
                 },
             },
 
@@ -208,9 +204,7 @@ namespace OpenXmlPowerTools.HtmlToWml
                 Includes = (e, settings) =>
                 {
                     var display = GetComputedPropertyValue(null, e, "display", settings);
-                    if (display.ToString() == "list-item")
-                        return true;
-                    return false;
+                    if (display.ToString() == "list-item") { return true; } return false;
                 },
                 InitialValue = (element, settings) => new CssExpression { Terms = new List<CssTerm> { new CssTerm { Value = "disc", Type = OpenXmlPowerTools.HtmlToWml.CSS.CssTermType.String } } },
                 ComputedValue = null,
@@ -230,9 +224,7 @@ namespace OpenXmlPowerTools.HtmlToWml
                 Includes = (e, settings) =>
                 {
                     var display = GetComputedPropertyValue(null, e, "display", settings);
-                    if (display.ToString() == "list-item")
-                        return true;
-                    return false;
+                    if (display.ToString() == "list-item") { return true; } return false;
                 },
                 InitialValue = (element, settings) => new CssExpression { Terms = new List<CssTerm> { new CssTerm { Value = "none", Type = OpenXmlPowerTools.HtmlToWml.CSS.CssTermType.String } } },
                 ComputedValue = null,
@@ -252,9 +244,7 @@ namespace OpenXmlPowerTools.HtmlToWml
                 Includes = (e, settings) =>
                 {
                     var display = GetComputedPropertyValue(null, e, "display", settings);
-                    if (display.ToString() == "list-item")
-                        return true;
-                    return false;
+                    if (display.ToString() == "list-item") { return true; } return false;
                 },
                 InitialValue = (element, settings) => new CssExpression { Terms = new List<CssTerm> { new CssTerm { Value = "none", Type = OpenXmlPowerTools.HtmlToWml.CSS.CssTermType.String } } },
                 ComputedValue = null,
@@ -339,7 +329,7 @@ namespace OpenXmlPowerTools.HtmlToWml
                 Names = new[] { "font-size" },
                 Inherits = true,
                 Includes = (e, settings) => true,
-                InitialValue = (element, settings) => new CssExpression { Terms = new List<CssTerm> { new CssTerm { Value = ((double)settings.DefaultFontSize).ToString(CultureInfo.InvariantCulture), Type = OpenXmlPowerTools.HtmlToWml.CSS.CssTermType.String, Unit = CssUnit.PT } } },
+                InitialValue = (element, settings) => new CssExpression { Terms = new List<CssTerm> { new CssTerm { Value = settings.DefaultFontSize.ToString(CultureInfo.InvariantCulture), Type = OpenXmlPowerTools.HtmlToWml.CSS.CssTermType.String, Unit = CssUnit.PT } } },
                 ComputedValue = (element, assignedValue, settings) => ComputeAbsoluteFontSize(element, assignedValue, settings),
             },
 
@@ -357,17 +347,13 @@ namespace OpenXmlPowerTools.HtmlToWml
                 Includes = (e, settings) =>
                 {
                     var display = GetComputedPropertyValue(null, e, "display", settings);
-                    if (display.ToString() == "block")
-                        return true;
-                    return false;
+                    if (display.ToString() == "block") { return true; } return false;
                 },
                 InitialValue = (element, settings) => new CssExpression { Terms = new List<CssTerm> { new CssTerm { Value = "0", Type = OpenXmlPowerTools.HtmlToWml.CSS.CssTermType.Number, Unit = CssUnit.PT, } } },
                 ComputedValue = (element, assignedValue, settings) =>
                 {
                     CssExpression valueForPercentage = null;
-                    if (element.Parent != null)
-                        valueForPercentage = GetComputedPropertyValue(null, element.Parent, "width", settings);
-                    return ComputeAbsoluteLength(element, assignedValue, settings, valueForPercentage);
+                    if (element.Parent != null) { valueForPercentage = GetComputedPropertyValue(null, element.Parent, "width", settings); } return ComputeAbsoluteLength(element, assignedValue, settings, valueForPercentage);
                 },
             },
 
@@ -386,9 +372,7 @@ namespace OpenXmlPowerTools.HtmlToWml
                 Includes = (e, settings) =>
                 {
                     var display = GetComputedPropertyValue(null, e, "display", settings);
-                    if (display.ToString() == "block")
-                        return true;
-                    return false;
+                    if (display.ToString() == "block") { return true; } return false;
                 },
                 InitialValue = (element, settings) => new CssExpression { Terms = new List<CssTerm> { new CssTerm { Value = "left", Type = OpenXmlPowerTools.HtmlToWml.CSS.CssTermType.String, } } },  // todo should be based on the direction property
                 ComputedValue = null,
@@ -464,9 +448,7 @@ namespace OpenXmlPowerTools.HtmlToWml
                 Includes = (e, settings) =>
                 {
                     var display = GetComputedPropertyValue(null, e, "display", settings);
-                    if (display.ToString() == "table-caption")
-                        return true;
-                    return false;
+                    if (display.ToString() == "table-caption") { return true; } return false;
                 },
                 InitialValue = (element, settings) => new CssExpression { Terms = new List<CssTerm> { new CssTerm { Value = "top", Type = OpenXmlPowerTools.HtmlToWml.CSS.CssTermType.String, } } },
                 ComputedValue = null,
@@ -486,9 +468,7 @@ namespace OpenXmlPowerTools.HtmlToWml
                 Includes = (e, settings) =>
                 {
                     var display = GetComputedPropertyValue(null, e, "display", settings);
-                    if (display.ToString() == "table" || display.ToString() == "inline-table")
-                        return true;
-                    return false;
+                    if (display.ToString() == "table" || display.ToString() == "inline-table") { return true; } return false;
                 },
                 InitialValue = (element, settings) => new CssExpression { Terms = new List<CssTerm> { new CssTerm { Value = "separate", Type = OpenXmlPowerTools.HtmlToWml.CSS.CssTermType.String, } } },
                 ComputedValue = null,
@@ -508,9 +488,7 @@ namespace OpenXmlPowerTools.HtmlToWml
                 Includes = (e, settings) =>
                 {
                     var display = GetComputedPropertyValue(null, e, "display", settings);
-                    if (display.ToString() == "table" || display.ToString() == "inline-table")
-                        return true;
-                    return false;
+                    if (display.ToString() == "table" || display.ToString() == "inline-table") { return true; } return false;
                 },
                 InitialValue = (element, settings) => new CssExpression { Terms = new List<CssTerm> { new CssTerm { Value = "0", Type = OpenXmlPowerTools.HtmlToWml.CSS.CssTermType.Number, Unit = CssUnit.PT, } } },
                 ComputedValue = (element, assignedValue, settings) => ComputeAbsoluteLength(element, assignedValue, settings, null),  // todo need to handle two lengths here
@@ -530,9 +508,7 @@ namespace OpenXmlPowerTools.HtmlToWml
                 Includes = (e, settings) =>
                 {
                     var display = GetComputedPropertyValue(null, e, "display", settings);
-                    if (display.ToString() == "table" || display.ToString() == "table-cell")
-                        return true;
-                    return false;
+                    if (display.ToString() == "table" || display.ToString() == "table-cell") { return true; } return false;
                 },
                 InitialValue = (element, settings) => new CssExpression { Terms = new List<CssTerm> { new CssTerm { Value = "show", } } },
                 ComputedValue = null,
@@ -553,21 +529,16 @@ namespace OpenXmlPowerTools.HtmlToWml
                 Includes = (e, settings) =>
                 {
                     var display = GetComputedPropertyValue(null, e, "display", settings);
-                    if (display.ToString() == "table-caption" || display.ToString() == "table" || display.ToString() == "inline-table")
-                        return false;
-                    return true;
+                    if (display.ToString() == "table-caption" || display.ToString() == "table" || display.ToString() == "inline-table") { return false; } return true;
                 },
-                InitialValue = (element, settings) => 
+                InitialValue = (element, settings) =>
                     {
                         if (settings.DefaultBlockContentMargin != null)
                         {
-                            if (settings.DefaultBlockContentMargin == "auto")
-                                return new CssExpression { Terms = new List<CssTerm> { new CssTerm { Value = "auto", Type = OpenXmlPowerTools.HtmlToWml.CSS.CssTermType.String } } };
-                            else if (settings.DefaultBlockContentMargin.ToLower().EndsWith("pt"))
+                            if (settings.DefaultBlockContentMargin == "auto") { return new CssExpression { Terms = new List<CssTerm> { new CssTerm { Value = "auto", Type = OpenXmlPowerTools.HtmlToWml.CSS.CssTermType.String } } }; } else if (settings.DefaultBlockContentMargin.ToLower().EndsWith("pt"))
                             {
-                                string s1 = settings.DefaultBlockContentMargin.Substring(0, settings.DefaultBlockContentMargin.Length - 2);
-                                double d1;
-                                if (double.TryParse(s1, NumberStyles.Float, CultureInfo.InvariantCulture, out d1))
+                                var s1 = settings.DefaultBlockContentMargin.Substring(0, settings.DefaultBlockContentMargin.Length - 2);
+                                if (double.TryParse(s1, NumberStyles.Float, CultureInfo.InvariantCulture, out vard1))
                                 {
                                     return new CssExpression { Terms = new List<CssTerm> { new CssTerm { Value = d1.ToString(CultureInfo.InvariantCulture), Type = OpenXmlPowerTools.HtmlToWml.CSS.CssTermType.Number, Unit = CssUnit.PT } } };
                                 }
@@ -579,9 +550,7 @@ namespace OpenXmlPowerTools.HtmlToWml
                 ComputedValue = (element, assignedValue, settings) =>
                 {
                     CssExpression valueForPercentage = null;
-                    if (element.Parent != null)
-                        valueForPercentage = GetComputedPropertyValue(null, element.Parent, "width", settings);
-                    return ComputeAbsoluteLength(element, assignedValue, settings, valueForPercentage);
+                    if (element.Parent != null) { valueForPercentage = GetComputedPropertyValue(null, element.Parent, "width", settings); } return ComputeAbsoluteLength(element, assignedValue, settings, valueForPercentage);
                 },
             },
 
@@ -600,17 +569,13 @@ namespace OpenXmlPowerTools.HtmlToWml
                 Includes = (e, settings) =>
                 {
                     var display = GetComputedPropertyValue(null, e, "display", settings);
-                    if (display.ToString() == "table-caption" || display.ToString() == "table" || display.ToString() == "inline-table")
-                        return false;
-                    return true;
+                    if (display.ToString() == "table-caption" || display.ToString() == "table" || display.ToString() == "inline-table") { return false; } return true;
                 },
                 InitialValue = (element, settings) => new CssExpression { Terms = new List<CssTerm> { new CssTerm { Value = "0", Type = OpenXmlPowerTools.HtmlToWml.CSS.CssTermType.Number, Unit = CssUnit.PT, } } },
                 ComputedValue = (element, assignedValue, settings) =>
                 {
                     CssExpression valueForPercentage = null;
-                    if (element.Parent != null)
-                        valueForPercentage = GetComputedPropertyValue(null, element.Parent, "width", settings);
-                    return ComputeAbsoluteLength(element, assignedValue, settings, valueForPercentage);
+                    if (element.Parent != null) { valueForPercentage = GetComputedPropertyValue(null, element.Parent, "width", settings); } return ComputeAbsoluteLength(element, assignedValue, settings, valueForPercentage);
                 },
             },
 
@@ -630,19 +595,15 @@ namespace OpenXmlPowerTools.HtmlToWml
                 Includes = (e, settings) =>
                 {
                     var display = GetComputedPropertyValue(null, e, "display", settings);
-                    string dv = display.ToString();
+                    var dv = display.ToString();
                     if (dv == "table-row-group" || dv == "table-header-group" || dv == "table-footer-group" || dv == "table-row" ||
-                        dv == "table-column-group" || dv == "table-column")
-                        return false;
-                    return true;
+                        dv == "table-column-group" || dv == "table-column") { return false; } return true;
                 },
                 InitialValue = (element, settings) => new CssExpression { Terms = new List<CssTerm> { new CssTerm { Value = "0", Type = OpenXmlPowerTools.HtmlToWml.CSS.CssTermType.Number, Unit = CssUnit.PT, } } },
                 ComputedValue = (element, assignedValue, settings) =>
                 {
                     CssExpression valueForPercentage = null;
-                    if (element.Parent != null)
-                        valueForPercentage = GetComputedPropertyValue(null, element.Parent, "width", settings);
-                    return ComputeAbsoluteLength(element, assignedValue, settings, valueForPercentage);
+                    if (element.Parent != null) { valueForPercentage = GetComputedPropertyValue(null, element.Parent, "width", settings); } return ComputeAbsoluteLength(element, assignedValue, settings, valueForPercentage);
                 },
             },
 
@@ -661,14 +622,8 @@ namespace OpenXmlPowerTools.HtmlToWml
                 InitialValue = (element, settings) => new CssExpression { Terms = new List<CssTerm> { new CssTerm { Value = "0", Type = OpenXmlPowerTools.HtmlToWml.CSS.CssTermType.Number, Unit = CssUnit.PT, } } },
                 ComputedValue = (element, assignedValue, settings) =>
                     {
-                        string assignedValueStr = assignedValue.ToString();
-                        if (assignedValueStr == "thin")
-                            return new CssExpression { Terms = new List<CssTerm> { new CssTerm { Value = "0.75", Type = OpenXmlPowerTools.HtmlToWml.CSS.CssTermType.Number, Unit = CssUnit.PT, } } };
-                        if (assignedValueStr == "medium")
-                            return new CssExpression { Terms = new List<CssTerm> { new CssTerm { Value = "3.0", Type = OpenXmlPowerTools.HtmlToWml.CSS.CssTermType.Number, Unit = CssUnit.PT, } } };
-                        if (assignedValueStr == "thick")
-                            return new CssExpression { Terms = new List<CssTerm> { new CssTerm { Value = "4.5", Type = OpenXmlPowerTools.HtmlToWml.CSS.CssTermType.Number, Unit = CssUnit.PT, } } };
-                        return ComputeAbsoluteLength(element, assignedValue, settings, null);
+                        var assignedValueStr = assignedValue.ToString();
+                        if (assignedValueStr == "thin") { return new CssExpression { Terms = new List<CssTerm> { new CssTerm { Value = "0.75", Type = OpenXmlPowerTools.HtmlToWml.CSS.CssTermType.Number, Unit = CssUnit.PT, } } }; } if (assignedValueStr == "medium") { return new CssExpression { Terms = new List<CssTerm> { new CssTerm { Value = "3.0", Type = OpenXmlPowerTools.HtmlToWml.CSS.CssTermType.Number, Unit = CssUnit.PT, } } }; } if (assignedValueStr == "thick") { return new CssExpression { Terms = new List<CssTerm> { new CssTerm { Value = "4.5", Type = OpenXmlPowerTools.HtmlToWml.CSS.CssTermType.Number, Unit = CssUnit.PT, } } }; } return ComputeAbsoluteLength(element, assignedValue, settings, null);
                     },
             },
 
@@ -801,9 +756,7 @@ namespace OpenXmlPowerTools.HtmlToWml
                 Includes = (e, settings) =>
                 {
                     var display = GetComputedPropertyValue(null, e, "display", settings);
-                    if (display.ToString() == "table" || display.ToString() == "inline-table")
-                        return true;
-                    return false;
+                    if (display.ToString() == "table" || display.ToString() == "inline-table") { return true; } return false;
                 },
                 InitialValue = (element, settings) => new CssExpression { Terms = new List<CssTerm> { new CssTerm { Value = "auto", Type = OpenXmlPowerTools.HtmlToWml.CSS.CssTermType.String, } } },
                 ComputedValue = null,
@@ -823,9 +776,7 @@ namespace OpenXmlPowerTools.HtmlToWml
                 Includes = (e, settings) =>
                 {
                     var display = GetComputedPropertyValue(null, e, "display", settings);
-                    if (display.ToString() == "table-cell")
-                        return true;
-                    return false;
+                    if (display.ToString() == "table-cell") { return true; } return false;
                 },
                 InitialValue = (element, settings) => new CssExpression { Terms = new List<CssTerm> { new CssTerm { Value = "show", Type = OpenXmlPowerTools.HtmlToWml.CSS.CssTermType.String, } } },
                 ComputedValue = null,
@@ -864,28 +815,18 @@ namespace OpenXmlPowerTools.HtmlToWml
                 Inherits = false,
                 Includes = (e, settings) =>
                 {
-                    if (e.Name == XhtmlNoNamespace.img)
-                        return true;
-                    var display = GetComputedPropertyValue(null, e, "display", settings);
+                    if (e.Name == XhtmlNoNamespace.img) { return true; } var display = GetComputedPropertyValue(null, e, "display", settings);
                     var dv = display.ToString();
-                    if (dv == "inline" || dv == "table-row" || dv == "table-row-group")
-                        return false;
-                    return true;
+                    if (dv == "inline" || dv == "table-row" || dv == "table-row-group") { return false; } return true;
                 },
-                InitialValue = (element, settings) => 
+                InitialValue = (element, settings) =>
                 {
                     if (element.Parent == null)
                     {
-                        double? pageWidth = (double?)settings.SectPr.Elements(W.pgSz).Attributes(W._w).FirstOrDefault();
-                        if (pageWidth == null)
-                            pageWidth = 12240;
-                        double? leftMargin = (double?)settings.SectPr.Elements(W.pgMar).Attributes(W.left).FirstOrDefault();
-                        if (leftMargin == null)
-                            leftMargin = 1440;
-                        double? rightMargin = (double?)settings.SectPr.Elements(W.pgMar).Attributes(W.left).FirstOrDefault();
-                        if (rightMargin == null)
-                            rightMargin = 1440;
-                        double width = (double)(pageWidth - leftMargin - rightMargin) / 20;
+                        var pageWidth = (double?)settings.SectPr.Elements(W.pgSz).Attributes(W._w).FirstOrDefault();
+                        if (pageWidth == null) { pageWidth = 12240; } var leftMargin = (double?)settings.SectPr.Elements(W.pgMar).Attributes(W.left).FirstOrDefault();
+                        if (leftMargin == null) { leftMargin = 1440; } var rightMargin = (double?)settings.SectPr.Elements(W.pgMar).Attributes(W.left).FirstOrDefault();
+                        if (rightMargin == null) { rightMargin = 1440; } var width = (double)(pageWidth - leftMargin - rightMargin) / 20;
                         return new CssExpression { Terms = new List<CssTerm> { new CssTerm { Value = width.ToString(CultureInfo.InvariantCulture), Type = OpenXmlPowerTools.HtmlToWml.CSS.CssTermType.String, Unit = CssUnit.PT, } } };
                     }
                     return new CssExpression { Terms = new List<CssTerm> { new CssTerm { Value = "auto", Type = OpenXmlPowerTools.HtmlToWml.CSS.CssTermType.String, } } };
@@ -899,16 +840,16 @@ namespace OpenXmlPowerTools.HtmlToWml
                         element.Name != XhtmlNoNamespace.table &&
                         assignedValue.IsAuto)
                     {
-                        PropertyInfo pi = PropertyInfoList.FirstOrDefault(p => p.Names.Contains("width"));
-                        string display = GetComputedPropertyValue(pi, element, "display", settings).ToString();
+                        var pi = PropertyInfoList.FirstOrDefault(p => p.Names.Contains("width"));
+                        var display = GetComputedPropertyValue(pi, element, "display", settings).ToString();
                         if (display != "inline")
                         {
-                            CssExpression parentPropertyValue = GetComputedPropertyValue(pi, element.Parent, "width", settings);
+                            var parentPropertyValue = GetComputedPropertyValue(pi, element.Parent, "width", settings);
                             return parentPropertyValue;
                         }
                     }
                     CssExpression valueForPercentage = null;
-                    XElement elementToQuery = element.Parent;
+                    var elementToQuery = element.Parent;
                     while (elementToQuery != null)
                     {
                         valueForPercentage = GetComputedPropertyValue(null, elementToQuery, "width", settings);
@@ -923,7 +864,7 @@ namespace OpenXmlPowerTools.HtmlToWml
                     return ComputeAbsoluteLength(element, assignedValue, settings, valueForPercentage);
                 },
             },
-            
+
             // min-width
             // Value:          <length> | <percentage> | inherit
             // Initial:        0
@@ -939,17 +880,13 @@ namespace OpenXmlPowerTools.HtmlToWml
                 {
                     var display = GetComputedPropertyValue(null, e, "display", settings);
                     var dv = display.ToString();
-                    if (dv == "inline" || dv == "table-row" || dv == "table-row-group")
-                        return false;
-                    return true;
+                    if (dv == "inline" || dv == "table-row" || dv == "table-row-group") { return false; } return true;
                 },
                 InitialValue = (element, settings) => new CssExpression { Terms = new List<CssTerm> { new CssTerm { Value = "0", Type = OpenXmlPowerTools.HtmlToWml.CSS.CssTermType.Number, Unit = CssUnit.PT, } } },
                 ComputedValue = (element, assignedValue, settings) =>
                 {
                     CssExpression valueForPercentage = null;
-                    if (element.Parent != null)
-                        valueForPercentage = GetComputedPropertyValue(null, element.Parent, "width", settings);
-                    return ComputeAbsoluteLength(element, assignedValue, settings, valueForPercentage);
+                    if (element.Parent != null) { valueForPercentage = GetComputedPropertyValue(null, element.Parent, "width", settings); } return ComputeAbsoluteLength(element, assignedValue, settings, valueForPercentage);
                 },
             },
 
@@ -968,17 +905,13 @@ namespace OpenXmlPowerTools.HtmlToWml
                 {
                     var display = GetComputedPropertyValue(null, e, "display", settings);
                     var dv = display.ToString();
-                    if (dv == "inline" || dv == "table-row" || dv == "table-row-group")
-                        return false;
-                    return true;
+                    if (dv == "inline" || dv == "table-row" || dv == "table-row-group") { return false; } return true;
                 },
                 InitialValue = (element, settings) => new CssExpression { Terms = new List<CssTerm> { new CssTerm { Value = "none", Type = OpenXmlPowerTools.HtmlToWml.CSS.CssTermType.String, } } },
                 ComputedValue = (element, assignedValue, settings) =>
                 {
                     CssExpression valueForPercentage = null;
-                    if (element.Parent != null)
-                        valueForPercentage = GetComputedPropertyValue(null, element.Parent, "width", settings);
-                    return ComputeAbsoluteLength(element, assignedValue, settings, valueForPercentage);
+                    if (element.Parent != null) { valueForPercentage = GetComputedPropertyValue(null, element.Parent, "width", settings); } return ComputeAbsoluteLength(element, assignedValue, settings, valueForPercentage);
                 },
             },
 
@@ -995,24 +928,18 @@ namespace OpenXmlPowerTools.HtmlToWml
                 Inherits = false,
                 Includes = (e, settings) =>
                 {
-                    if (e.Name == XhtmlNoNamespace.img)
-                        return true;
-                    var display = GetComputedPropertyValue(null, e, "display", settings);
+                    if (e.Name == XhtmlNoNamespace.img) { return true; } var display = GetComputedPropertyValue(null, e, "display", settings);
                     var dv = display.ToString();
-                    if (dv == "inline" || dv == "table-row" || dv == "table-row-group")
-                        return false;
-                    return true;
+                    if (dv == "inline" || dv == "table-row" || dv == "table-row-group") { return false; } return true;
                 },
                 InitialValue = (element, settings) => new CssExpression { Terms = new List<CssTerm> { new CssTerm { Value = "auto", Type = OpenXmlPowerTools.HtmlToWml.CSS.CssTermType.String, } } },
                 ComputedValue = (element, assignedValue, settings) =>
                 {
                     CssExpression valueForPercentage = null;
-                    if (element.Parent != null)
-                        valueForPercentage = GetComputedPropertyValue(null, element.Parent, "height", settings);
-                    return ComputeAbsoluteLength(element, assignedValue, settings, valueForPercentage);
+                    if (element.Parent != null) { valueForPercentage = GetComputedPropertyValue(null, element.Parent, "height", settings); } return ComputeAbsoluteLength(element, assignedValue, settings, valueForPercentage);
                 },
             },
-            
+
             // min-height
             // Value:          <length> | <percentage> | inherit
             // Initial:        0
@@ -1028,17 +955,13 @@ namespace OpenXmlPowerTools.HtmlToWml
                 {
                     var display = GetComputedPropertyValue(null, e, "display", settings);
                     var dv = display.ToString();
-                    if (dv == "inline" || dv == "table-column" || dv == "table-column-group")
-                        return false;
-                    return true;
+                    if (dv == "inline" || dv == "table-column" || dv == "table-column-group") { return false; } return true;
                 },
                 InitialValue = (element, settings) => new CssExpression { Terms = new List<CssTerm> { new CssTerm { Value = "0", Type = OpenXmlPowerTools.HtmlToWml.CSS.CssTermType.Number, Unit = CssUnit.PT, } } },
                 ComputedValue = (element, assignedValue, settings) =>
                 {
                     CssExpression valueForPercentage = null;
-                    if (element.Parent != null)
-                        valueForPercentage = GetComputedPropertyValue(null, element.Parent, "height", settings);
-                    return ComputeAbsoluteLength(element, assignedValue, settings, valueForPercentage);
+                    if (element.Parent != null) { valueForPercentage = GetComputedPropertyValue(null, element.Parent, "height", settings); } return ComputeAbsoluteLength(element, assignedValue, settings, valueForPercentage);
                 },
             },
 
@@ -1057,20 +980,16 @@ namespace OpenXmlPowerTools.HtmlToWml
                 {
                     var display = GetComputedPropertyValue(null, e, "display", settings);
                     var dv = display.ToString();
-                    if (dv == "inline" || dv == "table-column" || dv == "table-column-group")
-                        return false;
-                    return true;
+                    if (dv == "inline" || dv == "table-column" || dv == "table-column-group") { return false; } return true;
                 },
                 InitialValue = (element, settings) => new CssExpression { Terms = new List<CssTerm> { new CssTerm { Value = "none", Type = OpenXmlPowerTools.HtmlToWml.CSS.CssTermType.String, } } },
                 ComputedValue = (element, assignedValue, settings) =>
                 {
                     CssExpression valueForPercentage = null;
-                    if (element.Parent != null)
-                        valueForPercentage = GetComputedPropertyValue(null, element.Parent, "height", settings);
-                    return ComputeAbsoluteLength(element, assignedValue, settings, valueForPercentage);
+                    if (element.Parent != null) { valueForPercentage = GetComputedPropertyValue(null, element.Parent, "height", settings); } return ComputeAbsoluteLength(element, assignedValue, settings, valueForPercentage);
                 },
             },
-            
+
             // vertical-align
             // Value:          baseline | sub | super | top | text-top | middle | bottom | text-bottom |
             //                 <percentage> | <length> | inherit
@@ -1087,9 +1006,7 @@ namespace OpenXmlPowerTools.HtmlToWml
                 {
                     var display = GetComputedPropertyValue(null, e, "display", settings);
                     var dv = display.ToString();
-                    if (dv == "inline" || dv == "table-cell")
-                        return true;
-                    return false;
+                    if (dv == "inline" || dv == "table-cell") { return true; } return false;
                 },
                 InitialValue = (element, settings) => new CssExpression { Terms = new List<CssTerm> { new CssTerm { Value = "baseline", Type = OpenXmlPowerTools.HtmlToWml.CSS.CssTermType.String, } } },
                 ComputedValue = (element, assignedValue, settings) => assignedValue,  // todo fix
@@ -1105,7 +1022,7 @@ namespace OpenXmlPowerTools.HtmlToWml
             // Percentages:    refer to height of containing block
             // Computed value: if specified as a length, the corresponding absolute length; if
             //                 specified as a percentage, the specified value; otherwise, ’auto’.
-            // 
+            //
             // right
             // Value:          <length> | <percentage> | auto | inherit
             // Initial:        auto
@@ -1114,7 +1031,7 @@ namespace OpenXmlPowerTools.HtmlToWml
             // Percentages:    refer to width of containing block
             // Computed value: if specified as a length, the corresponding absolute length; if
             //                 specified as a percentage, the specified value; otherwise, ’auto’.
-            // 
+            //
             // bottom
             // Value:          <length> | <percentage> | auto | inherit
             // Initial:        auto
@@ -1123,7 +1040,7 @@ namespace OpenXmlPowerTools.HtmlToWml
             // Percentages:    refer to height of containing block
             // Computed value: if specified as a length, the corresponding absolute length; if
             //                 specified as a percentage, the specified value; otherwise, ’auto’.
-            // 
+            //
             // left
             // Value:          <length> | <percentage> | auto | inherit
             // Initial:        auto
@@ -1142,7 +1059,7 @@ namespace OpenXmlPowerTools.HtmlToWml
             // Inherited:      no
             // Percentages:    N/A
             // Computed value: as specified
-            // 
+            //
             // z-index
             // Value:          auto | integer | inherit
             // Initial:        auto
@@ -1173,9 +1090,9 @@ namespace OpenXmlPowerTools.HtmlToWml
             out CssDocument userCssDoc,
             string annotatedHtmlDumpFileName)
         {
-            int propertySequence = 1;
+            var propertySequence = 1;
 
-            CssParser defaultCssParser = new CssParser();
+            var defaultCssParser = new CssParser();
             defaultCssDoc = defaultCssParser.ParseText(defaultCss);
             ApplyCssDocument(
                 defaultCssDoc,
@@ -1196,7 +1113,7 @@ namespace OpenXmlPowerTools.HtmlToWml
             //DumpCss(userAgentCssDoc);
             //Environment.Exit(0);
 
-            CssParser userCssParser = new CssParser();
+            var userCssParser = new CssParser();
             userCssDoc = userCssParser.ParseText(userCss);
             ApplyCssDocument(
                 userCssDoc,
@@ -1208,7 +1125,7 @@ namespace OpenXmlPowerTools.HtmlToWml
             //DumpCss(userCssDoc);
             //Environment.Exit(0);
 
-            CssParser authorCssParser = new CssParser();
+            var authorCssParser = new CssParser();
             authorCssDoc = authorCssParser.ParseText(authorCss);
             ApplyCssDocument(
                 authorCssDoc,
@@ -1231,7 +1148,7 @@ namespace OpenXmlPowerTools.HtmlToWml
 
             if (annotatedHtmlDumpFileName != null)
             {
-                StringBuilder sb = new StringBuilder();
+                var sb = new StringBuilder();
                 WriteXHtmlWithAnnotations(newXHtml, sb);
                 File.WriteAllText(annotatedHtmlDumpFileName, sb.ToString());
             }
@@ -1272,12 +1189,13 @@ namespace OpenXmlPowerTools.HtmlToWml
       set the computed value
       return the computed value
 #endif
+
         public static CssExpression GetComputedPropertyValue(PropertyInfo propertyInfo, XElement element, string propertyName,
             HtmlToWmlConverterSettings settings)
         {
             // if (property is already computed)
             //   return the computed value
-            Dictionary<string, CssExpression> computedValues = element.Annotation<Dictionary<string, CssExpression>>();
+            var computedValues = element.Annotation<Dictionary<string, CssExpression>>();
             if (computedValues == null)
             {
                 computedValues = new Dictionary<string, CssExpression>();
@@ -1285,40 +1203,44 @@ namespace OpenXmlPowerTools.HtmlToWml
             }
             if (computedValues.ContainsKey(propertyName))
             {
-                CssExpression r = computedValues[propertyName];
+                var r = computedValues[propertyName];
                 return r;
             }
 
             // if property is not set or property is set to inherited value, then get inherited or initialized value.
-            string pName = propertyName.ToLower();
+            var pName = propertyName.ToLower();
             if (propertyInfo == null)
             {
                 propertyInfo = PropertyInfoList.FirstOrDefault(pi => pi.Names.Contains(pName));
                 if (propertyInfo == null)
+                {
                     throw new OpenXmlPowerToolsException("all possible properties should be in the list");
+                }
             }
-            Dictionary<string, Property> propList = element.Annotation<Dictionary<string, Property>>();
+            var propList = element.Annotation<Dictionary<string, Property>>();
             if (propList == null)
             {
-                CssExpression computedValue = GetInheritedOrInitializedValue(computedValues, propertyInfo, element, propertyName, false, settings);
+                var computedValue = GetInheritedOrInitializedValue(computedValues, propertyInfo, element, propertyName, false, settings);
                 return computedValue;
             }
             if (!propList.ContainsKey(pName))
             {
-                CssExpression computedValue = GetInheritedOrInitializedValue(computedValues, propertyInfo, element, propertyName, false, settings);
+                var computedValue = GetInheritedOrInitializedValue(computedValues, propertyInfo, element, propertyName, false, settings);
                 return computedValue;
             }
-            Property prop = propList[pName];
-            string propStr = prop.Expression.ToString();
+            var prop = propList[pName];
+            var propStr = prop.Expression.ToString();
             if (propStr == "inherited" || propStr == "auto")
             {
-                CssExpression computedValue = GetInheritedOrInitializedValue(computedValues, propertyInfo, element, propertyName, true, settings);
+                var computedValue = GetInheritedOrInitializedValue(computedValues, propertyInfo, element, propertyName, true, settings);
                 return computedValue;
             }
             // if property is set, then compute the value, return the computed value
             CssExpression computedValue2;
             if (propertyInfo.ComputedValue == null)
+            {
                 computedValue2 = prop.Expression;
+            }
             else
             {
                 computedValue2 = propertyInfo.ComputedValue(element, prop.Expression, settings);
@@ -1340,16 +1262,21 @@ namespace OpenXmlPowerTools.HtmlToWml
         {
             if ((propertyInfo.Inherits || valueIsInherit) && element.Parent != null && propertyInfo.Includes(element.Parent, settings))
             {
-                CssExpression parentPropertyValue = GetComputedPropertyValue(propertyInfo, element.Parent, propertyName, settings);
+                var parentPropertyValue = GetComputedPropertyValue(propertyInfo, element.Parent, propertyName, settings);
                 computedValues.Add(propertyName, parentPropertyValue);
                 return parentPropertyValue;
             }
-            CssExpression initialPropertyValue = propertyInfo.InitialValue(element, settings);
+            var initialPropertyValue = propertyInfo.InitialValue(element, settings);
             CssExpression computedValue;
             if (propertyInfo.ComputedValue == null)
+            {
                 computedValue = initialPropertyValue;
+            }
             else
+            {
                 computedValue = propertyInfo.ComputedValue(element, initialPropertyValue, settings);
+            }
+
             computedValues.Add(propertyName, computedValue);
             return computedValue;
         }
@@ -1375,167 +1302,276 @@ namespace OpenXmlPowerTools.HtmlToWml
             CssExpression lengthForPercentage)
         {
             if (assignedValue.Terms.Count != 1)
+            {
                 throw new OpenXmlPowerToolsException("Should not have a unit with more than one term");
+            }
 
-            string value = assignedValue.Terms.First().Value;
-            bool negative = assignedValue.Terms.First().Sign == '-';
+            var value = assignedValue.Terms.First().Value;
+            var negative = assignedValue.Terms.First().Sign == '-';
 
             if (value == "thin")
             {
-                CssExpression newExpr1 = new CssExpression { Terms = new List<CssTerm> { new CssTerm { Value = ".3", Type = OpenXmlPowerTools.HtmlToWml.CSS.CssTermType.Number, Unit = CssUnit.PT, } } };
+                var newExpr1 = new CssExpression { Terms = new List<CssTerm> { new CssTerm { Value = ".3", Type = OpenXmlPowerTools.HtmlToWml.CSS.CssTermType.Number, Unit = CssUnit.PT, } } };
                 return newExpr1;
             }
             if (value == "medium")
             {
-                CssExpression newExpr2 = new CssExpression { Terms = new List<CssTerm> { new CssTerm { Value = "1.20", Type = OpenXmlPowerTools.HtmlToWml.CSS.CssTermType.Number, Unit = CssUnit.PT, } } };
+                var newExpr2 = new CssExpression { Terms = new List<CssTerm> { new CssTerm { Value = "1.20", Type = OpenXmlPowerTools.HtmlToWml.CSS.CssTermType.Number, Unit = CssUnit.PT, } } };
                 return newExpr2;
             }
             if (value == "thick")
             {
-                CssExpression newExpr3 = new CssExpression { Terms = new List<CssTerm> { new CssTerm { Value = "1.80", Type = OpenXmlPowerTools.HtmlToWml.CSS.CssTermType.Number, Unit = CssUnit.PT, } } };
+                var newExpr3 = new CssExpression { Terms = new List<CssTerm> { new CssTerm { Value = "1.80", Type = OpenXmlPowerTools.HtmlToWml.CSS.CssTermType.Number, Unit = CssUnit.PT, } } };
                 return newExpr3;
             }
             if (value == "auto" || value == "normal" || value == "none")
+            {
                 return assignedValue;
+            }
 
-            CssUnit? unit = assignedValue.Terms.First().Unit;
+            var unit = assignedValue.Terms.First().Unit;
             if (unit == CssUnit.PT || unit == null)
+            {
                 return assignedValue;
+            }
 
             if (unit == CssUnit.Percent && lengthForPercentage == null)
+            {
                 return new CssExpression { Terms = new List<CssTerm> { new CssTerm { Value = "auto", Type = OpenXmlPowerTools.HtmlToWml.CSS.CssTermType.String } } };
+            }
 
-            double decValue;
-            if (!double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out decValue))
+            if (!double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out var decValue))
+            {
                 throw new OpenXmlPowerToolsException("value did not parse");
+            }
+
             if (negative)
+            {
                 decValue = -decValue;
+            }
 
             double? newPtSize = null;
             if (unit == CssUnit.Percent)
             {
-                double ptSize;
-                if (!double.TryParse(lengthForPercentage.Terms.First().Value, NumberStyles.Float, CultureInfo.InvariantCulture, out ptSize))
+                if (!double.TryParse(lengthForPercentage.Terms.First().Value, NumberStyles.Float, CultureInfo.InvariantCulture, out var ptSize))
+                {
                     throw new OpenXmlPowerToolsException("did not return a double?");
+                }
+
                 newPtSize = ptSize * decValue / 100d;
             }
             else if (unit == CssUnit.EM || unit == CssUnit.EX)
             {
-                CssExpression fontSize = GetComputedPropertyValue(null, element, "font-size", settings);
-                double decFontSize;
-                if (!double.TryParse(fontSize.Terms.First().Value, NumberStyles.Float, CultureInfo.InvariantCulture, out decFontSize))
+                var fontSize = GetComputedPropertyValue(null, element, "font-size", settings);
+                if (!double.TryParse(fontSize.Terms.First().Value, NumberStyles.Float, CultureInfo.InvariantCulture, out var decFontSize))
+                {
                     throw new OpenXmlPowerToolsException("Internal error");
+                }
+
                 newPtSize = (unit == CssUnit.EM) ? decFontSize * decValue : decFontSize * decValue / 2;
             }
             else
             {
                 if (unit == null && decValue == 0d)
+                {
                     newPtSize = 0d;
+                }
+
                 if (unit == CssUnit.IN)
+                {
                     newPtSize = decValue * 72.0d;
+                }
+
                 if (unit == CssUnit.CM)
+                {
                     newPtSize = (decValue / 2.54d) * 72.0d;
+                }
+
                 if (unit == CssUnit.MM)
+                {
                     newPtSize = (decValue / 25.4d) * 72.0d;
+                }
+
                 if (unit == CssUnit.PC)
+                {
                     newPtSize = decValue * 12d;
+                }
+
                 if (unit == CssUnit.PX)
+                {
                     newPtSize = decValue * 0.75d;
+                }
             }
             if (!newPtSize.HasValue)
+            {
                 throw new OpenXmlPowerToolsException("Internal error: should not have reached this exception");
-            CssExpression newExpr = new CssExpression { Terms = new List<CssTerm> { new CssTerm { Value = newPtSize.Value.ToString(CultureInfo.InvariantCulture), Type = OpenXmlPowerTools.HtmlToWml.CSS.CssTermType.Number, Unit = CssUnit.PT, } } };
+            }
+
+            var newExpr = new CssExpression { Terms = new List<CssTerm> { new CssTerm { Value = newPtSize.Value.ToString(CultureInfo.InvariantCulture), Type = OpenXmlPowerTools.HtmlToWml.CSS.CssTermType.Number, Unit = CssUnit.PT, } } };
             return newExpr;
         }
 
         private static CssExpression ComputeAbsoluteFontSize(XElement element, CssExpression assignedValue, HtmlToWmlConverterSettings settings)
         {
             if (assignedValue.Terms.Count != 1)
+            {
                 throw new OpenXmlPowerToolsException("Should not have a unit with more than one term, I think");
-            string value = assignedValue.Terms.First().Value;
-            CssUnit? unit = assignedValue.Terms.First().Unit;
+            }
+
+            var value = assignedValue.Terms.First().Value;
+            var unit = assignedValue.Terms.First().Unit;
             if (unit == CssUnit.PT)
+            {
                 return assignedValue;
+            }
+
             if (FontSizeMap.ContainsKey(value))
+            {
                 return new CssExpression { Terms = new List<CssTerm> { new CssTerm { Value = FontSizeMap[value].ToString(CultureInfo.InvariantCulture), Type = OpenXmlPowerTools.HtmlToWml.CSS.CssTermType.Number, Unit = CssUnit.PT, } } };
+            }
 
             // todo what should the calculation be for computing larger / smaller?
             if (value == "larger" || value == "smaller")
             {
-                CssExpression parentFontSize = GetComputedPropertyValue(null, element.Parent, "font-size", settings);
-                double ptSize;
-                if (!double.TryParse(parentFontSize.Terms.First().Value, NumberStyles.Float, CultureInfo.InvariantCulture, out ptSize))
+                var parentFontSize = GetComputedPropertyValue(null, element.Parent, "font-size", settings);
+                if (!double.TryParse(parentFontSize.Terms.First().Value, NumberStyles.Float, CultureInfo.InvariantCulture, out var ptSize))
+                {
                     throw new OpenXmlPowerToolsException("did not return a double?");
+                }
+
                 double newPtSize2 = 0;
                 if (value == "larger")
                 {
                     if (ptSize < 10)
+                    {
                         newPtSize2 = 10d;
+                    }
+
                     if (ptSize == 10 || ptSize == 11)
+                    {
                         newPtSize2 = 12d;
+                    }
+
                     if (ptSize == 12)
+                    {
                         newPtSize2 = 13.5d;
+                    }
+
                     if (ptSize >= 13 && ptSize <= 15)
+                    {
                         newPtSize2 = 18d;
+                    }
+
                     if (ptSize >= 16 && ptSize <= 20)
+                    {
                         newPtSize2 = 24d;
+                    }
+
                     if (ptSize >= 21)
+                    {
                         newPtSize2 = 36d;
+                    }
                 }
                 if (value == "smaller")
                 {
                     if (ptSize <= 11)
+                    {
                         newPtSize2 = 7.5d;
+                    }
+
                     if (ptSize == 12)
+                    {
                         newPtSize2 = 10d;
+                    }
+
                     if (ptSize >= 13 && ptSize <= 15)
+                    {
                         newPtSize2 = 12d;
+                    }
+
                     if (ptSize >= 16 && ptSize <= 20)
+                    {
                         newPtSize2 = 13.5d;
+                    }
+
                     if (ptSize >= 21 && ptSize <= 29)
+                    {
                         newPtSize2 = 18d;
+                    }
+
                     if (ptSize >= 30)
+                    {
                         newPtSize2 = 24d;
+                    }
                 }
                 return new CssExpression { Terms = new List<CssTerm> { new CssTerm { Value = newPtSize2.ToString(CultureInfo.InvariantCulture), Type = OpenXmlPowerTools.HtmlToWml.CSS.CssTermType.Number, Unit = CssUnit.PT, } } };
             }
-            double decValue;
-            if (!double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out decValue))
+            if (!double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out var decValue))
+            {
                 throw new OpenXmlPowerToolsException("em value did not parse");
+            }
+
             double? newPtSize = null;
             if (unit == CssUnit.EM || unit == CssUnit.EX || unit == CssUnit.Percent)
             {
-                CssExpression parentFontSize = GetComputedPropertyValue(null, element.Parent, "font-size", settings);
-                double ptSize;
-                if (!double.TryParse(parentFontSize.Terms.First().Value, NumberStyles.Float, CultureInfo.InvariantCulture, out ptSize))
+                var parentFontSize = GetComputedPropertyValue(null, element.Parent, "font-size", settings);
+                if (!double.TryParse(parentFontSize.Terms.First().Value, NumberStyles.Float, CultureInfo.InvariantCulture, out var ptSize))
+                {
                     throw new OpenXmlPowerToolsException("did not return a double?");
+                }
+
                 if (unit == CssUnit.EM)
+                {
                     newPtSize = ptSize * decValue;
+                }
+
                 if (unit == CssUnit.EX)
+                {
                     newPtSize = ptSize / 2 * decValue;
+                }
+
                 if (unit == CssUnit.Percent)
+                {
                     newPtSize = ptSize * decValue / 100d;
+                }
             }
             else
             {
                 if (unit == CssUnit.IN)
+                {
                     newPtSize = decValue * 72.0d;
+                }
+
                 if (unit == CssUnit.CM)
+                {
                     newPtSize = (decValue / 2.54d) * 72.0d;
+                }
+
                 if (unit == CssUnit.MM)
+                {
                     newPtSize = (decValue / 25.4d) * 72.0d;
+                }
+
                 if (unit == CssUnit.PC)
+                {
                     newPtSize = decValue * 12d;
+                }
+
                 if (unit == CssUnit.PX)
+                {
                     newPtSize = decValue * 0.75d;
+                }
             }
             if (!newPtSize.HasValue)
+            {
                 throw new OpenXmlPowerToolsException("Internal error: should not have reached this exception");
-            CssExpression newExpr = new CssExpression { Terms = new List<CssTerm> { new CssTerm { Value = newPtSize.Value.ToString(CultureInfo.InvariantCulture), Type = OpenXmlPowerTools.HtmlToWml.CSS.CssTermType.Number, Unit = CssUnit.PT, } } };
+            }
+
+            var newExpr = new CssExpression { Terms = new List<CssTerm> { new CssTerm { Value = newPtSize.Value.ToString(CultureInfo.InvariantCulture), Type = OpenXmlPowerTools.HtmlToWml.CSS.CssTermType.Number, Unit = CssUnit.PT, } } };
             return newExpr;
         }
 
-        private static Dictionary<string, double> FontSizeMap = new Dictionary<string, double>()
+        private static readonly Dictionary<string, double> FontSizeMap = new Dictionary<string, double>()
         {
             { "xx-small", 7.5d },
             { "x-small", 10d },
@@ -1558,9 +1594,9 @@ namespace OpenXmlPowerTools.HtmlToWml
             {
                 if (DoesSelectorMatch(selector, element))
                 {
-                    foreach (CssDeclaration declaration in ruleSet.Declarations)
+                    foreach (var declaration in ruleSet.Declarations)
                     {
-                        Property prop = new Property()
+                        var prop = new Property()
                         {
                             Name = declaration.Name.ToLower(),
                             Expression = declaration.Expression,
@@ -1580,19 +1616,28 @@ namespace OpenXmlPowerTools.HtmlToWml
             CssSelector selector,
             XElement element)
         {
-            int currentSimpleSelector = selector.SimpleSelectors.Count() - 1;
-            XElement currentElement = element;
+            var currentSimpleSelector = selector.SimpleSelectors.Count() - 1;
+            var currentElement = element;
             while (true)
             {
                 if (!DoesSimpleSelectorMatch(selector.SimpleSelectors[currentSimpleSelector], currentElement))
+                {
                     return false;
+                }
+
                 if (currentSimpleSelector == 0)
+                {
                     return true;
+                }
+
                 if (selector.SimpleSelectors[currentSimpleSelector].Combinator == CssCombinator.ChildOf)
                 {
                     currentElement = currentElement.Parent;
                     if (currentElement == null)
+                    {
                         return false;
+                    }
+
                     currentSimpleSelector--;
                     continue;
                 }
@@ -1600,14 +1645,17 @@ namespace OpenXmlPowerTools.HtmlToWml
                 {
                     currentElement = currentElement.ElementsBeforeSelf().Reverse().FirstOrDefault();
                     if (currentElement == null)
+                    {
                         return false;
+                    }
+
                     currentSimpleSelector--;
                     continue;
                 }
                 if (selector.SimpleSelectors[currentSimpleSelector].Combinator == null)
                 {
-                    bool continueOuter = false;
-                    foreach (XElement ancestor in element.Ancestors())
+                    var continueOuter = false;
+                    foreach (var ancestor in element.Ancestors())
                     {
                         if (DoesSimpleSelectorMatch(selector.SimpleSelectors[currentSimpleSelector - 1], ancestor))
                         {
@@ -1618,7 +1666,10 @@ namespace OpenXmlPowerTools.HtmlToWml
                         }
                     }
                     if (continueOuter)
+                    {
                         continue;
+                    }
+
                     return false;
                 }
             }
@@ -1628,42 +1679,59 @@ namespace OpenXmlPowerTools.HtmlToWml
             CssSimpleSelector simpleSelector,
             XElement element)
         {
-            bool elemantNameMatch = true;
-            bool classNameMatch = true;
-            bool childSimpleSelectorMatch = true;
-            bool idMatch = true;
-            bool attributeMatch = true;
+            var elemantNameMatch = true;
+            var classNameMatch = true;
+            var childSimpleSelectorMatch = true;
+            var idMatch = true;
+            var attributeMatch = true;
 
             if (simpleSelector.Pseudo != null)
+            {
                 return false;
+            }
+
             if (simpleSelector.ElementName != null && simpleSelector.ElementName != "" && simpleSelector.ElementName != "*")
+            {
                 elemantNameMatch = element.Name.ToString() == simpleSelector.ElementName.ToString();
+            }
+
             if (elemantNameMatch)
             {
                 if (simpleSelector.Class != null && simpleSelector.Class != "")
+                {
                     classNameMatch = ClassesOf(element).Contains(simpleSelector.Class);
+                }
+
                 if (classNameMatch)
                 {
                     if (simpleSelector.Child != null)
+                    {
                         childSimpleSelectorMatch = DoesSimpleSelectorMatch(simpleSelector.Child, element);
+                    }
+
                     if (childSimpleSelectorMatch)
                     {
                         if (simpleSelector.ID != null && simpleSelector.ID != "")
                         {
-                            string id = (string)element.Attribute("ID");
+                            var id = (string)element.Attribute("ID");
                             if (id == null)
+                            {
                                 id = (string)element.Attribute("id");
+                            }
+
                             idMatch = simpleSelector.ID == id;
                         }
                         if (idMatch)
                         {
                             if (simpleSelector.Attribute != null)
+                            {
                                 attributeMatch = DoesAttributeMatch(simpleSelector.Attribute, element);
+                            }
                         }
                     }
                 }
             }
-            bool result =
+            var result =
                 elemantNameMatch &&
                 classNameMatch &&
                 childSimpleSelectorMatch &&
@@ -1674,27 +1742,39 @@ namespace OpenXmlPowerTools.HtmlToWml
 
         private static bool DoesAttributeMatch(OpenXmlPowerTools.HtmlToWml.CSS.CssAttribute attribute, XElement element)
         {
-            string attName = attribute.Operand.ToLower();
-            string attValue = (string)element.Attribute(attName);
+            var attName = attribute.Operand.ToLower();
+            var attValue = (string)element.Attribute(attName);
             if (attValue == null)
+            {
                 return false;
+            }
+
             if (attribute.Operator == null)
+            {
                 return true;
-            string value = attribute.Value;
+            }
+
+            var value = attribute.Value;
             switch (attribute.Operator)
             {
                 case CssAttributeOperator.Equals:
                     return attValue == value;
+
                 case CssAttributeOperator.BeginsWith:
                     return attValue.StartsWith(value);
+
                 case CssAttributeOperator.Contains:
                     return attValue.Contains(value);
+
                 case CssAttributeOperator.EndsWith:
                     return attValue.EndsWith(value);
+
                 case CssAttributeOperator.InList:
                     return attValue.Split(' ').Contains(value);
+
                 case CssAttributeOperator.Hyphenated:
                     return attValue.Split('-')[0] == value;
+
                 default:
                     return false;
             }
@@ -1702,20 +1782,20 @@ namespace OpenXmlPowerTools.HtmlToWml
 
         private static int CountIdAttributesInSimpleSelector(CssSimpleSelector simpleSelector)
         {
-            int count = simpleSelector.ID != null ? 1 : 0 +
+            var count = simpleSelector.ID != null ? 1 : 0 +
                 (simpleSelector.Child != null ? CountIdAttributesInSimpleSelector(simpleSelector.Child) : 0);
             return count;
         }
 
         private static int CountIdAttributesInSelector(CssSelector selector)
         {
-            int count = selector.SimpleSelectors.Select(ss => CountIdAttributesInSimpleSelector(ss)).Sum();
+            var count = selector.SimpleSelectors.Select(ss => CountIdAttributesInSimpleSelector(ss)).Sum();
             return count;
         }
 
         private static int CountAttributesInSimpleSelector(CssSimpleSelector simpleSelector)
         {
-            int count = (simpleSelector.Attribute != null ? 1 : 0) +
+            var count = (simpleSelector.Attribute != null ? 1 : 0) +
                 ((simpleSelector.Class != null && simpleSelector.Class != "") ? 1 : 0) +
                 (simpleSelector.Child != null ? CountAttributesInSimpleSelector(simpleSelector.Child) : 0);
             return count;
@@ -1723,13 +1803,13 @@ namespace OpenXmlPowerTools.HtmlToWml
 
         private static int CountAttributesInSelector(CssSelector selector)
         {
-            int count = selector.SimpleSelectors.Select(ss => CountAttributesInSimpleSelector(ss)).Sum();
+            var count = selector.SimpleSelectors.Select(ss => CountAttributesInSimpleSelector(ss)).Sum();
             return count;
         }
 
         private static int CountElementNamesInSimpleSelector(CssSimpleSelector simpleSelector)
         {
-            int count = (simpleSelector.ElementName != null &&
+            var count = (simpleSelector.ElementName != null &&
                     simpleSelector.ElementName != "" &&
                     simpleSelector.ElementName != "*")
                     ? 1 : 0 +
@@ -1739,7 +1819,7 @@ namespace OpenXmlPowerTools.HtmlToWml
 
         private static int CountElementNamesInSelector(CssSelector selector)
         {
-            int count = selector.SimpleSelectors.Select(ss => CountElementNamesInSimpleSelector(ss)).Sum();
+            var count = selector.SimpleSelectors.Select(ss => CountElementNamesInSimpleSelector(ss)).Sum();
             return count;
         }
 
@@ -1749,19 +1829,23 @@ namespace OpenXmlPowerTools.HtmlToWml
         {
             //if (property.Name == "direction")
             //    Console.WriteLine(1);
-            Dictionary<string, Property> propList = element.Annotation<Dictionary<string, Property>>();
+            var propList = element.Annotation<Dictionary<string, Property>>();
             if (propList == null)
             {
                 propList = new Dictionary<string, Property>();
                 element.AddAnnotation(propList);
             }
             if (!propList.ContainsKey(property.Name))
+            {
                 propList.Add(property.Name, property);
+            }
             else
             {
-                Property current = propList[property.Name];
+                var current = propList[property.Name];
                 if (((System.IComparable<Property>)property).CompareTo(current) == 1)
+                {
                     propList[property.Name] = property;
+                }
             }
         }
 
@@ -1770,20 +1854,27 @@ namespace OpenXmlPowerTools.HtmlToWml
             Property property)
         {
             if (!propList.ContainsKey(property.Name))
+            {
                 propList.Add(property.Name, property);
+            }
             else
             {
-                Property current = propList[property.Name];
+                var current = propList[property.Name];
                 if (((System.IComparable<Property>)property).CompareTo(current) == 1)
+                {
                     propList[property.Name] = property;
+                }
             }
         }
 
         private static string[] ClassesOf(XElement element)
         {
-            string classesString = (string)element.Attribute("class");
+            var classesString = (string)element.Attribute("class");
             if (classesString == null)
+            {
                 return new string[0];
+            }
+
             return classesString.Split(' ');
         }
 
@@ -1796,7 +1887,7 @@ namespace OpenXmlPowerTools.HtmlToWml
         {
             foreach (var declaration in ruleSet.Declarations)
             {
-                Property prop = new Property()
+                var prop = new Property()
                 {
                     Name = declaration.Name.ToLower(),
                     Expression = declaration.Expression,
@@ -1827,14 +1918,14 @@ namespace OpenXmlPowerTools.HtmlToWml
         {
             foreach (var element in xHtml.DescendantsAndSelf())
             {
-                XAttribute styleAtt = element.Attribute(XhtmlNoNamespace.style);
+                var styleAtt = element.Attribute(XhtmlNoNamespace.style);
                 if (styleAtt != null)
                 {
-                    string style = (string)styleAtt;
-                    string cssString = element.Name + "{" + style + "}";
+                    var style = (string)styleAtt;
+                    var cssString = element.Name + "{" + style + "}";
                     cssString = cssString.Replace('\"', '\'');
-                    CssParser cssParser = new CssParser();
-                    CssDocument cssDoc = cssParser.ParseText(cssString);
+                    var cssParser = new CssParser();
+                    var cssDoc = cssParser.ParseText(cssString);
                     ApplyCssToElement(
                         cssDoc,
                         element,
@@ -1842,11 +1933,11 @@ namespace OpenXmlPowerTools.HtmlToWml
                         Property.HighOrderPriority.StyleAttributeHigh,
                         ref propertySequence);
                 }
-                XAttribute dirAtt = element.Attribute(XhtmlNoNamespace.dir);
+                var dirAtt = element.Attribute(XhtmlNoNamespace.dir);
                 if (dirAtt != null)
                 {
-                    string dir = dirAtt.Value.ToLower();
-                    Property prop = new Property()
+                    var dir = dirAtt.Value.ToLower();
+                    var prop = new Property()
                     {
                         Name = "direction",
                         Expression = new CssExpression { Terms = new List<CssTerm> { new CssTerm { Value = dir, Type = CssTermType.String } } },
@@ -1889,7 +1980,7 @@ namespace OpenXmlPowerTools.HtmlToWml
             public string Pattern;
         }
 
-        private static ShorthandPropertiesInfo[] ShorthandProperties = new[]
+        private static readonly ShorthandPropertiesInfo[] ShorthandProperties = new[]
         {
             new ShorthandPropertiesInfo
             {
@@ -1928,7 +2019,7 @@ namespace OpenXmlPowerTools.HtmlToWml
 
         private static void ExpandShorthandPropertiesForElement(XElement element, HtmlToWmlConverterSettings settings)
         {
-            Dictionary<string, Property> propertyList = element.Annotation<Dictionary<string, Property>>();
+            var propertyList = element.Annotation<Dictionary<string, Property>>();
             if (propertyList == null)
             {
                 propertyList = new Dictionary<string, Property>();
@@ -1936,7 +2027,7 @@ namespace OpenXmlPowerTools.HtmlToWml
             }
             foreach (var kvp in propertyList.ToList())
             {
-                Property p = kvp.Value;
+                var p = kvp.Value;
                 if (p.Name == "border")
                 {
                     CssExpression borderColor;
@@ -1958,15 +2049,17 @@ namespace OpenXmlPowerTools.HtmlToWml
                         borderStyle = null;
                         foreach (var term in p.Expression.Terms)
                         {
-                            CssDataType dataType = GetDatatypeFromBorderTerm(term);
+                            var dataType = GetDatatypeFromBorderTerm(term);
                             switch (dataType)
                             {
                                 case CssDataType.Color:
                                     borderColor = new CssExpression { Terms = new List<CssTerm> { term } };
                                     break;
+
                                 case CssDataType.BorderWidth:
                                     borderWidth = new CssExpression { Terms = new List<CssTerm> { term } };
                                     break;
+
                                 case CssDataType.BorderStyle:
                                     borderStyle = new CssExpression { Terms = new List<CssTerm> { term } };
                                     break;
@@ -1977,7 +2070,7 @@ namespace OpenXmlPowerTools.HtmlToWml
                     {
                         if (borderWidth != null)
                         {
-                            Property bwp = new Property
+                            var bwp = new Property
                             {
                                 Name = "border-" + side + "-width",
                                 Expression = borderWidth,
@@ -1991,7 +2084,7 @@ namespace OpenXmlPowerTools.HtmlToWml
                         }
                         if (borderStyle != null)
                         {
-                            Property bsp = new Property
+                            var bsp = new Property
                             {
                                 Name = "border-" + side + "-style",
                                 Expression = borderStyle,
@@ -2005,7 +2098,7 @@ namespace OpenXmlPowerTools.HtmlToWml
                         }
                         if (borderColor != null)
                         {
-                            Property bc = new Property
+                            var bc = new Property
                             {
                                 Name = "border-" + side + "-color",
                                 Expression = borderColor,
@@ -2041,15 +2134,17 @@ namespace OpenXmlPowerTools.HtmlToWml
                         borderStyle = null;
                         foreach (var term in p.Expression.Terms)
                         {
-                            CssDataType dataType = GetDatatypeFromBorderTerm(term);
+                            var dataType = GetDatatypeFromBorderTerm(term);
                             switch (dataType)
                             {
                                 case CssDataType.Color:
                                     borderColor = new CssExpression { Terms = new List<CssTerm> { term } };
                                     break;
+
                                 case CssDataType.BorderWidth:
                                     borderWidth = new CssExpression { Terms = new List<CssTerm> { term } };
                                     break;
+
                                 case CssDataType.BorderStyle:
                                     borderStyle = new CssExpression { Terms = new List<CssTerm> { term } };
                                     break;
@@ -2058,7 +2153,7 @@ namespace OpenXmlPowerTools.HtmlToWml
                     }
                     if (borderWidth != null)
                     {
-                        Property bwp = new Property
+                        var bwp = new Property
                         {
                             Name = p.Name + "-width",
                             Expression = borderWidth,
@@ -2072,7 +2167,7 @@ namespace OpenXmlPowerTools.HtmlToWml
                     }
                     if (borderStyle != null)
                     {
-                        Property bsp = new Property
+                        var bsp = new Property
                         {
                             Name = p.Name + "-style",
                             Expression = borderStyle,
@@ -2086,7 +2181,7 @@ namespace OpenXmlPowerTools.HtmlToWml
                     }
                     if (borderColor != null)
                     {
-                        Property bc = new Property
+                        var bc = new Property
                         {
                             Name = p.Name + "-color",
                             Expression = borderColor,
@@ -2119,22 +2214,24 @@ namespace OpenXmlPowerTools.HtmlToWml
                         listStyleImage = new CssExpression { Terms = new List<CssTerm> { new CssTerm { Value = "none", Type = CssTermType.String } } };
                         foreach (var term in p.Expression.Terms)
                         {
-                            CssDataType dataType = GetDatatypeFromListStyleTerm(term);
+                            var dataType = GetDatatypeFromListStyleTerm(term);
                             switch (dataType)
                             {
                                 case CssDataType.ListStyleType:
                                     listStyleType = new CssExpression { Terms = new List<CssTerm> { term } };
                                     break;
+
                                 case CssDataType.ListStylePosition:
                                     listStylePosition = new CssExpression { Terms = new List<CssTerm> { term } };
                                     break;
+
                                 case CssDataType.ListStyleImage:
                                     listStyleImage = new CssExpression { Terms = new List<CssTerm> { term } };
                                     break;
                             }
                         }
                     }
-                    Property lst = new Property
+                    var lst = new Property
                     {
                         Name = "list-style-type",
                         Expression = listStyleType,
@@ -2145,7 +2242,7 @@ namespace OpenXmlPowerTools.HtmlToWml
                         SequenceNumber = p.SequenceNumber,
                     };
                     AddPropertyToDictionary(propertyList, lst);
-                    Property lsp = new Property
+                    var lsp = new Property
                     {
                         Name = "list-style-position",
                         Expression = listStylePosition,
@@ -2156,7 +2253,7 @@ namespace OpenXmlPowerTools.HtmlToWml
                         SequenceNumber = p.SequenceNumber,
                     };
                     AddPropertyToDictionary(propertyList, lsp);
-                    Property lsi = new Property
+                    var lsi = new Property
                     {
                         Name = "list-style-image",
                         Expression = listStyleImage,
@@ -2204,24 +2301,28 @@ namespace OpenXmlPowerTools.HtmlToWml
                                 Type = CssTermType.Number },
                         }
                         };
-                        List<CssTerm> backgroundPositionList = new List<CssTerm>();
+                        var backgroundPositionList = new List<CssTerm>();
                         foreach (var term in p.Expression.Terms)
                         {
-                            CssDataType dataType = GetDatatypeFromBackgroundTerm(term);
+                            var dataType = GetDatatypeFromBackgroundTerm(term);
                             switch (dataType)
                             {
                                 case CssDataType.BackgroundColor:
                                     backgroundColor = new CssExpression { Terms = new List<CssTerm> { term } };
                                     break;
+
                                 case CssDataType.BackgroundImage:
                                     backgroundImage = new CssExpression { Terms = new List<CssTerm> { term } };
                                     break;
+
                                 case CssDataType.BackgroundRepeat:
                                     backgroundRepeat = new CssExpression { Terms = new List<CssTerm> { term } };
                                     break;
+
                                 case CssDataType.BackgroundAttachment:
                                     backgroundAttachment = new CssExpression { Terms = new List<CssTerm> { term } };
                                     break;
+
                                 case CssDataType.BackgroundPosition:
                                     backgroundPositionList.Add(term);
                                     break;
@@ -2248,7 +2349,7 @@ namespace OpenXmlPowerTools.HtmlToWml
                             };
                         }
                     }
-                    Property bc = new Property
+                    var bc = new Property
                     {
                         Name = "background-color",
                         Expression = backgroundColor,
@@ -2259,7 +2360,7 @@ namespace OpenXmlPowerTools.HtmlToWml
                         SequenceNumber = p.SequenceNumber,
                     };
                     AddPropertyToDictionary(propertyList, bc);
-                    Property bgi = new Property
+                    var bgi = new Property
                     {
                         Name = "background-image",
                         Expression = backgroundImage,
@@ -2270,7 +2371,7 @@ namespace OpenXmlPowerTools.HtmlToWml
                         SequenceNumber = p.SequenceNumber,
                     };
                     AddPropertyToDictionary(propertyList, bgi);
-                    Property bgr = new Property
+                    var bgr = new Property
                     {
                         Name = "background-repeat",
                         Expression = backgroundRepeat,
@@ -2281,7 +2382,7 @@ namespace OpenXmlPowerTools.HtmlToWml
                         SequenceNumber = p.SequenceNumber,
                     };
                     AddPropertyToDictionary(propertyList, bgr);
-                    Property bga = new Property
+                    var bga = new Property
                     {
                         Name = "background-attachment",
                         Expression = backgroundAttachment,
@@ -2292,7 +2393,7 @@ namespace OpenXmlPowerTools.HtmlToWml
                         SequenceNumber = p.SequenceNumber,
                     };
                     AddPropertyToDictionary(propertyList, bga);
-                    Property bgp = new Property
+                    var bgp = new Property
                     {
                         Name = "background-position",
                         Expression = backgroundPosition,
@@ -2331,39 +2432,51 @@ namespace OpenXmlPowerTools.HtmlToWml
                         fontSize = new CssExpression { Terms = new List<CssTerm> { new CssTerm { Value = "medium", Type = CssTermType.String } } };
                         lineHeight = new CssExpression { Terms = new List<CssTerm> { new CssTerm { Value = "normal", Type = CssTermType.String } } };
                         fontFamily = new CssExpression { Terms = new List<CssTerm> { new CssTerm { Value = "serif", Type = CssTermType.String } } };
-                        List<CssTerm> fontFamilyList = new List<CssTerm>();
+                        var fontFamilyList = new List<CssTerm>();
                         foreach (var term in p.Expression.Terms)
                         {
-                            CssDataType dataType = GetDatatypeFromFontTerm(term);
+                            var dataType = GetDatatypeFromFontTerm(term);
                             switch (dataType)
                             {
                                 case CssDataType.FontStyle:
                                     fontStyle = new CssExpression { Terms = new List<CssTerm> { term } };
                                     break;
+
                                 case CssDataType.FontVarient:
                                     fontVarient = new CssExpression { Terms = new List<CssTerm> { term } };
                                     break;
+
                                 case CssDataType.FontWeight:
                                     fontWeight = new CssExpression { Terms = new List<CssTerm> { term } };
                                     break;
+
                                 case CssDataType.FontSize:
                                     fontSize = new CssExpression { Terms = new List<CssTerm> { term } };
                                     break;
+
                                 case CssDataType.Length:
                                     if (term.SeparatorChar == "/")
+                                    {
                                         lineHeight = new CssExpression { Terms = new List<CssTerm> { term } };
+                                    }
                                     else
+                                    {
                                         fontSize = new CssExpression { Terms = new List<CssTerm> { term } };
+                                    }
+
                                     break;
+
                                 case CssDataType.FontFamily:
                                     fontFamilyList.Add(term);
                                     break;
                             }
                         }
                         if (fontFamilyList.Count > 0)
+                        {
                             fontFamily = new CssExpression { Terms = fontFamilyList };
+                        }
                     }
-                    Property fs = new Property
+                    var fs = new Property
                     {
                         Name = "font-style",
                         Expression = fontStyle,
@@ -2374,7 +2487,7 @@ namespace OpenXmlPowerTools.HtmlToWml
                         SequenceNumber = p.SequenceNumber,
                     };
                     AddPropertyToDictionary(propertyList, fs);
-                    Property fv = new Property
+                    var fv = new Property
                     {
                         Name = "font-varient",
                         Expression = fontVarient,
@@ -2385,7 +2498,7 @@ namespace OpenXmlPowerTools.HtmlToWml
                         SequenceNumber = p.SequenceNumber,
                     };
                     AddPropertyToDictionary(propertyList, fv);
-                    Property fw = new Property
+                    var fw = new Property
                     {
                         Name = "font-weight",
                         Expression = fontWeight,
@@ -2396,7 +2509,7 @@ namespace OpenXmlPowerTools.HtmlToWml
                         SequenceNumber = p.SequenceNumber,
                     };
                     AddPropertyToDictionary(propertyList, fw);
-                    Property fsz = new Property
+                    var fsz = new Property
                     {
                         Name = "font-size",
                         Expression = fontSize,
@@ -2407,7 +2520,7 @@ namespace OpenXmlPowerTools.HtmlToWml
                         SequenceNumber = p.SequenceNumber,
                     };
                     AddPropertyToDictionary(propertyList, fsz);
-                    Property lh = new Property
+                    var lh = new Property
                     {
                         Name = "line-height",
                         Expression = lineHeight,
@@ -2418,7 +2531,7 @@ namespace OpenXmlPowerTools.HtmlToWml
                         SequenceNumber = p.SequenceNumber,
                     };
                     AddPropertyToDictionary(propertyList, lh);
-                    Property ff = new Property
+                    var ff = new Property
                     {
                         Name = "font-family",
                         Expression = fontFamily,
@@ -2441,9 +2554,9 @@ namespace OpenXmlPowerTools.HtmlToWml
                             case 1:
                                 foreach (var direction in new[] { "top", "right", "bottom", "left" })
                                 {
-                                    Property ep = new Property()
+                                    var ep = new Property()
                                     {
-                                        Name = String.Format(shPr.Pattern, direction),
+                                        Name = string.Format(shPr.Pattern, direction),
                                         Expression = new CssExpression { Terms = new List<CssTerm> { p.Expression.Terms.First() } },
                                         HighOrderSort = p.HighOrderSort,
                                         IdAttributesInSelector = p.IdAttributesInSelector,
@@ -2454,12 +2567,13 @@ namespace OpenXmlPowerTools.HtmlToWml
                                     AddPropertyToDictionary(propertyList, ep);
                                 }
                                 break;
+
                             case 2:
                                 foreach (var direction in new[] { "top", "bottom" })
                                 {
-                                    Property ep = new Property()
+                                    var ep = new Property()
                                     {
-                                        Name = String.Format(shPr.Pattern, direction),
+                                        Name = string.Format(shPr.Pattern, direction),
                                         Expression = new CssExpression { Terms = new List<CssTerm> { p.Expression.Terms.First() } },
                                         HighOrderSort = p.HighOrderSort,
                                         IdAttributesInSelector = p.IdAttributesInSelector,
@@ -2471,9 +2585,9 @@ namespace OpenXmlPowerTools.HtmlToWml
                                 }
                                 foreach (var direction in new[] { "left", "right" })
                                 {
-                                    Property ep = new Property()
+                                    var ep = new Property()
                                     {
-                                        Name = String.Format(shPr.Pattern, direction),
+                                        Name = string.Format(shPr.Pattern, direction),
                                         Expression = new CssExpression { Terms = new List<CssTerm> { p.Expression.Terms.Skip(1).First() } },
                                         HighOrderSort = p.HighOrderSort,
                                         IdAttributesInSelector = p.IdAttributesInSelector,
@@ -2484,10 +2598,11 @@ namespace OpenXmlPowerTools.HtmlToWml
                                     AddPropertyToDictionary(propertyList, ep);
                                 }
                                 break;
+
                             case 3:
-                                Property ep3 = new Property()
+                                var ep3 = new Property()
                                 {
-                                    Name = String.Format(shPr.Pattern, "top"),
+                                    Name = string.Format(shPr.Pattern, "top"),
                                     Expression = new CssExpression { Terms = new List<CssTerm> { p.Expression.Terms.First() } },
                                     HighOrderSort = p.HighOrderSort,
                                     IdAttributesInSelector = p.IdAttributesInSelector,
@@ -2498,9 +2613,9 @@ namespace OpenXmlPowerTools.HtmlToWml
                                 AddPropertyToDictionary(propertyList, ep3);
                                 foreach (var direction in new[] { "left", "right" })
                                 {
-                                    Property ep2 = new Property()
+                                    var ep2 = new Property()
                                     {
-                                        Name = String.Format(shPr.Pattern, direction),
+                                        Name = string.Format(shPr.Pattern, direction),
                                         Expression = new CssExpression { Terms = new List<CssTerm> { p.Expression.Terms.Skip(1).First() } },
                                         HighOrderSort = p.HighOrderSort,
                                         IdAttributesInSelector = p.IdAttributesInSelector,
@@ -2510,9 +2625,9 @@ namespace OpenXmlPowerTools.HtmlToWml
                                     };
                                     AddPropertyToDictionary(propertyList, ep2);
                                 }
-                                Property ep4 = new Property()
+                                var ep4 = new Property()
                                 {
-                                    Name = String.Format(shPr.Pattern, "bottom"),
+                                    Name = string.Format(shPr.Pattern, "bottom"),
                                     Expression = new CssExpression { Terms = new List<CssTerm> { p.Expression.Terms.Skip(2).First() } },
                                     HighOrderSort = p.HighOrderSort,
                                     IdAttributesInSelector = p.IdAttributesInSelector,
@@ -2522,13 +2637,14 @@ namespace OpenXmlPowerTools.HtmlToWml
                                 };
                                 AddPropertyToDictionary(propertyList, ep4);
                                 break;
+
                             case 4:
-                                int skip = 0;
+                                var skip = 0;
                                 foreach (var direction in new[] { "top", "right", "bottom", "left" })
                                 {
-                                    Property ep = new Property()
+                                    var ep = new Property()
                                     {
-                                        Name = String.Format(shPr.Pattern, direction),
+                                        Name = string.Format(shPr.Pattern, direction),
                                         Expression = new CssExpression { Terms = new List<CssTerm> { p.Expression.Terms.Skip(skip++).First() } },
                                         HighOrderSort = p.HighOrderSort,
                                         IdAttributesInSelector = p.IdAttributesInSelector,
@@ -2545,7 +2661,7 @@ namespace OpenXmlPowerTools.HtmlToWml
             }
         }
 
-        private static string[] BackgroundRepeatValues = new[]
+        private static readonly string[] BackgroundRepeatValues = new[]
         {
             "repeat",
             "repeat-x",
@@ -2553,13 +2669,13 @@ namespace OpenXmlPowerTools.HtmlToWml
             "no-repeat",
         };
 
-        private static string[] BackgroundAttachmentValues = new[]
+        private static readonly string[] BackgroundAttachmentValues = new[]
         {
             "scroll",
             "fixed",
         };
 
-        private static string[] BackgroundPositionValues = new[]
+        private static readonly string[] BackgroundPositionValues = new[]
         {
             "left",
             "right",
@@ -2571,13 +2687,25 @@ namespace OpenXmlPowerTools.HtmlToWml
         private static CssDataType GetDatatypeFromBackgroundTerm(CssTerm term)
         {
             if (term.IsColor)
+            {
                 return CssDataType.BackgroundColor;
+            }
+
             if (BackgroundRepeatValues.Contains(term.Value.ToLower()))
+            {
                 return CssDataType.BackgroundRepeat;
+            }
+
             if (BackgroundAttachmentValues.Contains(term.Value.ToLower()))
+            {
                 return CssDataType.BackgroundAttachment;
+            }
+
             if (term.Function != null)
+            {
                 return CssDataType.BackgroundImage;
+            }
+
             if (term.Unit == CssUnit.CM ||
                 term.Unit == CssUnit.EM ||
                 term.Unit == CssUnit.IN ||
@@ -2585,19 +2713,25 @@ namespace OpenXmlPowerTools.HtmlToWml
                 term.Unit == CssUnit.PT ||
                 term.Unit == CssUnit.PX ||
                 term.Unit == CssUnit.Percent)
+            {
                 return CssDataType.BackgroundPosition;
+            }
+
             if (BackgroundPositionValues.Contains(term.Value.ToLower()))
+            {
                 return CssDataType.BackgroundPosition;
+            }
+
             return CssDataType.BackgroundPosition;
         }
 
-        private static string[] ListStylePositionValues = new[]
+        private static readonly string[] ListStylePositionValues = new[]
         {
             "inside",
             "outside",
         };
 
-        private static string[] BorderStyleValues = new[]
+        private static readonly string[] BorderStyleValues = new[]
         {
             "none",
             "hidden",
@@ -2618,11 +2752,14 @@ namespace OpenXmlPowerTools.HtmlToWml
                 return CssDataType.Color;
             }
             if (BorderStyleValues.Contains(term.Value.ToLower()))
+            {
                 return CssDataType.BorderStyle;
+            }
+
             return CssDataType.BorderWidth;
         }
 
-        private static string[] ListStyleTypeValues = new[]
+        private static readonly string[] ListStyleTypeValues = new[]
         {
             "disc",
             "circle",
@@ -2643,24 +2780,30 @@ namespace OpenXmlPowerTools.HtmlToWml
         private static CssDataType GetDatatypeFromListStyleTerm(CssTerm term)
         {
             if (ListStyleTypeValues.Contains(term.Value.ToLower()))
+            {
                 return CssDataType.ListStyleType;
+            }
+
             if (ListStylePositionValues.Contains(term.Value.ToLower()))
+            {
                 return CssDataType.ListStylePosition;
+            }
+
             return CssDataType.ListStyleImage;
         }
 
-        private static string[] FontStyleValues = new[]
+        private static readonly string[] FontStyleValues = new[]
         {
             "italic",
             "oblique",
         };
 
-        private static string[] FontVarientValues = new[]
+        private static readonly string[] FontVarientValues = new[]
         {
             "small-caps",
         };
 
-        private static string[] FontWeightValues = new[]
+        private static readonly string[] FontWeightValues = new[]
         {
             "bold",
             "bolder",
@@ -2679,13 +2822,25 @@ namespace OpenXmlPowerTools.HtmlToWml
         private static CssDataType GetDatatypeFromFontTerm(CssTerm term)
         {
             if (FontStyleValues.Contains(term.Value.ToLower()))
+            {
                 return CssDataType.FontStyle;
+            }
+
             if (FontVarientValues.Contains(term.Value.ToLower()))
+            {
                 return CssDataType.FontVarient;
+            }
+
             if (FontWeightValues.Contains(term.Value.ToLower()))
+            {
                 return CssDataType.FontWeight;
+            }
+
             if (FontSizeMap.ContainsKey(term.Value.ToLower()))
+            {
                 return CssDataType.FontSize;
+            }
+
             if (term.Unit == CssUnit.CM ||
                 term.Unit == CssUnit.EM ||
                 term.Unit == CssUnit.IN ||
@@ -2693,7 +2848,10 @@ namespace OpenXmlPowerTools.HtmlToWml
                 term.Unit == CssUnit.PT ||
                 term.Unit == CssUnit.PX ||
                 term.Unit == CssUnit.Percent)
+            {
                 return CssDataType.Length;
+            }
+
             return CssDataType.FontFamily;
         }
 
@@ -2708,44 +2866,46 @@ namespace OpenXmlPowerTools.HtmlToWml
 
         private static void WriteXHtmlWithAnnotations(XElement element, StringBuilder sb)
         {
-            int depth = element.Ancestors().Count() * 2;
-            XElement dummyElement = new XElement(element.Name, element.Attributes());
-            sb.Append(String.Format("{0}{1}", "".PadRight(depth), dummyElement) + Environment.NewLine);
-            Dictionary<string, Property> propList = element.Annotation<Dictionary<string, Property>>();
+            var depth = element.Ancestors().Count() * 2;
+            var dummyElement = new XElement(element.Name, element.Attributes());
+            sb.Append(string.Format("{0}{1}", "".PadRight(depth), dummyElement) + Environment.NewLine);
+            var propList = element.Annotation<Dictionary<string, Property>>();
             if (propList != null)
             {
                 sb.Append("".PadRight(depth + 2) + "Properties from Stylesheets" + Environment.NewLine);
                 sb.Append("".PadRight(depth + 2) + "===========================" + Environment.NewLine);
                 foreach (var kvp in propList.OrderBy(p => p.Key).ThenBy(p => p.Value))
                 {
-                    Property prop = kvp.Value;
-                    string propString = String.Format("{0} High:{1} Id:{2} Att:{3} Ell:{4} Seq:{5}",
+                    var prop = kvp.Value;
+                    var propString = string.Format("{0} High:{1} Id:{2} Att:{3} Ell:{4} Seq:{5}",
                         (prop.Name + ":" + prop.Expression + " ").PadRight(50 - depth + 2, '.'), (int)prop.HighOrderSort, prop.IdAttributesInSelector, prop.AttributesInSelector,
                         prop.ElementNamesInSelector, prop.SequenceNumber);
-                    sb.Append(String.Format("{0}{1}", "".PadRight(depth + 2), propString) + Environment.NewLine);
+                    sb.Append(string.Format("{0}{1}", "".PadRight(depth + 2), propString) + Environment.NewLine);
                 }
                 sb.Append(Environment.NewLine);
             }
-            Dictionary<string, CssExpression> computedProperties = element.Annotation<Dictionary<string, CssExpression>>();
+            var computedProperties = element.Annotation<Dictionary<string, CssExpression>>();
             if (computedProperties != null)
             {
                 sb.Append("".PadRight(depth + 2) + "Computed Properties" + Environment.NewLine);
                 sb.Append("".PadRight(depth + 2) + "===================" + Environment.NewLine);
                 foreach (var prop in computedProperties.OrderBy(cp => cp.Key))
                 {
-                    string propString = prop.Key + ":" + prop.Value;
-                    sb.Append(String.Format("{0}{1}", "".PadRight(depth + 2), propString) + Environment.NewLine);
+                    var propString = prop.Key + ":" + prop.Value;
+                    sb.Append(string.Format("{0}{1}", "".PadRight(depth + 2), propString) + Environment.NewLine);
                 }
                 sb.Append(Environment.NewLine);
             }
             foreach (var child in element.Elements())
+            {
                 WriteXHtmlWithAnnotations(child, sb);
+            }
         }
 
         public static string DumpCss(CssDocument css)
         {
-            StringBuilder sb = new StringBuilder();
-            int indent = 0;
+            var sb = new StringBuilder();
+            var indent = 0;
 
             Pr(sb, indent, "CSS Tree Dump");
             Pr(sb, indent, "=============");
@@ -2753,7 +2913,9 @@ namespace OpenXmlPowerTools.HtmlToWml
             Pr(sb, indent, "Directives count: {0}", css.Directives.Count());
             Pr(sb, indent, "RuleSet count: {0}", css.RuleSets.Count());
             foreach (var rs in css.RuleSets)
+            {
                 DumpRuleSet(sb, indent, rs);
+            }
 
             Pr(sb, indent, "");
             return sb.ToString();
@@ -2812,7 +2974,10 @@ namespace OpenXmlPowerTools.HtmlToWml
             indent++;
             Pr(sb, indent, "SimpleSelectors count: {0}", s.SimpleSelectors.Count());
             foreach (var ss in s.SimpleSelectors)
+            {
                 DumpSimpleSelector(sb, indent, ss);
+            }
+
             indent--;
         }
 
@@ -2839,7 +3004,10 @@ namespace OpenXmlPowerTools.HtmlToWml
             indent++;
             Pr(sb, indent, "Terms count: {0}", e.Terms.Count());
             foreach (var t in e.Terms)
+            {
                 DumpTerm(sb, indent, t);
+            }
+
             indent--;
         }
 
@@ -2862,10 +3030,16 @@ namespace OpenXmlPowerTools.HtmlToWml
             indent++;
             Pr(sb, indent, "Selectors count: {0}", rs.Selectors.Count());
             foreach (var s in rs.Selectors)
+            {
                 DumpSelectors(sb, indent, s);
+            }
+
             Pr(sb, indent, "Declarations count: {0}", rs.Declarations.Count());
             foreach (var d in rs.Declarations)
+            {
                 DumpDeclarations(sb, indent, d);
+            }
+
             indent--;
             indent--;
         }
@@ -2873,9 +3047,12 @@ namespace OpenXmlPowerTools.HtmlToWml
         private static void Pr(StringBuilder sb, int indent, string format, object o)
         {
             if (o == null)
+            {
                 return;
-            string text = String.Format(format, o);
-            StringBuilder sb2 = new StringBuilder("".PadRight(indent * 2) + text);
+            }
+
+            var text = string.Format(format, o);
+            var sb2 = new StringBuilder("".PadRight(indent * 2) + text);
             //sb2.Replace("&", "&amp;");
             //sb2.Replace("<", "&lt;");
             //sb2.Replace(">", "&gt;");
@@ -2886,7 +3063,7 @@ namespace OpenXmlPowerTools.HtmlToWml
 
         private static void Pr(StringBuilder sb, int indent, string text)
         {
-            StringBuilder sb2 = new StringBuilder("".PadRight(indent * 2) + text);
+            var sb2 = new StringBuilder("".PadRight(indent * 2) + text);
             //sb2.Replace("&", "&amp;");
             //sb2.Replace("<", "&lt;");
             //sb2.Replace(">", "&gt;");
@@ -2904,6 +3081,7 @@ namespace OpenXmlPowerTools.HtmlToWml
             public int AttributesInSelector { get; set; }
             public int ElementNamesInSelector { get; set; }
             public int SequenceNumber { get; set; }
+
             public enum HighOrderPriority
             {
                 InitialValue = 0,
@@ -2924,29 +3102,53 @@ namespace OpenXmlPowerTools.HtmlToWml
                 // if this is less than other, return -1
                 // if this is greater than other, return 1
 
-                int gt = 1;
-                int lt = -1;
-                if (this.HighOrderSort < other.HighOrderSort)
+                var gt = 1;
+                var lt = -1;
+                if (HighOrderSort < other.HighOrderSort)
+                {
                     return lt;
-                if (this.HighOrderSort > other.HighOrderSort)
+                }
+
+                if (HighOrderSort > other.HighOrderSort)
+                {
                     return gt;
-                if (this.IdAttributesInSelector < other.IdAttributesInSelector)
+                }
+
+                if (IdAttributesInSelector < other.IdAttributesInSelector)
+                {
                     return lt;
-                if (this.IdAttributesInSelector > other.IdAttributesInSelector)
+                }
+
+                if (IdAttributesInSelector > other.IdAttributesInSelector)
+                {
                     return gt;
-                if (this.AttributesInSelector < other.AttributesInSelector)
+                }
+
+                if (AttributesInSelector < other.AttributesInSelector)
+                {
                     return lt;
-                if (this.AttributesInSelector > other.AttributesInSelector)
+                }
+
+                if (AttributesInSelector > other.AttributesInSelector)
+                {
                     return gt;
-                if (this.ElementNamesInSelector < other.ElementNamesInSelector)
+                }
+
+                if (ElementNamesInSelector < other.ElementNamesInSelector)
+                {
                     return lt;
-                if (this.ElementNamesInSelector > other.ElementNamesInSelector)
+                }
+
+                if (ElementNamesInSelector > other.ElementNamesInSelector)
+                {
                     return gt;
-                return this.SequenceNumber.CompareTo(other.SequenceNumber);
+                }
+
+                return SequenceNumber.CompareTo(other.SequenceNumber);
             }
         }
 
-        private static Dictionary<string, string> ColorMap = new Dictionary<string, string>()
+        private static readonly Dictionary<string, string> ColorMap = new Dictionary<string, string>()
         {
             { "maroon", "800000" },
             { "red", "FF0000" },
@@ -2976,40 +3178,46 @@ namespace OpenXmlPowerTools.HtmlToWml
             // todo have to handle all forms of colors here
             if (color.Terms.Count() == 1)
             {
-                CssTerm term = color.Terms.First();
+                var term = color.Terms.First();
                 if (term.Type == CssTermType.Function && term.Function.Name.ToUpper() == "RGB" && term.Function.Expression.Terms.Count == 3)
                 {
-                    List<CssTerm> lt = term.Function.Expression.Terms;
+                    var lt = term.Function.Expression.Terms;
                     if (lt.First().Unit == CssUnit.Percent)
                     {
-                        string v1 = lt.First().Value;
-                        string v2 = lt.ElementAt(1).Value;
-                        string v3 = lt.ElementAt(2).Value;
-                        string colorInHex = String.Format("{0:x2}{1:x2}{2:x2}", (int)((float.Parse(v1) / 100.0) * 255),
+                        var v1 = lt.First().Value;
+                        var v2 = lt.ElementAt(1).Value;
+                        var v3 = lt.ElementAt(2).Value;
+                        var colorInHex = string.Format("{0:x2}{1:x2}{2:x2}", (int)((float.Parse(v1) / 100.0) * 255),
                             (int)((float.Parse(v2) / 100.0) * 255), (int)((float.Parse(v3) / 100.0) * 255));
                         return colorInHex;
                     }
                     else
                     {
-                        string v1 = lt.First().Value;
-                        string v2 = lt.ElementAt(1).Value;
-                        string v3 = lt.ElementAt(2).Value;
-                        string colorInHex = String.Format("{0:x2}{1:x2}{2:x2}", int.Parse(v1), int.Parse(v2), int.Parse(v3));
+                        var v1 = lt.First().Value;
+                        var v2 = lt.ElementAt(1).Value;
+                        var v3 = lt.ElementAt(2).Value;
+                        var colorInHex = string.Format("{0:x2}{1:x2}{2:x2}", int.Parse(v1), int.Parse(v2), int.Parse(v3));
                         return colorInHex;
                     }
                 }
-                string value = term.Value;
+                var value = term.Value;
                 if (value.Substring(0, 1) == "#" && value.Length == 4)
                 {
-                    string e = ConvertSingleDigit(value.Substring(1, 1)) +
+                    var e = ConvertSingleDigit(value.Substring(1, 1)) +
                         ConvertSingleDigit(value.Substring(2, 1)) +
                         ConvertSingleDigit(value.Substring(3, 1));
                     return e;
                 }
                 if (value.Substring(0, 1) == "#")
+                {
                     return value.Substring(1);
+                }
+
                 if (ColorMap.ContainsKey(value))
+                {
                     return ColorMap[value];
+                }
+
                 return value;
             }
             return "000000";
@@ -3681,7 +3889,7 @@ word-spacing
 z-index
 
 attributes
-==========			
+==========
 meta
 style
 _class
@@ -3706,7 +3914,7 @@ descr
 type
 
 elements
-========			
+========
 html
 head
 body
@@ -3740,4 +3948,3 @@ em
 tbody
 
 #endif
-
