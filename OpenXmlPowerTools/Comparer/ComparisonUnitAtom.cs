@@ -1,11 +1,11 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using DocumentFormat.OpenXml.Packaging;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Xml.Linq;
-using DocumentFormat.OpenXml.Packaging;
 
 namespace OpenXmlPowerTools
 {
@@ -38,14 +38,14 @@ namespace OpenXmlPowerTools
                 }
             }
 
-            var sha1Hash = (string) contentElement.Attribute(PtOpenXml.SHA1Hash);
+            var sha1Hash = (string)contentElement.Attribute(PtOpenXml.SHA1Hash);
             if (sha1Hash != null)
             {
                 SHA1Hash = sha1Hash;
             }
             else
             {
-                string shaHashString = GetSha1HashStringForElement(ContentElement, settings);
+                var shaHashString = GetSha1HashStringForElement(ContentElement, settings);
                 SHA1Hash = WmlComparerUtil.SHA1HashStringForUTF8String(shaHashString);
             }
         }
@@ -70,7 +70,7 @@ namespace OpenXmlPowerTools
 
         private static string GetSha1HashStringForElement(XElement contentElement, WmlComparerSettings settings)
         {
-            string text = contentElement.Value;
+            var text = contentElement.Value;
             if (settings.CaseInsensitive)
             {
                 text = text.ToUpper(settings.CultureInfo);
@@ -96,7 +96,7 @@ namespace OpenXmlPowerTools
         public override string ToString(int indent)
         {
             const int xNamePad = 16;
-            string indentString = "".PadRight(indent);
+            var indentString = "".PadRight(indent);
 
             var sb = new StringBuilder();
             sb.Append(indentString);
@@ -140,7 +140,7 @@ namespace OpenXmlPowerTools
         private string ToStringAncestorUnids(int indent)
         {
             const int xNamePad = 16;
-            string indentString = "".PadRight(indent);
+            var indentString = "".PadRight(indent);
 
             var sb = new StringBuilder();
             sb.Append(indentString);
@@ -183,7 +183,7 @@ namespace OpenXmlPowerTools
 
         private static void AppendAncestorsDump(StringBuilder sb, ComparisonUnitAtom sr)
         {
-            string s = sr
+            var s = sr
                 .AncestorElements.Select(p => p.Name.LocalName + GetUnid(p) + "/")
                 .StringConcatenate()
                 .TrimEnd('/');
@@ -199,7 +199,7 @@ namespace OpenXmlPowerTools
                 AncestorUnid = u
             });
 
-            string s = zipped
+            var s = zipped
                 .Select(p => p.AncestorElement.Name.LocalName + "[" + p.AncestorUnid.Substring(0, 8) + "]/")
                 .StringConcatenate().TrimEnd('/');
 
@@ -208,7 +208,7 @@ namespace OpenXmlPowerTools
 
         private static string GetUnid(XElement p)
         {
-            var unid = (string) p.Attribute(PtOpenXml.Unid);
+            var unid = (string)p.Attribute(PtOpenXml.Unid);
             return unid == null ? "" : "[" + unid.Substring(0, 8) + "]";
         }
     }

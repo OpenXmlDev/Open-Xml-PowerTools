@@ -1,24 +1,62 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>net45;net46;netstandard2.0</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0</TargetFrameworks>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <RepositoryUrl>https://github.com/Codeuctivity/Open-Xml-PowerTools</RepositoryUrl>
+    <PackageTags>openxml office</PackageTags>
+    <Authors>Contributors</Authors>
+    <Company>Codeuctivity</Company>
+    <AssemblyVersion>5.0.0.0</AssemblyVersion>
+    <FileVersion>5.0.0.0</FileVersion>
+    <Version>5.0.0</Version>
+    <PackageVersion>5.0.0</PackageVersion>
+    <PackageIcon>NugetIcon.png</PackageIcon>
+    <PackageProjectUrl>https://github.com/Codeuctivity/Open-Xml-PowerTools</PackageProjectUrl>
+    <Description>The Open XML SDK provides tools for working with Office Word, Excel, and PowerPoint documents. This version is a fork focusing on current .net core and framework versions.
+    
+It supports scenarios such as:
+
+- High-performance generation of word-processing documents, spreadsheets, and presentations.
+- Populating content in Word files from an XML data source.
+- Splitting up (shredding) a Word or PowerPoint file into multiple files, and combining multiple Word/PowerPoint files into a single file.
+- Extraction of data from Excel documents.
+- Searching and replacing content in Word/PowerPoint using regular expressions.
+- Updating cached data and embedded spreadsheets for charts in Word/PowerPoint.
+- Document modification, such as removing tracked revisions or removing unacceptable content from documents.</Description>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <!--<Nullable>enable</Nullable>-->
+    <LangVersion>8.0</LangVersion>
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>OpenXmlPowerTools.snk</AssemblyOriginatorKeyFile>
+    <PackageId>OpenXmlPowerToolsStandard</PackageId>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="DocumentFormat.OpenXml" Version="2.8.1" />
+    <PackageReference Include="DocumentFormat.OpenXml" Version="2.10.1" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <!--Causes a hanging build-->
+    <!--<PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="2.9.8">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>-->
+    <PackageReference Include="System.Drawing.Common" Version="4.7.0" />
   </ItemGroup>
 
-  <ItemGroup Condition=" '$(TargetFramework)' == 'net45'">
-    <Reference Include="System.IO.Compression" />
-    <Reference Include="System.Windows.Forms" />
-    <Reference Include="WindowsBase" />
+  <ItemGroup>
+    <None Include="NugetIcon.png" Pack="true" PackagePath="\" />
   </ItemGroup>
 
-  <ItemGroup Condition=" '$(TargetFramework)' == 'net46' ">
-    <Reference Include="System.IO.Compression" />
-    <Reference Include="System.Windows.Forms" />
+  <ItemGroup>
+    <Folder Include="Properties\" />
   </ItemGroup>
 
-  <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard2.0'">
-    <PackageReference Include="System.Drawing.Common" Version="4.5.0" />
-  </ItemGroup>
 </Project>

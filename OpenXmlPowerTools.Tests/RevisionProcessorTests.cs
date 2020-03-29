@@ -1,17 +1,10 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using OpenXmlPowerTools;
 using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml.Linq;
-using DocumentFormat.OpenXml.Packaging;
-using OpenXmlPowerTools;
 using Xunit;
 
 #if !ELIDE_XUNIT_TESTS
@@ -23,6 +16,7 @@ namespace OxPt
         ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         // perf settings
         public static bool m_CopySourceFilesToTempDir = true;
+
         public static bool m_OpenTempDirInExplorer = false;
         ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -81,13 +75,14 @@ namespace OxPt
         [InlineData("RP/RP052-Deleted-Para-Mark.docx")]
         public void RP001(string name)
         {
-            var sourceFi = new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, name));
-            var baselineAcceptedFi = new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, name.Replace(".docx", "-Accepted.docx")));
-            var baselineRejectedFi = new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, name.Replace(".docx", "-Rejected.docx")));
+            var sourceDir = new DirectoryInfo("../../../../TestFiles/");
+            var sourceFi = new FileInfo(Path.Combine(sourceDir.FullName, name));
+            var baselineAcceptedFi = new FileInfo(Path.Combine(sourceDir.FullName, name.Replace(".docx", "-Accepted.docx")));
+            var baselineRejectedFi = new FileInfo(Path.Combine(sourceDir.FullName, name.Replace(".docx", "-Rejected.docx")));
 
-            WmlDocument sourceWml = new WmlDocument(sourceFi.FullName);
-            WmlDocument afterRejectingWml = RevisionProcessor.RejectRevisions(sourceWml);
-            WmlDocument afterAcceptingWml = RevisionProcessor.AcceptRevisions(sourceWml);
+            var sourceWml = new WmlDocument(sourceFi.FullName);
+            var afterRejectingWml = RevisionProcessor.RejectRevisions(sourceWml);
+            var afterAcceptingWml = RevisionProcessor.AcceptRevisions(sourceWml);
 
             var processedAcceptedFi = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, sourceFi.Name.Replace(".docx", "-Accepted.docx")));
             afterAcceptingWml.SaveAs(processedAcceptedFi.FullName);
@@ -106,7 +101,9 @@ namespace OxPt
                         ////////// CODE TO REPEAT UNTIL SUCCESS //////////
                         var sourceDocxCopiedToDestFi = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, sourceFi.Name));
                         if (!sourceDocxCopiedToDestFi.Exists)
+                        {
                             sourceWml.SaveAs(sourceDocxCopiedToDestFi.FullName);
+                        }
                         //////////////////////////////////////////////////
                         break;
                     }
@@ -130,9 +127,13 @@ namespace OxPt
                     batch += "copy " + processedAcceptedFi.FullName + " " + baselineAcceptedFi.FullName + Environment.NewLine;
                     batch += "copy " + processedRejectedFi.FullName + " " + baselineRejectedFi.FullName + Environment.NewLine;
                     if (batchFi.Exists)
+                    {
                         File.AppendAllText(batchFi.FullName, batch);
+                    }
                     else
+                    {
                         File.WriteAllText(batchFi.FullName, batch);
+                    }
                     //////////////////////////////////////////////////
                     break;
                 }
@@ -172,8 +173,8 @@ namespace OxPt
             if (baselineAcceptedFi.Exists)
             {
                 var baselineAcceptedWml = new WmlDocument(baselineAcceptedFi.FullName);
-                WmlComparerSettings wmlComparerSettings = new WmlComparerSettings();
-                WmlDocument result = WmlComparer.Compare(baselineAcceptedWml, afterAcceptingWml, wmlComparerSettings);
+                var wmlComparerSettings = new WmlComparerSettings();
+                var result = WmlComparer.Compare(baselineAcceptedWml, afterAcceptingWml, wmlComparerSettings);
                 var revisions = WmlComparer.GetRevisions(result, wmlComparerSettings);
                 if (revisions.Any())
                 {
@@ -190,8 +191,8 @@ namespace OxPt
             if (baselineRejectedFi.Exists)
             {
                 var baselineRejectedWml = new WmlDocument(baselineRejectedFi.FullName);
-                WmlComparerSettings wmlComparerSettings = new WmlComparerSettings();
-                WmlDocument result = WmlComparer.Compare(baselineRejectedWml, afterRejectingWml, wmlComparerSettings);
+                var wmlComparerSettings = new WmlComparerSettings();
+                var result = WmlComparer.Compare(baselineRejectedWml, afterRejectingWml, wmlComparerSettings);
                 var revisions = WmlComparer.GetRevisions(result, wmlComparerSettings);
                 if (revisions.Any())
                 {

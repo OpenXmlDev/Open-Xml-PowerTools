@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.27130.2036
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29920.165
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenXmlPowerTools", "OpenXmlPowerTools\OpenXmlPowerTools.csproj", "{6F957FF3-AFCC-4D69-8FBC-71AE21BC45C9}"
 EndProject
@@ -24,8 +24,6 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HtmlConverter01", "OpenXmlPowerToolsExamples\HtmlConverter01\HtmlConverter01.csproj", "{BC9E7408-508D-482D-8602-96E76ACBB5EA}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ListItemRetriever01", "OpenXmlPowerToolsExamples\ListItemRetriever01\ListItemRetriever01.csproj", "{04935FA6-E48B-496F-8D6A-41A59232303D}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MarkupSimplifierApp", "OpenXmlPowerToolsExamples\MarkupSimplifierApp\MarkupSimplifierApp.csproj", "{0CCE83BA-8B8B-4B98-8846-B62A61FDF170}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MetricsGetter01", "OpenXmlPowerToolsExamples\MetricsGetter01\MetricsGetter01.csproj", "{ED37372C-DFBF-4720-BD4B-CE1415961038}"
 EndProject
@@ -77,13 +75,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "examples", "examples", "{A8
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{9AFB8C96-1E6E-483E-9882-75D2483E7076}"
 	ProjectSection(SolutionItems) = preProject
-		Directory.Build.props = Directory.Build.props
-		Directory.Build.targets = Directory.Build.targets
-		LICENSE.txt = LICENSE.txt
+		.editorconfig = .editorconfig
+		appveyor.yml = appveyor.yml
+		LICENSE.md = LICENSE.md
 		README.md = README.md
-		rules.ruleset = rules.ruleset
-		stylecop.json = stylecop.json
 	EndProjectSection
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MarkupSimplifierApp", "OpenXmlPowerToolsExamples\MarkupSimplifierApp\MarkupSimplifierApp.csproj", "{6731E031-9C81-48FB-97A7-0E945993BCE2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -135,10 +133,6 @@ Global
 		{04935FA6-E48B-496F-8D6A-41A59232303D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{04935FA6-E48B-496F-8D6A-41A59232303D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{04935FA6-E48B-496F-8D6A-41A59232303D}.Release|Any CPU.Build.0 = Release|Any CPU
-		{0CCE83BA-8B8B-4B98-8846-B62A61FDF170}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{0CCE83BA-8B8B-4B98-8846-B62A61FDF170}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{0CCE83BA-8B8B-4B98-8846-B62A61FDF170}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{0CCE83BA-8B8B-4B98-8846-B62A61FDF170}.Release|Any CPU.Build.0 = Release|Any CPU
 		{ED37372C-DFBF-4720-BD4B-CE1415961038}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{ED37372C-DFBF-4720-BD4B-CE1415961038}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{ED37372C-DFBF-4720-BD4B-CE1415961038}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -231,6 +225,10 @@ Global
 		{3D1C46E1-7A9E-4A4B-8D95-68613603DEDF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3D1C46E1-7A9E-4A4B-8D95-68613603DEDF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3D1C46E1-7A9E-4A4B-8D95-68613603DEDF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6731E031-9C81-48FB-97A7-0E945993BCE2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6731E031-9C81-48FB-97A7-0E945993BCE2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6731E031-9C81-48FB-97A7-0E945993BCE2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6731E031-9C81-48FB-97A7-0E945993BCE2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -246,7 +244,6 @@ Global
 		{618B95DB-3A70-4DC8-BD87-00F636F72453} = {A83D6B58-6D38-46AF-8C20-5CFC170A1063}
 		{BC9E7408-508D-482D-8602-96E76ACBB5EA} = {A83D6B58-6D38-46AF-8C20-5CFC170A1063}
 		{04935FA6-E48B-496F-8D6A-41A59232303D} = {A83D6B58-6D38-46AF-8C20-5CFC170A1063}
-		{0CCE83BA-8B8B-4B98-8846-B62A61FDF170} = {A83D6B58-6D38-46AF-8C20-5CFC170A1063}
 		{ED37372C-DFBF-4720-BD4B-CE1415961038} = {A83D6B58-6D38-46AF-8C20-5CFC170A1063}
 		{4330D46F-6703-4BA2-844D-177F722C0820} = {A83D6B58-6D38-46AF-8C20-5CFC170A1063}
 		{6785A554-BBBB-480C-8E4D-9FE90DD91A46} = {A83D6B58-6D38-46AF-8C20-5CFC170A1063}
@@ -269,6 +266,7 @@ Global
 		{DCE8EC51-1E58-49A0-82CF-5BE269FA0A9D} = {A83D6B58-6D38-46AF-8C20-5CFC170A1063}
 		{C9CAA69C-575A-442E-9D8A-69C53B39D72C} = {A83D6B58-6D38-46AF-8C20-5CFC170A1063}
 		{3D1C46E1-7A9E-4A4B-8D95-68613603DEDF} = {A83D6B58-6D38-46AF-8C20-5CFC170A1063}
+		{6731E031-9C81-48FB-97A7-0E945993BCE2} = {A83D6B58-6D38-46AF-8C20-5CFC170A1063}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {E623EFF5-2CA4-4FA0-B3AB-53F921DA212E}

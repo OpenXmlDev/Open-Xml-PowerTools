@@ -1,36 +1,13 @@
-﻿NuGet Feed for CI build: https://ci.appveyor.com/nuget/open-xml-powertools
+﻿# Open-XML-PowerTools
 
-No NuGet.org feed at this time. We are working on it.
+[![Build status](https://ci.appveyor.com/api/projects/status/2wq6a4b0q6akvy4n?svg=true)](https://ci.appveyor.com/project/stesee/open-xml-powertools) [![Nuget](https://img.shields.io/nuget/v/OpenXmlPowerToolsStandard.svg)](https://www.nuget.org/packages/OpenXmlPowerToolsStandard/) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/73ab9db4912449f28d961e3ddad189b1)](https://app.codacy.com/gh/Codeuctivity/Open-Xml-PowerTools?utm_source=github.com&utm_medium=referral&utm_content=Codeuctivity/Open-Xml-PowerTools&utm_campaign=Badge_Grade_Dashboard)
 
-News
-====
-Welcome, Open-Xml-PowerTools users.  As you may have learned from the repo at OfficeDev/Open-Xml-PowerTools,
-Microsoft is going to archive that repo, and will not be maintaining that repo in the future.  The good folks at
-Microsoft asked if I would maintain this repo going forward, and I said "yes, absolutely".
-
-There are two relevant branches in this repo:
-- I have merged vNext into master.  If you were using the OfficeDev/Open-Xml-PowerTools vNext branch, and if you want to
-keep using the same code, use the master branch.
-- As of right now, the vNext branch is even with master.  However, that is going to change in the next day or two - I am
-going to commit the updated, refactored DocumentAssembler.
-
-Unfortunately, this development came right as I am starting a 10-day vacation, so will need to balance making the necessary
-enhancements with my other vacation activities!  But stay tuned, I expect to make progress in the next couple of days.
-
-I will post major announcements here in the README.md, but if you want to stay more abreast of developments, follow my blog
-at [www.ericwhite.com/blog](http://www.ericwhite.com/blog).  Also, follow me on twitter: @EricWhiteDev.
-
-Warm Regards,
-
-Eric White
-
-Open-XML-PowerTools
-===================
 The Open XML PowerTools provides guidance and example code for programming with Open XML
 Documents (DOCX, XLSX, and PPTX).  It is based on, and extends the functionality
 of the [Open XML SDK](https://github.com/OfficeDev/Open-XML-SDK).
 
 It supports scenarios such as:
+
 - Splitting DOCX/PPTX files into multiple files.
 - Combining multiple DOCX/PPTX files into a single file.
 - Populating content in template DOCX files with data from XML.
@@ -45,39 +22,25 @@ It supports scenarios such as:
   enables writing XLSX files with millions of rows.
 - Extracting data (along with formatting) from spreadsheets.
 
-Copyright (c) Microsoft Corporation 2012-2017
-Portions Copyright (c) Eric White Inc 2018-2019
-
-Licensed under the MIT License.
-See License in the project root for license information.
-
-News
-====
-New Release!  Version 4.4.
-
-This version has a completely re-written WmlComparer.cs, which now supports nested tables and text boxes.  WmlComparer.cs is a module that compares two DOCX files and
-produces a DOCX with revision tracking markup.  It enables retrieving a list of revisions.
-
-Open-Xml-PowerTools Content
-===========================
+## Open-Xml-PowerTools Content
 
 There is a lot of content about Open-Xml-PowerTools at the [Open-Xml-PowerTools Resource Center at OpenXmlDeveloper.org](http://openxmldeveloper.org/wiki/w/wiki/powertools-for-open-xml.aspx)
 
 See:
+
 - [DocumentBuilder Resource Center](http://www.ericwhite.com/blog/documentbuilder-developer-center/)
 - [PresentationBuilder Resource Center](http://www.ericwhite.com/blog/presentationbuilder-developer-center/)
 - [WmlToHtmlConverter Resource Center](http://www.ericwhite.com/blog/wmltohtmlconverter-developer-center/)
 - [DocumentAssembler Resource Center](http://www.ericwhite.com/blog/documentassembler-developer-center/)
 
-Build Instructions
-==================
+## Build Instructions
 
-**Prerequisites:**
+### Prerequisites
 
-- Visual Studio 2017 Update 5 or .NET CLI toolchain
+- Visual Studio 2019 or .NET CLI toolchain
 
-**Build**
- 
+### Build
+
  With Visual Studio:
 
 - Open `OpenXmlPowerTools.sln` in Visual Studio
@@ -88,120 +51,3 @@ Build Instructions
 With .NET CLI toolchain:
 
 - Run `dotnet build OpenXmlPowerTools.sln`
-
-Change Log
-==========
-
-Version 4.3 : June 13, 2016
-- New WmlComparer module
-
-Version 4.2 : December 11, 2015
-- New SmlDataRetriever module
-- New SmlCellFormatter module
-
-Version 4.1.3 : November 2, 2015
-- DocumentAssembler: Fix bug associated with duplicate bookmarks.
-- DocumentAssembler: Enable processing of content controls / metadata in footer rows.
-- DocumentAssembler: Avoid processing content controls used for purposes other than the DocumentAssembler template, including page numbers in footers, etc.
-
-Version 4.1.2 : October 31, 2015
-- HtmlToWmlConverter: Handle unknown elements by recursively processing descendants
-
-Version 4.1.1 : October 21, 2015
-- Fix to AddTypes.ps1 to compile WmlToHtmlConverter.cs instead of HtmlConverter.cs
-- Fix to MettricsGetter.ps1 to correctly report whether a document contains tracked revisions
-- Added some unit tests for PresentationBuilder
-
-Version 4.1.0 : September 27, 2015
-- New HtmlToWmlConverter module
-- HtmlConverter generates non breaking spaces as #00a0 unicode charater, not &nbsp; entity.
-
-Version 4.0.0 : August 6, 2015
-- New DocumentAssember module
-- New SpreadsheetWriter module
-- New Cmdlet: Complete-DocxTemplateFromXml
-- Fix DocumentBuilder: deal with headers / footers more rationally
-- Enhance DocumentBuilder: add option to discard headers / footers from section (but keep layout of section)
-- Fix RevisionAccepter: deal with w:moveTo immediately before a table
-- New test document library in the TestFiles directory
-- XUnit tests
-- Cleaned up build system
-- Build using the open source Open-Xml-SDK and the new System.IO.Packaging by default
-- Back port to .NET 3.5
-- Rename the PowerShell module to Open-Xml-PowerTools
-
-Version 3.1.11 : June 30, 2015
-- Updated projects and solutions to build with the open source Open XML SDK and new System.IO.Packaging
-
-Version 3.1.10 : June 14, 2015
-- Changed Out-Xlsx Cmdlet to C# implementation
-- Fix Add-DocxText
-
-Version 3.1.09 : April 20, 2015
-- Fix OpenXmlRegex: PowerPoint 2007 and xml:space issues, causing 2007 to not open PPTX's
-
-Version 3.1.08 : March 13, 2015
-- Added Out-Xlsx Cmdlet
-
-Version 3.1.07 : February 9, 2015
-- Added Merge-Pptx Cmdlet
-- Added New-Pptx Cmdlet
-- Added New-PmlDocument
-- Fixed help for Merge-Docx
-- Don't throw duplicate attribute exception when running FormattingAssembler.AssembleFormatting
-  twice on same document.
-
-Version 3.1.06 : February 7, 2015
-- Added Expand-DocxFormatting Cmdlet
-- Cmdlets do not keep a handle to the current directory, preventing deletion of the directory.
-- Added additional tests to Test-OxPtCmdlets
-
-Version 3.1.05 : January 29, 2015
-- Added GetListItemText_zh_CN.cs
-- Fixed GetListItemText_fr_FR.cs
-- Partially fixed GetListItemText_ru_RU.cs
-- Fixed GetListItemText_Default.cs
-- Added better support in ListItemRetriever.cs
-- Added FileUtils class in PtUtil.cs
-
-Version 3.1.04 : December 17, 2014
-- Added Get-DocxMetrics Cmdlet
-- Added New-WmlDocument Cmdlet
-- Added MetricsGetter.cs module
-- Added MettricsGetter01.cs module, along with sample documents
-- Reworked Add-DocxText, new style of using it with New-WmlDocument
-
-Version 3.1.03 : December 9, 2014
-- Added ChartUpdater.cs module
-- Added ChartUpdater01.cs module, along with sample documents
-- Added Test-OxPtCmdlets Cmdlet
-
-Version 3.1.02 : December 1, 2014
-- Added Add-DocxText Cmdlet
-
-Version 3.1.01 : November 23, 2014
-- Added Convert-DocxToHtml Cmdlet
-- Added Chinese and Hebrew sample documents
-- Cmdlets in this release
-	Clear-DocxTrackedRevision
-	Convert-DocxToHtml
-	ConvertFrom-Base64
-	ConvertFrom-FlatOpc
-	ConvertTo-Base64
-	ConvertTo-FlatOpc
-	Get-OpenXmlValidationErrors
-	Merge-Docx
-	New-Docx
-	Test-OpenXmlValid
-
-Version 3.1.00 : November 13, 2014
-- Changed installation process - no longer requires compilation using Visual Studio
-- Added ConvertTo-FlatOpc Cmdlet
-- Added ConvertFrom-FlatOpc Cmdlet
-- Changed parameters for Test-OpenXmlValid, Get-OpenXmlValidationErrors
-- Removed the unnecessary 1/2 second sleep when doing Word automation in the New-Docx Cmdlet
-
-Version 3.0.00 : October 29, 2014
-- New release of cmdlets that are written as 'Advanced Functions' instead of in C#.
-
-This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/). For more information, see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.

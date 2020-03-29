@@ -1,13 +1,13 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using DocumentFormat.OpenXml.Packaging;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Xml.Linq;
-using DocumentFormat.OpenXml.Packaging;
 
 namespace OpenXmlPowerTools
 {
@@ -23,28 +23,31 @@ namespace OpenXmlPowerTools
             using (var ms = new MemoryStream())
             {
                 ms.Write(source.DocumentByteArray, 0, source.DocumentByteArray.Length);
-                using (WordprocessingDocument wDoc = WordprocessingDocument.Open(ms, true))
+                using (var wDoc = WordprocessingDocument.Open(ms, true))
                 {
                     TestForInvalidContent(wDoc);
                     RemoveExistingPowerToolsMarkup(wDoc);
 
-                    XElement contentParent = wDoc.MainDocumentPart.GetXDocument().Root?.Element(W.body);
-                    ComparisonUnitAtom[] atomList =
+                    var contentParent = wDoc.MainDocumentPart.GetXDocument().Root?.Element(W.body);
+                    var atomList =
                         CreateComparisonUnitAtomList(wDoc.MainDocumentPart, contentParent, settings).ToArray();
 
                     if (False)
                     {
                         var sb = new StringBuilder();
-                        foreach (ComparisonUnitAtom item in atomList)
+                        foreach (var item in atomList)
+                        {
                             sb.Append(item + Environment.NewLine);
-                        string sbs = sb.ToString();
+                        }
+
+                        var sbs = sb.ToString();
                         TestUtil.NotePad(sbs);
                     }
 
-                    List<IGrouping<string, ComparisonUnitAtom>> grouped = atomList
+                    var grouped = atomList
                         .GroupAdjacent(a =>
                         {
-                            string key = a.CorrelationStatus.ToString();
+                            var key = a.CorrelationStatus.ToString();
                             if (a.CorrelationStatus != CorrelationStatus.Equal)
                             {
                                 var rt = new XElement(a.RevTrackElement.Name,
@@ -58,23 +61,23 @@ namespace OpenXmlPowerTools
                         })
                         .ToList();
 
-                    List<IGrouping<string, ComparisonUnitAtom>> revisions = grouped
+                    var revisions = grouped
                         .Where(k => k.Key != "Equal")
                         .ToList();
 
                     if (False)
                     {
                         var sb = new StringBuilder();
-                        foreach (IGrouping<string, ComparisonUnitAtom> item in revisions)
+                        foreach (var item in revisions)
                         {
                             sb.Append(item.Key + Environment.NewLine);
                         }
 
-                        string sbs = sb.ToString();
+                        var sbs = sb.ToString();
                         TestUtil.NotePad(sbs);
                     }
 
-                    List<WmlComparerRevision> mainDocPartRevisionList = revisions
+                    var mainDocPartRevisionList = revisions
                         .Select(rg =>
                         {
                             var rev = new WmlComparerRevision();
@@ -87,11 +90,11 @@ namespace OpenXmlPowerTools
                                 rev.RevisionType = WmlComparerRevisionType.Deleted;
                             }
 
-                            XElement revTrackElement = rg.First().RevTrackElement;
+                            var revTrackElement = rg.First().RevTrackElement;
                             rev.RevisionXElement = revTrackElement;
-                            rev.Author = (string) revTrackElement.Attribute(W.author);
+                            rev.Author = (string)revTrackElement.Attribute(W.author);
                             rev.ContentXElement = rg.First().ContentElement;
-                            rev.Date = (string) revTrackElement.Attribute(W.date);
+                            rev.Date = (string)revTrackElement.Attribute(W.date);
                             rev.PartUri = wDoc.MainDocumentPart.Uri;
                             rev.PartContentType = wDoc.MainDocumentPart.ContentType;
 
@@ -106,12 +109,12 @@ namespace OpenXmlPowerTools
                         })
                         .ToList();
 
-                    IEnumerable<WmlComparerRevision> footnotesRevisionList =
+                    var footnotesRevisionList =
                         GetFootnoteEndnoteRevisionList(wDoc.MainDocumentPart.FootnotesPart, W.footnote, settings);
-                    IEnumerable<WmlComparerRevision> endnotesRevisionList =
+                    var endnotesRevisionList =
                         GetFootnoteEndnoteRevisionList(wDoc.MainDocumentPart.EndnotesPart, W.endnote, settings);
 
-                    List<WmlComparerRevision> finalRevisionList = mainDocPartRevisionList
+                    var finalRevisionList = mainDocPartRevisionList
                         .Concat(footnotesRevisionList)
                         .Concat(endnotesRevisionList)
                         .ToList();
@@ -131,31 +134,31 @@ namespace OpenXmlPowerTools
                 return Enumerable.Empty<WmlComparerRevision>();
             }
 
-            XDocument xDoc = footnotesEndnotesPart.GetXDocument();
-            IEnumerable<XElement> footnotesEndnotes =
+            var xDoc = footnotesEndnotesPart.GetXDocument();
+            var footnotesEndnotes =
                 xDoc.Root?.Elements(footnoteEndnoteElementName) ?? throw new OpenXmlPowerToolsException("Invalid document.");
 
             var revisionsForPart = new List<WmlComparerRevision>();
-            foreach (XElement fn in footnotesEndnotes)
+            foreach (var fn in footnotesEndnotes)
             {
-                ComparisonUnitAtom[] atomList = CreateComparisonUnitAtomList(footnotesEndnotesPart, fn, settings).ToArray();
+                var atomList = CreateComparisonUnitAtomList(footnotesEndnotesPart, fn, settings).ToArray();
 
                 if (False)
                 {
                     var sb = new StringBuilder();
-                    foreach (ComparisonUnitAtom item in atomList)
+                    foreach (var item in atomList)
                     {
                         sb.Append(item + Environment.NewLine);
                     }
 
-                    string sbs = sb.ToString();
+                    var sbs = sb.ToString();
                     TestUtil.NotePad(sbs);
                 }
 
-                List<IGrouping<string, ComparisonUnitAtom>> grouped = atomList
+                var grouped = atomList
                     .GroupAdjacent(a =>
                     {
-                        string key = a.CorrelationStatus.ToString();
+                        var key = a.CorrelationStatus.ToString();
                         if (a.CorrelationStatus != CorrelationStatus.Equal)
                         {
                             var rt = new XElement(a.RevTrackElement.Name,
@@ -170,11 +173,11 @@ namespace OpenXmlPowerTools
                     })
                     .ToList();
 
-                List<IGrouping<string, ComparisonUnitAtom>> revisions = grouped
+                var revisions = grouped
                     .Where(k => k.Key != "Equal")
                     .ToList();
 
-                IEnumerable<WmlComparerRevision> thisNoteRevisionList = revisions
+                var thisNoteRevisionList = revisions
                     .Select(rg =>
                     {
                         var rev = new WmlComparerRevision();
@@ -187,11 +190,11 @@ namespace OpenXmlPowerTools
                             rev.RevisionType = WmlComparerRevisionType.Deleted;
                         }
 
-                        XElement revTrackElement = rg.First().RevTrackElement;
+                        var revTrackElement = rg.First().RevTrackElement;
                         rev.RevisionXElement = revTrackElement;
-                        rev.Author = (string) revTrackElement.Attribute(W.author);
+                        rev.Author = (string)revTrackElement.Attribute(W.author);
                         rev.ContentXElement = rg.First().ContentElement;
-                        rev.Date = (string) revTrackElement.Attribute(W.date);
+                        rev.Date = (string)revTrackElement.Attribute(W.date);
                         rev.PartUri = footnotesEndnotesPart.Uri;
                         rev.PartContentType = footnotesEndnotesPart.ContentType;
 

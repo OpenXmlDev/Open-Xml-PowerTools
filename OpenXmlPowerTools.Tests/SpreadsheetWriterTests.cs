@@ -1,19 +1,14 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Drawing.Imaging;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml.Linq;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Validation;
-using Sw = OpenXmlPowerTools;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using Xunit;
+using Sw = OpenXmlPowerTools;
 
 #if !ELIDE_XUNIT_TESTS
 
@@ -24,7 +19,7 @@ namespace OxPt
         [Fact]
         public void SW001_Simple()
         {
-            Sw.WorkbookDfn wb = new Sw.WorkbookDfn
+            var wb = new Sw.WorkbookDfn
             {
                 Worksheets = new Sw.WorksheetDfn[]
                 {
@@ -104,7 +99,7 @@ namespace OxPt
         [Fact]
         public void SW002_AllDataTypes()
         {
-            Sw.WorkbookDfn wb = new Sw.WorkbookDfn
+            var wb = new Sw.WorkbookDfn
             {
                 Worksheets = new Sw.WorksheetDfn[]
                 {
@@ -180,7 +175,7 @@ namespace OxPt
                                     },
                                     new Sw.CellDfn {
                                         CellDataType = Sw.CellDataType.Number,
-                                        Value = (int)100,
+                                        Value = 100,
                                     },
                                 }
                             },
@@ -236,7 +231,7 @@ namespace OxPt
                                     },
                                     new Sw.CellDfn {
                                         CellDataType = Sw.CellDataType.Number,
-                                        Value = Int64.MaxValue,
+                                        Value = long.MaxValue,
                                     },
                                 }
                             },
@@ -264,7 +259,7 @@ namespace OxPt
                                     },
                                     new Sw.CellDfn {
                                         CellDataType = Sw.CellDataType.Number,
-                                        Value = (double)123.45,
+                                        Value = 123.45,
                                     },
                                 }
                             },
@@ -311,9 +306,9 @@ namespace OxPt
 
         private void Validate(FileInfo fi)
         {
-            using (SpreadsheetDocument sDoc = SpreadsheetDocument.Open(fi.FullName, true))
+            using (var sDoc = SpreadsheetDocument.Open(fi.FullName, true))
             {
-                OpenXmlValidator v = new OpenXmlValidator();
+                var v = new OpenXmlValidator();
                 var errors = v.Validate(sDoc).Where(ve => !s_ExpectedErrors.Contains(ve.Description));
 
 #if false
@@ -336,7 +331,7 @@ namespace OxPt
             }
         }
 
-        private static List<string> s_ExpectedErrors = new List<string>()
+        private static readonly List<string> s_ExpectedErrors = new List<string>()
         {
             "The attribute 't' has invalid value 'd'. The Enumeration constraint failed.",
         };

@@ -1,11 +1,11 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using DocumentFormat.OpenXml;
+using DocumentFormat.OpenXml.Packaging;
 using System.IO;
 using System.Linq;
 using System.Xml.Linq;
-using DocumentFormat.OpenXml;
-using DocumentFormat.OpenXml.Packaging;
 using Xunit;
 
 #if !ELIDE_XUNIT_TESTS
@@ -17,6 +17,7 @@ namespace OpenXmlPowerTools.Tests
         private const WordprocessingDocumentType DocumentType = WordprocessingDocumentType.Document;
 
         private const string SmartTagDocumentTextValue = "The countries include Algeria, Botswana, and Sri Lanka.";
+
         private const string SmartTagDocumentXmlString =
 @"<w:document xmlns:w=""http://schemas.openxmlformats.org/wordprocessingml/2006/main"">
   <w:body>
@@ -86,20 +87,20 @@ namespace OpenXmlPowerTools.Tests
         [Fact]
         public void CanRemoveSmartTags()
         {
-            XDocument partDocument = XDocument.Parse(SmartTagDocumentXmlString);
+            var partDocument = XDocument.Parse(SmartTagDocumentXmlString);
             Assert.True(partDocument.Descendants(W.smartTag).Any());
 
             using (var stream = new MemoryStream())
-            using (WordprocessingDocument wordDocument = WordprocessingDocument.Create(stream, DocumentType))
+            using (var wordDocument = WordprocessingDocument.Create(stream, DocumentType))
             {
-                MainDocumentPart part = wordDocument.AddMainDocumentPart();
+                var part = wordDocument.AddMainDocumentPart();
                 part.PutXDocument(partDocument);
 
                 var settings = new SimplifyMarkupSettings { RemoveSmartTags = true };
                 MarkupSimplifier.SimplifyMarkup(wordDocument, settings);
 
                 partDocument = part.GetXDocument();
-                XElement t = partDocument.Descendants(W.t).First();
+                var t = partDocument.Descendants(W.t).First();
 
                 Assert.False(partDocument.Descendants(W.smartTag).Any());
                 Assert.Equal(SmartTagDocumentTextValue, t.Value);
@@ -109,20 +110,20 @@ namespace OpenXmlPowerTools.Tests
         [Fact]
         public void CanRemoveContentControls()
         {
-            XDocument partDocument = XDocument.Parse(SdtDocumentXmlString);
+            var partDocument = XDocument.Parse(SdtDocumentXmlString);
             Assert.True(partDocument.Descendants(W.sdt).Any());
 
             using (var stream = new MemoryStream())
-            using (WordprocessingDocument wordDocument = WordprocessingDocument.Create(stream, DocumentType))
+            using (var wordDocument = WordprocessingDocument.Create(stream, DocumentType))
             {
-                MainDocumentPart part = wordDocument.AddMainDocumentPart();
+                var part = wordDocument.AddMainDocumentPart();
                 part.PutXDocument(partDocument);
 
                 var settings = new SimplifyMarkupSettings { RemoveContentControls = true };
                 MarkupSimplifier.SimplifyMarkup(wordDocument, settings);
 
                 partDocument = part.GetXDocument();
-                XElement element = partDocument
+                var element = partDocument
                     .Descendants(W.body)
                     .Descendants()
                     .First();
@@ -135,7 +136,7 @@ namespace OpenXmlPowerTools.Tests
         [Fact]
         public void CanRemoveGoBackBookmarks()
         {
-            XDocument partDocument = XDocument.Parse(GoBackBookmarkDocumentXmlString);
+            var partDocument = XDocument.Parse(GoBackBookmarkDocumentXmlString);
             Assert.Contains(partDocument
                 .Descendants(W.bookmarkStart)
 , e => e.Attribute(W.name).Value == "_GoBack" && e.Attribute(W.id).Value == "0");
@@ -144,9 +145,9 @@ namespace OpenXmlPowerTools.Tests
 , e => e.Attribute(W.id).Value == "0");
 
             using (var stream = new MemoryStream())
-            using (WordprocessingDocument wordDocument = WordprocessingDocument.Create(stream, DocumentType))
+            using (var wordDocument = WordprocessingDocument.Create(stream, DocumentType))
             {
-                MainDocumentPart part = wordDocument.AddMainDocumentPart();
+                var part = wordDocument.AddMainDocumentPart();
                 part.PutXDocument(partDocument);
 
                 var settings = new SimplifyMarkupSettings { RemoveGoBackBookmark = true };

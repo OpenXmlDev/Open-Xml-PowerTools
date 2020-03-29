@@ -1,10 +1,10 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System.IO;
 using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
+using System.IO;
 
 namespace OpenXmlPowerTools.Tests
 {
@@ -17,9 +17,9 @@ namespace OpenXmlPowerTools.Tests
 
         protected static void CreateEmptyWordprocessingDocument(Stream stream)
         {
-            using (WordprocessingDocument wordDocument = WordprocessingDocument.Create(stream, DocumentType))
+            using (var wordDocument = WordprocessingDocument.Create(stream, DocumentType))
             {
-                MainDocumentPart part = wordDocument.AddMainDocumentPart();
+                var part = wordDocument.AddMainDocumentPart();
                 part.Document = new Document(new Body());
             }
         }

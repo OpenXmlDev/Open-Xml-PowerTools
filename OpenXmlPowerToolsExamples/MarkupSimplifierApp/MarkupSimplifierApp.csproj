@@ -1,25 +1,32 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net461</TargetFramework>
+    <TargetFrameworks Condition="'$(OS)' == 'Windows_NT' ">net472;netcoreapp3.1</TargetFrameworks>
+    <TargetFrameworks Condition="'$(OS)' != 'Windows_NT' ">netcoreapp3.1</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="System.Configuration.ConfigurationManager" Version="4.7.0" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\OpenXmlPowerTools\OpenXmlPowerTools.csproj" />
-    <PackageReference Include="DocumentFormat.OpenXml" Version="2.8.1" />
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="System.Windows.Forms" />
-    <Reference Include="WindowsBase" />
+    <Compile Update="Properties\Settings.Designer.cs">
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+    </Compile>
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Update="Form1.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Update="Form1.Designer.cs">
-      <SubType>Form</SubType>
-    </Compile>
+    <None Update="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
   </ItemGroup>
+
 </Project>

@@ -1,17 +1,17 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using DocumentFormat.OpenXml.Packaging;
+using DocumentFormat.OpenXml.Validation;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Globalization;
 using System.IO;
 using System.IO.Packaging;
 using System.Linq;
 using System.Text;
 using System.Xml.Linq;
-using DocumentFormat.OpenXml.Packaging;
-using DocumentFormat.OpenXml.Validation;
-using System.Globalization;
 
 namespace OpenXmlPowerTools
 {
@@ -33,22 +33,25 @@ namespace OpenXmlPowerTools
 
         public static XElement GetMetrics(string fileName, MetricsGetterSettings settings)
         {
-            FileInfo fi = new FileInfo(fileName);
+            var fi = new FileInfo(fileName);
             if (!fi.Exists)
+            {
                 throw new FileNotFoundException("{0} does not exist.", fi.FullName);
+            }
+
             if (Util.IsWordprocessingML(fi.Extension))
             {
-                WmlDocument wmlDoc = new WmlDocument(fi.FullName, true);
+                var wmlDoc = new WmlDocument(fi.FullName, true);
                 return GetDocxMetrics(wmlDoc, settings);
             }
             if (Util.IsSpreadsheetML(fi.Extension))
             {
-                SmlDocument smlDoc = new SmlDocument(fi.FullName, true);
+                var smlDoc = new SmlDocument(fi.FullName, true);
                 return GetXlsxMetrics(smlDoc, settings);
             }
             if (Util.IsPresentationML(fi.Extension))
             {
-                PmlDocument pmlDoc = new PmlDocument(fi.FullName, true);
+                var pmlDoc = new PmlDocument(fi.FullName, true);
                 return GetPptxMetrics(pmlDoc, settings);
             }
             return null;
@@ -58,17 +61,23 @@ namespace OpenXmlPowerTools
         {
             try
             {
-                using (MemoryStream ms = new MemoryStream())
+                using (var ms = new MemoryStream())
                 {
                     ms.Write(wmlDoc.DocumentByteArray, 0, wmlDoc.DocumentByteArray.Length);
-                    using (WordprocessingDocument document = WordprocessingDocument.Open(ms, true))
+                    using (var document = WordprocessingDocument.Open(ms, true))
                     {
-                        bool hasTrackedRevisions = RevisionAccepter.HasTrackedRevisions(document);
+                        var hasTrackedRevisions = RevisionAccepter.HasTrackedRevisions(document);
                         if (hasTrackedRevisions)
+                        {
                             RevisionAccepter.AcceptRevisions(document);
-                        XElement metrics1 = GetWmlMetrics(wmlDoc.FileName, false, document, settings);
+                        }
+
+                        var metrics1 = GetWmlMetrics(wmlDoc.FileName, false, document, settings);
                         if (hasTrackedRevisions)
+                        {
                             metrics1.Add(new XElement(H.RevisionTracking, new XAttribute(H.Val, true)));
+                        }
+
                         return metrics1;
                     }
                 }
@@ -77,7 +86,7 @@ namespace OpenXmlPowerTools
             {
                 if (e.ToString().Contains("Invalid Hyperlink"))
                 {
-                    using (MemoryStream ms = new MemoryStream())
+                    using (var ms = new MemoryStream())
                     {
                         ms.Write(wmlDoc.DocumentByteArray, 0, wmlDoc.DocumentByteArray.Length);
 #if !NET35
@@ -85,17 +94,23 @@ namespace OpenXmlPowerTools
 #endif
                         wmlDoc = new WmlDocument("dummy.docx", ms.ToArray());
                     }
-                    using (MemoryStream ms = new MemoryStream())
+                    using (var ms = new MemoryStream())
                     {
                         ms.Write(wmlDoc.DocumentByteArray, 0, wmlDoc.DocumentByteArray.Length);
-                        using (WordprocessingDocument document = WordprocessingDocument.Open(ms, true))
+                        using (var document = WordprocessingDocument.Open(ms, true))
                         {
-                            bool hasTrackedRevisions = RevisionAccepter.HasTrackedRevisions(document);
+                            var hasTrackedRevisions = RevisionAccepter.HasTrackedRevisions(document);
                             if (hasTrackedRevisions)
+                            {
                                 RevisionAccepter.AcceptRevisions(document);
-                            XElement metrics2 = GetWmlMetrics(wmlDoc.FileName, true, document, settings);
+                            }
+
+                            var metrics2 = GetWmlMetrics(wmlDoc.FileName, true, document, settings);
                             if (hasTrackedRevisions)
+                            {
                                 metrics2.Add(new XElement(H.RevisionTracking, new XAttribute(H.Val, true)));
+                            }
+
                             return metrics2;
                         }
                     }
@@ -116,7 +131,7 @@ namespace OpenXmlPowerTools
                 {
                     var proposedSize = new Size(int.MaxValue, int.MaxValue);
                     var sf = Graphics.Value.MeasureString(text, f, proposedSize);
-                    return (int) sf.Width;
+                    return (int)sf.Width;
                 }
             }
             catch
@@ -174,7 +189,10 @@ namespace OpenXmlPowerTools
                     return GetMetricsForWmlPart(part, settings);
                 }));
             if (!parts.HasElements)
+            {
                 parts = null;
+            }
+
             var metrics = new XElement(H.Metrics,
                 new XAttribute(H.FileName, fileName),
                 new XAttribute(H.FileType, "WordprocessingML"),
@@ -189,7 +207,7 @@ namespace OpenXmlPowerTools
 
         private static XElement RetrieveContentTypeList(OpenXmlPackage oxPkg)
         {
-            Package pkg = oxPkg.Package;
+            var pkg = oxPkg.Package;
 
             var nonRelationshipParts = pkg.GetParts().Cast<ZipPackagePart>().Where(p => p.ContentType != "application/vnd.openxmlformats-package.relationships+xml");
             var contentTypes = nonRelationshipParts
@@ -203,7 +221,7 @@ namespace OpenXmlPowerTools
 
         private static XElement RetrieveNamespaceList(OpenXmlPackage oxPkg)
         {
-            Package pkg = oxPkg.Package;
+            var pkg = oxPkg.Package;
 
             var nonRelationshipParts = pkg.GetParts().Cast<ZipPackagePart>().Where(p => p.ContentType != "application/vnd.openxmlformats-package.relationships+xml");
             var xmlParts = nonRelationshipParts
@@ -212,11 +230,11 @@ namespace OpenXmlPowerTools
             var uniqueNamespaces = new HashSet<string>();
             foreach (var xp in xmlParts)
             {
-                using (Stream st = xp.GetStream())
+                using (var st = xp.GetStream())
                 {
                     try
                     {
-                        XDocument xdoc = XDocument.Load(st);
+                        var xdoc = XDocument.Load(st);
                         var namespaces = xdoc
                             .Descendants()
                             .Attributes()
@@ -226,7 +244,9 @@ namespace OpenXmlPowerTools
                             .Distinct()
                             .ToList();
                         foreach (var item in namespaces)
-		                    uniqueNamespaces.Add(item);
+                        {
+                            uniqueNamespaces.Add(item);
+                        }
                     }
                     // if catch exception, forget about it.  Just trying to get a most complete survey possible of all namespaces in all documents.
                     // if caught exception, chances are the document is bad anyway.
@@ -249,78 +269,117 @@ namespace OpenXmlPowerTools
 
         private static List<XElement> GetMiscWmlMetrics(WordprocessingDocument document, bool invalidHyperlink)
         {
-            List<XElement> metrics = new List<XElement>();
-            List<string> notes = new List<string>();
-            Dictionary<XName, int> elementCountDictionary = new Dictionary<XName, int>();
+            var metrics = new List<XElement>();
+            var notes = new List<string>();
+            var elementCountDictionary = new Dictionary<XName, int>();
 
             if (invalidHyperlink)
+            {
                 metrics.Add(new XElement(H.InvalidHyperlink, new XAttribute(H.Val, invalidHyperlink)));
+            }
 
-            bool valid = ValidateWordprocessingDocument(document, metrics, notes, elementCountDictionary);
+            var valid = ValidateWordprocessingDocument(document, metrics, notes, elementCountDictionary);
             if (invalidHyperlink)
+            {
                 valid = false;
+            }
 
             return metrics;
         }
 
         private static bool ValidateWordprocessingDocument(WordprocessingDocument wDoc, List<XElement> metrics, List<string> notes, Dictionary<XName, int> metricCountDictionary)
         {
-            bool valid = ValidateAgainstSpecificVersion(wDoc, metrics, DocumentFormat.OpenXml.FileFormatVersions.Office2007, H.SdkValidationError2007);
+            var valid = ValidateAgainstSpecificVersion(wDoc, metrics, DocumentFormat.OpenXml.FileFormatVersions.Office2007, H.SdkValidationError2007);
             valid |= ValidateAgainstSpecificVersion(wDoc, metrics, DocumentFormat.OpenXml.FileFormatVersions.Office2010, H.SdkValidationError2010);
 #if !NET35
             valid |= ValidateAgainstSpecificVersion(wDoc, metrics, DocumentFormat.OpenXml.FileFormatVersions.Office2013, H.SdkValidationError2013);
 #endif
 
-            int elementCount = 0;
-            int paragraphCount = 0;
-            int textCount = 0;
+            var elementCount = 0;
+            var paragraphCount = 0;
+            var textCount = 0;
             foreach (var part in wDoc.ContentParts())
             {
-                XDocument xDoc = part.GetXDocument();
+                var xDoc = part.GetXDocument();
                 foreach (var e in xDoc.Descendants())
                 {
                     if (e.Name == W.txbxContent)
+                    {
                         IncrementMetric(metricCountDictionary, H.TextBox);
+                    }
                     else if (e.Name == W.sdt)
+                    {
                         IncrementMetric(metricCountDictionary, H.ContentControl);
+                    }
                     else if (e.Name == W.customXml)
+                    {
                         IncrementMetric(metricCountDictionary, H.CustomXmlMarkup);
+                    }
                     else if (e.Name == W.fldChar)
+                    {
                         IncrementMetric(metricCountDictionary, H.ComplexField);
+                    }
                     else if (e.Name == W.fldSimple)
+                    {
                         IncrementMetric(metricCountDictionary, H.SimpleField);
+                    }
                     else if (e.Name == W.altChunk)
+                    {
                         IncrementMetric(metricCountDictionary, H.AltChunk);
+                    }
                     else if (e.Name == W.tbl)
+                    {
                         IncrementMetric(metricCountDictionary, H.Table);
+                    }
                     else if (e.Name == W.hyperlink)
+                    {
                         IncrementMetric(metricCountDictionary, H.Hyperlink);
+                    }
                     else if (e.Name == W.framePr)
+                    {
                         IncrementMetric(metricCountDictionary, H.LegacyFrame);
+                    }
                     else if (e.Name == W.control)
+                    {
                         IncrementMetric(metricCountDictionary, H.ActiveX);
+                    }
                     else if (e.Name == W.subDoc)
+                    {
                         IncrementMetric(metricCountDictionary, H.SubDocument);
+                    }
                     else if (e.Name == VML.imagedata || e.Name == VML.fill || e.Name == VML.stroke || e.Name == A.blip)
                     {
                         var relId = (string)e.Attribute(R.embed);
                         if (relId != null)
+                        {
                             ValidateImageExists(part, relId, metricCountDictionary);
+                        }
+
                         relId = (string)e.Attribute(R.pict);
                         if (relId != null)
+                        {
                             ValidateImageExists(part, relId, metricCountDictionary);
+                        }
+
                         relId = (string)e.Attribute(R.id);
                         if (relId != null)
+                        {
                             ValidateImageExists(part, relId, metricCountDictionary);
+                        }
                     }
 
                     if (part.Uri == wDoc.MainDocumentPart.Uri)
                     {
                         elementCount++;
                         if (e.Name == W.p)
+                        {
                             paragraphCount++;
+                        }
+
                         if (e.Name == W.t)
+                        {
                             textCount += ((string)e).Length;
+                        }
                     }
                 }
             }
@@ -332,33 +391,42 @@ namespace OpenXmlPowerTools
             }
 
             metrics.Add(new XElement(H.ElementCount, new XAttribute(H.Val, elementCount)));
-            metrics.Add(new XElement(H.AverageParagraphLength, new XAttribute(H.Val, (int)((double)textCount / (double)paragraphCount))));
+            metrics.Add(new XElement(H.AverageParagraphLength, new XAttribute(H.Val, (int)(textCount / (double)paragraphCount))));
 
             if (wDoc.GetAllParts().Any(part => part.ContentType == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+            {
                 metrics.Add(new XElement(H.EmbeddedXlsx, new XAttribute(H.Val, true)));
+            }
 
             NumberingFormatListAssembly(wDoc, metrics);
 
-            XDocument wxDoc = wDoc.MainDocumentPart.GetXDocument();
+            var wxDoc = wDoc.MainDocumentPart.GetXDocument();
 
             foreach (var d in wxDoc.Descendants())
             {
                 if (d.Name == W.saveThroughXslt)
                 {
-                    string rid = (string)d.Attribute(R.id);
+                    var rid = (string)d.Attribute(R.id);
                     var tempExternalRelationship = wDoc
                         .MainDocumentPart
                         .DocumentSettingsPart
                         .ExternalRelationships
                         .FirstOrDefault(h => h.Id == rid);
                     if (tempExternalRelationship == null)
+                    {
                         metrics.Add(new XElement(H.InvalidSaveThroughXslt, new XAttribute(H.Val, true)));
+                    }
+
                     valid = false;
                 }
                 else if (d.Name == W.trackRevisions)
+                {
                     metrics.Add(new XElement(H.TrackRevisionsEnabled, new XAttribute(H.Val, true)));
+                }
                 else if (d.Name == W.documentProtection)
+                {
                     metrics.Add(new XElement(H.DocumentProtection, new XAttribute(H.Val, true)));
+                }
             }
 
             FontAndCharSetAnalysis(wDoc, metrics, notes);
@@ -368,21 +436,29 @@ namespace OpenXmlPowerTools
 
         private static bool ValidateAgainstSpecificVersion(WordprocessingDocument wDoc, List<XElement> metrics, DocumentFormat.OpenXml.FileFormatVersions versionToValidateAgainst, XName versionSpecificMetricName)
         {
-            OpenXmlValidator validator = new OpenXmlValidator(versionToValidateAgainst);
+            var validator = new OpenXmlValidator(versionToValidateAgainst);
             var errors = validator.Validate(wDoc);
-            bool valid = errors.Count() == 0;
+            var valid = errors.Count() == 0;
             if (!valid)
             {
                 if (!metrics.Any(e => e.Name == H.SdkValidationError))
+                {
                     metrics.Add(new XElement(H.SdkValidationError, new XAttribute(H.Val, true)));
+                }
+
                 metrics.Add(new XElement(versionSpecificMetricName, new XAttribute(H.Val, true),
                     errors.Take(3).Select(err =>
                     {
-                        StringBuilder sb = new StringBuilder();
+                        var sb = new StringBuilder();
                         if (err.Description.Length > 300)
+                        {
                             sb.Append(PtUtils.MakeValidXml(err.Description.Substring(0, 300) + " ... elided ...") + Environment.NewLine);
+                        }
                         else
+                        {
                             sb.Append(PtUtils.MakeValidXml(err.Description) + Environment.NewLine);
+                        }
+
                         sb.Append("  in part " + PtUtils.MakeValidXml(err.Part.Uri.ToString()) + Environment.NewLine);
                         sb.Append("  at " + PtUtils.MakeValidXml(err.Path.XPath) + Environment.NewLine);
                         return sb.ToString();
@@ -393,21 +469,29 @@ namespace OpenXmlPowerTools
 
         private static bool ValidateAgainstSpecificVersion(SpreadsheetDocument sDoc, List<XElement> metrics, DocumentFormat.OpenXml.FileFormatVersions versionToValidateAgainst, XName versionSpecificMetricName)
         {
-            OpenXmlValidator validator = new OpenXmlValidator(versionToValidateAgainst);
+            var validator = new OpenXmlValidator(versionToValidateAgainst);
             var errors = validator.Validate(sDoc);
-            bool valid = errors.Count() == 0;
+            var valid = errors.Count() == 0;
             if (!valid)
             {
                 if (!metrics.Any(e => e.Name == H.SdkValidationError))
+                {
                     metrics.Add(new XElement(H.SdkValidationError, new XAttribute(H.Val, true)));
+                }
+
                 metrics.Add(new XElement(versionSpecificMetricName, new XAttribute(H.Val, true),
                     errors.Take(3).Select(err =>
                     {
-                        StringBuilder sb = new StringBuilder();
+                        var sb = new StringBuilder();
                         if (err.Description.Length > 300)
+                        {
                             sb.Append(PtUtils.MakeValidXml(err.Description.Substring(0, 300) + " ... elided ...") + Environment.NewLine);
+                        }
                         else
+                        {
                             sb.Append(PtUtils.MakeValidXml(err.Description) + Environment.NewLine);
+                        }
+
                         sb.Append("  in part " + PtUtils.MakeValidXml(err.Part.Uri.ToString()) + Environment.NewLine);
                         sb.Append("  at " + PtUtils.MakeValidXml(err.Path.XPath) + Environment.NewLine);
                         return sb.ToString();
@@ -418,21 +502,29 @@ namespace OpenXmlPowerTools
 
         private static bool ValidateAgainstSpecificVersion(PresentationDocument pDoc, List<XElement> metrics, DocumentFormat.OpenXml.FileFormatVersions versionToValidateAgainst, XName versionSpecificMetricName)
         {
-            OpenXmlValidator validator = new OpenXmlValidator(versionToValidateAgainst);
+            var validator = new OpenXmlValidator(versionToValidateAgainst);
             var errors = validator.Validate(pDoc);
-            bool valid = errors.Count() == 0;
+            var valid = errors.Count() == 0;
             if (!valid)
             {
                 if (!metrics.Any(e => e.Name == H.SdkValidationError))
+                {
                     metrics.Add(new XElement(H.SdkValidationError, new XAttribute(H.Val, true)));
+                }
+
                 metrics.Add(new XElement(versionSpecificMetricName, new XAttribute(H.Val, true),
                     errors.Take(3).Select(err =>
                     {
-                        StringBuilder sb = new StringBuilder();
+                        var sb = new StringBuilder();
                         if (err.Description.Length > 300)
+                        {
                             sb.Append(PtUtils.MakeValidXml(err.Description.Substring(0, 300) + " ... elided ...") + Environment.NewLine);
+                        }
                         else
+                        {
                             sb.Append(PtUtils.MakeValidXml(err.Description) + Environment.NewLine);
+                        }
+
                         sb.Append("  in part " + PtUtils.MakeValidXml(err.Part.Uri.ToString()) + Environment.NewLine);
                         sb.Append("  at " + PtUtils.MakeValidXml(err.Path.XPath) + Environment.NewLine);
                         return sb.ToString();
@@ -444,22 +536,27 @@ namespace OpenXmlPowerTools
         private static void IncrementMetric(Dictionary<XName, int> metricCountDictionary, XName xName)
         {
             if (metricCountDictionary.ContainsKey(xName))
+            {
                 metricCountDictionary[xName] = metricCountDictionary[xName] + 1;
+            }
             else
+            {
                 metricCountDictionary.Add(xName, 1);
+            }
         }
 
         private static void ValidateImageExists(OpenXmlPart part, string relId, Dictionary<XName, int> metrics)
         {
             var imagePart = part.Parts.FirstOrDefault(ipp => ipp.RelationshipId == relId);
             if (imagePart == null)
+            {
                 IncrementMetric(metrics, H.ReferenceToNullImage);
+            }
         }
-
 
         private static void NumberingFormatListAssembly(WordprocessingDocument wDoc, List<XElement> metrics)
         {
-            List<string> numFmtList = new List<string>();
+            var numFmtList = new List<string>();
             foreach (var part in wDoc.ContentParts())
             {
                 var xDoc = part.GetXDocument();
@@ -468,15 +565,17 @@ namespace OpenXmlPowerTools
                     .Select(p =>
                     {
                         ListItemRetriever.RetrieveListItem(wDoc, p, null);
-                        ListItemRetriever.ListItemInfo lif = p.Annotation<ListItemRetriever.ListItemInfo>();
+                        var lif = p.Annotation<ListItemRetriever.ListItemInfo>();
                         if (lif != null && lif.IsListItem && lif.Lvl(ListItemRetriever.GetParagraphLevel(p)) != null)
                         {
-                            string numFmtForLevel = (string)lif.Lvl(ListItemRetriever.GetParagraphLevel(p)).Elements(W.numFmt).Attributes(W.val).FirstOrDefault();
+                            var numFmtForLevel = (string)lif.Lvl(ListItemRetriever.GetParagraphLevel(p)).Elements(W.numFmt).Attributes(W.val).FirstOrDefault();
                             if (numFmtForLevel == null)
                             {
                                 var numFmtElement = lif.Lvl(ListItemRetriever.GetParagraphLevel(p)).Elements(MC.AlternateContent).Elements(MC.Choice).Elements(W.numFmt).FirstOrDefault();
                                 if (numFmtElement != null && (string)numFmtElement.Attribute(W.val) == "custom")
+                                {
                                     numFmtForLevel = (string)numFmtElement.Attribute(W.format);
+                                }
                             }
                             return numFmtForLevel;
                         }
@@ -493,7 +592,7 @@ namespace OpenXmlPowerTools
             }
         }
 
-        class FormattingMetrics
+        private class FormattingMetrics
         {
             public int RunCount;
             public int RunWithoutRprCount;
@@ -520,7 +619,7 @@ namespace OpenXmlPowerTools
 
         private static void FontAndCharSetAnalysis(WordprocessingDocument wDoc, List<XElement> metrics, List<string> notes)
         {
-            FormattingAssemblerSettings settings = new FormattingAssemblerSettings
+            var settings = new FormattingAssemblerSettings
             {
                 RemoveStyleNamesFromParagraphAndRunProperties = false,
                 ClearStyles = true,
@@ -542,27 +641,59 @@ namespace OpenXmlPowerTools
 
             metrics.Add(new XElement(H.RunCount, new XAttribute(H.Val, formattingMetrics.RunCount)));
             if (formattingMetrics.RunWithoutRprCount > 0)
+            {
                 metrics.Add(new XElement(H.RunWithoutRprCount, new XAttribute(H.Val, formattingMetrics.RunWithoutRprCount)));
+            }
+
             if (formattingMetrics.ZeroLengthText > 0)
+            {
                 metrics.Add(new XElement(H.ZeroLengthText, new XAttribute(H.Val, formattingMetrics.ZeroLengthText)));
+            }
+
             if (formattingMetrics.MultiFontRun > 0)
+            {
                 metrics.Add(new XElement(H.MultiFontRun, new XAttribute(H.Val, formattingMetrics.MultiFontRun)));
+            }
+
             if (formattingMetrics.AsciiCharCount > 0)
+            {
                 metrics.Add(new XElement(H.AsciiCharCount, new XAttribute(H.Val, formattingMetrics.AsciiCharCount)));
+            }
+
             if (formattingMetrics.CSCharCount > 0)
+            {
                 metrics.Add(new XElement(H.CSCharCount, new XAttribute(H.Val, formattingMetrics.CSCharCount)));
+            }
+
             if (formattingMetrics.EastAsiaCharCount > 0)
+            {
                 metrics.Add(new XElement(H.EastAsiaCharCount, new XAttribute(H.Val, formattingMetrics.EastAsiaCharCount)));
+            }
+
             if (formattingMetrics.HAnsiCharCount > 0)
+            {
                 metrics.Add(new XElement(H.HAnsiCharCount, new XAttribute(H.Val, formattingMetrics.HAnsiCharCount)));
+            }
+
             if (formattingMetrics.AsciiRunCount > 0)
+            {
                 metrics.Add(new XElement(H.AsciiRunCount, new XAttribute(H.Val, formattingMetrics.AsciiRunCount)));
+            }
+
             if (formattingMetrics.CSRunCount > 0)
+            {
                 metrics.Add(new XElement(H.CSRunCount, new XAttribute(H.Val, formattingMetrics.CSRunCount)));
+            }
+
             if (formattingMetrics.EastAsiaRunCount > 0)
+            {
                 metrics.Add(new XElement(H.EastAsiaRunCount, new XAttribute(H.Val, formattingMetrics.EastAsiaRunCount)));
+            }
+
             if (formattingMetrics.HAnsiRunCount > 0)
+            {
                 metrics.Add(new XElement(H.HAnsiRunCount, new XAttribute(H.Val, formattingMetrics.HAnsiRunCount)));
+            }
 
             if (formattingMetrics.Languages.Any())
             {
@@ -589,7 +720,7 @@ namespace OpenXmlPowerTools
                 notes.Add(PtUtils.MakeValidXml(string.Format("Error in part {0}: run without rPr at {1}", uri, run.GetXPath())));
                 rPr = new XElement(W.rPr);
             }
-            FormattingAssembler.CharStyleAttributes csa = new FormattingAssembler.CharStyleAttributes(null, rPr);
+            var csa = new FormattingAssembler.CharStyleAttributes(null, rPr);
             var fontTypeArray = runText
                 .Select(ch => FormattingAssembler.DetermineFontTypeFromCharacter(ch, csa))
                 .ToArray();
@@ -606,24 +737,38 @@ namespace OpenXmlPowerTools
                 .Select(ft =>
                 {
                     if (ft == FormattingAssembler.FontType.Ascii)
+                    {
                         return csa.LatinLang;
+                    }
+
                     if (ft == FormattingAssembler.FontType.CS)
+                    {
                         return csa.BidiLang;
+                    }
+
                     if (ft == FormattingAssembler.FontType.EastAsia)
+                    {
                         return csa.EastAsiaLang;
+                    }
                     //if (ft == FormattingAssembler.FontType.HAnsi)
                     return csa.LatinLang;
                 })
                 .Select(l =>
                 {
                     if (l == "" || l == null)
+                    {
                         return /* "Dflt:" + */ CultureInfo.CurrentCulture.Name;
+                    }
+
                     return l;
                 })
                 //.Where(l => l != null && l != "")
                 .Distinct();
             if (languages.Any(l => !formattingMetrics.Languages.Contains(l)))
+            {
                 formattingMetrics.Languages = formattingMetrics.Languages.Concat(languages).Distinct().ToList();
+            }
+
             var multiFontRun = distinctFonts.Count() > 1;
             if (multiFontRun)
             {
@@ -642,14 +787,17 @@ namespace OpenXmlPowerTools
                         formattingMetrics.AsciiCharCount += runText.Length;
                         formattingMetrics.AsciiRunCount++;
                         break;
+
                     case FormattingAssembler.FontType.CS:
                         formattingMetrics.CSCharCount += runText.Length;
                         formattingMetrics.CSRunCount++;
                         break;
+
                     case FormattingAssembler.FontType.EastAsia:
                         formattingMetrics.EastAsiaCharCount += runText.Length;
                         formattingMetrics.EastAsiaRunCount++;
                         break;
+
                     case FormattingAssembler.FontType.HAnsi:
                         formattingMetrics.HAnsiCharCount += runText.Length;
                         formattingMetrics.HAnsiRunCount++;
@@ -664,12 +812,16 @@ namespace OpenXmlPowerTools
             {
                 case FormattingAssembler.FontType.Ascii:
                     return csa.AsciiFont;
+
                 case FormattingAssembler.FontType.CS:
                     return csa.CsFont;
+
                 case FormattingAssembler.FontType.EastAsia:
                     return csa.EastAsiaFont;
+
                 case FormattingAssembler.FontType.HAnsi:
                     return csa.HAnsiFont;
+
                 default: // dummy
                     return csa.AsciiFont;
             }
@@ -677,13 +829,13 @@ namespace OpenXmlPowerTools
 
         public static XElement GetXlsxMetrics(SmlDocument smlDoc, MetricsGetterSettings settings)
         {
-            using (OpenXmlMemoryStreamDocument streamDoc = new OpenXmlMemoryStreamDocument(smlDoc))
+            using (var streamDoc = new OpenXmlMemoryStreamDocument(smlDoc))
             {
-                using (SpreadsheetDocument sDoc = streamDoc.GetSpreadsheetDocument())
+                using (var sDoc = streamDoc.GetSpreadsheetDocument())
                 {
-                    List<XElement> metrics = new List<XElement>();
+                    var metrics = new List<XElement>();
 
-                    bool valid = ValidateAgainstSpecificVersion(sDoc, metrics, DocumentFormat.OpenXml.FileFormatVersions.Office2007, H.SdkValidationError2007);
+                    var valid = ValidateAgainstSpecificVersion(sDoc, metrics, DocumentFormat.OpenXml.FileFormatVersions.Office2007, H.SdkValidationError2007);
                     valid |= ValidateAgainstSpecificVersion(sDoc, metrics, DocumentFormat.OpenXml.FileFormatVersions.Office2010, H.SdkValidationError2010);
 #if !NET35
                     valid |= ValidateAgainstSpecificVersion(sDoc, metrics, DocumentFormat.OpenXml.FileFormatVersions.Office2013, H.SdkValidationError2013);
@@ -713,7 +865,7 @@ namespace OpenXmlPowerTools
                     {
                         var rid = (string)sh.Attribute(R.id);
                         var sheetName = (string)sh.Attribute("name");
-                        WorksheetPart worksheetPart = (WorksheetPart)workbookPart.GetPartById(rid);
+                        var worksheetPart = (WorksheetPart)workbookPart.GetPartById(rid);
                         return GetTableInfoForSheet(spreadsheet, worksheetPart, sheetName, settings);
                     }));
             return partInformation;
@@ -723,12 +875,12 @@ namespace OpenXmlPowerTools
             MetricsGetterSettings settings)
         {
             var xd = sheetPart.GetXDocument();
-            XElement sheetInformation = new XElement(H.Sheet,
+            var sheetInformation = new XElement(H.Sheet,
                     new XAttribute(H.Name, sheetName),
                     xd.Root.Elements(S.tableParts).Elements(S.tablePart).Select(tp =>
                     {
-                        string rId = (string)tp.Attribute(R.id);
-                        TableDefinitionPart tablePart = (TableDefinitionPart)sheetPart.GetPartById(rId);
+                        var rId = (string)tp.Attribute(R.id);
+                        var tablePart = (TableDefinitionPart)sheetPart.GetPartById(rId);
                         var txd = tablePart.GetXDocument();
                         var tableName = (string)txd.Root.Attribute("displayName");
                         XElement tableCellData = null;
@@ -763,19 +915,22 @@ namespace OpenXmlPowerTools
                     })
                 );
             if (!sheetInformation.HasElements)
+            {
                 return null;
+            }
+
             return sheetInformation;
         }
 
         public static XElement GetPptxMetrics(PmlDocument pmlDoc, MetricsGetterSettings settings)
         {
-            using (OpenXmlMemoryStreamDocument streamDoc = new OpenXmlMemoryStreamDocument(pmlDoc))
+            using (var streamDoc = new OpenXmlMemoryStreamDocument(pmlDoc))
             {
-                using (PresentationDocument pDoc = streamDoc.GetPresentationDocument())
+                using (var pDoc = streamDoc.GetPresentationDocument())
                 {
-                    List<XElement> metrics = new List<XElement>();
+                    var metrics = new List<XElement>();
 
-                    bool valid = ValidateAgainstSpecificVersion(pDoc, metrics, DocumentFormat.OpenXml.FileFormatVersions.Office2007, H.SdkValidationError2007);
+                    var valid = ValidateAgainstSpecificVersion(pDoc, metrics, DocumentFormat.OpenXml.FileFormatVersions.Office2007, H.SdkValidationError2007);
                     valid |= ValidateAgainstSpecificVersion(pDoc, metrics, DocumentFormat.OpenXml.FileFormatVersions.Office2010, H.SdkValidationError2010);
 #if !NET35
                     valid |= ValidateAgainstSpecificVersion(pDoc, metrics, DocumentFormat.OpenXml.FileFormatVersions.Office2013, H.SdkValidationError2013);
@@ -794,7 +949,10 @@ namespace OpenXmlPowerTools
         {
             var stylePart = document.MainDocumentPart.StyleDefinitionsPart;
             if (stylePart == null)
+            {
                 return null;
+            }
+
             var xd = stylePart.GetXDocument();
             var stylesWithPath = xd.Root
                 .Elements(W.style)
@@ -806,23 +964,31 @@ namespace OpenXmlPowerTools
                     {
                         var baseStyle = (string)thisStyle.Elements(W.basedOn).Attributes(W.val).FirstOrDefault();
                         if (baseStyle == null)
+                        {
                             break;
+                        }
+
                         styleString = baseStyle + "/" + styleString;
                         thisStyle = xd.Root.Elements(W.style).FirstOrDefault(ts => ts.Attribute(W.styleId).Value == baseStyle);
                         if (thisStyle == null)
+                        {
                             break;
+                        }
                     }
                     return styleString;
                 })
                 .OrderBy(n => n)
                 .ToList();
-            XElement styleHierarchy = new XElement(H.StyleHierarchy);
+            var styleHierarchy = new XElement(H.StyleHierarchy);
             foreach (var item in stylesWithPath)
             {
                 var styleChain = item.Split('/');
-                XElement elementToAddTo = styleHierarchy;
+                var elementToAddTo = styleHierarchy;
                 foreach (var inChain in styleChain.SkipLast(1))
+                {
                     elementToAddTo = elementToAddTo.Elements(H.Style).FirstOrDefault(z => z.Attribute(H.Id).Value == inChain);
+                }
+
                 var styleToAdd = styleChain.Last();
                 elementToAddTo.Add(
                     new XElement(H.Style,
@@ -844,33 +1010,40 @@ namespace OpenXmlPowerTools
                 var xd = part.GetXDocument();
                 contentControls = (XElement)GetContentControlsTransform(xd.Root, settings);
                 if (!contentControls.HasElements)
+                {
                     contentControls = null;
+                }
             }
             var partMetrics = new XElement(H.Part,
                 new XAttribute(H.ContentType, part.ContentType),
                 new XAttribute(H.Uri, part.Uri.ToString()),
                 contentControls);
             if (partMetrics.HasElements)
+            {
                 return partMetrics;
+            }
+
             return null;
         }
 
         private static object GetContentControlsTransform(XNode node, MetricsGetterSettings settings)
         {
-            XElement element = node as XElement;
+            var element = node as XElement;
             if (element != null)
             {
                 if (element == element.Document.Root)
+                {
                     return new XElement(H.ContentControls,
                         element.Nodes().Select(n => GetContentControlsTransform(n, settings)));
+                }
 
                 if (element.Name == W.sdt)
                 {
                     var tag = (string)element.Elements(W.sdtPr).Elements(W.tag).Attributes(W.val).FirstOrDefault();
-                    XAttribute tagAttr = tag != null ? new XAttribute(H.Tag, tag) : null;
+                    var tagAttr = tag != null ? new XAttribute(H.Tag, tag) : null;
 
                     var alias = (string)element.Elements(W.sdtPr).Elements(W.alias).Attributes(W.val).FirstOrDefault();
-                    XAttribute aliasAttr = alias != null ? new XAttribute(H.Alias, alias) : null;
+                    var aliasAttr = alias != null ? new XAttribute(H.Alias, alias) : null;
 
                     var xPathAttr = new XAttribute(H.XPath, element.GetXPath());
 
@@ -886,30 +1059,78 @@ namespace OpenXmlPowerTools
                     var isGroup = element.Elements(W.sdtPr).Elements(W.group).Any();
                     var isPicture = element.Elements(W.sdtPr).Elements(W.picture).Any();
                     var isRichText = element.Elements(W.sdtPr).Elements(W.richText).Any() ||
-                        (! isText && 
-                        ! isBibliography && 
-                        ! isCitation && 
-                        ! isComboBox && 
-                        ! isDate && 
-                        ! isDocPartList && 
-                        ! isDocPartObj && 
-                        ! isDropDownList && 
-                        ! isEquation && 
-                        ! isGroup && 
-                        ! isPicture);
+                        (!isText &&
+                        !isBibliography &&
+                        !isCitation &&
+                        !isComboBox &&
+                        !isDate &&
+                        !isDocPartList &&
+                        !isDocPartObj &&
+                        !isDropDownList &&
+                        !isEquation &&
+                        !isGroup &&
+                        !isPicture);
                     string type = null;
-                    if (isText        ) type = "Text";
-                    if (isBibliography) type = "Bibliography";
-                    if (isCitation    ) type = "Citation";
-                    if (isComboBox    ) type = "ComboBox";
-                    if (isDate        ) type = "Date";
-                    if (isDocPartList ) type = "DocPartList";
-                    if (isDocPartObj  ) type = "DocPartObj";
-                    if (isDropDownList) type = "DropDownList";
-                    if (isEquation    ) type = "Equation";
-                    if (isGroup       ) type = "Group";
-                    if (isPicture     ) type = "Picture";
-                    if (isRichText    ) type = "RichText";
+                    if (isText)
+                    {
+                        type = "Text";
+                    }
+
+                    if (isBibliography)
+                    {
+                        type = "Bibliography";
+                    }
+
+                    if (isCitation)
+                    {
+                        type = "Citation";
+                    }
+
+                    if (isComboBox)
+                    {
+                        type = "ComboBox";
+                    }
+
+                    if (isDate)
+                    {
+                        type = "Date";
+                    }
+
+                    if (isDocPartList)
+                    {
+                        type = "DocPartList";
+                    }
+
+                    if (isDocPartObj)
+                    {
+                        type = "DocPartObj";
+                    }
+
+                    if (isDropDownList)
+                    {
+                        type = "DropDownList";
+                    }
+
+                    if (isEquation)
+                    {
+                        type = "Equation";
+                    }
+
+                    if (isGroup)
+                    {
+                        type = "Group";
+                    }
+
+                    if (isPicture)
+                    {
+                        type = "Picture";
+                    }
+
+                    if (isRichText)
+                    {
+                        type = "RichText";
+                    }
+
                     var typeAttr = new XAttribute(H.Type, type);
 
                     return new XElement(H.ContentControl,
@@ -923,7 +1144,10 @@ namespace OpenXmlPowerTools
                 return element.Nodes().Select(n => GetContentControlsTransform(n, settings));
             }
             if (settings.IncludeTextInContentControls)
+            {
                 return node;
+            }
+
             return null;
         }
     }

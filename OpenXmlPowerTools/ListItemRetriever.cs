@@ -1,12 +1,11 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using DocumentFormat.OpenXml.Packaging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Xml.Linq;
-using DocumentFormat.OpenXml.Packaging;
 
 namespace OpenXmlPowerTools
 {
@@ -17,11 +16,13 @@ namespace OpenXmlPowerTools
             {
                 {"fr-FR", ListItemTextGetter_fr_FR.GetListItemText},
                 {"tr-TR", ListItemTextGetter_tr_TR.GetListItemText},
-                {"ru-RU", ListItemTextGetter_ru_RU.GetListItemText}, 
+                {"ru-RU", ListItemTextGetter_ru_RU.GetListItemText},
                 {"sv-SE", ListItemTextGetter_sv_SE.GetListItemText},
                 {"zh-CN", ListItemTextGetter_zh_CN.GetListItemText},
             };
+
         public Dictionary<string, Func<string, int, string, string>> ListItemTextImplementations;
+
         public ListItemRetrieverSettings()
         {
             ListItemTextImplementations = DefaultListItemTextImplementations;
@@ -64,10 +65,13 @@ namespace OpenXmlPowerTools
                     .Elements(W.lvlOverride)
                     .FirstOrDefault(nlo => (int)nlo.Attribute(W.ilvl) == ilvl);
                 if (lvlOverride != null)
+                {
                     return (int?)lvlOverride
                         .Elements(W.startOverride)
                         .Attributes(W.val)
                         .FirstOrDefault();
+                }
+
                 return null;
             }
 
@@ -77,7 +81,10 @@ namespace OpenXmlPowerTools
                     .Elements(W.lvlOverride)
                     .FirstOrDefault(nlo => (int)nlo.Attribute(W.ilvl) == ilvl);
                 if (lvlOverride != null)
+                {
                     return lvlOverride.Element(W.lvl);
+                }
+
                 return null;
             }
 
@@ -92,7 +99,10 @@ namespace OpenXmlPowerTools
             {
                 var overrideLvl = OverrideLvl(ilvl);
                 if (overrideLvl != null)
+                {
                     return overrideLvl;
+                }
+
                 return AbstractLvl(ilvl);
             }
         }
@@ -130,7 +140,9 @@ namespace OpenXmlPowerTools
                         .FirstOrDefault();
 
                     if (numStyleLinkNumId != null)
+                    {
                         NumStyleLink = new ListItemSourceSet(numXDoc, stylesXDoc, (int)numStyleLinkNumId);
+                    }
                 }
             }
 
@@ -141,11 +153,13 @@ namespace OpenXmlPowerTools
                     var lvl = NumStyleLink.Lvl(ilvl);
                     if (lvl == null)
                     {
-                        for (int i = ilvl - 1; i >= 0; i--)
+                        for (var i = ilvl - 1; i >= 0; i--)
                         {
                             lvl = NumStyleLink.Lvl(i);
                             if (lvl != null)
+                            {
                                 break;
+                            }
                         }
                     }
                     return lvl;
@@ -153,11 +167,13 @@ namespace OpenXmlPowerTools
                 var lvl2 = Main.Lvl(ilvl);
                 if (lvl2 == null)
                 {
-                    for (int i = ilvl - 1; i >= 0; i--)
+                    for (var i = ilvl - 1; i >= 0; i--)
                     {
                         lvl2 = Main.Lvl(i);
                         if (lvl2 != null)
+                        {
                             break;
+                        }
                     }
                 }
                 return lvl2;
@@ -169,7 +185,9 @@ namespace OpenXmlPowerTools
                 {
                     var startOverride = NumStyleLink.StartOverride(ilvl);
                     if (startOverride != null)
+                    {
                         return startOverride;
+                    }
                 }
                 return Main.StartOverride(ilvl);
             }
@@ -179,17 +197,14 @@ namespace OpenXmlPowerTools
                 var lvl = Lvl(ilvl);
                 var start = (int?)lvl.Elements(W.start).Attributes(W.val).FirstOrDefault();
                 if (start != null)
+                {
                     return (int)start;
+                }
+
                 return 0;
             }
 
-            public int AbstractNumId
-            {
-                get
-                {
-                    return Main.AbstractNumId;
-                }
-            }
+            public int AbstractNumId => Main.AbstractNumId;
         }
 
         public class ListItemInfo
@@ -211,11 +226,19 @@ namespace OpenXmlPowerTools
                     // however, it is easy enough to change if necessary
 
                     if (mAbstractNumId != null)
+                    {
                         return mAbstractNumId;
+                    }
+
                     if (FromParagraph != null)
+                    {
                         mAbstractNumId = FromParagraph.AbstractNumId;
+                    }
                     else if (FromStyle != null)
+                    {
                         mAbstractNumId = FromStyle.AbstractNumId;
+                    }
+
                     return mAbstractNumId;
                 }
             }
@@ -227,11 +250,13 @@ namespace OpenXmlPowerTools
                     var lvl = FromParagraph.Lvl(ilvl);
                     if (lvl == null)
                     {
-                        for (int i = ilvl - 1; i >= 0; i--)
+                        for (var i = ilvl - 1; i >= 0; i--)
                         {
                             lvl = FromParagraph.Lvl(i);
                             if (lvl != null)
+                            {
                                 break;
+                            }
                         }
                     }
                     return lvl;
@@ -239,11 +264,13 @@ namespace OpenXmlPowerTools
                 var lvl2 = FromStyle.Lvl(ilvl);
                 if (lvl2 == null)
                 {
-                    for (int i = ilvl - 1; i >= 0; i--)
+                    for (var i = ilvl - 1; i >= 0; i--)
                     {
                         lvl2 = FromParagraph.Lvl(i);
                         if (lvl2 != null)
+                        {
                             break;
+                        }
                     }
                 }
                 return lvl2;
@@ -252,7 +279,10 @@ namespace OpenXmlPowerTools
             public int Start(int ilvl)
             {
                 if (FromParagraph != null)
+                {
                     return FromParagraph.Start(ilvl);
+                }
+
                 return FromStyle.Start(ilvl);
             }
 
@@ -272,7 +302,7 @@ namespace OpenXmlPowerTools
                     isOverride = false;
                     return FromParagraph.Start(ilvl);
                 }
-                else if (this.FromStyle != null)
+                else if (FromStyle != null)
                 {
                     if (takeOverride)
                     {
@@ -296,14 +326,20 @@ namespace OpenXmlPowerTools
                 {
                     var startOverride = FromParagraph.StartOverride(ilvl);
                     if (startOverride != null)
+                    {
                         return (int)startOverride;
+                    }
+
                     return null;
                 }
-                else if (this.FromStyle != null)
+                else if (FromStyle != null)
                 {
                     var startOverride = FromStyle.StartOverride(ilvl);
                     if (startOverride != null)
+                    {
                         return (int)startOverride;
+                    }
+
                     return null;
                 }
                 return null;
@@ -316,16 +352,26 @@ namespace OpenXmlPowerTools
                 get
                 {
                     if (mNumId != null)
+                    {
                         return (int)mNumId;
+                    }
+
                     if (FromParagraph != null)
+                    {
                         mNumId = FromParagraph.Main.NumId;
+                    }
                     else if (FromStyle != null)
+                    {
                         mNumId = FromStyle.Main.NumId;
+                    }
+
                     return (int)mNumId;
                 }
             }
 
-            public ListItemInfo() { }
+            public ListItemInfo()
+            {
+            }
 
             public ListItemInfo(bool isListItem, bool isZeroNumId)
             {
@@ -333,7 +379,7 @@ namespace OpenXmlPowerTools
                 IsZeroNumId = isZeroNumId;
             }
         }
-        
+
         public static void SetParagraphLevel(XElement paragraph, int ilvl)
         {
             var pi = paragraph.Annotation<ParagraphInfo>();
@@ -353,7 +399,10 @@ namespace OpenXmlPowerTools
         {
             var pi = paragraph.Annotation<ParagraphInfo>();
             if (pi != null)
+            {
                 return pi.Ilvl;
+            }
+
             throw new OpenXmlPowerToolsException("Internal error - should never ask for ilvl without it first being set.");
         }
 
@@ -361,14 +410,17 @@ namespace OpenXmlPowerTools
         {
             // The following is an optimization - only determine ListItemInfo once for a
             // paragraph.
-            ListItemInfo listItemInfo = paragraph.Annotation<ListItemInfo>();
+            var listItemInfo = paragraph.Annotation<ListItemInfo>();
             if (listItemInfo != null)
+            {
                 return listItemInfo;
+            }
+
             throw new OpenXmlPowerToolsException("Attempting to retrieve ListItemInfo before initialization");
         }
 
-        private static ListItemInfo NotAListItem = new ListItemInfo(false, true);
-        private static ListItemInfo ZeroNumId = new ListItemInfo(false, false);
+        private static readonly ListItemInfo NotAListItem = new ListItemInfo(false, true);
+        private static readonly ListItemInfo ZeroNumId = new ListItemInfo(false, false);
 
         public static void InitListItemInfo(XDocument numXDoc, XDocument stylesXDoc, XElement paragraph)
         {
@@ -380,7 +432,7 @@ namespace OpenXmlPowerTools
 
             int? paragraphNumId = null;
 
-            XElement paragraphNumberingProperties = paragraph
+            var paragraphNumberingProperties = paragraph
                 .Elements(W.pPr)
                 .Elements(W.numPr)
                 .FirstOrDefault();
@@ -401,7 +453,7 @@ namespace OpenXmlPowerTools
                 }
             }
 
-            string paragraphStyleName = GetParagraphStyleName(stylesXDoc, paragraph);
+            var paragraphStyleName = GetParagraphStyleName(stylesXDoc, paragraph);
 
             var listItemInfo = GetListItemInfoFromCache(numXDoc, paragraphStyleName, paragraphNumId);
             if (listItemInfo != null)
@@ -416,22 +468,28 @@ namespace OpenXmlPowerTools
                         .FirstOrDefault();
 
                     if (para_ilvl == null)
+                    {
                         para_ilvl = 0;
+                    }
 
                     var abstractNum = listItemInfo.FromParagraph.Main.AbstractNum;
                     var multiLevelType = (string)abstractNum.Elements(W.multiLevelType).Attributes(W.val).FirstOrDefault();
                     if (multiLevelType == "singleLevel")
+                    {
                         para_ilvl = 0;
+                    }
 
                     SetParagraphLevel(paragraph, (int)para_ilvl);
                 }
                 else if (listItemInfo.FromStyle != null)
                 {
-                    int this_ilvl = listItemInfo.FromStyle.Style_ilvl;
+                    var this_ilvl = listItemInfo.FromStyle.Style_ilvl;
                     var abstractNum = listItemInfo.FromStyle.Main.AbstractNum;
                     var multiLevelType = (string)abstractNum.Elements(W.multiLevelType).Attributes(W.val).FirstOrDefault();
                     if (multiLevelType == "singleLevel")
+                    {
                         this_ilvl = 0;
+                    }
 
                     SetParagraphLevel(paragraph, this_ilvl);
                 }
@@ -465,25 +523,33 @@ namespace OpenXmlPowerTools
                 return;
             }
 
-            int ilvlToSet = 0;
+            var ilvlToSet = 0;
             if (paragraph_ilvl != null)
+            {
                 ilvlToSet = (int)paragraph_ilvl;
+            }
             else if (style_ilvl != null)
+            {
                 ilvlToSet = (int)style_ilvl;
+            }
 
             if (listItemInfo.FromParagraph != null)
             {
                 var abstractNum = listItemInfo.FromParagraph.Main.AbstractNum;
                 var multiLevelType = (string)abstractNum.Elements(W.multiLevelType).Attributes(W.val).FirstOrDefault();
                 if (multiLevelType == "singleLevel")
+                {
                     ilvlToSet = 0;
+                }
             }
             else if (listItemInfo.FromStyle != null)
             {
                 var abstractNum = listItemInfo.FromStyle.Main.AbstractNum;
                 var multiLevelType = (string)abstractNum.Elements(W.multiLevelType).Attributes(W.val).FirstOrDefault();
                 if (multiLevelType == "singleLevel")
+                {
                     ilvlToSet = 0;
+                }
             }
 
             SetParagraphLevel(paragraph, ilvlToSet);
@@ -502,7 +568,9 @@ namespace OpenXmlPowerTools
                  .FirstOrDefault();
 
             if (paragraphStyleName == null)
+            {
                 paragraphStyleName = GetDefaultParagraphStyleName(stylesXDoc);
+            }
 
             return paragraphStyleName;
         }
@@ -526,7 +594,9 @@ namespace OpenXmlPowerTools
                     .Elements(W.pPr)
                     .Elements(W.sectPr)
                     .Any())
+                {
                     return true;
+                }
             }
             return false;
         }
@@ -536,7 +606,7 @@ namespace OpenXmlPowerTools
             zeroNumId = null;
 
             // Paragraph numbering properties must contain a numId.
-            int? numId = (int?)paragraphNumberingProperties
+            var numId = (int?)paragraphNumberingProperties
                 .Elements(W.numId)
                 .Attributes(W.val)
                 .FirstOrDefault();
@@ -565,27 +635,29 @@ namespace OpenXmlPowerTools
             zeroNumId = false;
 
             if (ilvl == null)
+            {
                 ilvl = 0;
+            }
 
-            ListItemSource listItemSource = new ListItemSource(numXDoc, stylesXDoc, (int)numId);
+            var listItemSource = new ListItemSource(numXDoc, stylesXDoc, (int)numId);
 
             return listItemSource;
         }
 
-        private static ListItemSource InitializeStyleListItemSource(XDocument numXDoc, XDocument stylesXDoc, XElement paragraph, string paragraphStyleName, 
+        private static ListItemSource InitializeStyleListItemSource(XDocument numXDoc, XDocument stylesXDoc, XElement paragraph, string paragraphStyleName,
             out int? ilvl, out bool? zeroNumId)
         {
             zeroNumId = null;
-            XElement pPr = FormattingAssembler.ParagraphStyleRollup(paragraph, stylesXDoc, GetDefaultParagraphStyleName(stylesXDoc));
+            var pPr = FormattingAssembler.ParagraphStyleRollup(paragraph, stylesXDoc, GetDefaultParagraphStyleName(stylesXDoc));
             if (pPr != null)
             {
-                XElement styleNumberingProperties = pPr
+                var styleNumberingProperties = pPr
                     .Elements(W.numPr)
                     .FirstOrDefault();
 
                 if (styleNumberingProperties != null && styleNumberingProperties.Element(W.numId) != null)
                 {
-                    int numId = (int)styleNumberingProperties
+                    var numId = (int)styleNumberingProperties
                         .Elements(W.numId)
                         .Attributes(W.val)
                         .FirstOrDefault();
@@ -596,7 +668,9 @@ namespace OpenXmlPowerTools
                         .FirstOrDefault();
 
                     if (ilvl == null)
+                    {
                         ilvl = 0;
+                    }
 
                     if (numId == 0)
                     {
@@ -605,7 +679,7 @@ namespace OpenXmlPowerTools
                     }
 
                     // make sure that the numId is valid
-                    XElement num = numXDoc
+                    var num = numXDoc
                         .Root
                         .Elements(W.num)
                         .Where(e => (int)e.Attribute(W.numId) == numId)
@@ -617,8 +691,10 @@ namespace OpenXmlPowerTools
                         return null;
                     }
 
-                    ListItemSource listItemSource = new ListItemSource(numXDoc, stylesXDoc, numId);
-                    listItemSource.Style_ilvl = (int)ilvl;
+                    var listItemSource = new ListItemSource(numXDoc, stylesXDoc, numId)
+                    {
+                        Style_ilvl = (int)ilvl
+                    };
 
                     zeroNumId = false;
                     return listItemSource;
@@ -633,10 +709,12 @@ namespace OpenXmlPowerTools
             XElement defaultParagraphStyle;
             string defaultParagraphStyleName = null;
 
-            StylesInfo stylesInfo = stylesXDoc.Annotation<StylesInfo>();
+            var stylesInfo = stylesXDoc.Annotation<StylesInfo>();
 
             if (stylesInfo != null)
+            {
                 defaultParagraphStyleName = stylesInfo.DefaultParagraphStyleName;
+            }
             else
             {
                 defaultParagraphStyle = stylesXDoc
@@ -645,17 +723,26 @@ namespace OpenXmlPowerTools
                     .FirstOrDefault(s =>
                     {
                         if ((string)s.Attribute(W.type) != "paragraph")
+                        {
                             return false;
+                        }
+
                         var defaultAttribute = s.Attribute(W._default);
                         var isDefault = false;
                         if (defaultAttribute != null &&
                             (bool)s.Attribute(W._default).ToBoolean())
+                        {
                             isDefault = true;
+                        }
+
                         return isDefault;
                     });
                 defaultParagraphStyleName = null;
                 if (defaultParagraphStyle != null)
+                {
                     defaultParagraphStyleName = (string)defaultParagraphStyle.Attribute(W.styleId);
+                }
+
                 stylesInfo = new StylesInfo()
                 {
                     DefaultParagraphStyleName = defaultParagraphStyleName,
@@ -667,13 +754,13 @@ namespace OpenXmlPowerTools
 
         private static ListItemInfo GetListItemInfoFromCache(XDocument numXDoc, string styleName, int? numId)
         {
-            string key =
+            var key =
                 (styleName == null ? "" : styleName) +
                 "|" +
                 (numId == null ? "" : numId.ToString());
 
             var numXDocRoot = numXDoc.Root;
-            Dictionary<string, ListItemInfo> listItemInfoCache =
+            var listItemInfoCache =
                 numXDocRoot.Annotation<Dictionary<string, ListItemInfo>>();
             if (listItemInfoCache == null)
             {
@@ -681,19 +768,22 @@ namespace OpenXmlPowerTools
                 numXDocRoot.AddAnnotation(listItemInfoCache);
             }
             if (listItemInfoCache.ContainsKey(key))
+            {
                 return listItemInfoCache[key];
+            }
+
             return null;
         }
 
         private static void AddListItemInfoIntoCache(XDocument numXDoc, string styleName, int? numId, ListItemInfo listItemInfo)
         {
-            string key =
+            var key =
                 (styleName == null ? "" : styleName) +
                 "|" +
                 (numId == null ? "" : numId.ToString());
 
             var numXDocRoot = numXDoc.Root;
-            Dictionary<string, ListItemInfo> listItemInfoCache =
+            var listItemInfoCache =
                 numXDocRoot.Annotation<Dictionary<string, ListItemInfo>>();
             if (listItemInfoCache == null)
             {
@@ -701,7 +791,9 @@ namespace OpenXmlPowerTools
                 numXDocRoot.AddAnnotation(listItemInfoCache);
             }
             if (!listItemInfoCache.ContainsKey(key))
+            {
                 listItemInfoCache.Add(key, listItemInfo);
+            }
         }
 
         public class LevelNumbers
@@ -732,46 +824,60 @@ namespace OpenXmlPowerTools
         public static string RetrieveListItem(WordprocessingDocument wordDoc, XElement paragraph, ListItemRetrieverSettings settings)
         {
             if (wordDoc.MainDocumentPart.NumberingDefinitionsPart == null)
+            {
                 return null;
+            }
 
             var listItemInfo = paragraph.Annotation<ListItemInfo>();
             if (listItemInfo == null)
+            {
                 InitializeListItemRetriever(wordDoc, settings);
+            }
 
             listItemInfo = paragraph.Annotation<ListItemInfo>();
             if (!listItemInfo.IsListItem)
+            {
                 return null;
+            }
 
             var numberingDefinitionsPart = wordDoc
                 .MainDocumentPart
                 .NumberingDefinitionsPart;
 
             if (numberingDefinitionsPart == null)
+            {
                 return null;
+            }
 
-            StyleDefinitionsPart styleDefinitionsPart = wordDoc
+            var styleDefinitionsPart = wordDoc
                 .MainDocumentPart
                 .StyleDefinitionsPart;
 
             if (styleDefinitionsPart == null)
+            {
                 return null;
+            }
 
             var numXDoc = numberingDefinitionsPart.GetXDocument();
             var stylesXDoc = styleDefinitionsPart.GetXDocument();
 
             var lvl = listItemInfo.Lvl(GetParagraphLevel(paragraph));
 
-            string lvlText = (string)lvl.Elements(W.lvlText).Attributes(W.val).FirstOrDefault();
+            var lvlText = (string)lvl.Elements(W.lvlText).Attributes(W.val).FirstOrDefault();
             if (lvlText == null)
+            {
                 return null;
+            }
 
             var levelNumbersAnnotation = paragraph.Annotation<LevelNumbers>();
             if (levelNumbersAnnotation == null)
+            {
                 throw new OpenXmlPowerToolsException("Internal error");
+            }
 
-            int[] levelNumbers = levelNumbersAnnotation.LevelNumbersArray;
-            string languageIdentifier = GetLanguageIdentifier(paragraph, stylesXDoc);
-            string listItem = FormatListItem(listItemInfo, levelNumbers, GetParagraphLevel(paragraph), 
+            var levelNumbers = levelNumbersAnnotation.LevelNumbersArray;
+            var languageIdentifier = GetLanguageIdentifier(paragraph, stylesXDoc);
+            var listItem = FormatListItem(listItemInfo, levelNumbers, GetParagraphLevel(paragraph),
                 lvlText, stylesXDoc, languageIdentifier, settings);
             return listItem;
         }
@@ -796,6 +902,7 @@ namespace OpenXmlPowerTools
                     .FirstOrDefault();
 
                 if (languageIdentifier == null)
+                {
                     languageIdentifier = (string)stylesXDoc
                         .Root
                         .Elements(W.docDefaults)
@@ -804,6 +911,7 @@ namespace OpenXmlPowerTools
                         .Elements(W.lang)
                         .Attributes(W.val)
                         .FirstOrDefault();
+                }
             }
             else if (languageType == "eastAsia")
             {
@@ -815,6 +923,7 @@ namespace OpenXmlPowerTools
                     .FirstOrDefault();
 
                 if (languageIdentifier == null)
+                {
                     languageIdentifier = (string)stylesXDoc
                         .Root
                         .Elements(W.docDefaults)
@@ -823,6 +932,7 @@ namespace OpenXmlPowerTools
                         .Elements(W.lang)
                         .Attributes(W.eastAsia)
                         .FirstOrDefault();
+                }
             }
             else if (languageType == "bidi")
             {
@@ -834,6 +944,7 @@ namespace OpenXmlPowerTools
                     .FirstOrDefault();
 
                 if (languageIdentifier == null)
+                {
                     languageIdentifier = (string)stylesXDoc
                         .Root
                         .Elements(W.docDefaults)
@@ -842,18 +953,23 @@ namespace OpenXmlPowerTools
                         .Elements(W.lang)
                         .Attributes(W.bidi)
                         .FirstOrDefault();
+                }
             }
 
-
             if (languageIdentifier == null)
+            {
                 languageIdentifier = "en-US";
+            }
+
             return languageIdentifier;
         }
 
         private static void InitializeListItemRetriever(WordprocessingDocument wordDoc, ListItemRetrieverSettings settings)
         {
             foreach (var part in wordDoc.ContentParts())
+            {
                 InitializeListItemRetrieverForPart(wordDoc, part, settings);
+            }
 
 #if false
             foreach (var part in wordDoc.ContentParts())
@@ -872,15 +988,21 @@ namespace OpenXmlPowerTools
         private static void InitializeListItemRetrieverForPart(WordprocessingDocument wordDoc, OpenXmlPart part, ListItemRetrieverSettings settings)
         {
             var mainXDoc = part.GetXDocument();
-            
+
             var numPart = wordDoc.MainDocumentPart.NumberingDefinitionsPart;
             if (numPart == null)
+            {
                 return;
+            }
+
             var numXDoc = numPart.GetXDocument();
 
             var stylesPart = wordDoc.MainDocumentPart.StyleDefinitionsPart;
             if (stylesPart == null)
+            {
                 return;
+            }
+
             var stylesXDoc = stylesPart.GetXDocument();
 
             var rootNode = mainXDoc.Root;
@@ -892,7 +1014,9 @@ namespace OpenXmlPowerTools
                 .Descendants(W.txbxContent);
 
             foreach (var textBox in textBoxes)
+            {
                 InitializeListItemRetrieverForStory(numXDoc, stylesXDoc, textBox);
+            }
         }
 
         private static void InitializeListItemRetrieverForStory(XDocument numXDoc, XDocument stylesXDoc, XElement rootNode)
@@ -902,14 +1026,19 @@ namespace OpenXmlPowerTools
                 .Where(p => p.Name == W.p);
 
             foreach (var paragraph in paragraphs)
+            {
                 InitListItemInfo(numXDoc, stylesXDoc, paragraph);
+            }
 
             var abstractNumIds = paragraphs
                 .Select(paragraph =>
                 {
-                    ListItemInfo listItemInfo = paragraph.Annotation<ListItemInfo>();
+                    var listItemInfo = paragraph.Annotation<ListItemInfo>();
                     if (!listItemInfo.IsListItem)
-                        return (int?)null;
+                    {
+                        return null;
+                    }
+
                     return listItemInfo.AbstractNumId;
                 })
                 .Where(a => a != null)
@@ -933,7 +1062,10 @@ namespace OpenXmlPowerTools
                     {
                         var listItemInfo = paragraph.Annotation<ListItemInfo>();
                         if (!listItemInfo.IsListItem)
+                        {
                             return false;
+                        }
+
                         return listItemInfo.AbstractNumId == abstractNumId;
                     })
                     .ToList();
@@ -942,7 +1074,7 @@ namespace OpenXmlPowerTools
                 XElement prevParagraph = null;
                 foreach (var paragraph in listItems)
                 {
-                    ReverseAxis reverse = new ReverseAxis()
+                    var reverse = new ReverseAxis()
                     {
                         PreviousParagraph = prevParagraph,
                     };
@@ -952,7 +1084,7 @@ namespace OpenXmlPowerTools
 
                 var startOverrideAlreadyUsed = new List<int>();
                 List<int> previous = null;
-                ListItemInfo[] listItemInfoInEffectForStartOverride = new ListItemInfo[] {
+                var listItemInfoInEffectForStartOverride = new ListItemInfo[] {
                     null,
                     null,
                     null,
@@ -971,16 +1103,21 @@ namespace OpenXmlPowerTools
                     listItemInfoInEffectForStartOverride[ilvl] = listItemInfo;
                     ListItemInfo listItemInfoInEffect = null;
                     if (ilvl > 0)
+                    {
                         listItemInfoInEffect = listItemInfoInEffectForStartOverride[ilvl - 1];
+                    }
+
                     var levelNumbers = new List<int>();
 
-                    for (int level = 0; level <= ilvl; level++)
+                    for (var level = 0; level <= ilvl; level++)
                     {
                         var numId = listItemInfo.NumId;
                         var startOverride = listItemInfo.StartOverride(level);
                         int? inEffectStartOverride = null;
                         if (listItemInfoInEffect != null)
+                        {
                             inEffectStartOverride = listItemInfoInEffect.StartOverride(level);
+                        }
 
                         if (level == ilvl)
                         {
@@ -995,7 +1132,9 @@ namespace OpenXmlPowerTools
                                         return plvl == ilvl;
                                     });
                                 if (previousPara != null)
+                                {
                                     previous = previousPara.Annotation<LevelNumbers>().LevelNumbersArray.ToList();
+                                }
                             }
                         }
 
@@ -1017,9 +1156,14 @@ namespace OpenXmlPowerTools
                                     else
                                     {
                                         if (startOverride != null)
+                                        {
                                             start = (int)startOverride;
+                                        }
+
                                         if (inEffectStartOverride != null && inEffectStartOverride > start)
+                                        {
                                             start = (int)inEffectStartOverride;
+                                        }
                                     }
                                 }
                                 levelNumbers.Add(start);
@@ -1085,10 +1229,16 @@ namespace OpenXmlPowerTools
             {
                 var ra = current.Annotation<ReverseAxis>();
                 if (ra == null || ra.PreviousParagraph == null)
+                {
                     yield break;
+                }
+
                 var raLvl = GetParagraphLevel(ra.PreviousParagraph);
                 if (raLvl < ilvl)
+                {
                     yield break;
+                }
+
                 yield return ra.PreviousParagraph;
                 current = ra.PreviousParagraph;
             }
@@ -1097,33 +1247,45 @@ namespace OpenXmlPowerTools
         private static string FormatListItem(ListItemInfo lii, int[] levelNumbers, int ilvl,
             string lvlText, XDocument styles, string languageCultureName, ListItemRetrieverSettings settings)
         {
-            string[] formatTokens = GetFormatTokens(lvlText).ToArray();
-            XElement lvl = lii.Lvl(ilvl);
-            bool isLgl = lvl.Elements(W.isLgl).Any();
-            string listItem = formatTokens.Select((t, l) =>
+            var formatTokens = GetFormatTokens(lvlText).ToArray();
+            var lvl = lii.Lvl(ilvl);
+            var isLgl = lvl.Elements(W.isLgl).Any();
+            var listItem = formatTokens.Select((t, l) =>
             {
                 if (t.Substring(0, 1) != "%")
+                {
                     return t;
-                int indentationLevel;
-                if (!Int32.TryParse(t.Substring(1), out indentationLevel))
+                }
+
+                if (!int.TryParse(t.Substring(1), out var indentationLevel))
+                {
                     return t;
+                }
+
                 indentationLevel -= 1;
                 if (indentationLevel >= levelNumbers.Length)
+                {
                     indentationLevel = levelNumbers.Length - 1;
-                int levelNumber = levelNumbers[indentationLevel];
+                }
+
+                var levelNumber = levelNumbers[indentationLevel];
                 string levelText = null;
-                XElement rlvl = lii.Lvl(indentationLevel);
-                string numFmtForLevel = (string)rlvl.Elements(W.numFmt).Attributes(W.val).FirstOrDefault();
+                var rlvl = lii.Lvl(indentationLevel);
+                var numFmtForLevel = (string)rlvl.Elements(W.numFmt).Attributes(W.val).FirstOrDefault();
                 if (numFmtForLevel == null)
                 {
                     var numFmtElement = rlvl.Elements(MC.AlternateContent).Elements(MC.Choice).Elements(W.numFmt).FirstOrDefault();
                     if (numFmtElement != null && (string)numFmtElement.Attribute(W.val) == "custom")
+                    {
                         numFmtForLevel = (string)numFmtElement.Attribute(W.format);
+                    }
                 }
                 if (numFmtForLevel != "none")
                 {
                     if (isLgl && numFmtForLevel != "decimalZero")
+                    {
                         numFmtForLevel = "decimal";
+                    }
                 }
                 if (languageCultureName != null && settings != null)
                 {
@@ -1134,7 +1296,10 @@ namespace OpenXmlPowerTools
                     }
                 }
                 if (levelText == null)
+                {
                     levelText = ListItemTextGetter_Default.GetListItemText(languageCultureName, levelNumber, numFmtForLevel);
+                }
+
                 return levelText;
             }).StringConcatenate();
             return listItem;
@@ -1142,18 +1307,21 @@ namespace OpenXmlPowerTools
 
         private static IEnumerable<string> GetFormatTokens(string lvlText)
         {
-            int i = 0;
+            var i = 0;
             while (true)
             {
                 if (i >= lvlText.Length)
+                {
                     yield break;
+                }
+
                 if (lvlText[i] == '%' && i <= lvlText.Length - 2)
                 {
                     yield return lvlText.Substring(i, 2);
                     i += 2;
                     continue;
                 }
-                int percentIndex = lvlText.IndexOf('%', i);
+                var percentIndex = lvlText.IndexOf('%', i);
                 if (percentIndex == -1 || percentIndex > lvlText.Length - 2)
                 {
                     yield return lvlText.Substring(i);
@@ -1164,6 +1332,5 @@ namespace OpenXmlPowerTools
                 i = percentIndex + 2;
             }
         }
-
     }
 }

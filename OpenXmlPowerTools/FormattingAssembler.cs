@@ -1,13 +1,11 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using DocumentFormat.OpenXml.Packaging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Xml.Linq;
-using DocumentFormat.OpenXml.Packaging;
-using System.Drawing;
 
 namespace OpenXmlPowerTools
 {
@@ -37,9 +35,9 @@ namespace OpenXmlPowerTools
     {
         public static WmlDocument AssembleFormatting(WmlDocument document, FormattingAssemblerSettings settings)
         {
-            using (OpenXmlMemoryStreamDocument streamDoc = new OpenXmlMemoryStreamDocument(document))
+            using (var streamDoc = new OpenXmlMemoryStreamDocument(document))
             {
-                using (WordprocessingDocument doc = streamDoc.GetWordprocessingDocument())
+                using (var doc = streamDoc.GetWordprocessingDocument())
                 {
                     AssembleFormatting(doc, settings);
                 }
@@ -49,30 +47,39 @@ namespace OpenXmlPowerTools
 
         public static void AssembleFormatting(WordprocessingDocument wDoc, FormattingAssemblerSettings settings)
         {
-            FormattingAssemblerInfo fai = new FormattingAssemblerInfo();
-            XDocument sXDoc = wDoc.MainDocumentPart.StyleDefinitionsPart.GetXDocument();
-            XElement defaultParagraphStyle = sXDoc
+            var fai = new FormattingAssemblerInfo();
+            var sXDoc = wDoc.MainDocumentPart.StyleDefinitionsPart.GetXDocument();
+            var defaultParagraphStyle = sXDoc
                 .Root
                 .Elements(W.style)
                 .FirstOrDefault(st => st.Attribute(W._default).ToBoolean() == true &&
                     (string)st.Attribute(W.type) == "paragraph");
             if (defaultParagraphStyle != null)
+            {
                 fai.DefaultParagraphStyleName = (string)defaultParagraphStyle.Attribute(W.styleId);
-            XElement defaultCharacterStyle = sXDoc
+            }
+
+            var defaultCharacterStyle = sXDoc
                 .Root
                 .Elements(W.style)
                 .FirstOrDefault(st => st.Attribute(W._default).ToBoolean() == true &&
                     (string)st.Attribute(W.type) == "character");
             if (defaultCharacterStyle != null)
+            {
                 fai.DefaultCharacterStyleName = (string)defaultCharacterStyle.Attribute(W.styleId);
-            XElement defaultTableStyle = sXDoc
+            }
+
+            var defaultTableStyle = sXDoc
                 .Root
                 .Elements(W.style)
                 .FirstOrDefault(st => st.Attribute(W._default).ToBoolean() == true &&
                     (string)st.Attribute(W.type) == "table");
             if (defaultTableStyle != null)
+            {
                 fai.DefaultTableStyleName = (string)defaultTableStyle.Attribute(W.styleId);
-            ListItemRetrieverSettings listItemRetrieverSettings = new ListItemRetrieverSettings();
+            }
+
+            var listItemRetrieverSettings = new ListItemRetrieverSettings();
             AssembleListItemInformation(wDoc, settings.ListItemRetrieverSettings);
             foreach (var part in wDoc.ContentParts())
             {
@@ -85,7 +92,10 @@ namespace OpenXmlPowerTools
             }
             NormalizeListItems(fai, wDoc, settings);
             if (settings.ClearStyles)
+            {
                 ClearStyles(wDoc);
+            }
+
             foreach (var part in wDoc.ContentParts())
             {
                 var pxd = part.GetXDocument();
@@ -102,11 +112,17 @@ namespace OpenXmlPowerTools
             foreach (var tblLook in root.Descendants(W.tblLook))
             {
                 if (tblLook.Attributes().Any(a => a.Name != W.val))
+                {
                     continue;
+                }
+
                 if (tblLook.Attribute(W.val) == null)
+                {
                     continue;
-                string hexValue = tblLook.Attribute(W.val).Value;
-                int val = int.Parse(hexValue, System.Globalization.NumberStyles.HexNumber);
+                }
+
+                var hexValue = tblLook.Attribute(W.val).Value;
+                var val = int.Parse(hexValue, System.Globalization.NumberStyles.HexNumber);
                 tblLook.Add(new XAttribute(W.firstRow, (val & 0x0020) != 0 ? "1" : "0"));
                 tblLook.Add(new XAttribute(W.lastRow, (val & 0x0040) != 0 ? "1" : "0"));
                 tblLook.Add(new XAttribute(W.firstColumn, (val & 0x0080) != 0 ? "1" : "0"));
@@ -117,9 +133,15 @@ namespace OpenXmlPowerTools
             foreach (var cnfStyle in root.Descendants(W.cnfStyle))
             {
                 if (cnfStyle.Attributes().Any(a => a.Name != W.val))
+                {
                     continue;
+                }
+
                 if (cnfStyle.Attribute(W.val) == null)
+                {
                     continue;
+                }
+
                 var va = cnfStyle.Attribute(W.val).Value.ToArray();
                 cnfStyle.Add(new XAttribute(W.firstRow, va[0]));
                 cnfStyle.Add(new XAttribute(W.lastRow, va[1]));
@@ -138,21 +160,27 @@ namespace OpenXmlPowerTools
 
         private static object CleanupTransform(XNode node)
         {
-            XElement element = node as XElement;
+            var element = node as XElement;
             if (element != null)
             {
                 if (element.Name == W.tabs && element.Element(W.tab) == null)
+                {
                     return null;
+                }
 
                 if (element.Name == W.tblStyleRowBandSize || element.Name == W.tblStyleColBandSize)
+                {
                     return null;
+                }
 
                 // a cleaner solution would be to not include the w:ins and w:del elements when rolling up the paragraph run properties into
                 // the run properties.
                 if ((element.Name == W.ins || element.Name == W.del) && element.Parent.Name == W.rPr)
                 {
                     if (element.Parent.Parent.Name == W.r || element.Parent.Parent.Name == W.rPrChange)
+                    {
                         return null;
+                    }
                 }
 
                 return new XElement(element.Name,
@@ -172,7 +200,10 @@ namespace OpenXmlPowerTools
                 sXDoc.Root.Elements().Select(e =>
                 {
                     if (e.Name != W.style)
+                    {
                         return e;
+                    }
+
                     return new XElement(e.Name,
                         e.Attributes(),
                         e.Element(W.name),
@@ -186,7 +217,9 @@ namespace OpenXmlPowerTools
                 .Elements(W.rPr)
                 .FirstOrDefault();
             if (globalrPr != null)
+            {
                 globalrPr.ReplaceWith(new XElement(W.rPr));
+            }
 
             var globalpPr = newRoot
                 .Elements(W.docDefaults)
@@ -194,7 +227,9 @@ namespace OpenXmlPowerTools
                 .Elements(W.pPr)
                 .FirstOrDefault();
             if (globalpPr != null)
+            {
                 globalpPr.ReplaceWith(new XElement(W.pPr));
+            }
 
             sXDoc.Root.ReplaceWith(newRoot);
 
@@ -206,11 +241,17 @@ namespace OpenXmlPowerTools
             foreach (var part in wDoc.ContentParts())
             {
                 var pxd = part.GetXDocument();
-                XElement newRoot = (XElement)NormalizeListItemsTransform(fai, wDoc, pxd.Root, settings);
+                var newRoot = (XElement)NormalizeListItemsTransform(fai, wDoc, pxd.Root, settings);
                 if (newRoot.Attribute(XNamespace.Xmlns + "pt14") == null)
+                {
                     newRoot.Add(new XAttribute(XNamespace.Xmlns + "pt14", PtOpenXml.pt.NamespaceName));
+                }
+
                 if (newRoot.Attribute(XNamespace.Xmlns + "mc") == null)
+                {
                     newRoot.Add(new XAttribute(XNamespace.Xmlns + "mc", MC.mc.NamespaceName));
+                }
+
                 pxd.Root.ReplaceWith(newRoot);
             }
         }
@@ -225,7 +266,7 @@ namespace OpenXmlPowerTools
                     var li = ListItemRetriever.RetrieveListItem(wDoc, element, settings.ListItemRetrieverSettings);
                     if (li != null)
                     {
-                        ListItemRetriever.ListItemInfo listItemInfo = element.Annotation<ListItemRetriever.ListItemInfo>();
+                        var listItemInfo = element.Annotation<ListItemRetriever.ListItemInfo>();
 
                         var newParaProps = new XElement(W.pPr,
                             element.Elements(W.pPr).Elements().Where(e => e.Name != W.numPr)
@@ -245,7 +286,7 @@ namespace OpenXmlPowerTools
                                 .Attributes(W.val)
                                 .FirstOrDefault();
 
-                            string defaultStyleName = (string)wDoc
+                            var defaultStyleName = (string)wDoc
                                     .MainDocumentPart
                                     .StyleDefinitionsPart
                                     .GetXDocument()
@@ -256,16 +297,18 @@ namespace OpenXmlPowerTools
                                     .FirstOrDefault();
 
                             if (paragraphStyleName == null)
+                            {
                                 paragraphStyleName = defaultStyleName;
+                            }
 
-                            XDocument stylesXDoc = wDoc
+                            var stylesXDoc = wDoc
                                 .MainDocumentPart
                                 .StyleDefinitionsPart
                                 .GetXDocument();
 
                             // put together run props for list item.
 
-                            XElement lvlStyleRpr = ParaStyleRunPropsStack(wDoc, paragraphStyleName)
+                            var lvlStyleRpr = ParaStyleRunPropsStack(wDoc, paragraphStyleName)
                                 .Aggregate(new XElement(W.rPr),
                                     (r, s) =>
                                     {
@@ -277,7 +320,9 @@ namespace OpenXmlPowerTools
 
                             var accumulatedRunProps = element.Elements(PtOpenXml.pPr).Elements(W.rPr).FirstOrDefault();
                             if (accumulatedRunProps != null)
+                            {
                                 mergedRunProps = MergeStyleElement(accumulatedRunProps, mergedRunProps);
+                            }
 
                             var listItemLvl = listItemInfo.Lvl(ListItemRetriever.GetParagraphLevel(element));
                             var listItemLvlRunProps = listItemLvl.Elements(W.rPr).FirstOrDefault();
@@ -292,8 +337,8 @@ namespace OpenXmlPowerTools
                                 var pPr = element.Element(PtOpenXml.pPr);
                                 if (pPr != null)
                                 {
-                                    XElement bidiel = pPr.Element(W.bidi);
-                                    bool bidi = bidiel != null && (bidiel.Attribute(W.val) == null || bidiel.Attribute(W.val).ToBoolean() == true);
+                                    var bidiel = pPr.Element(W.bidi);
+                                    var bidi = bidiel != null && (bidiel.Attribute(W.val) == null || bidiel.Attribute(W.val).ToBoolean() == true);
                                     if (bidi)
                                     {
                                         listItemRunProps = MergeStyleElement(new XElement(W.rPr,
@@ -304,8 +349,8 @@ namespace OpenXmlPowerTools
                         }
 
                         var paragraphLevel = ListItemRetriever.GetParagraphLevel(element);
-                        ListItemRetriever.LevelNumbers levelNums = element.Annotation<ListItemRetriever.LevelNumbers>();
-                        string levelNumsString = levelNums
+                        var levelNums = element.Annotation<ListItemRetriever.LevelNumbers>();
+                        var levelNumsString = levelNums
                             .LevelNumbersArray
                             .Take(paragraphLevel + 1)
                             .Select(i => i.ToString() + ".")
@@ -324,14 +369,18 @@ namespace OpenXmlPowerTools
                         AdjustFontAttributes(wDoc, listItemRun, null, listItemRunProps, settings);
 
                         var lvl = listItemInfo.Lvl(ListItemRetriever.GetParagraphLevel(element));
-                        XElement suffix = new XElement(W.tab);
+                        var suffix = new XElement(W.tab);
                         var su = (string)lvl.Elements(W.suff).Attributes(W.val).FirstOrDefault();
                         if (su == "space")
+                        {
                             suffix = new XElement(W.t,
                                 new XAttribute(XNamespace.Xml + "space", "preserve"),
                                 " ");
+                        }
                         else if (su == "nothing")
+                        {
                             suffix = null;
+                        }
 
                         var jc = (string)lvl.Elements(W.lvlJc).Attributes(W.val).FirstOrDefault();
                         if (jc == "right")
@@ -384,21 +433,189 @@ namespace OpenXmlPowerTools
                         }
                         AddTabAtLeftIndent(element.Element(PtOpenXml.pPr));
 
-                        XElement newPara = new XElement(W.p,
+                        var tabRun = suffix != null ?
+                                new XElement(W.r,
+                                    new XAttribute(PtOpenXml.ListItemRun, levelNumsString),
+                                    listItemRunProps,
+                                    suffix) : null;
+
+                        var isDeleted = false;
+                        var isInserted = false;
+                        XAttribute authorAtt = null;
+                        XAttribute dateAtt = null;
+
+                        var paraDelElement = newParaProps
+                            .Elements(W.rPr)
+                            .Elements(W.del)
+                            .FirstOrDefault();
+                        if (paraDelElement != null)
+                        {
+                            isDeleted = true;
+                            authorAtt = paraDelElement.Attribute(W.author);
+                            dateAtt = paraDelElement.Attribute(W.date);
+                        }
+
+                        var paraInsElement = newParaProps
+                            .Elements(W.rPr)
+                            .Elements(W.ins)
+                            .FirstOrDefault();
+                        if (paraInsElement != null)
+                        {
+                            isInserted = true;
+                            authorAtt = paraInsElement.Attribute(W.author);
+                            dateAtt = paraInsElement.Attribute(W.date);
+                        }
+
+                        var paragraphBefore = element
+                            .SiblingsBeforeSelfReverseDocumentOrder()
+                            .FirstOrDefault();
+                        if (paragraphBefore != null)
+                        {
+                            var paraInsElement2 = paragraphBefore
+                                .Elements(W.pPr)
+                                .Elements(W.rPr)
+                                .Elements(W.ins)
+                                .FirstOrDefault();
+                            if (paraInsElement2 != null)
+                            {
+                                isInserted = true;
+                                authorAtt = paraInsElement2.Attribute(W.author);
+                                dateAtt = paraInsElement2.Attribute(W.date);
+                            }
+                        }
+
+#if false
+    <w:p w14:paraId="448CD560"
+         w14:textId="77777777"
+         w:rsidR="003C33D5"
+         w:rsidRDefault="003C33D5"
+         w:rsidP="003C33D5">
+      <w:pPr>
+        <w:pStyle w:val="ListParagraph"/>
+        <w:numPr>
+          <w:ilvl w:val="0"/>
+          <w:numId w:val="1"/>
+        </w:numPr>
+        <w:pPrChange w:id="4"
+                     w:author="e"
+                     w:date="2020-02-07T18:26:00Z">
+          <w:pPr/>
+        </w:pPrChange>
+      </w:pPr>
+      <w:r>
+        <w:t>When you click Online Video, you can paste in the embed code for the video you want to add.</w:t>
+      </w:r>
+    </w:p>
+#endif
+
+                        var pPrChange = element
+                            .Elements(W.pPr)
+                            .Elements(W.pPrChange)
+                            .FirstOrDefault();
+
+                        if (pPrChange != null)
+                        {
+                            authorAtt = pPrChange.Attribute(W.author);
+                            dateAtt = pPrChange.Attribute(W.date);
+
+                            var thisNumPr = element
+                                .Elements(W.pPr)
+                                .Elements(W.numPr)
+                                .FirstOrDefault();
+
+                            var thisNumPrChange = pPrChange
+                                .Elements(W.numPr)
+                                .FirstOrDefault();
+
+                            if (thisNumPr != null && thisNumPrChange == null)
+                            {
+                                isInserted = true;
+                            }
+
+                            if (thisNumPr == null && thisNumPrChange != null)
+                            {
+                                isDeleted = true;
+                            }
+                        }
+
+                        if (isDeleted)
+                        {
+                            // convert listItemRun and tabRun to their deleted equivalents
+                            var highestId = wDoc
+                                .MainDocumentPart
+                                .GetXDocument()
+                                .Descendants()
+                                .Attributes(W.id)
+                                .Select(id =>
+                                {
+                                    if (int.TryParse((string)id, out var numId))
+                                    {
+                                        return numId;
+                                    }
+                                    else
+                                    {
+                                        return 0;
+                                    }
+                                })
+                                .Max();
+
+                            listItemRun = new XElement(W.del,
+                                new XAttribute(W.id, highestId + 1),
+                                authorAtt,
+                                dateAtt,
+                                (XElement)TransformToDeleted(listItemRun));
+                            tabRun = new XElement(W.del,
+                                new XAttribute(W.id, highestId + 2),
+                                authorAtt,
+                                dateAtt,
+                                (XElement)TransformToDeleted(tabRun));
+                        }
+                        else
+                        {
+                            if (isInserted)
+                            {
+                                // convert listItemRun and tabRun to their inserted equivalents
+                                var highestId = wDoc
+                                    .MainDocumentPart
+                                    .GetXDocument()
+                                    .Descendants()
+                                    .Attributes(W.id)
+                                    .Select(id =>
+                                    {
+                                        if (int.TryParse((string)id, out var numId))
+                                        {
+                                            return numId;
+                                        }
+                                        else
+                                        {
+                                            return 0;
+                                        }
+                                    })
+                                    .Max();
+
+                                listItemRun = new XElement(W.ins,
+                                    new XAttribute(W.id, highestId + 1),
+                                    authorAtt,
+                                    dateAtt,
+                                    listItemRun);
+                                tabRun = new XElement(W.ins,
+                                    new XAttribute(W.id, highestId + 2),
+                                    authorAtt,
+                                    dateAtt,
+                                    tabRun);
+                            }
+                        }
+
+                        var newPara = new XElement(W.p,
                             element.Attribute(PtOpenXml.FontName),
                             element.Attribute(PtOpenXml.LanguageType),
                             element.Attribute(PtOpenXml.Unid),
                             new XAttribute(PtOpenXml.AbstractNumId, abstractNumId),
                             newParaProps,
                             listItemRun,
-                            suffix != null ?
-                                new XElement(W.r,
-                                    new XAttribute(PtOpenXml.ListItemRun, levelNumsString),
-                                    listItemRunProps,
-                                    suffix) : null,
+                            tabRun,
                             element.Elements().Where(e => e.Name != W.pPr).Select(n => NormalizeListItemsTransform(fai, wDoc, n, settings)));
                         return newPara;
-
                     }
                 }
 
@@ -409,14 +626,34 @@ namespace OpenXmlPowerTools
             return node;
         }
 
+        private static object TransformToDeleted(XNode node)
+        {
+            var element = node as XElement;
+            if (element != null)
+            {
+                if (element.Name == W.t)
+                {
+                    return new XElement(W.delText, element.Value);
+                }
+
+                return new XElement(element.Name,
+                    element.Attributes(),
+                    element.Nodes().Select(n => TransformToDeleted(n)));
+            }
+            return node;
+        }
+
         private static void AddTabAtLeftIndent(XElement pPr)
         {
-            int left = 0;
+            var left = 0;
             var ind = pPr.Element(W.ind);
 
             // todo need to handle W.start
             if (pPr.Attribute(W.left) != null)
+            {
                 left = (int)pPr.Attribute(W.left);
+            }
+
             var tabs = pPr.Element(W.tabs);
             if (tabs == null)
             {
@@ -449,10 +686,16 @@ namespace OpenXmlPowerTools
                 pxd.Root.Descendants().Attributes().Where(d => d.Name.Namespace == PtOpenXml.pt &&
                     !PtNamesToKeep.Contains(d.Name)).Remove();
                 if (pxd.Root.Attribute(XNamespace.Xmlns + "pt14") == null)
+                {
                     pxd.Root.Add(new XAttribute(XNamespace.Xmlns + "pt14", PtOpenXml.pt.NamespaceName));
+                }
+
                 if (pxd.Root.Attribute(XNamespace.Xmlns + "mc") == null)
+                {
                     pxd.Root.Add(new XAttribute(XNamespace.Xmlns + "mc", MC.mc.NamespaceName));
-                XAttribute mci = pxd.Root.Attribute(MC.Ignorable);
+                }
+
+                var mci = pxd.Root.Attribute(MC.Ignorable);
                 if (mci != null)
                 {
                     if (!pxd.Root.Attribute(MC.Ignorable).Value.Contains("pt14"))
@@ -473,45 +716,53 @@ namespace OpenXmlPowerTools
             var runProps = pxd.Root.Descendants(PtOpenXml.rPr).ToList();
             foreach (var item in runProps)
             {
-                XElement newRunProps = new XElement(W.rPr,
+                var newRunProps = new XElement(W.rPr,
                     item.Attributes(),
                     item.Elements());
-                XElement parent = item.Parent;
+                var parent = item.Parent;
                 if (parent.Name == W.p)
                 {
-                    XElement existingParaProps = parent.Element(W.pPr);
+                    var existingParaProps = parent.Element(W.pPr);
                     if (existingParaProps == null)
                     {
                         existingParaProps = new XElement(W.pPr);
                         parent.Add(existingParaProps);
                     }
-                    XElement existingRunProps = existingParaProps.Element(W.rPr);
+                    var existingRunProps = existingParaProps.Element(W.rPr);
                     if (existingRunProps != null)
                     {
                         if (!settings.RemoveStyleNamesFromParagraphAndRunProperties)
                         {
                             if (newRunProps.Element(W.rStyle) == null)
+                            {
                                 newRunProps.Add(existingRunProps.Element(W.rStyle));
+                            }
                         }
                         existingRunProps.ReplaceWith(newRunProps);
                     }
                     else
+                    {
                         existingParaProps.Add(newRunProps);
+                    }
                 }
                 else
                 {
-                    XElement existingRunProps = parent.Element(W.rPr);
+                    var existingRunProps = parent.Element(W.rPr);
                     if (existingRunProps != null)
                     {
                         if (!settings.RemoveStyleNamesFromParagraphAndRunProperties)
                         {
                             if (newRunProps.Element(W.rStyle) == null)
+                            {
                                 newRunProps.Add(existingRunProps.Element(W.rStyle));
+                            }
                         }
                         existingRunProps.ReplaceWith(newRunProps);
                     }
                     else
+                    {
                         parent.Add(newRunProps);
+                    }
                 }
             }
             var paraProps = pxd.Root.Descendants(PtOpenXml.pPr).ToList();
@@ -527,59 +778,81 @@ namespace OpenXmlPowerTools
                     }
                 }
 
-                XElement newParaProps = new XElement(W.pPr,
+                var newParaProps = new XElement(W.pPr,
                     item.Attributes(),
                     item.Elements().Where(e => e.Name != W.rPr),
                     merged);
-                XElement para = item.Parent;
-                XElement existingParaProps = para.Element(W.pPr);
+                var para = item.Parent;
+                var existingParaProps = para.Element(W.pPr);
                 if (existingParaProps != null)
                 {
                     if (!settings.RemoveStyleNamesFromParagraphAndRunProperties)
                     {
                         if (newParaProps.Element(W.pStyle) == null)
+                        {
                             newParaProps.Add(existingParaProps.Element(W.pStyle));
+                        }
                     }
                     existingParaProps.ReplaceWith(newParaProps);
                 }
                 else
+                {
                     para.Add(newParaProps);
+                }
             }
             var tblProps = pxd.Root.Descendants(PtOpenXml.tblPr).ToList();
             foreach (var item in tblProps)
             {
-                XElement newTblProps = new XElement(item);
-                newTblProps.Name = W.tblPr;
-                XElement table = item.Parent;
-                XElement existingTableProps = table.Element(W.tblPr);
+                var newTblProps = new XElement(item)
+                {
+                    Name = W.tblPr
+                };
+                var table = item.Parent;
+                var existingTableProps = table.Element(W.tblPr);
                 if (existingTableProps != null)
+                {
                     existingTableProps.ReplaceWith(newTblProps);
+                }
                 else
+                {
                     table.AddFirst(newTblProps);
+                }
             }
             var trProps = pxd.Root.Descendants(PtOpenXml.trPr).ToList();
             foreach (var item in trProps)
             {
-                XElement newTrProps = new XElement(item);
-                newTrProps.Name = W.trPr;
-                XElement row = item.Parent;
-                XElement existingRowProps = row.Element(W.trPr);
+                var newTrProps = new XElement(item)
+                {
+                    Name = W.trPr
+                };
+                var row = item.Parent;
+                var existingRowProps = row.Element(W.trPr);
                 if (existingRowProps != null)
+                {
                     existingRowProps.ReplaceWith(newTrProps);
+                }
                 else
+                {
                     row.AddFirst(newTrProps);
+                }
             }
             var tcProps = pxd.Root.Descendants(PtOpenXml.tcPr).ToList();
             foreach (var item in tcProps)
             {
-                XElement newTcProps = new XElement(item);
-                newTcProps.Name = W.tcPr;
-                XElement row = item.Parent;
-                XElement existingRowProps = row.Element(W.tcPr);
+                var newTcProps = new XElement(item)
+                {
+                    Name = W.tcPr
+                };
+                var row = item.Parent;
+                var existingRowProps = row.Element(W.tcPr);
                 if (existingRowProps != null)
+                {
                     existingRowProps.ReplaceWith(newTcProps);
+                }
                 else
+                {
                     row.AddFirst(newTcProps);
+                }
             }
             pxd.Root.Descendants(W.numPr).Remove();
             if (settings.RemoveStyleNamesFromParagraphAndRunProperties)
@@ -591,7 +864,7 @@ namespace OpenXmlPowerTools
             pxd.Root.Descendants().Where(d => d.Name.Namespace == PtOpenXml.pt).Remove();
             if (settings.OrderElementsPerStandard)
             {
-                XElement newRoot = (XElement)WordprocessingMLUtil.WmlOrderElementsPerStandard(pxd.Root);
+                var newRoot = (XElement)WordprocessingMLUtil.WmlOrderElementsPerStandard(pxd.Root);
                 pxd.Root.ReplaceWith(newRoot);
             }
         }
@@ -600,7 +873,7 @@ namespace OpenXmlPowerTools
         {
             foreach (var part in wordDoc.ContentParts())
             {
-                XDocument xDoc = part.GetXDocument();
+                var xDoc = part.GetXDocument();
                 foreach (var para in xDoc.Descendants(W.p))
                 {
                     ListItemRetriever.RetrieveListItem(wordDoc, para, settings);
@@ -614,7 +887,7 @@ namespace OpenXmlPowerTools
             XElement globalDefaultParaPropsAsDefined = null;
             XElement globalDefaultRunProps = null;
             XElement globalDefaultRunPropsAsDefined = null;
-            XDocument sXDoc = wDoc.MainDocumentPart.StyleDefinitionsPart.GetXDocument();
+            var sXDoc = wDoc.MainDocumentPart.StyleDefinitionsPart.GetXDocument();
             var defaultParaStyleName = (string)sXDoc
                 .Root
                 .Elements(W.style)
@@ -627,32 +900,46 @@ namespace OpenXmlPowerTools
                 .Where(st => (string)st.Attribute(W.type) == "character" && st.Attribute(W._default).ToBoolean() == true)
                 .Attributes(W.styleId)
                 .FirstOrDefault();
-            XElement docDefaults = sXDoc.Root.Element(W.docDefaults);
+            var docDefaults = sXDoc.Root.Element(W.docDefaults);
             if (docDefaults != null)
             {
                 globalDefaultParaPropsAsDefined = docDefaults.Elements(W.pPrDefault).Elements(W.pPr)
                     .FirstOrDefault();
                 if (globalDefaultParaPropsAsDefined == null)
+                {
                     globalDefaultParaPropsAsDefined = new XElement(W.pPr,
                         new XElement(W.rPr));
+                }
+
                 globalDefaultRunPropsAsDefined = docDefaults.Elements(W.rPrDefault).Elements(W.rPr)
                     .FirstOrDefault();
                 if (globalDefaultRunPropsAsDefined == null)
+                {
                     globalDefaultRunPropsAsDefined = new XElement(W.rPr);
+                }
+
                 if (globalDefaultRunPropsAsDefined.Element(W.rFonts) == null)
+                {
                     globalDefaultRunPropsAsDefined.Add(
                         new XElement(W.rFonts,
                             new XAttribute(W.ascii, "Times New Roman"),
                             new XAttribute(W.hAnsi, "Times New Roman"),
                             new XAttribute(W.cs, "Times New Roman")));
+                }
+
                 if (globalDefaultRunPropsAsDefined.Element(W.sz) == null)
+                {
                     globalDefaultRunPropsAsDefined.Add(
                         new XElement(W.sz,
                             new XAttribute(W.val, "20")));
+                }
+
                 if (globalDefaultRunPropsAsDefined.Element(W.szCs) == null)
+                {
                     globalDefaultRunPropsAsDefined.Add(
                         new XElement(W.szCs,
                             new XAttribute(W.val, "20")));
+                }
 
                 var runPropsForGlobalDefaultParaProps = MergeStyleElement(globalDefaultRunPropsAsDefined, globalDefaultParaPropsAsDefined.Element(W.rPr));
                 globalDefaultParaProps = new XElement(globalDefaultParaPropsAsDefined.Name,
@@ -672,13 +959,17 @@ namespace OpenXmlPowerTools
                                 new XAttribute(W.val, "20")));
 
             if (globalDefaultParaProps == null)
+            {
                 globalDefaultParaProps = new XElement(W.pPr, rPr);
+            }
 
             if (globalDefaultRunProps == null)
+            {
                 globalDefaultRunProps = rPr;
+            }
 
-            XElement ptGlobalDefaultParaProps = new XElement(globalDefaultParaProps);
-            XElement ptGlobalDefaultRunProps = new XElement(globalDefaultRunProps);
+            var ptGlobalDefaultParaProps = new XElement(globalDefaultParaProps);
+            var ptGlobalDefaultRunProps = new XElement(globalDefaultRunProps);
             ptGlobalDefaultParaProps.Name = PtOpenXml.pPr;
             ptGlobalDefaultRunProps.Name = PtOpenXml.rPr;
             var parasAndRuns = rootElement.Descendants().Where(d =>
@@ -693,13 +984,20 @@ namespace OpenXmlPowerTools
                     {
                         var pStyle = (string)d.Elements(W.pPr).Elements(W.pStyle).Attributes(W.val).FirstOrDefault();
                         if (pStyle == null)
+                        {
                             pStyle = defaultParaStyleName;
+                        }
+
                         if (pStyle != null)
                         {
                             if (d.Attribute(PtOpenXml.StyleName) != null)
+                            {
                                 d.Attribute(PtOpenXml.StyleName).Value = pStyle;
+                            }
                             else
+                            {
                                 d.Add(new XAttribute(PtOpenXml.StyleName, pStyle));
+                            }
                         }
                         d.Add(ptGlobalDefaultParaProps);
                     }
@@ -707,13 +1005,20 @@ namespace OpenXmlPowerTools
                     {
                         var rStyle = (string)d.Elements(W.rPr).Elements(W.rStyle).Attributes(W.val).FirstOrDefault();
                         if (rStyle == null)
+                        {
                             rStyle = defaultCharStyleName;
+                        }
+
                         if (rStyle != null)
                         {
                             if (d.Attribute(PtOpenXml.StyleName) != null)
+                            {
                                 d.Attribute(PtOpenXml.StyleName).Value = rStyle;
+                            }
                             else
+                            {
                                 d.Add(new XAttribute(PtOpenXml.StyleName, rStyle));
+                            }
                         }
                         d.Add(ptGlobalDefaultRunProps);
                     }
@@ -735,7 +1040,7 @@ namespace OpenXmlPowerTools
             }
         }
 
-        private static XElement BlankTcBorders = new XElement(W.tcBorders,
+        private static readonly XElement BlankTcBorders = new XElement(W.tcBorders,
             new XElement(W.top, new XAttribute(W.val, "nil")),
             new XElement(W.left, new XAttribute(W.val, "nil")),
             new XElement(W.bottom, new XAttribute(W.val, "nil")),
@@ -743,13 +1048,13 @@ namespace OpenXmlPowerTools
 
         private static void AnnotateTablesWithTableStyles(WordprocessingDocument wDoc, XElement rootElement)
         {
-            XDocument sXDoc = wDoc.MainDocumentPart.StyleDefinitionsPart.GetXDocument();
+            var sXDoc = wDoc.MainDocumentPart.StyleDefinitionsPart.GetXDocument();
             foreach (var tbl in rootElement.Descendants(W.tbl))
             {
-                string tblStyleName = (string)tbl.Elements(W.tblPr).Elements(W.tblStyle).Attributes(W.val).FirstOrDefault();
+                var tblStyleName = (string)tbl.Elements(W.tblPr).Elements(W.tblStyle).Attributes(W.val).FirstOrDefault();
                 if (tblStyleName != null)
                 {
-                    XElement style = TableStyleRollup(wDoc, tblStyleName);
+                    var style = TableStyleRollup(wDoc, tblStyleName);
 
                     // annotate table with table style, in PowerTools namespace
                     style.Name = PtOpenXml.style;
@@ -757,12 +1062,14 @@ namespace OpenXmlPowerTools
 
                     // merge tblPr in table style with tblPr of the table
                     // annnotate in PowerTools namespace
-                    XElement tblPr2 = style.Element(W.tblPr);
-                    XElement tblPr3 = MergeStyleElement(tbl.Element(W.tblPr), tblPr2, true);
+                    var tblPr2 = style.Element(W.tblPr);
+                    var tblPr3 = MergeStyleElement(tbl.Element(W.tblPr), tblPr2, true);
                     if (tblPr3 != null)
                     {
-                        XElement newTblPr = new XElement(tblPr3);
-                        newTblPr.Name = PtOpenXml.pt + "tblPr";
+                        var newTblPr = new XElement(tblPr3)
+                        {
+                            Name = PtOpenXml.pt + "tblPr"
+                        };
                         tbl.Add(newTblPr);
                     }
 
@@ -776,19 +1083,30 @@ namespace OpenXmlPowerTools
                         {
                             foreach (var cell in row.Elements(W.tc))
                             {
-                                bool tcPrPtExists = false;
+                                var tcPrPtExists = false;
                                 var tcPrPt = cell.Element(PtOpenXml.pt + "tcPr");
                                 if (tcPrPt != null)
+                                {
                                     tcPrPtExists = true;
+                                }
                                 else
+                                {
                                     tcPrPt = new XElement(W.tcPr);
+                                }
+
                                 tcPrPt = MergeStyleElement(tableTcPr, tcPrPt);
-                                var newTcPrPt = new XElement(tcPrPt);
-                                newTcPrPt.Name = PtOpenXml.tcPr;
+                                var newTcPrPt = new XElement(tcPrPt)
+                                {
+                                    Name = PtOpenXml.tcPr
+                                };
                                 if (tcPrPtExists)
+                                {
                                     cell.Element(PtOpenXml.tcPr).ReplaceWith(newTcPrPt);
+                                }
                                 else
+                                {
                                     cell.Add(newTcPrPt);
+                                }
                             }
                         }
                     }
@@ -800,22 +1118,25 @@ namespace OpenXmlPowerTools
                         XElement trPr2 = null;
                         trPr2 = style.Element(W.trPr);
                         if (trPr2 == null)
+                        {
                             trPr2 = new XElement(W.trPr);
-                        XElement rowCnf = row.Elements(W.trPr).Elements(W.cnfStyle).FirstOrDefault();
+                        }
+
+                        var rowCnf = row.Elements(W.trPr).Elements(W.cnfStyle).FirstOrDefault();
                         if (rowCnf != null)
                         {
                             foreach (var ot in TableStyleOverrideTypes)
                             {
-                                XName attName = TableStyleOverrideXNameMap[ot];
+                                var attName = TableStyleOverrideXNameMap[ot];
                                 if (rowCnf != null && rowCnf.Attribute(attName).ToBoolean() == true)
                                 {
-                                    XElement o = style
+                                    var o = style
                                         .Elements(W.tblStylePr)
                                         .Where(tsp => (string)tsp.Attribute(W.type) == ot)
                                         .FirstOrDefault();
                                     if (o != null)
                                     {
-                                        XElement ottrPr = o.Element(W.trPr);
+                                        var ottrPr = o.Element(W.trPr);
                                         trPr2 = MergeStyleElement(ottrPr, trPr2);
                                     }
                                 }
@@ -831,7 +1152,7 @@ namespace OpenXmlPowerTools
 
                     foreach (var ot in TableStyleOverrideTypes)
                     {
-                        XName attName = TableStyleOverrideXNameMap[ot];
+                        var attName = TableStyleOverrideXNameMap[ot];
                         if (attName == W.oddHBand ||
                             attName == W.evenHBand ||
                             attName == W.firstRow ||
@@ -839,10 +1160,10 @@ namespace OpenXmlPowerTools
                         {
                             foreach (var row in tbl.Elements(W.tr))
                             {
-                                XElement rowCnf = row.Elements(W.trPr).Elements(W.cnfStyle).FirstOrDefault();
+                                var rowCnf = row.Elements(W.trPr).Elements(W.cnfStyle).FirstOrDefault();
                                 if (rowCnf != null && rowCnf.Attribute(attName).ToBoolean() == true)
                                 {
-                                    XElement o = style
+                                    var o = style
                                         .Elements(W.tblStylePr)
                                         .Where(tsp => (string)tsp.Attribute(W.type) == ot)
                                         .FirstOrDefault();
@@ -850,19 +1171,30 @@ namespace OpenXmlPowerTools
                                     {
                                         foreach (var cell in row.Elements(W.tc))
                                         {
-                                            bool tcPrPtExists = false;
+                                            var tcPrPtExists = false;
                                             var tcPrPt = cell.Element(PtOpenXml.pt + "tcPr");
                                             if (tcPrPt != null)
+                                            {
                                                 tcPrPtExists = true;
+                                            }
                                             else
+                                            {
                                                 tcPrPt = new XElement(W.tcPr);
+                                            }
+
                                             tcPrPt = MergeStyleElement(o.Element(W.tcPr), tcPrPt);
-                                            var newTcPrPt = new XElement(tcPrPt);
-                                            newTcPrPt.Name = PtOpenXml.pt + "tcPr";
+                                            var newTcPrPt = new XElement(tcPrPt)
+                                            {
+                                                Name = PtOpenXml.pt + "tcPr"
+                                            };
                                             if (tcPrPtExists)
+                                            {
                                                 cell.Element(PtOpenXml.pt + "tcPr").ReplaceWith(newTcPrPt);
+                                            }
                                             else
+                                            {
                                                 cell.Add(newTcPrPt);
+                                            }
                                         }
                                     }
                                 }
@@ -888,7 +1220,9 @@ namespace OpenXmlPowerTools
                             {
                                 var cell = row.Elements(W.tc).LastOrDefault();
                                 if (cell != null)
+                                {
                                     ApplyCndFmtToCell(style, ot, attName, cell);
+                                }
                             }
                         }
                         else if (attName == W.firstRowFirstColumn)
@@ -898,7 +1232,9 @@ namespace OpenXmlPowerTools
                             {
                                 var cell = row.Elements(W.tc).FirstOrDefault();
                                 if (cell != null)
+                                {
                                     ApplyCndFmtToCell(style, ot, attName, cell);
+                                }
                             }
                         }
                         else if (attName == W.lastRowLastColumn)
@@ -908,7 +1244,9 @@ namespace OpenXmlPowerTools
                             {
                                 var cell = row.Elements(W.tc).LastOrDefault();
                                 if (cell != null)
+                                {
                                     ApplyCndFmtToCell(style, ot, attName, cell);
+                                }
                             }
                         }
                         else if (attName == W.lastRowFirstColumn)
@@ -918,7 +1256,9 @@ namespace OpenXmlPowerTools
                             {
                                 var cell = row.Elements(W.tc).FirstOrDefault();
                                 if (cell != null)
+                                {
                                     ApplyCndFmtToCell(style, ot, attName, cell);
+                                }
                             }
                         }
                     }
@@ -927,11 +1267,13 @@ namespace OpenXmlPowerTools
                 else
                 {
                     var tblPr = new XElement(W.tblPr);
-                    XElement tblPr3 = MergeStyleElement(tbl.Element(W.tblPr), tblPr, true);
+                    var tblPr3 = MergeStyleElement(tbl.Element(W.tblPr), tblPr, true);
                     if (tblPr3 != null)
                     {
-                        XElement newTblPr = new XElement(tblPr3);
-                        newTblPr.Name = PtOpenXml.pt + "tblPr";
+                        var newTblPr = new XElement(tblPr3)
+                        {
+                            Name = PtOpenXml.pt + "tblPr"
+                        };
                         tbl.Add(newTblPr);
                     }
 
@@ -949,7 +1291,10 @@ namespace OpenXmlPowerTools
                 {
                     var tcPrPt = cell.Element(PtOpenXml.pt + "tcPr");
                     if (tcPrPt != null)
+                    {
                         continue;
+                    }
+
                     tcPrPt = new XElement(PtOpenXml.pt + "tcPr",
                         new XElement(W.tcBorders));
                     cell.Add(tcPrPt);
@@ -959,28 +1304,39 @@ namespace OpenXmlPowerTools
 
         private static void ApplyCndFmtToCell(XElement style, string ot, XName attName, XElement cell)
         {
-            XElement cellCnf = cell.Elements(W.tcPr).Elements(W.cnfStyle).FirstOrDefault();
+            var cellCnf = cell.Elements(W.tcPr).Elements(W.cnfStyle).FirstOrDefault();
             if (cellCnf != null && cellCnf.Attribute(attName).ToBoolean() == true)
             {
-                XElement o = style
+                var o = style
                     .Elements(W.tblStylePr)
                     .Where(tsp => (string)tsp.Attribute(W.type) == ot)
                     .FirstOrDefault();
                 if (o != null)
                 {
-                    bool tcPrPtExists = false;
+                    var tcPrPtExists = false;
                     var tcPrPt = cell.Element(PtOpenXml.pt + "tcPr");
                     if (tcPrPt != null)
+                    {
                         tcPrPtExists = true;
+                    }
                     else
+                    {
                         tcPrPt = new XElement(W.tcPr);
+                    }
+
                     tcPrPt = MergeStyleElement(o.Element(W.tcPr), tcPrPt);
-                    var newTcPrPt = new XElement(tcPrPt);
-                    newTcPrPt.Name = PtOpenXml.pt + "tcPr";
+                    var newTcPrPt = new XElement(tcPrPt)
+                    {
+                        Name = PtOpenXml.pt + "tcPr"
+                    };
                     if (tcPrPtExists)
+                    {
                         cell.Element(PtOpenXml.pt + "tcPr").ReplaceWith(newTcPrPt);
+                    }
                     else
+                    {
                         cell.Add(newTcPrPt);
+                    }
                 }
             }
         }
@@ -999,13 +1355,19 @@ namespace OpenXmlPowerTools
                         mTcPr = new XElement(PtOpenXml.pt + "tcPr");
                         cell.Add(tcPr);
                     }
-                    var newTcPr = new XElement(mTcPr);
-                    newTcPr.Name = PtOpenXml.pt + "tcPr";
+                    var newTcPr = new XElement(mTcPr)
+                    {
+                        Name = PtOpenXml.pt + "tcPr"
+                    };
                     var existing = cell.Element(PtOpenXml.pt + "tcPr");
                     if (existing != null)
+                    {
                         existing.ReplaceWith(newTcPr);
+                    }
                     else
+                    {
                         cell.Add(newTcPr);
+                    }
                 }
             }
             var tblBorders = tbl.Elements(PtOpenXml.pt + "tblPr").Elements(W.tblBorders).FirstOrDefault();
@@ -1031,9 +1393,13 @@ namespace OpenXmlPowerTools
                         {
                             var cellTop = cellTcBorders.Element(W.top);
                             if (cellTop == null)
+                            {
                                 cellTcBorders.Add(top);
+                            }
                             else
+                            {
                                 cellTop.ReplaceAttributes(top.Attributes());
+                            }
                         }
                     }
                 }
@@ -1051,9 +1417,13 @@ namespace OpenXmlPowerTools
                         {
                             var cellBottom = cellTcBorders.Element(W.bottom);
                             if (cellBottom == null)
+                            {
                                 cellTcBorders.Add(bottom);
+                            }
                             else
+                            {
                                 cellBottom.ReplaceAttributes(bottom.Attributes());
+                            }
                         }
                     }
                 }
@@ -1071,9 +1441,13 @@ namespace OpenXmlPowerTools
                         {
                             var firstCellLeft = cellTcBorders.Element(W.left);
                             if (firstCellLeft == null)
+                            {
                                 cellTcBorders.Add(left);
+                            }
                             else
+                            {
                                 firstCellLeft.ReplaceAttributes(left.Attributes());
+                            }
                         }
                     }
                 }
@@ -1088,9 +1462,13 @@ namespace OpenXmlPowerTools
                         {
                             var lastCellRight = cellTcBorders.Element(W.right);
                             if (lastCellRight == null)
+                            {
                                 cellTcBorders.Add(right);
+                            }
                             else
+                            {
                                 lastCellRight.ReplaceAttributes(right.Attributes());
+                            }
                         }
                     }
                 }
@@ -1101,19 +1479,23 @@ namespace OpenXmlPowerTools
         {
             var tblBorders = tbl.Elements(PtOpenXml.pt + "tblPr").Elements(W.tblBorders).FirstOrDefault();
             if (tblBorders != null)
+            {
                 ApplyTblBordersToTable(tbl, tblBorders);
+            }
         }
 
         private static void ProcessInnerBorders(XElement tbl, XElement style)
         {
             var tblBorders = tbl.Elements(PtOpenXml.pt + "tblPr").Elements(W.tblBorders).FirstOrDefault();
             if (tblBorders != null)
+            {
                 ProcessInnerBordersPerTblBorders(tbl, tblBorders);
+            }
 
             foreach (var attName in new[] { W.oddHBand, W.evenHBand, W.firstRow, W.lastRow })
             {
-                int rowCount = tbl.Elements(W.tr).Count();
-                int lastRow = rowCount - 1;
+                var rowCount = tbl.Elements(W.tr).Count();
+                var lastRow = rowCount - 1;
                 XElement insideV = null;
                 foreach (var row in tbl.Elements(W.tr))
                 {
@@ -1139,8 +1521,8 @@ namespace OpenXmlPowerTools
                                     insideV = cndStyle.Elements(W.tcPr).Elements(W.tcBorders).Elements(W.insideV).FirstOrDefault();
                                     if (insideV != null)
                                     {
-                                        int lastCol = row.Elements(W.tc).Count() - 1;
-                                        int colIdx = 0;
+                                        var lastCol = row.Elements(W.tc).Count() - 1;
+                                        var colIdx = 0;
                                         foreach (var cell in row.Elements(W.tc))
                                         {
                                             var tcBorders = cell.Elements(PtOpenXml.pt + "tcPr").Elements(W.tcBorders).FirstOrDefault();
@@ -1169,8 +1551,8 @@ namespace OpenXmlPowerTools
 
             foreach (var attName in new[] { W.oddVBand, W.evenVBand, W.firstColumn, W.lastColumn })
             {
-                int rowIdx = 0;
-                int lastRow = tbl.Elements(W.tr).Count() - 1;
+                var rowIdx = 0;
+                var lastRow = tbl.Elements(W.tr).Count() - 1;
                 foreach (var row in tbl.Elements(W.tr))
                 {
                     foreach (var cell in row.Elements(W.tc))
@@ -1222,7 +1604,7 @@ namespace OpenXmlPowerTools
                 foreach (var row in tbl.Elements(W.tr))
                 {
                     var lastCell = row.Elements(W.tc).Count() - 1;
-                    int cellIdx = 0;
+                    var cellIdx = 0;
                     foreach (var cell in row.Elements(W.tc))
                     {
                         var tcPr = cell.Element(PtOpenXml.pt + "tcPr");
@@ -1257,8 +1639,8 @@ namespace OpenXmlPowerTools
             var tblInsideH = tblBorders.Elements(W.insideH).FirstOrDefault();
             if (tblInsideH != null)
             {
-                int rowIdx1 = 0;
-                int lastRow1 = tbl.Elements(W.tr).Count() - 1;
+                var rowIdx1 = 0;
+                var lastRow1 = tbl.Elements(W.tr).Count() - 1;
                 foreach (var row in tbl.Elements(W.tr))
                 {
                     if (rowIdx1 == 0)
@@ -1307,7 +1689,7 @@ namespace OpenXmlPowerTools
             }
         }
 
-        private static Dictionary<string, int> BorderTypePriority = new Dictionary<string, int>()
+        private static readonly Dictionary<string, int> BorderTypePriority = new Dictionary<string, int>()
         {
             { "single", 1 },
             { "thick", 2 },
@@ -1315,7 +1697,7 @@ namespace OpenXmlPowerTools
             { "dotted", 4 },
         };
 
-        private static Dictionary<string, int> BorderNumber = new Dictionary<string, int>()
+        private static readonly Dictionary<string, int> BorderNumber = new Dictionary<string, int>()
         {
             {"single", 1 },
             {"thick", 2 },
@@ -1347,11 +1729,19 @@ namespace OpenXmlPowerTools
         private static XElement ResolveInsideBorder(XElement inside1, XElement sideToReplace)
         {
             if (inside1 == null && sideToReplace == null)
+            {
                 return null;
+            }
+
             if (inside1 == null)
+            {
                 return sideToReplace;
+            }
+
             if (sideToReplace == null)
+            {
                 return inside1;
+            }
 
             // The following handles the situation where
             // if table innerV is set, and cnd format for first row specifies nill border, then nil border wins.
@@ -1360,41 +1750,63 @@ namespace OpenXmlPowerTools
                 sideToReplace.Name == W.right)
             {
                 if ((string)inside1.Attribute(W.val) == "nil")
+                {
                     return inside1;
+                }
+
                 if ((string)sideToReplace.Attribute(W.val) == "nil")
+                {
                     return sideToReplace;
+                }
             }
             else
             {
                 if ((string)inside1.Attribute(W.val) == "nil")
+                {
                     return sideToReplace;
+                }
+
                 if ((string)sideToReplace.Attribute(W.val) == "nil")
+                {
                     return inside1;
+                }
             }
 
             var inside1Val = (string)inside1.Attribute(W.val);
             var border1Weight = 1;
             if (BorderNumber.ContainsKey(inside1Val))
+            {
                 border1Weight = BorderNumber[inside1Val];
+            }
 
             var sideToReplaceVal = (string)sideToReplace.Attribute(W.val);
             var sideToReplaceWeight = 1;
             if (BorderNumber.ContainsKey(sideToReplaceVal))
+            {
                 sideToReplaceWeight = BorderNumber[sideToReplaceVal];
+            }
 
             if (border1Weight != sideToReplaceWeight)
             {
                 if (border1Weight < sideToReplaceWeight)
+                {
                     return sideToReplace;
+                }
                 else
+                {
                     return inside1;
+                }
             }
 
             if ((int)inside1.Attribute(W.sz) > (int)sideToReplace.Attribute(W.sz))
+            {
                 return inside1;
+            }
 
             if ((int)sideToReplace.Attribute(W.sz) > (int)inside1.Attribute(W.sz))
+            {
                 return sideToReplace;
+            }
 
             if (BorderTypePriority.ContainsKey(inside1Val) &&
                 BorderTypePriority.ContainsKey(sideToReplaceVal))
@@ -1402,33 +1814,48 @@ namespace OpenXmlPowerTools
                 var inside1Pri = BorderTypePriority[inside1Val];
                 var inside2Pri = BorderTypePriority[sideToReplaceVal];
                 if (inside1Pri > inside2Pri)
+                {
                     return inside1;
+                }
+
                 if (inside2Pri > inside1Pri)
+                {
                     return sideToReplace;
+                }
             }
 
             if ((int)inside1.Attribute(W.sz) > (int)sideToReplace.Attribute(W.sz))
+            {
                 return inside1;
+            }
 
             if ((int)sideToReplace.Attribute(W.sz) > (int)inside1.Attribute(W.sz))
+            {
                 return sideToReplace;
+            }
 
             var color1str = (string)inside1.Attribute(W.color);
             if (color1str == "auto")
+            {
                 color1str = "000000";
+            }
+
             var color2str = (string)sideToReplace.Attribute(W.color);
             if (color2str == "auto")
+            {
                 color2str = "000000";
+            }
+
             if (color1str != null && color2str != null && color1str != color2str)
             {
-                Int32 color1;
-                Int32 color2;
+                int color1;
+                int color2;
                 try
                 {
                     color1 = Convert.ToInt32(color1str, 16);
                 }
                 // if the above throws ArgumentException, FormatException, or OverflowException, then abort
-                catch (Exception) 
+                catch (Exception)
                 {
                     return sideToReplace;
                 }
@@ -1442,9 +1869,15 @@ namespace OpenXmlPowerTools
                     return inside1;
                 }
                 if (color1 < color2)
+                {
                     return inside1;
+                }
+
                 if (color2 < color1)
+                {
                     return sideToReplace;
+                }
+
                 return inside1;
             }
             return inside1;
@@ -1454,7 +1887,7 @@ namespace OpenXmlPowerTools
         {
             var tblStyleChain = TableStyleStack(wDoc, tblStyleName)
                 .Reverse();
-            XElement rolledStyle = new XElement(W.style);
+            var rolledStyle = new XElement(W.style);
             foreach (var style in tblStyleChain)
             {
                 rolledStyle = MergeStyleElement(style, rolledStyle);
@@ -1462,7 +1895,7 @@ namespace OpenXmlPowerTools
             return rolledStyle;
         }
 
-        private static XName[] SpecialCaseChildProperties =
+        private static readonly XName[] SpecialCaseChildProperties =
         {
             W.tblPr,
             W.trPr,
@@ -1481,7 +1914,7 @@ namespace OpenXmlPowerTools
             W.numPr,
         };
 
-        private static XName[] MergeChildProperties =
+        private static readonly XName[] MergeChildProperties =
         {
             W.tblPr,
             W.trPr,
@@ -1494,7 +1927,7 @@ namespace OpenXmlPowerTools
             W.numPr,
         };
 
-        private static string[] TableStyleOverrideTypes =
+        private static readonly string[] TableStyleOverrideTypes =
         {
             "band1Vert",
             "band2Vert",
@@ -1510,7 +1943,7 @@ namespace OpenXmlPowerTools
             "swCell",
         };
 
-        private static Dictionary<string, XName> TableStyleOverrideXNameMap = new Dictionary<string, XName>
+        private static readonly Dictionary<string, XName> TableStyleOverrideXNameMap = new Dictionary<string, XName>
         {
             {"band1Vert", W.oddVBand},
             {"band2Vert", W.evenVBand},
@@ -1526,7 +1959,7 @@ namespace OpenXmlPowerTools
             {"swCell", W.lastRowFirstColumn},
         };
 
-        private static Dictionary<XName, string> TableStyleOverrideXNameRevMap = new Dictionary<XName, string>
+        private static readonly Dictionary<XName, string> TableStyleOverrideXNameRevMap = new Dictionary<XName, string>
         {
             {W.oddVBand, "band1Vert"},
             {W.evenVBand, "band2Vert"},
@@ -1549,9 +1982,14 @@ namespace OpenXmlPowerTools
             // corresponding element in the merged element, then include the source element
             // in the merged element.
             if (lowerPriorityElement == null)
+            {
                 return higherPriorityElement;
+            }
+
             if (higherPriorityElement == null)
+            {
                 return lowerPriorityElement;
+            }
 
             var hpe = higherPriorityElement
                 .Elements()
@@ -1583,9 +2021,15 @@ namespace OpenXmlPowerTools
                     var h = higherPriorityElement.Element(e);
                     var l = lowerPriorityElement.Element(e);
                     if (h == null && l == null)
+                    {
                         return null;
+                    }
+
                     if (h == null && l != null)
+                    {
                         return l;
+                    }
+
                     if (h != null && l == null)
                     {
                         var newH = new XElement(h.Name,
@@ -1605,17 +2049,26 @@ namespace OpenXmlPowerTools
                     var h = higherPriorityElement.Elements(W.tblStylePr).FirstOrDefault(tsp => (string)tsp.Attribute(W.type) == e);
                     var l = lowerPriorityElement.Elements(W.tblStylePr).FirstOrDefault(tsp => (string)tsp.Attribute(W.type) == e);
                     if (h == null && l == null)
+                    {
                         return null;
+                    }
+
                     if (h == null && l != null)
+                    {
                         return l;
+                    }
+
                     if (h != null && l == null)
+                    {
                         return h;
+                    }
+
                     return MergeStyleElement(h, l);
                 })
                 .Where(m => m != null)
                 .ToArray();
 
-            XElement newMergedElement = new XElement(higherPriorityElement.Name,
+            var newMergedElement = new XElement(higherPriorityElement.Name,
                 new XAttribute(XNamespace.Xmlns + "w", W.w),
                 higherPriorityElement.Attributes().Where(a => !a.IsNamespaceDeclaration),
                 hpe,  // higher priority elements
@@ -1635,11 +2088,20 @@ namespace OpenXmlPowerTools
         private static XElement LangMerge(XElement hLang, XElement lLang)
         {
             if (hLang == null && lLang == null)
+            {
                 return null;
+            }
+
             if (hLang != null && lLang == null)
+            {
                 return hLang;
+            }
+
             if (lLang != null && hLang == null)
+            {
                 return lLang;
+            }
+
             return new XElement(W.lang,
                 hLang.Attribute(W.val) != null ? hLang.Attribute(W.val) : lLang.Attribute(W.val),
                 hLang.Attribute(W.bidi) != null ? hLang.Attribute(W.bidi) : lLang.Attribute(W.bidi),
@@ -1659,26 +2121,42 @@ namespace OpenXmlPowerTools
         private static XElement IndMerge(XElement higherPriorityElement, XElement lowerPriorityElement)
         {
             if (higherPriorityElement == null && lowerPriorityElement == null)
+            {
                 return null;
-            if (higherPriorityElement != null && lowerPriorityElement == null)
-                return higherPriorityElement;
-            if (lowerPriorityElement != null && higherPriorityElement == null)
-                return lowerPriorityElement;
+            }
 
-            XElement hpe = new XElement(higherPriorityElement);
-            XElement lpe = new XElement(lowerPriorityElement);
+            if (higherPriorityElement != null && lowerPriorityElement == null)
+            {
+                return higherPriorityElement;
+            }
+
+            if (lowerPriorityElement != null && higherPriorityElement == null)
+            {
+                return lowerPriorityElement;
+            }
+
+            var hpe = new XElement(higherPriorityElement);
+            var lpe = new XElement(lowerPriorityElement);
 
             if (hpe.Attribute(W.firstLine) != null)
+            {
                 lpe.Attributes(W.hanging).Remove();
+            }
 
             if (hpe.Attribute(W.firstLineChars) != null)
+            {
                 lpe.Attributes(W.hangingChars).Remove();
+            }
 
             if (hpe.Attribute(W.hanging) != null)
+            {
                 lpe.Attributes(W.firstLine).Remove();
+            }
 
             if (hpe.Attribute(W.hangingChars) != null)
+            {
                 lpe.Attributes(W.firstLineChars).Remove();
+            }
 
             var highPriAtts = hpe
                 .Attributes()
@@ -1707,11 +2185,20 @@ namespace OpenXmlPowerTools
         private static XElement TabsMerge(XElement higherPriorityElement, XElement lowerPriorityElement)
         {
             if (higherPriorityElement != null && lowerPriorityElement == null)
+            {
                 return higherPriorityElement;
+            }
+
             if (higherPriorityElement == null && lowerPriorityElement != null)
+            {
                 return lowerPriorityElement;
+            }
+
             if (higherPriorityElement == null && lowerPriorityElement == null)
+            {
                 return null;
+            }
+
             var hps = higherPriorityElement.Elements().Select(e =>
                 new
                 {
@@ -1740,11 +2227,20 @@ namespace OpenXmlPowerTools
         private static XElement SpacingMerge(XElement hn, XElement ln)
         {
             if (hn == null && ln == null)
+            {
                 return null;
+            }
+
             if (hn != null && ln == null)
+            {
                 return hn;
+            }
+
             if (hn == null && ln != null)
+            {
                 return ln;
+            }
+
             var mn1 = new XElement(W.spacing,
                 hn.Attributes(),
                 ln.Attributes().Where(a => hn.Attribute(a.Name) == null));
@@ -1753,21 +2249,26 @@ namespace OpenXmlPowerTools
 
         private static IEnumerable<XElement> TableStyleStack(WordprocessingDocument wDoc, string tblStyleName)
         {
-            XDocument sXDoc = wDoc.MainDocumentPart.StyleDefinitionsPart.GetXDocument();
-            string currentStyle = tblStyleName;
+            var sXDoc = wDoc.MainDocumentPart.StyleDefinitionsPart.GetXDocument();
+            var currentStyle = tblStyleName;
             while (true)
             {
-                XElement style = sXDoc
+                var style = sXDoc
                     .Root
                     .Elements(W.style).Where(s => (string)s.Attribute(W.type) == "table" &&
                         (string)s.Attribute(W.styleId) == currentStyle)
                     .FirstOrDefault();
                 if (style == null)
+                {
                     yield break;
+                }
+
                 yield return style;
                 currentStyle = (string)style.Elements(W.basedOn).Attributes(W.val).FirstOrDefault();
                 if (currentStyle == null)
+                {
                     yield break;
+                }
             }
         }
 
@@ -1776,11 +2277,19 @@ namespace OpenXmlPowerTools
             XElement rFonts;
 
             if (higherPriorityFont == null)
+            {
                 return lowerPriorityFont;
+            }
+
             if (lowerPriorityFont == null)
+            {
                 return higherPriorityFont;
+            }
+
             if (higherPriorityFont == null && lowerPriorityFont == null)
+            {
                 return null;
+            }
 
             rFonts = new XElement(W.rFonts,
                 (higherPriorityFont.Attribute(W.ascii) != null || higherPriorityFont.Attribute(W.asciiTheme) != null) ?
@@ -1812,7 +2321,7 @@ namespace OpenXmlPowerTools
 
         private static void AnnotateParagraph(FormattingAssemblerInfo fai, WordprocessingDocument wDoc, XElement para, FormattingAssemblerSettings settings)
         {
-            XElement localParaProps = para.Element(W.pPr);
+            var localParaProps = para.Element(W.pPr);
             if (localParaProps == null)
             {
                 localParaProps = new XElement(W.pPr);
@@ -1832,10 +2341,10 @@ namespace OpenXmlPowerTools
                     a.Name == W.endnote);
             if (blockLevelContentContainer.Name == W.tbl)
             {
-                XElement tbl = blockLevelContentContainer;
-                XElement style = tbl.Element(PtOpenXml.pt + "style");
-                XElement cellCnf = para.Ancestors(W.tc).Take(1).Elements(W.tcPr).Elements(W.cnfStyle).FirstOrDefault();
-                XElement rowCnf = para.Ancestors(W.tr).Take(1).Elements(W.trPr).Elements(W.cnfStyle).FirstOrDefault();
+                var tbl = blockLevelContentContainer;
+                var style = tbl.Element(PtOpenXml.pt + "style");
+                var cellCnf = para.Ancestors(W.tc).Take(1).Elements(W.tcPr).Elements(W.cnfStyle).FirstOrDefault();
+                var rowCnf = para.Ancestors(W.tr).Take(1).Elements(W.trPr).Elements(W.cnfStyle).FirstOrDefault();
 
                 if (style != null)
                 {
@@ -1843,21 +2352,23 @@ namespace OpenXmlPowerTools
                     // add each of these to the table, in PowerTools namespace.
                     tablepPr = style.Element(W.pPr);
                     if (tablepPr == null)
+                    {
                         tablepPr = new XElement(W.pPr);
+                    }
 
                     foreach (var ot in TableStyleOverrideTypes)
                     {
-                        XName attName = TableStyleOverrideXNameMap[ot];
+                        var attName = TableStyleOverrideXNameMap[ot];
                         if ((cellCnf != null && cellCnf.Attribute(attName).ToBoolean() == true) ||
                             (rowCnf != null && rowCnf.Attribute(attName).ToBoolean() == true))
                         {
-                            XElement o = style
+                            var o = style
                                 .Elements(W.tblStylePr)
                                 .Where(tsp => (string)tsp.Attribute(W.type) == ot)
                                 .FirstOrDefault();
                             if (o != null)
                             {
-                                XElement otpPr = o.Element(W.pPr);
+                                var otpPr = o.Element(W.pPr);
                                 tablepPr = MergeStyleElement(otpPr, tablepPr);
                             }
                         }
@@ -1867,36 +2378,48 @@ namespace OpenXmlPowerTools
             var stylesPart = wDoc.MainDocumentPart.StyleDefinitionsPart;
             XDocument sXDoc = null;
             if (stylesPart != null)
+            {
                 sXDoc = stylesPart.GetXDocument();
+            }
 
-            ListItemRetriever.ListItemInfo lif = para.Annotation<ListItemRetriever.ListItemInfo>();
+            var lif = para.Annotation<ListItemRetriever.ListItemInfo>();
 
-            XElement rolledParaProps = ParagraphStyleRollup(para, sXDoc, fai.DefaultParagraphStyleName);
+            var rolledParaProps = ParagraphStyleRollup(para, sXDoc, fai.DefaultParagraphStyleName);
             if (lif != null && lif.IsZeroNumId)
+            {
                 rolledParaProps.Elements(W.ind).Remove();
-            XElement toggledParaProps = MergeStyleElement(rolledParaProps, tablepPr);
-            XElement mergedParaProps = MergeStyleElement(localParaProps, toggledParaProps);
+            }
 
-            string li = ListItemRetriever.RetrieveListItem(wDoc, para, settings.ListItemRetrieverSettings);
+            var toggledParaProps = MergeStyleElement(rolledParaProps, tablepPr);
+            var mergedParaProps = MergeStyleElement(localParaProps, toggledParaProps);
+
+            var li = ListItemRetriever.RetrieveListItem(wDoc, para, settings.ListItemRetrieverSettings);
             if (lif != null && lif.IsListItem)
             {
                 if (settings.RestrictToSupportedNumberingFormats)
                 {
-                    string numFmtForLevel = (string)lif.Lvl(ListItemRetriever.GetParagraphLevel(para)).Elements(W.numFmt).Attributes(W.val).FirstOrDefault();
+                    var numFmtForLevel = (string)lif.Lvl(ListItemRetriever.GetParagraphLevel(para)).Elements(W.numFmt).Attributes(W.val).FirstOrDefault();
                     if (numFmtForLevel == null)
                     {
                         var numFmtElement = lif.Lvl(ListItemRetriever.GetParagraphLevel(para)).Elements(MC.AlternateContent).Elements(MC.Choice).Elements(W.numFmt).FirstOrDefault();
                         if (numFmtElement != null && (string)numFmtElement.Attribute(W.val) == "custom")
+                        {
                             numFmtForLevel = (string)numFmtElement.Attribute(W.format);
+                        }
                     }
-                    bool isLgl = lif.Lvl(ListItemRetriever.GetParagraphLevel(para)).Elements(W.isLgl).Any();
+                    var isLgl = lif.Lvl(ListItemRetriever.GetParagraphLevel(para)).Elements(W.isLgl).Any();
                     if (isLgl && numFmtForLevel != "decimalZero")
+                    {
                         numFmtForLevel = "decimal";
+                    }
+
                     if (!AcceptableNumFormats.Contains(numFmtForLevel))
+                    {
                         throw new UnsupportedNumberingFormatException(numFmtForLevel + " is not a supported numbering format");
+                    }
                 }
 
-                int paragraphLevel = ListItemRetriever.GetParagraphLevel(para);
+                var paragraphLevel = ListItemRetriever.GetParagraphLevel(para);
                 var numberingParaProps = lif
                     .Lvl(paragraphLevel)
                     .Elements(W.pPr)
@@ -1921,7 +2444,7 @@ namespace OpenXmlPowerTools
                 // if a paragraph contains a numPr with a numId=0, in other words, it is NOT a numbered item, then the indentation from the style
                 // hierarchy is ignored.
 
-                ListItemRetriever.ListItemInfo lii = para.Annotation<ListItemRetriever.ListItemInfo>();
+                var lii = para.Annotation<ListItemRetriever.ListItemInfo>();
                 if (lii.FromParagraph != null)
                 {
                     // order
@@ -1950,8 +2473,8 @@ namespace OpenXmlPowerTools
             // merge mergedParaProps with existing accumulatedParaProps, with mergedParaProps as high pri
             // replace accumulatedParaProps with newly merged
 
-            XElement accumulatedParaProps = para.Element(PtOpenXml.pt + "pPr");
-            XElement newAccumulatedParaProps = MergeStyleElement(mergedParaProps, accumulatedParaProps);
+            var accumulatedParaProps = para.Element(PtOpenXml.pt + "pPr");
+            var newAccumulatedParaProps = MergeStyleElement(mergedParaProps, accumulatedParaProps);
 
             AdjustFontAttributes(wDoc, para, newAccumulatedParaProps, newAccumulatedParaProps.Element(W.rPr), settings);
             newAccumulatedParaProps.Name = PtOpenXml.pt + "pPr";
@@ -1965,7 +2488,7 @@ namespace OpenXmlPowerTools
             }
         }
 
-        private static string[] AcceptableNumFormats = new[] {
+        private static readonly string[] AcceptableNumFormats = new[] {
             "decimal",
             "decimalZero",
             "upperRoman",
@@ -1988,10 +2511,16 @@ namespace OpenXmlPowerTools
                 .Attributes(W.val)
                 .FirstOrDefault();
             if (paraStyle == null)
+            {
                 paraStyle = defaultParagraphStyleName;
+            }
+
             var rolledUpParaStyleParaProps = new XElement(W.pPr);
             if (stylesXDoc == null)
+            {
                 return rolledUpParaStyleParaProps;
+            }
+
             if (paraStyle != null)
             {
                 rolledUpParaStyleParaProps = ParaStyleParaPropsStack(stylesXDoc, paraStyle, paragraph)
@@ -2009,11 +2538,14 @@ namespace OpenXmlPowerTools
         private static IEnumerable<XElement> ParaStyleParaPropsStack(XDocument stylesXDoc, string paraStyleName, XElement para)
         {
             if (stylesXDoc == null)
+            {
                 yield break;
+            }
+
             var localParaStyleName = paraStyleName;
             while (localParaStyleName != null)
             {
-                XElement paraStyle = stylesXDoc.Root.Elements(W.style).FirstOrDefault(s =>
+                var paraStyle = stylesXDoc.Root.Elements(W.style).FirstOrDefault(s =>
                     s.Attribute(W.type).Value == "paragraph" &&
                     s.Attribute(W.styleId).Value == localParaStyleName);
                 if (paraStyle == null)
@@ -2046,10 +2578,13 @@ namespace OpenXmlPowerTools
                 {
                     if (listItemInfo.IsListItem)
                     {
-                        XElement lipPr = listItemInfo.Lvl(ListItemRetriever.GetParagraphLevel(para)).Element(W.pPr);
+                        var lipPr = listItemInfo.Lvl(ListItemRetriever.GetParagraphLevel(para)).Element(W.pPr);
                         if (lipPr == null)
+                        {
                             lipPr = new XElement(W.pPr);
-                        XElement lirPr = listItemInfo.Lvl(ListItemRetriever.GetParagraphLevel(para)).Element(W.rPr);
+                        }
+
+                        var lirPr = listItemInfo.Lvl(ListItemRetriever.GetParagraphLevel(para)).Element(W.rPr);
                         var elementToYield2 = new XElement(W.pPr,
                             lipPr.Attributes(),
                             lipPr.Elements(),
@@ -2112,44 +2647,49 @@ namespace OpenXmlPowerTools
                     a.Name == W.endnote);
             if (blockLevelContentContainer.Name == W.tbl)
             {
-                XElement tbl = blockLevelContentContainer;
-                XElement style = tbl.Element(PtOpenXml.pt + "style");
-                XElement cellCnf = runOrPara.Ancestors(W.tc).Take(1).Elements(W.tcPr).Elements(W.cnfStyle).FirstOrDefault();
-                XElement rowCnf = runOrPara.Ancestors(W.tr).Take(1).Elements(W.trPr).Elements(W.cnfStyle).FirstOrDefault();
+                var tbl = blockLevelContentContainer;
+                var style = tbl.Element(PtOpenXml.pt + "style");
+                var cellCnf = runOrPara.Ancestors(W.tc).Take(1).Elements(W.tcPr).Elements(W.cnfStyle).FirstOrDefault();
+                var rowCnf = runOrPara.Ancestors(W.tr).Take(1).Elements(W.trPr).Elements(W.cnfStyle).FirstOrDefault();
 
                 if (style != null)
                 {
                     tablerPr = style.Element(W.rPr);
                     if (tablerPr == null)
+                    {
                         tablerPr = new XElement(W.rPr);
+                    }
 
                     foreach (var ot in TableStyleOverrideTypes)
                     {
-                        XName attName = TableStyleOverrideXNameMap[ot];
+                        var attName = TableStyleOverrideXNameMap[ot];
                         if ((cellCnf != null && cellCnf.Attribute(attName).ToBoolean() == true) ||
                             (rowCnf != null && rowCnf.Attribute(attName).ToBoolean() == true))
                         {
-                            XElement o = style
+                            var o = style
                                 .Elements(W.tblStylePr)
                                 .Where(tsp => (string)tsp.Attribute(W.type) == ot)
                                 .FirstOrDefault();
                             if (o != null)
                             {
-                                XElement otrPr = o.Element(W.rPr);
+                                var otrPr = o.Element(W.rPr);
                                 tablerPr = MergeStyleElement(otrPr, tablerPr);
                             }
                         }
                     }
                 }
             }
-            XElement rolledRunProps = CharStyleRollup(fai, wDoc, runOrPara);
+            var rolledRunProps = CharStyleRollup(fai, wDoc, runOrPara);
             var toggledRunProps = ToggleMergeRunProps(rolledRunProps, tablerPr);
             var currentRunProps = runOrPara.Element(PtOpenXml.rPr); // this is already stored on the run from previous aggregation of props
             var mergedRunProps = MergeStyleElement(toggledRunProps, currentRunProps);
             var newMergedRunProps = MergeStyleElement(localRunProps, mergedRunProps);
             XElement pPr = null;
             if (runOrPara.Name == W.p)
+            {
                 pPr = runOrPara.Element(PtOpenXml.pPr);
+            }
+
             AdjustFontAttributes(wDoc, runOrPara, pPr, newMergedRunProps, settings);
 
             newMergedRunProps.Name = PtOpenXml.rPr;
@@ -2179,7 +2719,9 @@ namespace OpenXmlPowerTools
             {
                 cpi = runOrPara.Annotation<CachedParaInfo>();
                 if (cpi != null)
+                {
                     pPr = cpi.ParagraphProperties;
+                }
                 else
                 {
                     pPr = runOrPara.Element(W.pPr);
@@ -2217,6 +2759,7 @@ namespace OpenXmlPowerTools
                 else
                 {
                     if (runOrPara.Name == W.r)
+                    {
                         charStyle = (string)runOrPara
                             .Ancestors(W.p)
                             .Take(1)
@@ -2224,12 +2767,15 @@ namespace OpenXmlPowerTools
                             .Elements(W.pStyle)
                             .Attributes(W.val)
                             .FirstOrDefault();
+                    }
                     else
+                    {
                         charStyle = (string)runOrPara
                             .Elements(W.pPr)
                             .Elements(W.pStyle)
                             .Attributes(W.val)
                             .FirstOrDefault();
+                    }
                 }
             }
 
@@ -2240,9 +2786,13 @@ namespace OpenXmlPowerTools
                     var ancestorPara = runOrPara.Ancestors(W.p).First();
                     cpi = ancestorPara.Annotation<CachedParaInfo>();
                     if (cpi != null)
+                    {
                         charStyle = cpi.ParagraphStyleName;
+                    }
                     else
+                    {
                         charStyle = (string)runOrPara.Ancestors(W.p).First().Elements(W.pPr).Elements(W.pStyle).Attributes(W.val).FirstOrDefault();
+                    }
                 }
                 if (charStyle == null)
                 {
@@ -2284,17 +2834,21 @@ namespace OpenXmlPowerTools
                 }
             }
             else
+            {
                 paraStyle = fai.DefaultParagraphStyleName;
+            }
 
-            string key = (paraStyle == null ? "[null]" : paraStyle) + "~|~" +
+            var key = (paraStyle == null ? "[null]" : paraStyle) + "~|~" +
                 (charStyle == null ? "[null]" : charStyle);
             XElement rolledRunProps = null;
 
             if (fai.RolledCharacterStyles.ContainsKey(key))
+            {
                 rolledRunProps = fai.RolledCharacterStyles[key];
+            }
             else
             {
-                XElement rolledUpCharStyleRunProps = new XElement(W.rPr);
+                var rolledUpCharStyleRunProps = new XElement(W.rPr);
                 if (charStyle != null)
                 {
                     rolledUpCharStyleRunProps =
@@ -2405,9 +2959,14 @@ namespace OpenXmlPowerTools
         private static XElement ToggleMergeRunProps(XElement higherPriorityElement, XElement lowerPriorityElement)
         {
             if (lowerPriorityElement == null)
+            {
                 return higherPriorityElement;
+            }
+
             if (higherPriorityElement == null)
+            {
                 return lowerPriorityElement;
+            }
 
             var hpe = higherPriorityElement.Elements().Select(e => e.Name).ToArray();
 
@@ -2468,7 +3027,7 @@ namespace OpenXmlPowerTools
             return newMergedElement;
         }
 
-        private static XName[] TogglePropertyNames = new[] {
+        private static readonly XName[] TogglePropertyNames = new[] {
             W.b,
             W.bCs,
             W.caps,
@@ -2483,7 +3042,7 @@ namespace OpenXmlPowerTools
             W.vanish
         };
 
-        private static XName[] PropertyNames = new[] {
+        private static readonly XName[] PropertyNames = new[] {
             W.cs,
             W.rtl,
             W.u,
@@ -2514,40 +3073,43 @@ namespace OpenXmlPowerTools
                 Properties = new Dictionary<XName, XElement>();
 
                 if (rPr == null)
+                {
                     return;
-                foreach (XName xn in TogglePropertyNames)
+                }
+
+                foreach (var xn in TogglePropertyNames)
                 {
                     ToggleProperties[xn] = GetBoolProperty(rPr, xn);
                 }
-                foreach (XName xn in PropertyNames)
+                foreach (var xn in PropertyNames)
                 {
                     Properties[xn] = GetXmlProperty(rPr, xn);
                 }
                 var rFonts = rPr.Element(W.rFonts);
                 if (rFonts == null)
                 {
-                    this.AsciiFont = null;
-                    this.HAnsiFont = null;
-                    this.EastAsiaFont = null;
-                    this.CsFont = null;
-                    this.Hint = null;
+                    AsciiFont = null;
+                    HAnsiFont = null;
+                    EastAsiaFont = null;
+                    CsFont = null;
+                    Hint = null;
                 }
                 else
                 {
-                    this.AsciiFont = (string)(rFonts.Attribute(W.ascii));
-                    this.HAnsiFont = (string)(rFonts.Attribute(W.hAnsi));
-                    this.EastAsiaFont = (string)(rFonts.Attribute(W.eastAsia));
-                    this.CsFont = (string)(rFonts.Attribute(W.cs));
-                    this.Hint = (string)(rFonts.Attribute(W.hint));
+                    AsciiFont = (string)(rFonts.Attribute(W.ascii));
+                    HAnsiFont = (string)(rFonts.Attribute(W.hAnsi));
+                    EastAsiaFont = (string)(rFonts.Attribute(W.eastAsia));
+                    CsFont = (string)(rFonts.Attribute(W.cs));
+                    Hint = (string)(rFonts.Attribute(W.hint));
                 }
-                XElement csel = this.Properties[W.cs];
-                bool cs = csel != null && (csel.Attribute(W.val) == null || csel.Attribute(W.val).ToBoolean() == true);
-                XElement rtlel = this.Properties[W.rtl];
-                bool rtl = rtlel != null && (rtlel.Attribute(W.val) == null || rtlel.Attribute(W.val).ToBoolean() == true);
+                var csel = Properties[W.cs];
+                var cs = csel != null && (csel.Attribute(W.val) == null || csel.Attribute(W.val).ToBoolean() == true);
+                var rtlel = Properties[W.rtl];
+                var rtl = rtlel != null && (rtlel.Attribute(W.val) == null || rtlel.Attribute(W.val).ToBoolean() == true);
                 var bidi = false;
                 if (pPr != null)
                 {
-                    XElement bidiel = pPr.Element(W.bidi);
+                    var bidiel = pPr.Element(W.bidi);
                     bidi = bidiel != null && (bidiel.Attribute(W.val) == null || bidiel.Attribute(W.val).ToBoolean() == true);
                 }
                 Rtl = cs || rtl || bidi;
@@ -2563,22 +3125,46 @@ namespace OpenXmlPowerTools
             private static bool? GetBoolProperty(XElement rPr, XName propertyName)
             {
                 if (rPr.Element(propertyName) == null)
+                {
                     return null;
+                }
+
                 var s = (string)rPr.Element(propertyName).Attribute(W.val);
                 if (s == null)
+                {
                     return true;
+                }
+
                 if (s == "1")
+                {
                     return true;
+                }
+
                 if (s == "0")
+                {
                     return false;
+                }
+
                 if (s == "true")
+                {
                     return true;
+                }
+
                 if (s == "false")
+                {
                     return false;
+                }
+
                 if (s == "on")
+                {
                     return true;
+                }
+
                 if (s == "off")
+                {
                     return false;
+                }
+
                 return (bool)(rPr.Element(propertyName).Attribute(W.val));
             }
 
@@ -2587,7 +3173,7 @@ namespace OpenXmlPowerTools
                 return rPr.Element(propertyName);
             }
 
-            private static XName[] TogglePropertyNames = new[] {
+            private static readonly XName[] TogglePropertyNames = new[] {
                 W.b,
                 W.bCs,
                 W.caps,
@@ -2602,7 +3188,7 @@ namespace OpenXmlPowerTools
                 W.vanish
             };
 
-            private static XName[] PropertyNames = new[] {
+            private static readonly XName[] PropertyNames = new[] {
                 W.cs,
                 W.rtl,
                 W.u,
@@ -2610,10 +3196,9 @@ namespace OpenXmlPowerTools
                 W.highlight,
                 W.shd
             };
-
         }
 
-        private static HashSet<char> WeakAndNeutralDirectionalCharacters = new HashSet<char>() {
+        private static readonly HashSet<char> WeakAndNeutralDirectionalCharacters = new HashSet<char>() {
             '0',
             '1',
             '2',
@@ -2640,7 +3225,7 @@ namespace OpenXmlPowerTools
             '\x066B', // arabic decimal separator
             '\x066C', // arabic thousands separator
 
-            '\x0627', // arabic pipe 
+            '\x0627', // arabic pipe
 
             '\x20A0', // start currency symbols
             '\x20A1',
@@ -2719,7 +3304,9 @@ namespace OpenXmlPowerTools
         {
             XDocument themeXDoc = null;
             if (wDoc.MainDocumentPart.ThemePart != null)
+            {
                 themeXDoc = wDoc.MainDocumentPart.ThemePart.GetXDocument();
+            }
 
             XElement fontScheme = null;
             XElement majorFont = null;
@@ -2823,14 +3410,18 @@ namespace OpenXmlPowerTools
             }
 
             var firstTextNode = paraOrRun.Descendants(W.t).FirstOrDefault(t => t.Value.Length > 0);
-            string str = " ";
+            var str = " ";
 
             // if there is a run with no text in it, then no need to do any of the rest of this method.
             if (firstTextNode == null && paraOrRun.Name == W.r)
+            {
                 return;
+            }
 
             if (firstTextNode != null)
+            {
                 str = firstTextNode.Value;
+            }
 
             var csa = new CharStyleAttributes(pPr, rPr);
 
@@ -2846,12 +3437,16 @@ namespace OpenXmlPowerTools
                 switch (ft) {
                     case Pav.FontType.Ascii:
                         return cast(rFonts.attribute(W.ascii));
+
                     case Pav.FontType.HAnsi:
                         return cast(rFonts.attribute(W.hAnsi));
+
                     case Pav.FontType.EastAsia:
                         return cast(rFonts.attribute(W.eastAsia));
+
                     case Pav.FontType.CS:
                         return cast(rFonts.attribute(W.cs));
+
                     default:
                         return null;
                 }
@@ -2862,9 +3457,11 @@ namespace OpenXmlPowerTools
                 .toArray();
             */
 
-            var charToExamine = str.FirstOrDefault(c => ! WeakAndNeutralDirectionalCharacters.Contains(c));
+            var charToExamine = str.FirstOrDefault(c => !WeakAndNeutralDirectionalCharacters.Contains(c));
             if (charToExamine == '\0')
+            {
                 charToExamine = str[0];
+            }
 
             var ft = DetermineFontTypeFromCharacter(charToExamine, csa);
             string fontType = null;
@@ -2875,19 +3472,28 @@ namespace OpenXmlPowerTools
                     fontType = (string)rFonts.Attribute(W.ascii);
                     languageType = "western";
                     break;
+
                 case FontType.HAnsi:
                     fontType = (string)rFonts.Attribute(W.hAnsi);
                     languageType = "western";
                     break;
+
                 case FontType.EastAsia:
                     if (settings.RestrictToSupportedLanguages)
+                    {
                         throw new UnsupportedLanguageException("EastAsia languages are not supported");
+                    }
+
                     fontType = (string)rFonts.Attribute(W.eastAsia);
                     languageType = "eastAsia";
                     break;
+
                 case FontType.CS:
                     if (settings.RestrictToSupportedLanguages)
+                    {
                         throw new UnsupportedLanguageException("Complex script (RTL) languages are not supported");
+                    }
+
                     fontType = (string)rFonts.Attribute(W.cs);
                     languageType = "bidi";
                     break;
@@ -2897,7 +3503,7 @@ namespace OpenXmlPowerTools
             {
                 if (paraOrRun.Attribute(PtOpenXml.FontName) == null)
                 {
-                    XAttribute fta = new XAttribute(PtOpenXml.FontName, fontType.ToString());
+                    var fta = new XAttribute(PtOpenXml.FontName, fontType.ToString());
                     paraOrRun.Add(fta);
                 }
                 else
@@ -2909,7 +3515,7 @@ namespace OpenXmlPowerTools
             {
                 if (paraOrRun.Attribute(PtOpenXml.LanguageType) == null)
                 {
-                    XAttribute lta = new XAttribute(PtOpenXml.LanguageType, languageType);
+                    var lta = new XAttribute(PtOpenXml.LanguageType, languageType);
                     paraOrRun.Add(lta);
                 }
                 else
@@ -3439,9 +4045,14 @@ namespace OpenXmlPowerTools
                 if (csa.Hint == "eastAsia")
                 {
                     if (ch >= 0xFB00 && ch <= 0xFB1C)
+                    {
                         return FontType.EastAsia;
+                    }
+
                     if (ch >= 0xFB1D && ch <= 0xFB4F)
+                    {
                         return FontType.Ascii;
+                    }
                 }
                 return FontType.HAnsi;
             }
@@ -3484,6 +4095,7 @@ namespace OpenXmlPowerTools
             public string DefaultCharacterStyleName;
             public string DefaultTableStyleName;
             public Dictionary<string, XElement> RolledCharacterStyles;
+
             public FormattingAssemblerInfo()
             {
                 RolledCharacterStyles = new Dictionary<string, XElement>();
@@ -3499,12 +4111,16 @@ namespace OpenXmlPowerTools
 
         public class UnsupportedNumberingFormatException : Exception
         {
-            public UnsupportedNumberingFormatException(string message) : base(message) { }
+            public UnsupportedNumberingFormatException(string message) : base(message)
+            {
+            }
         }
 
         public class UnsupportedLanguageException : Exception
         {
-            public UnsupportedLanguageException(string message) : base(message) { }
+            public UnsupportedLanguageException(string message) : base(message)
+            {
+            }
         }
     }
 }

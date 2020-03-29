@@ -61,7 +61,7 @@ namespace OpenXmlPowerTools
         public ComparisonUnitWord(IEnumerable<ComparisonUnitAtom> comparisonUnitAtomList)
         {
             Contents = comparisonUnitAtomList.OfType<ComparisonUnit>().ToList();
-            string sha1String = Contents.Select(c => c.SHA1Hash).StringConcatenate();
+            var sha1String = Contents.Select(c => c.SHA1Hash).StringConcatenate();
             SHA1Hash = WmlComparerUtil.SHA1HashStringForUTF8String(sha1String);
         }
 
@@ -70,7 +70,7 @@ namespace OpenXmlPowerTools
             var sb = new StringBuilder();
             sb.Append("".PadRight(indent) + "Word SHA1:" + SHA1Hash.Substring(0, 8) + Environment.NewLine);
 
-            foreach (ComparisonUnit comparisonUnitAtom in Contents)
+            foreach (var comparisonUnitAtom in Contents)
             {
                 sb.Append(comparisonUnitAtom.ToString(indent + 2) + Environment.NewLine);
             }

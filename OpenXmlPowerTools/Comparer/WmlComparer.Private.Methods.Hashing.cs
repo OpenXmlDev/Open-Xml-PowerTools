@@ -1,12 +1,11 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using DocumentFormat.OpenXml.Packaging;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Xml.Linq;
-using DocumentFormat.OpenXml.Packaging;
 
 namespace OpenXmlPowerTools
 {
@@ -23,42 +22,42 @@ namespace OpenXmlPowerTools
                 msSource.Write(source.DocumentByteArray, 0, source.DocumentByteArray.Length);
                 msAfterProc.Write(sourceAfterProc.DocumentByteArray, 0, sourceAfterProc.DocumentByteArray.Length);
 
-                using (WordprocessingDocument wDocSource = WordprocessingDocument.Open(msSource, true))
-                using (WordprocessingDocument wDocAfterProc = WordprocessingDocument.Open(msAfterProc, true))
+                using (var wDocSource = WordprocessingDocument.Open(msSource, true))
+                using (var wDocAfterProc = WordprocessingDocument.Open(msAfterProc, true))
                 {
                     // create Unid dictionary for source
-                    XDocument sourceMainXDoc = wDocSource.MainDocumentPart.GetXDocument();
-                    XElement sourceMainRoot = sourceMainXDoc.Root ?? throw new ArgumentException();
-                    Dictionary<string, XElement> sourceUnidDict = sourceMainRoot
+                    var sourceMainXDoc = wDocSource.MainDocumentPart.GetXDocument();
+                    var sourceMainRoot = sourceMainXDoc.Root ?? throw new ArgumentException();
+                    var sourceUnidDict = sourceMainRoot
                         .Descendants()
                         .Where(d => d.Name == W.p || d.Name == W.tbl || d.Name == W.tr)
-                        .ToDictionary(d => (string) d.Attribute(PtOpenXml.Unid));
+                        .ToDictionary(d => (string)d.Attribute(PtOpenXml.Unid));
 
-                    XDocument afterProcMainXDoc = wDocAfterProc.MainDocumentPart.GetXDocument();
-                    XElement afterProcMainRoot = afterProcMainXDoc.Root ?? throw new ArgumentException();
-                    IEnumerable<XElement> blockLevelElements = afterProcMainRoot
+                    var afterProcMainXDoc = wDocAfterProc.MainDocumentPart.GetXDocument();
+                    var afterProcMainRoot = afterProcMainXDoc.Root ?? throw new ArgumentException();
+                    var blockLevelElements = afterProcMainRoot
                         .Descendants()
                         .Where(d => d.Name == W.p || d.Name == W.tbl || d.Name == W.tr);
 
-                    foreach (XElement blockLevelContent in blockLevelElements)
+                    foreach (var blockLevelContent in blockLevelElements)
                     {
-                        var cloneBlockLevelContentForHashing = (XElement) CloneBlockLevelContentForHashing(
+                        var cloneBlockLevelContentForHashing = (XElement)CloneBlockLevelContentForHashing(
                             wDocAfterProc.MainDocumentPart,
                             blockLevelContent,
                             true,
                             settings);
 
-                        string shaString = cloneBlockLevelContentForHashing
+                        var shaString = cloneBlockLevelContentForHashing
                             .ToString(SaveOptions.DisableFormatting)
                             .Replace(" xmlns=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"", "");
 
-                        string sha1Hash = WmlComparerUtil.SHA1HashStringForUTF8String(shaString);
-                        var thisUnid = (string) blockLevelContent.Attribute(PtOpenXml.Unid);
+                        var sha1Hash = WmlComparerUtil.SHA1HashStringForUTF8String(shaString);
+                        var thisUnid = (string)blockLevelContent.Attribute(PtOpenXml.Unid);
                         if (thisUnid != null)
                         {
                             if (sourceUnidDict.ContainsKey(thisUnid))
                             {
-                                XElement correlatedBlockLevelContent = sourceUnidDict[thisUnid];
+                                var correlatedBlockLevelContent = sourceUnidDict[thisUnid];
                                 correlatedBlockLevelContent.Add(new XAttribute(PtOpenXml.CorrelatedSHA1Hash, sha1Hash));
                             }
                         }
@@ -110,7 +109,7 @@ namespace OpenXmlPowerTools
                         element.Nodes().Select(n =>
                             CloneBlockLevelContentForHashing(mainDocumentPart, n, includeRelatedParts, settings)));
 
-                    IEnumerable<IGrouping<bool, XElement>> groupedRuns = clonedPara
+                    var groupedRuns = clonedPara
                         .Elements()
                         .GroupAdjacent(e => e.Name == W.r &&
                                             e.Elements().Count() == 1 &&
@@ -121,10 +120,13 @@ namespace OpenXmlPowerTools
                         {
                             if (g.Key)
                             {
-                                string text = g.Select(t => t.Value).StringConcatenate();
+                                var text = g.Select(t => t.Value).StringConcatenate();
                                 if (settings.CaseInsensitive)
+                                {
                                     text = text.ToUpper(settings.CultureInfo);
-                                var newRun = (object) new XElement(W.r,
+                                }
+
+                                var newRun = (object)new XElement(W.r,
                                     new XElement(W.t,
                                         text));
                                 return newRun;
@@ -138,7 +140,7 @@ namespace OpenXmlPowerTools
 
                 if (element.Name == W.r)
                 {
-                    IEnumerable<XElement> clonedRuns = element
+                    var clonedRuns = element
                         .Elements()
                         .Where(e => e.Name != W.rPr)
                         .Select(rc => new XElement(W.r,
@@ -181,7 +183,7 @@ namespace OpenXmlPowerTools
                 if (element.Name == W.gridSpan)
                 {
                     var clonedGridSpan = new XElement(W.gridSpan,
-                        new XAttribute("val", (string) element.Attribute(W.val)));
+                        new XAttribute("val", (string)element.Attribute(W.val)));
                     return clonedGridSpan;
                 }
 
@@ -204,32 +206,38 @@ namespace OpenXmlPowerTools
                                 .Select(a =>
                                 {
                                     if (!ComparisonUnitWord.RelationshipAttributeNames.Contains(a.Name))
+                                    {
                                         return a;
+                                    }
 
-                                    var rId = (string) a;
+                                    var rId = (string)a;
 
                                     // could be an hyperlink relationship
                                     try
                                     {
-                                        OpenXmlPart oxp = mainDocumentPart.GetPartById(rId);
+                                        var oxp = mainDocumentPart.GetPartById(rId);
                                         if (oxp == null)
+                                        {
                                             throw new FileFormatException("Invalid WordprocessingML Document");
+                                        }
 
                                         var anno = oxp.Annotation<PartSHA1HashAnnotation>();
                                         if (anno != null)
+                                        {
                                             return new XAttribute(a.Name, anno.Hash);
+                                        }
 
                                         if (!oxp.ContentType.EndsWith("xml"))
                                         {
-                                            using (Stream str = oxp.GetStream())
+                                            using (var str = oxp.GetStream())
                                             {
                                                 byte[] ba;
                                                 using (var br = new BinaryReader(str))
                                                 {
-                                                    ba = br.ReadBytes((int) str.Length);
+                                                    ba = br.ReadBytes((int)str.Length);
                                                 }
 
-                                                string sha1 = WmlComparerUtil.SHA1HashStringForByteArray(ba);
+                                                var sha1 = WmlComparerUtil.SHA1HashStringForByteArray(ba);
                                                 oxp.AddAnnotation(new PartSHA1HashAnnotation(sha1));
                                                 return new XAttribute(a.Name, sha1);
                                             }
@@ -237,20 +245,20 @@ namespace OpenXmlPowerTools
                                     }
                                     catch (ArgumentOutOfRangeException)
                                     {
-                                        HyperlinkRelationship hr =
+                                        var hr =
                                             mainDocumentPart.HyperlinkRelationships.FirstOrDefault(z => z.Id == rId);
                                         if (hr != null)
                                         {
-                                            string str = hr.Uri.ToString();
+                                            var str = hr.Uri.ToString();
                                             return new XAttribute(a.Name, str);
                                         }
 
                                         // could be an external relationship
-                                        ExternalRelationship er =
+                                        var er =
                                             mainDocumentPart.ExternalRelationships.FirstOrDefault(z => z.Id == rId);
                                         if (er != null)
                                         {
-                                            string str = er.Uri.ToString();
+                                            var str = er.Uri.ToString();
                                             return new XAttribute(a.Name, str);
                                         }
 
@@ -317,7 +325,7 @@ namespace OpenXmlPowerTools
             {
                 if (node is XText xt)
                 {
-                    string newText = xt.Value.ToUpper(settings.CultureInfo);
+                    var newText = xt.Value.ToUpper(settings.CultureInfo);
                     return new XText(newText);
                 }
             }

@@ -42,14 +42,19 @@ namespace OpenXmlPowerTools
             {
                 case "p":
                     return ComparisonUnitGroupType.Paragraph;
+
                 case "tbl":
                     return ComparisonUnitGroupType.Table;
+
                 case "tr":
                     return ComparisonUnitGroupType.Row;
+
                 case "tc":
                     return ComparisonUnitGroupType.Cell;
+
                 case "txbxContent":
                     return ComparisonUnitGroupType.Textbox;
+
                 default:
                     throw new ArgumentOutOfRangeException(nameof(localName),
                         $@"Unsupported localName: '{localName}'.");
