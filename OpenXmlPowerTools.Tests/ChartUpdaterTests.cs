@@ -1,17 +1,10 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Drawing.Imaging;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml.Linq;
 using DocumentFormat.OpenXml.Packaging;
 using OpenXmlPowerTools;
+using System;
+using System.IO;
 using Xunit;
 
 #if !ELIDE_XUNIT_TESTS
@@ -29,7 +22,6 @@ namespace OxPt
         [InlineData("CU006-Chart-Cached-Data-06.docx")]
         [InlineData("CU007-Chart-Cached-Data-07.docx")]
         [InlineData("CU008-Chart-Cached-Data-08.docx")]
-
         [InlineData("CU009-Chart-Embedded-Xlsx-01.docx")]
         [InlineData("CU010-Chart-Embedded-Xlsx-02.docx")]
         [InlineData("CU011-Chart-Embedded-Xlsx-03.docx")]
@@ -39,18 +31,16 @@ namespace OxPt
         [InlineData("CU015-Chart-Embedded-Xlsx-07.docx")]
         [InlineData("CU016-Chart-Embedded-Xlsx-08.docx")]
         [InlineData("CU017-Chart-Embedded-Xlsx-10.docx")]
-
         [InlineData("CU018-Chart-Cached-Data-41.pptx")]
         [InlineData("CU019-Chart-Embedded-Xlsx-41.pptx")]
-
         public void CU001(string name)
         {
-            DirectoryInfo sourceDir = new DirectoryInfo("../../../../TestFiles/");
-            FileInfo templateFile = new FileInfo(Path.Combine(sourceDir.FullName, name));
+            var sourceDir = new DirectoryInfo("../../../../TestFiles/");
+            var templateFile = new FileInfo(Path.Combine(sourceDir.FullName, name));
 
             if (templateFile.Extension.ToLower() == ".docx")
             {
-                WmlDocument wmlTemplate = new WmlDocument(templateFile.FullName);
+                var wmlTemplate = new WmlDocument(templateFile.FullName);
 
                 var afterUpdatingDocx = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, templateFile.Name.Replace(".docx", "-processed-by-ChartUpdater.docx")));
                 wmlTemplate.SaveAs(afterUpdatingDocx.FullName);
@@ -191,7 +181,7 @@ namespace OxPt
             }
             if (templateFile.Extension.ToLower() == ".pptx")
             {
-                PmlDocument pmlTemplate = new PmlDocument(templateFile.FullName);
+                var pmlTemplate = new PmlDocument(templateFile.FullName);
 
                 var afterUpdatingPptx = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, templateFile.Name.Replace(".pptx", "-processed-by-ChartUpdater.pptx")));
                 pmlTemplate.SaveAs(afterUpdatingPptx.FullName);

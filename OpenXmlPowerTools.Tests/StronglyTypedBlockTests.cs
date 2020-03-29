@@ -1,13 +1,13 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using DocumentFormat.OpenXml.Packaging;
+using DocumentFormat.OpenXml.Wordprocessing;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Xml.Linq;
-using DocumentFormat.OpenXml.Packaging;
-using DocumentFormat.OpenXml.Wordprocessing;
 using Xunit;
 
 #if !ELIDE_XUNIT_TESTS
@@ -23,13 +23,13 @@ namespace OpenXmlPowerTools.Tests
             {
                 CreateEmptyWordprocessingDocument(stream);
 
-                using (WordprocessingDocument wordDocument = WordprocessingDocument.Open(stream, true))
+                using (var wordDocument = WordprocessingDocument.Open(stream, true))
                 {
-                    MainDocumentPart part = wordDocument.MainDocumentPart;
+                    var part = wordDocument.MainDocumentPart;
 
                     // Add a paragraph through the PowerTools.
-                    XDocument content = part.GetXDocument();
-                    XElement bodyElement = content.Descendants(W.body).First();
+                    var content = part.GetXDocument();
+                    var bodyElement = content.Descendants(W.body).First();
                     bodyElement.Add(new XElement(W.p, new XElement(W.r, new XElement(W.t, "Added through PowerTools"))));
                     part.PutXDocument();
 
@@ -38,8 +38,8 @@ namespace OpenXmlPowerTools.Tests
                     using (new StronglyTypedBlock(wordDocument))
                     {
                         // Assert that we can see the paragraph added through the PowerTools.
-                        Body body = part.Document.Body;
-                        List<Paragraph> paragraphs = body.Elements<Paragraph>().ToList();
+                        var body = part.Document.Body;
+                        var paragraphs = body.Elements<Paragraph>().ToList();
                         Assert.Single(paragraphs);
                         Assert.Equal("Added through PowerTools", paragraphs[0].InnerText);
 
@@ -49,7 +49,7 @@ namespace OpenXmlPowerTools.Tests
 
                     // Assert that we can see the paragraphs added through the PowerTools and the SDK.
                     content = part.GetXDocument();
-                    List<XElement> paragraphElements = content.Descendants(W.p).ToList();
+                    var paragraphElements = content.Descendants(W.p).ToList();
                     Assert.Equal(2, paragraphElements.Count);
                     Assert.Equal("Added through PowerTools", paragraphElements[0].Value);
                     Assert.Equal("Added through SDK", paragraphElements[1].Value);

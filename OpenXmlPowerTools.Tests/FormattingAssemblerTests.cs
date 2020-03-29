@@ -1,19 +1,14 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using DocumentFormat.OpenXml.Packaging;
+using DocumentFormat.OpenXml.Validation;
+using OpenXmlPowerTools;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
-using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
-using System.Xml.Linq;
-using DocumentFormat.OpenXml.Packaging;
-using DocumentFormat.OpenXml.Validation;
-using DocumentFormat.OpenXml.Wordprocessing;
-using OpenXmlPowerTools;
 using Xunit;
 
 #if !ELIDE_XUNIT_TESTS
@@ -47,23 +42,27 @@ namespace OxPt
         [InlineData("FA001-00220", "FA/RevTracking/022-TablePropertiesChange.docx")]
         [InlineData("FA001-00230", "FA/RevTracking/023-CellPropertiesChange.docx")]
         [InlineData("FA001-00240", "FA/RevTracking/024-RowPropertiesChange.docx")]
-
         public void FA001_DocumentsWithRevTracking(string testId, string src)
         {
             ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // Load the source document
-            DirectoryInfo sourceDir = new DirectoryInfo("../../../../TestFiles/");
-            FileInfo sourceDocxFi = new FileInfo(Path.Combine(sourceDir.FullName, src));
-            WmlDocument wmlSourceDocument = new WmlDocument(sourceDocxFi.FullName);
+            var sourceDir = new DirectoryInfo("../../../../TestFiles/");
+            var sourceDocxFi = new FileInfo(Path.Combine(sourceDir.FullName, src));
+            var wmlSourceDocument = new WmlDocument(sourceDocxFi.FullName);
 
             ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // Create the dir for the test
             var rootTempDir = TestUtil.TempDir;
             var thisTestTempDir = new DirectoryInfo(Path.Combine(rootTempDir.FullName, testId));
             if (thisTestTempDir.Exists)
+            {
                 Assert.True(false, "Duplicate test id: " + testId);
+            }
             else
+            {
                 thisTestTempDir.Create();
+            }
+
             var tempDirFullName = thisTestTempDir.FullName;
 
             ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -71,14 +70,16 @@ namespace OxPt
 
             var sourceDocxCopiedToDestFileName = new FileInfo(Path.Combine(tempDirFullName, sourceDocxFi.Name));
             if (!sourceDocxCopiedToDestFileName.Exists)
+            {
                 wmlSourceDocument.SaveAs(sourceDocxCopiedToDestFileName.FullName);
+            }
 
             var sourceDocxAcceptedCopiedToDestFileName = new FileInfo(Path.Combine(tempDirFullName, sourceDocxFi.Name.ToLower().Replace(".docx", "-accepted.docx")));
             var wmlSourceAccepted = RevisionProcessor.AcceptRevisions(wmlSourceDocument);
             wmlSourceAccepted.SaveAs(sourceDocxAcceptedCopiedToDestFileName.FullName);
 
             var outFi = new FileInfo(Path.Combine(tempDirFullName, "Output.docx"));
-            FormattingAssemblerSettings settings = new FormattingAssemblerSettings();
+            var settings = new FormattingAssemblerSettings();
             var assembledWml = FormattingAssembler.AssembleFormatting(wmlSourceDocument, settings);
             assembledWml.SaveAs(outFi.FullName);
 
@@ -91,9 +92,9 @@ namespace OxPt
 
         private void Validate(FileInfo fi)
         {
-            using (WordprocessingDocument wDoc = WordprocessingDocument.Open(fi.FullName, true))
+            using (var wDoc = WordprocessingDocument.Open(fi.FullName, true))
             {
-                OpenXmlValidator v = new OpenXmlValidator();
+                var v = new OpenXmlValidator();
                 var errors = v.Validate(wDoc).Where(ve =>
                 {
                     var found = s_ExpectedErrors.Any(xe => ve.Description.Contains(xe));
@@ -102,7 +103,7 @@ namespace OxPt
 
                 if (errors.Count() != 0)
                 {
-                    StringBuilder sb = new StringBuilder();
+                    var sb = new StringBuilder();
                     foreach (var item in errors)
                     {
                         sb.Append(item.Description).Append(Environment.NewLine);
@@ -113,7 +114,7 @@ namespace OxPt
             }
         }
 
-        private static List<string> s_ExpectedErrors = new List<string>()
+        private static readonly List<string> s_ExpectedErrors = new List<string>()
         {
             "The 'http://schemas.openxmlformats.org/wordprocessingml/2006/main:evenHBand' attribute is not declared.",
             "The 'http://schemas.openxmlformats.org/wordprocessingml/2006/main:evenVBand' attribute is not declared.",
@@ -147,4 +148,5 @@ namespace OxPt
         };
     }
 }
+
 #endif

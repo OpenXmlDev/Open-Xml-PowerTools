@@ -5,17 +5,13 @@
 
 // DO_CONVERSION_VIA_WORD is defined in the project OpenXmlPowerTools.Tests.OA.csproj, but not in the OpenXmlPowerTools.Tests.csproj
 
-using System;
-using System.Collections.Generic;
-using System.Drawing;
+using DocumentFormat.OpenXml.Packaging;
+using OpenXmlPowerTools;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using System.Xml.Linq;
-using DocumentFormat.OpenXml.Packaging;
-using OpenXmlPowerTools;
 using Xunit;
 
 #if DO_CONVERSION_VIA_WORD
@@ -89,20 +85,23 @@ namespace OxPt
         [InlineData("HC051-Shaded-Text-02.docx")]
         [InlineData("HC060-Image-with-Hyperlink.docx")]
         [InlineData("HC061-Hyperlink-in-Field.docx")]
-        
         public void HC001(string name)
         {
-            DirectoryInfo sourceDir = new DirectoryInfo("../../../../TestFiles/");
-            FileInfo sourceDocx = new FileInfo(Path.Combine(sourceDir.FullName, name));
+            var sourceDir = new DirectoryInfo("../../../../TestFiles/");
+            var sourceDocx = new FileInfo(Path.Combine(sourceDir.FullName, name));
 
 #if COPY_FILES_FOR_DEBUGGING
             var sourceCopiedToDestDocx = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, sourceDocx.Name.Replace(".docx", "-1-Source.docx")));
             if (!sourceCopiedToDestDocx.Exists)
+            {
                 File.Copy(sourceDocx.FullName, sourceCopiedToDestDocx.FullName);
+            }
 
             var assembledFormattingDestDocx = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, sourceDocx.Name.Replace(".docx", "-2-FormattingAssembled.docx")));
             if (!assembledFormattingDestDocx.Exists)
+            {
                 CopyFormattingAssembledDocx(sourceDocx, assembledFormattingDestDocx);
+            }
 #endif
 
             var oxPtConvertedDestHtml = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, sourceDocx.Name.Replace(".docx", "-3-OxPt.html")));
@@ -112,15 +111,14 @@ namespace OxPt
             var wordConvertedDocHtml = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, sourceDocx.Name.Replace(".docx", "-4-Word.html")));
             ConvertToHtmlUsingWord(sourceDocx, wordConvertedDocHtml);
 #endif
-
         }
 
         [Theory]
         [InlineData("HC006-Test-01.docx")]
         public void HC002_NoCssClasses(string name)
         {
-            DirectoryInfo sourceDir = new DirectoryInfo("../../../../TestFiles/");
-            FileInfo sourceDocx = new FileInfo(Path.Combine(sourceDir.FullName, name));
+            var sourceDir = new DirectoryInfo("../../../../TestFiles/");
+            var sourceDocx = new FileInfo(Path.Combine(sourceDir.FullName, name));
 
             var oxPtConvertedDestHtml = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, sourceDocx.Name.Replace(".docx", "-5-OxPt-No-CSS-Classes.html")));
             ConvertToHtmlNoCssClasses(sourceDocx, oxPtConvertedDestHtml);
@@ -129,14 +127,13 @@ namespace OxPt
         private static void CopyFormattingAssembledDocx(FileInfo source, FileInfo dest)
         {
             var ba = File.ReadAllBytes(source.FullName);
-            using (MemoryStream ms = new MemoryStream())
+            using (var ms = new MemoryStream())
             {
                 ms.Write(ba, 0, ba.Length);
-                using (WordprocessingDocument wordDoc = WordprocessingDocument.Open(ms, true))
+                using (var wordDoc = WordprocessingDocument.Open(ms, true))
                 {
-
                     RevisionAccepter.AcceptRevisions(wordDoc);
-                    SimplifyMarkupSettings simplifyMarkupSettings = new SimplifyMarkupSettings
+                    var simplifyMarkupSettings = new SimplifyMarkupSettings
                     {
                         RemoveComments = true,
                         RemoveContentControls = true,
@@ -153,7 +150,7 @@ namespace OxPt
                     };
                     MarkupSimplifier.SimplifyMarkup(wordDoc, simplifyMarkupSettings);
 
-                    FormattingAssemblerSettings formattingAssemblerSettings = new FormattingAssemblerSettings
+                    var formattingAssemblerSettings = new FormattingAssemblerSettings
                     {
                         RemoveStyleNamesFromParagraphAndRunProperties = false,
                         ClearStyles = false,
@@ -177,21 +174,23 @@ namespace OxPt
 
         private static void ConvertToHtml(FileInfo sourceDocx, FileInfo destFileName)
         {
-            byte[] byteArray = File.ReadAllBytes(sourceDocx.FullName);
-            using (MemoryStream memoryStream = new MemoryStream())
+            var byteArray = File.ReadAllBytes(sourceDocx.FullName);
+            using (var memoryStream = new MemoryStream())
             {
                 memoryStream.Write(byteArray, 0, byteArray.Length);
-                using (WordprocessingDocument wDoc = WordprocessingDocument.Open(memoryStream, true))
+                using (var wDoc = WordprocessingDocument.Open(memoryStream, true))
                 {
                     var outputDirectory = destFileName.Directory;
                     destFileName = new FileInfo(Path.Combine(outputDirectory.FullName, destFileName.Name));
                     var imageDirectoryName = destFileName.FullName.Substring(0, destFileName.FullName.Length - 5) + "_files";
-                    int imageCounter = 0;
+                    var imageCounter = 0;
                     var pageTitle = (string)wDoc.CoreFilePropertiesPart.GetXDocument().Descendants(DC.title).FirstOrDefault();
                     if (pageTitle == null)
+                    {
                         pageTitle = sourceDocx.FullName;
+                    }
 
-                    WmlToHtmlConverterSettings settings = new WmlToHtmlConverterSettings()
+                    var settings = new WmlToHtmlConverterSettings()
                     {
                         PageTitle = pageTitle,
                         FabricateCssClasses = true,
@@ -200,11 +199,14 @@ namespace OxPt
                         RestrictToSupportedNumberingFormats = false,
                         ImageHandler = imageInfo =>
                         {
-                            DirectoryInfo localDirInfo = new DirectoryInfo(imageDirectoryName);
+                            var localDirInfo = new DirectoryInfo(imageDirectoryName);
                             if (!localDirInfo.Exists)
+                            {
                                 localDirInfo.Create();
+                            }
+
                             ++imageCounter;
-                            string extension = imageInfo.ContentType.Split('/')[1].ToLower();
+                            var extension = imageInfo.ContentType.Split('/')[1].ToLower();
                             ImageFormat imageFormat = null;
                             if (extension == "png")
                             {
@@ -213,11 +215,17 @@ namespace OxPt
                                 imageFormat = ImageFormat.Gif;
                             }
                             else if (extension == "gif")
+                            {
                                 imageFormat = ImageFormat.Gif;
+                            }
                             else if (extension == "bmp")
+                            {
                                 imageFormat = ImageFormat.Bmp;
+                            }
                             else if (extension == "jpeg")
+                            {
                                 imageFormat = ImageFormat.Jpeg;
+                            }
                             else if (extension == "tiff")
                             {
                                 // Convert tiff to gif.
@@ -233,9 +241,11 @@ namespace OxPt
                             // If the image format isn't one that we expect, ignore it,
                             // and don't return markup for the link.
                             if (imageFormat == null)
+                            {
                                 return null;
+                            }
 
-                            string imageFileName = imageDirectoryName + "/image" +
+                            var imageFileName = imageDirectoryName + "/image" +
                                 imageCounter.ToString() + "." + extension;
                             try
                             {
@@ -245,7 +255,7 @@ namespace OxPt
                             {
                                 return null;
                             }
-                            XElement img = new XElement(Xhtml.img,
+                            var img = new XElement(Xhtml.img,
                                 new XAttribute(NoNamespace.src, imageFileName),
                                 imageInfo.ImgStyleAttribute,
                                 imageInfo.AltText != null ?
@@ -253,7 +263,7 @@ namespace OxPt
                             return img;
                         }
                     };
-                    XElement html = WmlToHtmlConverter.ConvertToHtml(wDoc, settings);
+                    var html = WmlToHtmlConverter.ConvertToHtml(wDoc, settings);
 
                     // Note: the xhtml returned by ConvertToHtmlTransform contains objects of type
                     // XEntity.  PtOpenXmlUtil.cs define the XEntity class.  See
@@ -271,21 +281,23 @@ namespace OxPt
 
         private static void ConvertToHtmlNoCssClasses(FileInfo sourceDocx, FileInfo destFileName)
         {
-            byte[] byteArray = File.ReadAllBytes(sourceDocx.FullName);
-            using (MemoryStream memoryStream = new MemoryStream())
+            var byteArray = File.ReadAllBytes(sourceDocx.FullName);
+            using (var memoryStream = new MemoryStream())
             {
                 memoryStream.Write(byteArray, 0, byteArray.Length);
-                using (WordprocessingDocument wDoc = WordprocessingDocument.Open(memoryStream, true))
+                using (var wDoc = WordprocessingDocument.Open(memoryStream, true))
                 {
                     var outputDirectory = destFileName.Directory;
                     destFileName = new FileInfo(Path.Combine(outputDirectory.FullName, destFileName.Name));
                     var imageDirectoryName = destFileName.FullName.Substring(0, destFileName.FullName.Length - 5) + "_files";
-                    int imageCounter = 0;
+                    var imageCounter = 0;
                     var pageTitle = (string)wDoc.CoreFilePropertiesPart.GetXDocument().Descendants(DC.title).FirstOrDefault();
                     if (pageTitle == null)
+                    {
                         pageTitle = sourceDocx.FullName;
+                    }
 
-                    WmlToHtmlConverterSettings settings = new WmlToHtmlConverterSettings()
+                    var settings = new WmlToHtmlConverterSettings()
                     {
                         PageTitle = pageTitle,
                         FabricateCssClasses = false,
@@ -293,11 +305,14 @@ namespace OxPt
                         RestrictToSupportedNumberingFormats = false,
                         ImageHandler = imageInfo =>
                         {
-                            DirectoryInfo localDirInfo = new DirectoryInfo(imageDirectoryName);
+                            var localDirInfo = new DirectoryInfo(imageDirectoryName);
                             if (!localDirInfo.Exists)
+                            {
                                 localDirInfo.Create();
+                            }
+
                             ++imageCounter;
-                            string extension = imageInfo.ContentType.Split('/')[1].ToLower();
+                            var extension = imageInfo.ContentType.Split('/')[1].ToLower();
                             ImageFormat imageFormat = null;
                             if (extension == "png")
                             {
@@ -306,11 +321,17 @@ namespace OxPt
                                 imageFormat = ImageFormat.Gif;
                             }
                             else if (extension == "gif")
+                            {
                                 imageFormat = ImageFormat.Gif;
+                            }
                             else if (extension == "bmp")
+                            {
                                 imageFormat = ImageFormat.Bmp;
+                            }
                             else if (extension == "jpeg")
+                            {
                                 imageFormat = ImageFormat.Jpeg;
+                            }
                             else if (extension == "tiff")
                             {
                                 // Convert tiff to gif.
@@ -326,9 +347,11 @@ namespace OxPt
                             // If the image format isn't one that we expect, ignore it,
                             // and don't return markup for the link.
                             if (imageFormat == null)
+                            {
                                 return null;
+                            }
 
-                            string imageFileName = imageDirectoryName + "/image" +
+                            var imageFileName = imageDirectoryName + "/image" +
                                 imageCounter.ToString() + "." + extension;
                             try
                             {
@@ -338,7 +361,7 @@ namespace OxPt
                             {
                                 return null;
                             }
-                            XElement img = new XElement(Xhtml.img,
+                            var img = new XElement(Xhtml.img,
                                 new XAttribute(NoNamespace.src, imageFileName),
                                 imageInfo.ImgStyleAttribute,
                                 imageInfo.AltText != null ?
@@ -346,7 +369,7 @@ namespace OxPt
                             return img;
                         }
                     };
-                    XElement html = WmlToHtmlConverter.ConvertToHtml(wDoc, settings);
+                    var html = WmlToHtmlConverter.ConvertToHtml(wDoc, settings);
 
                     // Note: the xhtml returned by ConvertToHtmlTransform contains objects of type
                     // XEntity.  PtOpenXmlUtil.cs define the XEntity class.  See

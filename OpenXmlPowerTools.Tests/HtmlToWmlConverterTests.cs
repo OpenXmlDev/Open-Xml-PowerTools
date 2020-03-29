@@ -1,21 +1,14 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Drawing.Imaging;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml;
-using System.Xml.Linq;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Validation;
 using OpenXmlPowerTools;
+using System;
+using System.IO;
+using System.Linq;
+using System.Xml.Linq;
 using Xunit;
-using System.Text.RegularExpressions;
 
 /*******************************************************************************************
  * HtmlToWmlConverter expects the HTML to be passed as an XElement, i.e. as XML.  While the HTML test files that
@@ -23,15 +16,15 @@ using System.Text.RegularExpressions;
  * The best solution is to use the HtmlAgilityPack, which can parse HTML and save as XML.  The HtmlAgilityPack
  * is licensed under the Ms-PL (same as Open-Xml-PowerTools) so it is convenient to include it in your solution,
  * and thereby you can convert HTML to XML that can be processed by the HtmlToWmlConverter.
- * 
+ *
  * A convenient way to get the DLL that has been checked out with HtmlToWmlConverter is to clone the repo at
  * https://github.com/EricWhiteDev/HtmlAgilityPack
- * 
+ *
  * That repo contains only the DLL that has been checked out with HtmlToWmlConverter.
- * 
+ *
  * Of course, you can also get the HtmlAgilityPack source and compile it to get the DLL.  You can find it at
  * http://codeplex.com/HtmlAgilityPack
- * 
+ *
  * We don't include the HtmlAgilityPack in Open-Xml-PowerTools, to simplify installation.  The XUnit tests in
  * this module do not require the HtmlAgilityPack to run.
 *******************************************************************************************/
@@ -46,7 +39,7 @@ namespace OxPt
 {
     public class HwTests
     {
-        static bool s_ProduceAnnotatedHtml = true;
+        private static readonly bool s_ProduceAnnotatedHtml = true;
 
         // PowerShell oneliner that generates InlineData for all files in a directory
         // dir | % { '[InlineData("' + $_.Name + '")]' } | clip
@@ -282,7 +275,6 @@ namespace OxPt
         [InlineData("T1830.html")]
         [InlineData("T1840.html")]
         [InlineData("T1850.html")]
-
         public void HW001(string name)
         {
 #if false
@@ -305,7 +297,7 @@ namespace OxPt
             string[] htmlFilter = null;
 #endif
 
-            DirectoryInfo sourceDir = new DirectoryInfo("../../../../TestFiles/");
+            var sourceDir = new DirectoryInfo("../../../../TestFiles/");
             var sourceHtmlFi = new FileInfo(Path.Combine(sourceDir.FullName, name));
             var sourceImageDi = new DirectoryInfo(Path.Combine(sourceDir.FullName, sourceHtmlFi.Name.Replace(".html", "_files")));
 
@@ -316,13 +308,16 @@ namespace OxPt
             var annotatedHtmlFi = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, sourceHtmlFi.Name.Replace(".html", "-4-Annotated.txt")));
 
             if (!sourceCopiedToDestHtmlFi.Exists)
+            {
                 File.Copy(sourceHtmlFi.FullName, sourceCopiedToDestHtmlFi.FullName);
-            XElement html = HtmlToWmlReadAsXElement.ReadAsXElement(sourceCopiedToDestHtmlFi);
+            }
 
-            string htmlString = html.ToString();
+            var html = HtmlToWmlReadAsXElement.ReadAsXElement(sourceCopiedToDestHtmlFi);
+
+            var htmlString = html.ToString();
             if (htmlFilter != null && htmlFilter.Any())
             {
-                bool found = false;
+                var found = false;
                 foreach (var item in htmlFilter)
                 {
                     if (htmlString.Contains(item))
@@ -338,12 +333,12 @@ namespace OxPt
                 }
             }
 
-            string usedAuthorCss = HtmlToWmlConverter.CleanUpCss((string)html.Descendants().FirstOrDefault(d => d.Name.LocalName.ToLower() == "style"));
+            var usedAuthorCss = HtmlToWmlConverter.CleanUpCss((string)html.Descendants().FirstOrDefault(d => d.Name.LocalName.ToLower() == "style"));
             File.WriteAllText(destCssFi.FullName, usedAuthorCss);
 
             if (cssFilter != null && cssFilter.Any())
             {
-                bool found = false;
+                var found = false;
                 foreach (var item in cssFilter)
                 {
                     if (usedAuthorCss.Contains(item))
@@ -369,15 +364,17 @@ namespace OxPt
                 }
             }
 
-            HtmlToWmlConverterSettings settings = HtmlToWmlConverter.GetDefaultSettings();
+            var settings = HtmlToWmlConverter.GetDefaultSettings();
             // image references in HTML files contain the path to the subdir that contains the images, so base URI is the name of the directory
             // that contains the HTML files
             settings.BaseUriForImages = Path.Combine(TestUtil.TempDir.FullName);
 
-            WmlDocument doc = HtmlToWmlConverter.ConvertHtmlToWml(defaultCss, usedAuthorCss, userCss, html, settings, null, s_ProduceAnnotatedHtml ? annotatedHtmlFi.FullName : null);
+            var doc = HtmlToWmlConverter.ConvertHtmlToWml(defaultCss, usedAuthorCss, userCss, html, settings, null, s_ProduceAnnotatedHtml ? annotatedHtmlFi.FullName : null);
             Assert.NotNull(doc);
             if (doc != null)
+            {
                 SaveValidateAndFormatMainDocPart(destDocxFi, doc);
+            }
 
 #if DO_CONVERSION_VIA_WORD
             var newAltChunkBeforeFi = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, name.Replace(".html", "-5-AltChunkBefore.docx")));
@@ -391,8 +388,7 @@ namespace OxPt
         [InlineData("E0020.html")]
         public void HW004(string name)
         {
-
-            DirectoryInfo sourceDir = new DirectoryInfo("../../../../TestFiles/");
+            var sourceDir = new DirectoryInfo("../../../../TestFiles/");
             var sourceHtmlFi = new FileInfo(Path.Combine(sourceDir.FullName, name));
             var sourceImageDi = new DirectoryInfo(Path.Combine(sourceDir.FullName, sourceHtmlFi.Name.Replace(".html", "_files")));
 
@@ -403,12 +399,12 @@ namespace OxPt
             var annotatedHtmlFi = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, sourceHtmlFi.Name.Replace(".html", "-4-Annotated.txt")));
 
             File.Copy(sourceHtmlFi.FullName, sourceCopiedToDestHtmlFi.FullName);
-            XElement html = HtmlToWmlReadAsXElement.ReadAsXElement(sourceCopiedToDestHtmlFi);
+            var html = HtmlToWmlReadAsXElement.ReadAsXElement(sourceCopiedToDestHtmlFi);
 
-            string usedAuthorCss = HtmlToWmlConverter.CleanUpCss((string)html.Descendants().FirstOrDefault(d => d.Name.LocalName.ToLower() == "style"));
+            var usedAuthorCss = HtmlToWmlConverter.CleanUpCss((string)html.Descendants().FirstOrDefault(d => d.Name.LocalName.ToLower() == "style"));
             File.WriteAllText(destCssFi.FullName, usedAuthorCss);
 
-            HtmlToWmlConverterSettings settings = HtmlToWmlConverter.GetDefaultSettings();
+            var settings = HtmlToWmlConverter.GetDefaultSettings();
             settings.BaseUriForImages = Path.Combine(TestUtil.TempDir.FullName);
 
             Assert.Throws<OpenXmlPowerToolsException>(() => HtmlToWmlConverter.ConvertHtmlToWml(defaultCss, usedAuthorCss, userCss, html, settings, null, s_ProduceAnnotatedHtml ? annotatedHtmlFi.FullName : null));
@@ -419,14 +415,14 @@ namespace OxPt
             WmlDocument formattedDoc;
 
             doc.SaveAs(destDocxFi.FullName);
-            using (MemoryStream ms = new MemoryStream())
+            using (var ms = new MemoryStream())
             {
                 ms.Write(doc.DocumentByteArray, 0, doc.DocumentByteArray.Length);
-                using (WordprocessingDocument document = WordprocessingDocument.Open(ms, true))
+                using (var document = WordprocessingDocument.Open(ms, true))
                 {
-                    XDocument xDoc = document.MainDocumentPart.GetXDocument();
+                    var xDoc = document.MainDocumentPart.GetXDocument();
                     document.MainDocumentPart.PutXDocumentWithFormatting();
-                    OpenXmlValidator validator = new OpenXmlValidator();
+                    var validator = new OpenXmlValidator();
                     var errors = validator.Validate(document);
                     var errorsString = errors
                         .Select(e => e.Description + Environment.NewLine)
@@ -440,7 +436,7 @@ namespace OxPt
             formattedDoc.SaveAs(destDocxFi.FullName);
         }
 
-        static string defaultCss =
+        private static readonly string defaultCss =
             @"html, address,
 blockquote,
 body, dd, div,
@@ -514,7 +510,7 @@ BDO[DIR=""rtl""] { direction: rtl; unicode-bidi: bidi-override }
 
 ";
 
-        static string userCss = @"";
+        private static readonly string userCss = @"";
     }
 }
 

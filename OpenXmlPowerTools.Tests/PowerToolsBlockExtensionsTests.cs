@@ -1,12 +1,12 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using DocumentFormat.OpenXml.Packaging;
+using DocumentFormat.OpenXml.Wordprocessing;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Xml.Linq;
-using DocumentFormat.OpenXml.Packaging;
-using DocumentFormat.OpenXml.Wordprocessing;
 using Xunit;
 
 #if !ELIDE_XUNIT_TESTS
@@ -22,12 +22,12 @@ namespace OpenXmlPowerTools.Tests
             {
                 CreateEmptyWordprocessingDocument(stream);
 
-                using (WordprocessingDocument wordDocument = WordprocessingDocument.Open(stream, true))
+                using (var wordDocument = WordprocessingDocument.Open(stream, true))
                 {
-                    MainDocumentPart part = wordDocument.MainDocumentPart;
+                    var part = wordDocument.MainDocumentPart;
 
                     // Add a first paragraph through the SDK.
-                    Body body = part.Document.Body;
+                    var body = part.Document.Body;
                     body.AppendChild(new Paragraph(new Run(new Text("First"))));
 
                     // This demonstrates the usage of the BeginPowerToolsBlock method to
@@ -37,8 +37,8 @@ namespace OpenXmlPowerTools.Tests
 
                     // Get content through the PowerTools. We will see the one paragraph added
                     // by using the strongly typed SDK classes.
-                    XDocument content = part.GetXDocument();
-                    List<XElement> paragraphElements = content.Descendants(W.p).ToList();
+                    var content = part.GetXDocument();
+                    var paragraphElements = content.Descendants(W.p).ToList();
                     Assert.Single(paragraphElements);
                     Assert.Equal("First", paragraphElements[0].Value);
 
@@ -55,7 +55,7 @@ namespace OpenXmlPowerTools.Tests
                     // Get content through the PowerTools in the exact same way as above,
                     // noting that we have not used the BeginPowerToolsBlock method to
                     // mark the beginning of the next PowerTools Block.
-                    // What we will see in this case is that we still only get the first 
+                    // What we will see in this case is that we still only get the first
                     // paragraph. This is caused by the GetXDocument method using the cached
                     // XDocument, i.e., the annotation, rather reading the part's stream again.
                     content = part.GetXDocument();
@@ -87,31 +87,31 @@ namespace OpenXmlPowerTools.Tests
             {
                 CreateEmptyWordprocessingDocument(stream);
 
-                using (WordprocessingDocument wordDocument = WordprocessingDocument.Open(stream, true))
+                using (var wordDocument = WordprocessingDocument.Open(stream, true))
                 {
-                    MainDocumentPart part = wordDocument.MainDocumentPart;
+                    var part = wordDocument.MainDocumentPart;
 
                     // Add a paragraph through the SDK.
-                    Body body = part.Document.Body;
+                    var body = part.Document.Body;
                     body.AppendChild(new Paragraph(new Run(new Text("Added through SDK"))));
 
                     // Begin the PowerTools Block, which saves any changes made through the strongly
-                    // typed SDK classes to the parts of the WordprocessingDocument. 
+                    // typed SDK classes to the parts of the WordprocessingDocument.
                     // In this case, this could also be done by invoking the Save method on the
                     // WordprocessingDocument, which will save all parts that had changes, or by
                     // invoking part.RootElement.Save() for the one part that was changed.
                     wordDocument.BeginPowerToolsBlock();
 
                     // Add a paragraph through the PowerTools.
-                    XDocument content = part.GetXDocument();
-                    XElement bodyElement = content.Descendants(W.body).First();
+                    var content = part.GetXDocument();
+                    var bodyElement = content.Descendants(W.body).First();
                     bodyElement.Add(new XElement(W.p, new XElement(W.r, new XElement(W.t, "Added through PowerTools"))));
                     part.PutXDocument();
 
                     // Get the part's content through the SDK. However, we will only see what we
                     // added through the SDK, not what we added through the PowerTools functionality.
                     body = part.Document.Body;
-                    List<Paragraph> paragraphs = body.Elements<Paragraph>().ToList();
+                    var paragraphs = body.Elements<Paragraph>().ToList();
                     Assert.Single(paragraphs);
                     Assert.Equal("Added through SDK", paragraphs[0].InnerText);
 

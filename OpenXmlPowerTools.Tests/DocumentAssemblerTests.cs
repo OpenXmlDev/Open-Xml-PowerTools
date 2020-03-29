@@ -1,19 +1,14 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Drawing.Imaging;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml;
-using System.Xml.Linq;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Validation;
 using OpenXmlPowerTools;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Xml;
+using System.Xml.Linq;
 using Xunit;
 
 #if !ELIDE_XUNIT_TESTS
@@ -57,11 +52,9 @@ namespace OxPt
         [InlineData("DA034-HeaderFooter.docx", "DA-Data.xml", false)]
         [InlineData("DA035-SchemaErrorInRepeat.docx", "DA-Data.xml", true)]
         [InlineData("DA036-SchemaErrorInConditional.docx", "DA-Data.xml", true)]
-
         [InlineData("DA100-TemplateDocument.docx", "DA-Data.xml", false)]
         [InlineData("DA101-TemplateDocument.docx", "DA-Data.xml", true)]
         [InlineData("DA102-TemplateDocument.docx", "DA-Data.xml", true)]
-
         [InlineData("DA201-TemplateDocument.docx", "DA-Data.xml", false)]
         [InlineData("DA202-TemplateDocument.docx", "DA-DataNotHighValueCust.xml", false)]
         [InlineData("DA203-Select-XPathFindsNoData.docx", "DA-Data.xml", true)]
@@ -98,7 +91,6 @@ namespace OxPt
         [InlineData("DA237-SchemaErrorInRepeat.docx", "DA-Data.xml", true)]
         [InlineData("DA238-SchemaErrorInConditional.docx", "DA-Data.xml", true)]
         [InlineData("DA239-RunLevelCC-Repeat.docx", "DA-Data.xml", false)]
-
         [InlineData("DA250-ConditionalWithRichXPath.docx", "DA250-Address.xml", false)]
         [InlineData("DA251-EnhancedTables.docx", "DA-Data.xml", false)]
         [InlineData("DA252-Table-With-Sum.docx", "DA-Data.xml", false)]
@@ -116,27 +108,25 @@ namespace OxPt
         [InlineData("DA264-InvalidRunLevelRepeat.docx", "DA-Data.xml", true)]
         [InlineData("DA265-RunLevelRepeatWithWhiteSpaceBefore.docx", "DA-Data.xml", false)]
         [InlineData("DA266-RunLevelRepeat-NoData.docx", "DA-Data.xml", true)]
-        
         public void DA101(string name, string data, bool err)
         {
-            DirectoryInfo sourceDir = new DirectoryInfo("../../../../TestFiles/");
-            FileInfo templateDocx = new FileInfo(Path.Combine(sourceDir.FullName, name));
-            FileInfo dataFile = new FileInfo(Path.Combine(sourceDir.FullName, data));
+            var sourceDir = new DirectoryInfo("../../../../TestFiles/");
+            var templateDocx = new FileInfo(Path.Combine(sourceDir.FullName, name));
+            var dataFile = new FileInfo(Path.Combine(sourceDir.FullName, data));
 
-            WmlDocument wmlTemplate = new WmlDocument(templateDocx.FullName);
-            XElement xmldata = XElement.Load(dataFile.FullName);
+            var wmlTemplate = new WmlDocument(templateDocx.FullName);
+            var xmldata = XElement.Load(dataFile.FullName);
 
-            bool returnedTemplateError;
-            WmlDocument afterAssembling = DocumentAssembler.AssembleDocument(wmlTemplate, xmldata, out returnedTemplateError);
+            var afterAssembling = DocumentAssembler.AssembleDocument(wmlTemplate, xmldata, out var returnedTemplateError);
             var assembledDocx = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, templateDocx.Name.Replace(".docx", "-processed-by-DocumentAssembler.docx")));
             afterAssembling.SaveAs(assembledDocx.FullName);
 
-            using (MemoryStream ms = new MemoryStream())
+            using (var ms = new MemoryStream())
             {
                 ms.Write(afterAssembling.DocumentByteArray, 0, afterAssembling.DocumentByteArray.Length);
-                using (WordprocessingDocument wDoc = WordprocessingDocument.Open(ms, true))
+                using (var wDoc = WordprocessingDocument.Open(ms, true))
                 {
-                    OpenXmlValidator v = new OpenXmlValidator();
+                    var v = new OpenXmlValidator();
                     var valErrors = v.Validate(wDoc).Where(ve => !s_ExpectedErrors.Contains(ve.Description));
 
 #if false
@@ -162,8 +152,8 @@ namespace OxPt
         {
             DA101(name, data, err);
             var assembledDocx = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, name.Replace(".docx", "-processed-by-DocumentAssembler.docx")));
-            WmlDocument afterAssembling = new WmlDocument(assembledDocx.FullName);
-            int brCount = afterAssembling.MainDocumentPart
+            var afterAssembling = new WmlDocument(assembledDocx.FullName);
+            var brCount = afterAssembling.MainDocumentPart
                             .Element(W.body)
                             .Elements(W.p).ElementAt(1)
                             .Elements(W.r)
@@ -175,18 +165,17 @@ namespace OxPt
         [InlineData("DA024-TrackedRevisions.docx", "DA-Data.xml")]
         public void DA102_Throws(string name, string data)
         {
-            DirectoryInfo sourceDir = new DirectoryInfo("../../../../TestFiles/");
-            FileInfo templateDocx = new FileInfo(Path.Combine(sourceDir.FullName, name));
-            FileInfo dataFile = new FileInfo(Path.Combine(sourceDir.FullName, data));
+            var sourceDir = new DirectoryInfo("../../../../TestFiles/");
+            var templateDocx = new FileInfo(Path.Combine(sourceDir.FullName, name));
+            var dataFile = new FileInfo(Path.Combine(sourceDir.FullName, data));
 
-            WmlDocument wmlTemplate = new WmlDocument(templateDocx.FullName);
-            XElement xmldata = XElement.Load(dataFile.FullName);
+            var wmlTemplate = new WmlDocument(templateDocx.FullName);
+            var xmldata = XElement.Load(dataFile.FullName);
 
-            bool returnedTemplateError;
             WmlDocument afterAssembling;
             Assert.Throws<OpenXmlPowerToolsException>(() =>
                 {
-                    afterAssembling = DocumentAssembler.AssembleDocument(wmlTemplate, xmldata, out returnedTemplateError);
+                    afterAssembling = DocumentAssembler.AssembleDocument(wmlTemplate, xmldata, out var returnedTemplateError);
                 });
         }
 
@@ -194,25 +183,24 @@ namespace OxPt
         [InlineData("DA025-TemplateDocument.docx", "DA-Data.xml", false)]
         public void DA103_UseXmlDocument(string name, string data, bool err)
         {
-            DirectoryInfo sourceDir = new DirectoryInfo("../../../../TestFiles/");
-            FileInfo templateDocx = new FileInfo(Path.Combine(sourceDir.FullName, name));
-            FileInfo dataFile = new FileInfo(Path.Combine(sourceDir.FullName, data));
+            var sourceDir = new DirectoryInfo("../../../../TestFiles/");
+            var templateDocx = new FileInfo(Path.Combine(sourceDir.FullName, name));
+            var dataFile = new FileInfo(Path.Combine(sourceDir.FullName, data));
 
-            WmlDocument wmlTemplate = new WmlDocument(templateDocx.FullName);
-            XmlDocument xmldata = new XmlDocument();
+            var wmlTemplate = new WmlDocument(templateDocx.FullName);
+            var xmldata = new XmlDocument();
             xmldata.Load(dataFile.FullName);
 
-            bool returnedTemplateError;
-            WmlDocument afterAssembling = DocumentAssembler.AssembleDocument(wmlTemplate, xmldata, out returnedTemplateError);
+            var afterAssembling = DocumentAssembler.AssembleDocument(wmlTemplate, xmldata, out var returnedTemplateError);
             var assembledDocx = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, templateDocx.Name.Replace(".docx", "-processed-by-DocumentAssembler.docx")));
             afterAssembling.SaveAs(assembledDocx.FullName);
 
-            using (MemoryStream ms = new MemoryStream())
+            using (var ms = new MemoryStream())
             {
                 ms.Write(afterAssembling.DocumentByteArray, 0, afterAssembling.DocumentByteArray.Length);
-                using (WordprocessingDocument wDoc = WordprocessingDocument.Open(ms, true))
+                using (var wDoc = WordprocessingDocument.Open(ms, true))
                 {
-                    OpenXmlValidator v = new OpenXmlValidator();
+                    var v = new OpenXmlValidator();
                     var valErrors = v.Validate(wDoc).Where(ve => !s_ExpectedErrors.Contains(ve.Description));
                     Assert.Empty(valErrors);
                 }
@@ -221,7 +209,7 @@ namespace OxPt
             Assert.Equal(err, returnedTemplateError);
         }
 
-        private static List<string> s_ExpectedErrors = new List<string>()
+        private static readonly List<string> s_ExpectedErrors = new List<string>()
         {
             "The 'http://schemas.openxmlformats.org/wordprocessingml/2006/main:evenHBand' attribute is not declared.",
             "The 'http://schemas.openxmlformats.org/wordprocessingml/2006/main:evenVBand' attribute is not declared.",
