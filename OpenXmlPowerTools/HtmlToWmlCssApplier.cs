@@ -538,7 +538,7 @@ namespace OpenXmlPowerTools.HtmlToWml
                             if (settings.DefaultBlockContentMargin == "auto") { return new CssExpression { Terms = new List<CssTerm> { new CssTerm { Value = "auto", Type = OpenXmlPowerTools.HtmlToWml.CSS.CssTermType.String } } }; } else if (settings.DefaultBlockContentMargin.ToLower().EndsWith("pt"))
                             {
                                 var s1 = settings.DefaultBlockContentMargin.Substring(0, settings.DefaultBlockContentMargin.Length - 2);
-                                if (double.TryParse(s1, NumberStyles.Float, CultureInfo.InvariantCulture, out vard1))
+                                if (double.TryParse(s1, NumberStyles.Float, CultureInfo.InvariantCulture, out var d1))
                                 {
                                     return new CssExpression { Terms = new List<CssTerm> { new CssTerm { Value = d1.ToString(CultureInfo.InvariantCulture), Type = OpenXmlPowerTools.HtmlToWml.CSS.CssTermType.Number, Unit = CssUnit.PT } } };
                                 }

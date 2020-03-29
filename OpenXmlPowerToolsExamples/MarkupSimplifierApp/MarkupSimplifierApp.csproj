@@ -1,4 +1,4 @@
-﻿<!-- <Project Sdk="Microsoft.NET.Sdk" Condition="'$(OS)' == 'Windows'">
+﻿ <Project Sdk="Microsoft.NET.Sdk" Condition="'$(OS)' == 'Windows_NT' ">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFrameworks>net472</TargetFrameworks>
@@ -25,4 +25,4 @@
       <SubType>Form</SubType>
     </Compile>
   </ItemGroup>
-</Project> -->
+</Project> 
