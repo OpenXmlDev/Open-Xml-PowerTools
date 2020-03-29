@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Xml.Linq;
 
 namespace OpenXmlPowerTools
 {
@@ -18,20 +17,23 @@ namespace OpenXmlPowerTools
         {
             Contents = comparisonUnitList.ToList();
             ComparisonUnitGroupType = groupType;
-            ComparisonUnit first = Contents.First();
-            ComparisonUnitAtom comparisonUnitAtom = GetFirstComparisonUnitAtomOfGroup(first);
+            var first = Contents.First();
+            var comparisonUnitAtom = GetFirstComparisonUnitAtomOfGroup(first);
 
-            XElement[] ancestorsToLookAt = comparisonUnitAtom
+            var ancestorsToLookAt = comparisonUnitAtom
                 .AncestorElements
                 .Where(e => e.Name == W.tbl || e.Name == W.tr || e.Name == W.tc || e.Name == W.p || e.Name == W.txbxContent)
                 .ToArray();
 
-            XElement ancestor = ancestorsToLookAt[level];
-            if (ancestor == null) throw new OpenXmlPowerToolsException("Internal error: ComparisonUnitGroup");
+            var ancestor = ancestorsToLookAt[level];
+            if (ancestor == null)
+            {
+                throw new OpenXmlPowerToolsException("Internal error: ComparisonUnitGroup");
+            }
 
-            SHA1Hash = (string) ancestor.Attribute(PtOpenXml.SHA1Hash);
-            CorrelatedSHA1Hash = (string) ancestor.Attribute(PtOpenXml.CorrelatedSHA1Hash);
-            StructureSHA1Hash = (string) ancestor.Attribute(PtOpenXml.StructureSHA1Hash);
+            SHA1Hash = (string)ancestor.Attribute(PtOpenXml.SHA1Hash);
+            CorrelatedSHA1Hash = (string)ancestor.Attribute(PtOpenXml.CorrelatedSHA1Hash);
+            StructureSHA1Hash = (string)ancestor.Attribute(PtOpenXml.StructureSHA1Hash);
         }
 
         public ComparisonUnitGroupType ComparisonUnitGroupType { get; }
@@ -42,7 +44,7 @@ namespace OpenXmlPowerTools
 
         private static ComparisonUnitAtom GetFirstComparisonUnitAtomOfGroup(ComparisonUnit group)
         {
-            ComparisonUnit thisGroup = group;
+            var thisGroup = group;
             while (true)
             {
                 if (thisGroup is ComparisonUnitGroup tg)
@@ -56,7 +58,7 @@ namespace OpenXmlPowerTools
                     throw new OpenXmlPowerToolsException("Internal error: GetFirstComparisonUnitAtomOfGroup");
                 }
 
-                var ca = (ComparisonUnitAtom) tw.Contents.First();
+                var ca = (ComparisonUnitAtom)tw.Contents.First();
                 return ca;
             }
         }
@@ -66,7 +68,7 @@ namespace OpenXmlPowerTools
             var sb = new StringBuilder();
             sb.Append("".PadRight(indent) + "Group Type: " + ComparisonUnitGroupType + " SHA1:" + SHA1Hash + Environment.NewLine);
 
-            foreach (ComparisonUnit comparisonUnitAtom in Contents)
+            foreach (var comparisonUnitAtom in Contents)
             {
                 sb.Append(comparisonUnitAtom.ToString(indent + 2));
             }

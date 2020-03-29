@@ -1,9 +1,6 @@
 version: 5.0.{build}
 image: Visual Studio 2019
 skip_tags: true
-branches:
-  only:
-    - master
 configuration: Release
 nuget:
   account_feed: true
