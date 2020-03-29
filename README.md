@@ -1,6 +1,6 @@
 ﻿# Open-XML-PowerTools
 
-[![Build status](https://ci.appveyor.com/api/projects/status/2wq6a4b0q6akvy4n?svg=true)](https://ci.appveyor.com/project/stesee/open-xml-powertools) [![Nuget](https://img.shields.io/nuget/v/OpenXmlPowerToolsStandard.svg)](https://www.nuget.org/packages/OpenXmlPowerToolsStandard/)
+[![Build status](https://ci.appveyor.com/api/projects/status/2wq6a4b0q6akvy4n?svg=true)](https://ci.appveyor.com/project/stesee/open-xml-powertools) [![Nuget](https://img.shields.io/nuget/v/OpenXmlPowerToolsStandard.svg)](https://www.nuget.org/packages/OpenXmlPowerToolsStandard/) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/73ab9db4912449f28d961e3ddad189b1)](https://app.codacy.com/gh/Codeuctivity/Open-Xml-PowerTools?utm_source=github.com&utm_medium=referral&utm_content=Codeuctivity/Open-Xml-PowerTools&utm_campaign=Badge_Grade_Dashboard)
 
 The Open XML PowerTools provides guidance and example code for programming with Open XML
 Documents (DOCX, XLSX, and PPTX).  It is based on, and extends the functionality
