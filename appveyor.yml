@@ -14,7 +14,6 @@ before_build:
 
 build:
   project: OpenXmlPowerTools.sln
-  publish_aspnet_core: true
   verbosity: minimal
 
 dotnet_csproj:
@@ -28,3 +27,14 @@ dotnet_csproj:
 
 artifacts:
   - path: '**\OpenXmlPowerTools.*.nupkg'
+
+deploy:
+  - provider: NuGet
+    api_key:
+      secure: BAGacXk+5m7jd8EvWW6wkYhoVml39WAi7n2Z0odVUKUq5SeWLqixvkPA1I+KbQ1r
+    on:
+      branch: master
+  - provider: GitHub
+    auth_token:
+      secure: 6WIcUQnv2ZAHI7MaJeiopONTvv3TxZiaThY17jVC4tJTnva7F66tPqvCWX2kQRyM
+    prerelease: true

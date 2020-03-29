@@ -75,7 +75,7 @@ namespace OxPt
 
             using (var wDoc = WordprocessingDocument.Open(coalescedDocx.FullName, true))
             {
-                var exception = Assert.Throws<System.Reflection.TargetInvocationException>(() =>
+                var exception = Assert.Throws<TargetInvocationException>(() =>
                   {
                       var contentParent = wDoc.MainDocumentPart.GetXDocument().Root.Element(W.body);
                       var settings = new WmlComparerSettings();

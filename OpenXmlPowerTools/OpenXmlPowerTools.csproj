@@ -13,7 +13,9 @@
     <PackageVersion>5.0.0</PackageVersion>
     <PackageIcon>NugetIcon.png</PackageIcon>
     <PackageProjectUrl>https://github.com/Codeuctivity/Open-Xml-PowerTools</PackageProjectUrl>
-    <Description>The Open XML SDK provides tools for working with Office Word, Excel, and PowerPoint documents. It supports scenarios such as:
+    <Description>The Open XML SDK provides tools for working with Office Word, Excel, and PowerPoint documents. This version is a fork focusing on current .net core and framework versions.
+    
+It supports scenarios such as:
 
 - High-performance generation of word-processing documents, spreadsheets, and presentations.
 - Populating content in Word files from an XML data source.
@@ -32,6 +34,7 @@
     <LangVersion>8.0</LangVersion>
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>OpenXmlPowerTools.snk</AssemblyOriginatorKeyFile>
+    <PackageId>OpenXmlPowerToolsStandard</PackageId>
   </PropertyGroup>
 
   <ItemGroup>
