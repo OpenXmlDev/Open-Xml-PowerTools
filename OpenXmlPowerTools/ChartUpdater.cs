@@ -1,14 +1,11 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using DocumentFormat.OpenXml.Packaging;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Text;
 using System.Xml.Linq;
-using DocumentFormat.OpenXml.Packaging;
-using OpenXmlPowerTools;
 
 namespace OpenXmlPowerTools
 {
@@ -73,7 +70,7 @@ namespace OpenXmlPowerTools
                 var chartRid = (string)cc.Descendants(C.chart).Attributes(R.id).FirstOrDefault();
                 if (chartRid != null)
                 {
-                    ChartPart chartPart = (ChartPart)mainDocumentPart.GetPartById(chartRid);
+                    var chartPart = (ChartPart)mainDocumentPart.GetPartById(chartRid);
                     UpdateChart(chartPart, chartData);
                     var newContent = cc.Elements(W.sdtContent).Elements().Select(e => new XElement(e));
                     cc.ReplaceWith(newContent);
@@ -87,17 +84,22 @@ namespace OpenXmlPowerTools
         public static void UpdateChart(ChartPart chartPart, ChartData chartData)
         {
             if (chartData.Values.Length != chartData.SeriesNames.Length)
+            {
                 throw new ArgumentException("Invalid chart data");
+            }
+
             foreach (var ser in chartData.Values)
             {
                 if (ser.Length != chartData.CategoryNames.Length)
+                {
                     throw new ArgumentException("Invalid chart data");
+                }
             }
 
             UpdateSeries(chartPart, chartData);
         }
 
-        private static Dictionary<int, string> FormatCodes = new Dictionary<int, string>()
+        private static readonly Dictionary<int, string> FormatCodes = new Dictionary<int, string>()
         {
             { 0, "general" },
             { 1, "0" },
@@ -133,17 +135,19 @@ namespace OpenXmlPowerTools
         {
             UpdateEmbeddedWorkbook(chartPart, chartData);
 
-            XDocument cpXDoc = chartPart.GetXDocument();
-            XElement root = cpXDoc.Root;
+            var cpXDoc = chartPart.GetXDocument();
+            var root = cpXDoc.Root;
             var firstSeries = root.Descendants(C.ser).FirstOrDefault();
             var numRef = firstSeries.Elements(C.val).Elements(C.numRef).FirstOrDefault();
             string sheetName = null;
             var f = (string)firstSeries.Descendants(C.f).FirstOrDefault();
             if (f != null)
+            {
                 sheetName = f.Split('!')[0];
+            }
 
             // remove all but first series
-            XName chartType = firstSeries.Parent.Name;
+            var chartType = firstSeries.Parent.Name;
             firstSeries.Parent.Elements(C.ser).Skip(1).Remove();
 
             var newSetOfSeries = chartData.SeriesNames
@@ -153,14 +157,19 @@ namespace OpenXmlPowerTools
 
                     var oldCat = firstSeries.Elements(C.cat).FirstOrDefault();
                     if (oldCat == null)
+                    {
                         throw new OpenXmlPowerToolsException("Invalid chart markup");
+                    }
 
                     var catHasFormula = oldCat.Descendants(C.f).Any();
                     if (catHasFormula)
                     {
                         XElement newFormula = null;
                         if (sheetName != null)
+                        {
                             newFormula = new XElement(C.f, string.Format("{0}!$A$2:$A${1}", sheetName, chartData.CategoryNames.Length + 1));
+                        }
+
                         if (chartData.CategoryDataType == ChartDataType.String)
                         {
                             cat = new XElement(C.cat,
@@ -262,7 +271,10 @@ namespace OpenXmlPowerTools
                     {
                         XElement newFormula = null;
                         if (sheetName != null)
+                        {
                             newFormula = new XElement(C.f, string.Format("{0}!${1}$1", sheetName, SpreadsheetMLUtil.IntToColumnId(si + 1)));
+                        }
+
                         tx = new XElement(C.tx,
                             new XElement(C.strRef,
                                 newFormula,
@@ -373,9 +385,11 @@ namespace OpenXmlPowerTools
                     }
 
                     if (newSer == null)
+                    {
                         throw new OpenXmlPowerToolsException("Unsupported chart type");
+                    }
 
-                    int accentNumber = (si % 6) + 1;
+                    var accentNumber = (si % 6) + 1;
                     newSer = (XElement)UpdateAccentTransform(newSer, accentNumber);
                     return newSer;
                 });
@@ -385,22 +399,31 @@ namespace OpenXmlPowerTools
 
         private static void UpdateEmbeddedWorkbook(ChartPart chartPart, ChartData chartData)
         {
-            XDocument cpXDoc = chartPart.GetXDocument();
-            XElement root = cpXDoc.Root;
+            var cpXDoc = chartPart.GetXDocument();
+            var root = cpXDoc.Root;
             var firstSeries = root.Descendants(C.ser).FirstOrDefault();
             if (firstSeries == null)
+            {
                 return;
+            }
+
             var firstFormula = (string)firstSeries.Descendants(C.f).FirstOrDefault();
             if (firstFormula == null)
+            {
                 return;
+            }
+
             var sheet = firstFormula.Split('!')[0];
             var embeddedSpreadsheetRid = (string)root.Descendants(C.externalData).Attributes(R.id).FirstOrDefault();
             if (embeddedSpreadsheetRid == null)
+            {
                 return;
+            }
+
             var embeddedSpreadsheet = chartPart.GetPartById(embeddedSpreadsheetRid);
             if (embeddedSpreadsheet != null)
             {
-                using (SpreadsheetDocument sDoc = SpreadsheetDocument.Open(embeddedSpreadsheet.GetStream(), true))
+                using (var sDoc = SpreadsheetDocument.Open(embeddedSpreadsheet.GetStream(), true))
                 {
                     var workbookPart = sDoc.WorkbookPart;
                     var wbRoot = workbookPart.GetXDocument().Root;
@@ -419,15 +442,18 @@ namespace OpenXmlPowerTools
                         var stylePart = workbookPart.WorkbookStylesPart;
                         var xdStyle = stylePart.GetXDocument();
 
-                        int categoryStyleId = 0;
+                        var categoryStyleId = 0;
                         if (chartData.CategoryFormatCode != 0)
+                        {
                             categoryStyleId = AddDxfToDxfs(xdSheet, xdStyle, chartData.CategoryFormatCode);
+                        }
+
                         stylePart.PutXDocument();
 
                         var firstRow = new XElement(S.row,
                             new XAttribute("r", "1"),
                             new XAttribute("spans", string.Format("1:{0}", chartData.SeriesNames.Length + 1)),
-                            new [] { new XElement(S.c,
+                            new[] { new XElement(S.c,
                                 new XAttribute("r", "A1"),
                                 new XAttribute("t", "str"),
                                 new XElement(S.v,
@@ -496,7 +522,10 @@ namespace OpenXmlPowerTools
                                             new XAttribute("name", cn)))));
                             var xeExistingTableColumns = xdTablePart.Root.Element(S.tableColumns);
                             if (xeExistingTableColumns != null)
+                            {
                                 xeExistingTableColumns.ReplaceWith(xeNewTableColumns);
+                            }
+
                             partTable.PutXDocument();
                         }
                     }
@@ -541,7 +570,9 @@ namespace OpenXmlPowerTools
                 }
             }
             if (cellXfs == null)
+            {
                 throw new OpenXmlPowerToolsException("Internal error");
+            }
 
             var cnt = (int)cellXfs.Attribute("count");
             cnt++;
@@ -564,11 +595,13 @@ namespace OpenXmlPowerTools
 
         private static object UpdateAccentTransform(XNode node, int accentNumber)
         {
-            XElement element = node as XElement;
+            var element = node as XElement;
             if (element != null)
             {
                 if (element.Name == A.schemeClr && (string)element.Attribute("val") == "accent1")
+                {
                     return new XElement(A.schemeClr, new XAttribute("val", "accent" + accentNumber));
+                }
 
                 return new XElement(element.Name,
                     element.Attributes(),
@@ -590,7 +623,7 @@ namespace OpenXmlPowerTools
                 var chartRid = (string)sXDoc.Descendants(C.chart).Attributes(R.id).FirstOrDefault();
                 if (chartRid != null)
                 {
-                    ChartPart chartPart = (ChartPart)slidePart.GetPartById(chartRid);
+                    var chartPart = (ChartPart)slidePart.GetPartById(chartRid);
                     UpdateChart(chartPart, chartData);
                     return true;
                 }

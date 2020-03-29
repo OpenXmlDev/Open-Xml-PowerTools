@@ -3,17 +3,10 @@
 
 #define COPY_FILES_FOR_DEBUGGING
 
-using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Drawing.Imaging;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml.Linq;
 using DocumentFormat.OpenXml.Packaging;
 using OpenXmlPowerTools;
+using System;
+using System.IO;
 using Xunit;
 
 #if !ELIDE_XUNIT_TESTS
@@ -91,19 +84,23 @@ namespace OxPt
         [InlineData("HC009-Test-04.docx")]
         public void CA002_Annotations(string name)
         {
-            DirectoryInfo sourceDir = new DirectoryInfo("../../../../TestFiles/");
-            FileInfo sourceDocx = new FileInfo(Path.Combine(sourceDir.FullName, name));
+            var sourceDir = new DirectoryInfo("../../../../TestFiles/");
+            var sourceDocx = new FileInfo(Path.Combine(sourceDir.FullName, name));
 
 #if COPY_FILES_FOR_DEBUGGING
             var sourceCopiedToDestDocx = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, sourceDocx.Name.Replace(".docx", "-1-Source.docx")));
             if (!sourceCopiedToDestDocx.Exists)
+            {
                 File.Copy(sourceDocx.FullName, sourceCopiedToDestDocx.FullName);
+            }
 
             var annotatedDocx = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, sourceDocx.Name.Replace(".docx", "-2-Annotated.docx")));
             if (!annotatedDocx.Exists)
+            {
                 File.Copy(sourceDocx.FullName, annotatedDocx.FullName);
+            }
 
-            using (WordprocessingDocument wDoc = WordprocessingDocument.Open(annotatedDocx.FullName, true))
+            using (var wDoc = WordprocessingDocument.Open(annotatedDocx.FullName, true))
             {
                 var contentParent = wDoc.MainDocumentPart.GetXDocument().Root.Element(W.body);
                 var settings = new WmlComparerSettings();
@@ -114,26 +111,26 @@ namespace OxPt
 
         [Theory]
         [InlineData("CA/CA009-altChunk.docx")]
-        //[InlineData("")]
-        //[InlineData("")]
-        //[InlineData("")]
-
         public void CA003_ContentAtoms_Throws(string name)
         {
-            DirectoryInfo sourceDir = new DirectoryInfo("../../../../TestFiles/");
-            FileInfo sourceDocx = new FileInfo(Path.Combine(sourceDir.FullName, name));
+            var sourceDir = new DirectoryInfo("../../../../TestFiles/");
+            var sourceDocx = new FileInfo(Path.Combine(sourceDir.FullName, name));
             var thisGuid = Guid.NewGuid().ToString().Replace("-", "");
             var sourceCopiedToDestDocx = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, sourceDocx.Name.Replace(".docx", string.Format("-{0}-1-Source.docx", thisGuid))));
             if (!sourceCopiedToDestDocx.Exists)
+            {
                 File.Copy(sourceDocx.FullName, sourceCopiedToDestDocx.FullName);
+            }
 
             var coalescedDocx = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, sourceDocx.Name.Replace(".docx", string.Format("-{0}-2-Coalesced.docx", thisGuid))));
             if (!coalescedDocx.Exists)
+            {
                 File.Copy(sourceDocx.FullName, coalescedDocx.FullName);
+            }
 
             var contentAtomDataFi = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, sourceDocx.Name.Replace(".docx", string.Format("-{0}-3-ContentAtomData.txt", thisGuid))));
 
-            using (WordprocessingDocument wDoc = WordprocessingDocument.Open(coalescedDocx.FullName, true))
+            using (var wDoc = WordprocessingDocument.Open(coalescedDocx.FullName, true))
             {
                 Assert.Throws<NotSupportedException>(() =>
                 {

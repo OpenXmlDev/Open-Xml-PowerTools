@@ -3,14 +3,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using System.Drawing;
 using System.Globalization;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Xml.Linq;
-using DocumentFormat.OpenXml.Packaging;
 
 namespace OpenXmlPowerTools
 {
@@ -29,7 +24,7 @@ namespace OpenXmlPowerTools
             public string FormatCode;
         }
 
-        private static Dictionary<string, FormatConfig> ExcelFormatCodeToNetFormatCodeExceptionMap = new Dictionary<string, FormatConfig>()
+        private static readonly Dictionary<string, FormatConfig> ExcelFormatCodeToNetFormatCodeExceptionMap = new Dictionary<string, FormatConfig>()
         {
             {
                 "# ?/?",
@@ -59,13 +54,14 @@ namespace OpenXmlPowerTools
             color = null;
 
             if (formatCode == null)
+            {
                 formatCode = "General";
+            }
 
             var splitFormatCode = formatCode.Split(';');
             if (splitFormatCode.Length == 1)
             {
-                double dv;
-                if (double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out dv))
+                if (double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out var dv))
                 {
                     return FormatDouble(formatCode, dv, out color);
                 }
@@ -73,8 +69,7 @@ namespace OpenXmlPowerTools
             }
             if (splitFormatCode.Length == 2)
             {
-                double dv;
-                if (double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out dv))
+                if (double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out var dv))
                 {
                     if (dv > 0)
                     {
@@ -86,14 +81,12 @@ namespace OpenXmlPowerTools
                     }
                 }
                 return value;
-
             }
             // positive, negative, zero, text
             // _("$"* #,##0.00_);_("$"* \(#,##0.00\);_("$"* "-"??_);_(@_)
             if (splitFormatCode.Length == 4)
             {
-                double dv;
-                if (double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out dv))
+                if (double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out var dv))
                 {
                     if (dv > 0)
                     {
@@ -111,7 +104,7 @@ namespace OpenXmlPowerTools
                         return z3;
                     }
                 }
-                string fmt = splitFormatCode[3].Replace("@", "{0}").Replace("\"", "");
+                var fmt = splitFormatCode[3].Replace("@", "{0}").Replace("\"", "");
                 try
                 {
                     var s = string.Format(fmt, value);
@@ -125,7 +118,7 @@ namespace OpenXmlPowerTools
             return value;
         }
 
-        static Regex UnderRegex = new Regex("_.");
+        private static readonly Regex UnderRegex = new Regex("_.");
 
         // The following Regex transforms currency specifies into a character / string
         // that string.Format can use to properly produce the correct text.
@@ -133,7 +126,7 @@ namespace OpenXmlPowerTools
         // "[$€-2]"      => "€"
         // "[$¥-804]"    => "¥
         // "[$CHF-100C]" => "CHF"
-        static string s_CurrRegex = @"\[\$(?<curr>.*-).*\]";
+        private static readonly string s_CurrRegex = @"\[\$(?<curr>.*-).*\]";
 
         private static string ConvertFormatCode(string formatCode)
         {
@@ -152,7 +145,7 @@ namespace OpenXmlPowerTools
             return withTransformedCurrency;
         }
 
-        private static string[] ValidColors = new[] {
+        private static readonly string[] ValidColors = new[] {
             "Black",
             "Blue",
             "Cyan",
@@ -178,25 +171,32 @@ namespace OpenXmlPowerTools
                     if (color.StartsWith("Color"))
                     {
                         var idxStr = color.Substring(5);
-                        int colorIdx;
-                        if (int.TryParse(idxStr, out colorIdx))
+                        if (int.TryParse(idxStr, out var colorIdx))
                         {
                             if (colorIdx < SmlDataRetriever.IndexedColors.Length)
+                            {
                                 color = SmlDataRetriever.IndexedColors[colorIdx];
+                            }
                             else
+                            {
                                 color = null;
+                            }
                         }
                     }
                     formatCode = trimmed.Substring(colorLen + 1);
                 }
                 else
+                {
                     color = null;
+                }
             }
 
-
             if (formatCode == "General")
+            {
                 return dv.ToString(CultureInfo.InvariantCulture);
-            bool isDate = IsFormatCodeForDate(formatCode);
+            }
+
+            var isDate = IsFormatCodeForDate(formatCode);
             var cfc = ConvertFormatCode(formatCode);
             if (isDate)
             {
@@ -211,8 +211,8 @@ namespace OpenXmlPowerTools
                 }
                 if (cfc.StartsWith("[h]"))
                 {
-                    DateTime zeroHour = new DateTime(1899, 12, 30, 0, 0, 0);
-                    int deltaInHours = (int)((thisDate - zeroHour).TotalHours);
+                    var zeroHour = new DateTime(1899, 12, 30, 0, 0, 0);
+                    var deltaInHours = (int)((thisDate - zeroHour).TotalHours);
                     var newCfc = cfc.Substring(3);
                     var s = (deltaInHours.ToString() + thisDate.ToString(newCfc)).Trim();
                     return s;
@@ -228,12 +228,18 @@ namespace OpenXmlPowerTools
             }
             if (ExcelFormatCodeToNetFormatCodeExceptionMap.ContainsKey(formatCode))
             {
-                FormatConfig fc = ExcelFormatCodeToNetFormatCodeExceptionMap[formatCode];
+                var fc = ExcelFormatCodeToNetFormatCodeExceptionMap[formatCode];
                 var s = dv.ToString(fc.FormatCode, CultureInfo.InvariantCulture).Trim();
                 return s;
             }
             if ((cfc.Contains('(') && cfc.Contains(')')) || cfc.Contains('-'))
             {
+                if (dv == 0)
+                {
+                    var s5 = (dv).ToString(cfc, CultureInfo.InvariantCulture).Trim();
+                    return s5;
+                }
+
                 var s3 = (-dv).ToString(cfc, CultureInfo.InvariantCulture).Trim();
                 return s3;
             }
@@ -247,7 +253,10 @@ namespace OpenXmlPowerTools
         private static bool IsFormatCodeForDate(string formatCode)
         {
             if (formatCode == "General")
+            {
                 return false;
+            }
+
             return formatCode.Contains("m") ||
                 formatCode.Contains("d") ||
                 formatCode.Contains("y") ||

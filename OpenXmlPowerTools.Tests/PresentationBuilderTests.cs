@@ -1,18 +1,11 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System;
+using DocumentFormat.OpenXml.Packaging;
+using OpenXmlPowerTools;
 using System.Collections.Generic;
-using System.Drawing;
-using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml.Linq;
-using DocumentFormat.OpenXml.Packaging;
-using DocumentFormat.OpenXml.Validation;
-using OpenXmlPowerTools;
 using Xunit;
 
 #if !ELIDE_XUNIT_TESTS
@@ -24,11 +17,11 @@ namespace OxPt
         [Fact]
         public void PB001_Formatting()
         {
-            string name1 = "PB001-Input1.pptx";
-            string name2 = "PB001-Input2.pptx";
-            DirectoryInfo sourceDir = new DirectoryInfo("../../../../TestFiles/");
-            FileInfo source1Pptx = new FileInfo(Path.Combine(sourceDir.FullName, name1));
-            FileInfo source2Pptx = new FileInfo(Path.Combine(sourceDir.FullName, name2));
+            var name1 = "PB001-Input1.pptx";
+            var name2 = "PB001-Input2.pptx";
+            var sourceDir = new DirectoryInfo("../../../../TestFiles/");
+            var source1Pptx = new FileInfo(Path.Combine(sourceDir.FullName, name1));
+            var source2Pptx = new FileInfo(Path.Combine(sourceDir.FullName, name2));
 
             List<SlideSource> sources = null;
             sources = new List<SlideSource>()
@@ -43,9 +36,9 @@ namespace OxPt
         [Fact]
         public void PB002_Formatting()
         {
-            string name2 = "PB001-Input2.pptx";
-            DirectoryInfo sourceDir = new DirectoryInfo("../../../../TestFiles/");
-            FileInfo source2Pptx = new FileInfo(Path.Combine(sourceDir.FullName, name2));
+            var name2 = "PB001-Input2.pptx";
+            var sourceDir = new DirectoryInfo("../../../../TestFiles/");
+            var source2Pptx = new FileInfo(Path.Combine(sourceDir.FullName, name2));
 
             List<SlideSource> sources = null;
             sources = new List<SlideSource>()
@@ -59,11 +52,11 @@ namespace OxPt
         [Fact]
         public void PB003_Formatting()
         {
-            string name1 = "PB001-Input1.pptx";
-            string name2 = "PB001-Input3.pptx";
-            DirectoryInfo sourceDir = new DirectoryInfo("../../../../TestFiles/");
-            FileInfo source1Pptx = new FileInfo(Path.Combine(sourceDir.FullName, name1));
-            FileInfo source2Pptx = new FileInfo(Path.Combine(sourceDir.FullName, name2));
+            var name1 = "PB001-Input1.pptx";
+            var name2 = "PB001-Input3.pptx";
+            var sourceDir = new DirectoryInfo("../../../../TestFiles/");
+            var source1Pptx = new FileInfo(Path.Combine(sourceDir.FullName, name1));
+            var source2Pptx = new FileInfo(Path.Combine(sourceDir.FullName, name2));
 
             List<SlideSource> sources = null;
             sources = new List<SlideSource>()
@@ -78,11 +71,11 @@ namespace OxPt
         [Fact]
         public void PB004_Formatting()
         {
-            string name1 = "PB001-Input1.pptx";
-            string name2 = "PB001-Input3.pptx";
-            DirectoryInfo sourceDir = new DirectoryInfo("../../../../TestFiles/");
-            FileInfo source1Pptx = new FileInfo(Path.Combine(sourceDir.FullName, name1));
-            FileInfo source2Pptx = new FileInfo(Path.Combine(sourceDir.FullName, name2));
+            var name1 = "PB001-Input1.pptx";
+            var name2 = "PB001-Input3.pptx";
+            var sourceDir = new DirectoryInfo("../../../../TestFiles/");
+            var source1Pptx = new FileInfo(Path.Combine(sourceDir.FullName, name1));
+            var source2Pptx = new FileInfo(Path.Combine(sourceDir.FullName, name2));
 
             List<SlideSource> sources = null;
             sources = new List<SlideSource>()
@@ -97,11 +90,11 @@ namespace OxPt
         [Fact]
         public void PB005_Formatting()
         {
-            string name1 = "PB001-Input1.pptx";
-            string name2 = "PB001-Input3.pptx";
-            DirectoryInfo sourceDir = new DirectoryInfo("../../../../TestFiles/");
-            FileInfo source1Pptx = new FileInfo(Path.Combine(sourceDir.FullName, name1));
-            FileInfo source2Pptx = new FileInfo(Path.Combine(sourceDir.FullName, name2));
+            var name1 = "PB001-Input1.pptx";
+            var name2 = "PB001-Input3.pptx";
+            var sourceDir = new DirectoryInfo("../../../../TestFiles/");
+            var source1Pptx = new FileInfo(Path.Combine(sourceDir.FullName, name1));
+            var source2Pptx = new FileInfo(Path.Combine(sourceDir.FullName, name2));
 
             List<SlideSource> sources = null;
             sources = new List<SlideSource>()
@@ -117,13 +110,18 @@ namespace OxPt
 #if NETCOREAPP2_0
         [Fact(Skip="Bug in netcore 2.0 : https://github.com/OfficeDev/Open-Xml-PowerTools/pull/238#issuecomment-412375570")]
 #else
+#if NETCOREAPP3_1
+        [Fact(Skip="Bug since netcore 2.0 : https://github.com/OfficeDev/Open-Xml-PowerTools/pull/238#issuecomment-412375570")]
+#else
+
         [Fact]
+#endif
 #endif
         public void PB006_VideoFormats()
         {
             // This presentation contains videos with content types video/mp4, video/quicktime, video/unknown, video/x-ms-asf, and video/x-msvideo.
-            DirectoryInfo sourceDir = new DirectoryInfo("../../../../TestFiles/");
-            FileInfo sourcePptx = new FileInfo(Path.Combine(sourceDir.FullName, "PP006-Videos.pptx"));
+            var sourceDir = new DirectoryInfo("../../../../TestFiles/");
+            var sourcePptx = new FileInfo(Path.Combine(sourceDir.FullName, "PP006-Videos.pptx"));
 
             var oldMediaDataContentTypes = GetMediaDataContentTypes(sourcePptx);
 
@@ -142,7 +140,7 @@ namespace OxPt
 
         private static string[] GetMediaDataContentTypes(FileInfo fi)
         {
-            using (PresentationDocument ptDoc = PresentationDocument.Open(fi.FullName, false))
+            using (var ptDoc = PresentationDocument.Open(fi.FullName, false))
             {
                 return ptDoc.PresentationPart.SlideParts.SelectMany(
                         p => p.DataPartReferenceRelationships.Select(d => d.DataPart.ContentType))

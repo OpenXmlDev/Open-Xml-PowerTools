@@ -1,20 +1,18 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using DocumentFormat.OpenXml;
+using DocumentFormat.OpenXml.Packaging;
+using DocumentFormat.OpenXml.Validation;
+using DocumentFormat.OpenXml.Wordprocessing;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Xml;
 using System.Xml.Linq;
-using DocumentFormat.OpenXml.Packaging;
-using DocumentFormat.OpenXml.Wordprocessing;
-using DocumentFormat.OpenXml.Validation;
-using OpenXmlPowerTools;
-using System.Text;
-using DocumentFormat.OpenXml;
-using System.Drawing.Imaging;
 
 namespace OpenXmlPowerTools
 {
@@ -30,60 +28,70 @@ namespace OpenXmlPowerTools
             string backColor,
             string styleName)
         {
-            using (OpenXmlMemoryStreamDocument streamDoc = new OpenXmlMemoryStreamDocument(wmlDoc))
+            using (var streamDoc = new OpenXmlMemoryStreamDocument(wmlDoc))
             {
-                using (WordprocessingDocument wDoc = streamDoc.GetWordprocessingDocument())
+                using (var wDoc = streamDoc.GetWordprocessingDocument())
                 {
-                    StyleDefinitionsPart part = wDoc.MainDocumentPart.StyleDefinitionsPart;
+                    var part = wDoc.MainDocumentPart.StyleDefinitionsPart;
 
-                    Body body = wDoc.MainDocumentPart.Document.Body;
+                    var body = wDoc.MainDocumentPart.Document.Body;
 
-                    SectionProperties sectionProperties = body.Elements<SectionProperties>().FirstOrDefault();
+                    var sectionProperties = body.Elements<SectionProperties>().FirstOrDefault();
 
-                    Paragraph paragraph = new Paragraph();
-                    Run run = paragraph.AppendChild(new Run());
-                    RunProperties runProperties = new RunProperties();
+                    var paragraph = new Paragraph();
+                    var run = paragraph.AppendChild(new Run());
+                    var runProperties = new RunProperties();
 
                     if (isBold)
+                    {
                         runProperties.AppendChild(new Bold());
+                    }
 
                     if (isItalic)
+                    {
                         runProperties.AppendChild(new Italic());
-
+                    }
 
                     if (!string.IsNullOrEmpty(foreColor))
                     {
-                        int colorValue = ColorParser.FromName(foreColor).ToArgb();
+                        var colorValue = ColorParser.FromName(foreColor).ToArgb();
                         if (colorValue == 0)
-                            throw new OpenXmlPowerToolsException(String.Format("Add-DocxText: The specified color {0} is unsupported, Please specify the valid color. Ex, Red, Green", foreColor));
+                        {
+                            throw new OpenXmlPowerToolsException(string.Format("Add-DocxText: The specified color {0} is unsupported, Please specify the valid color. Ex, Red, Green", foreColor));
+                        }
 
-                        string ColorHex = string.Format("{0:x6}", colorValue);
+                        var ColorHex = string.Format("{0:x6}", colorValue);
                         runProperties.AppendChild(new DocumentFormat.OpenXml.Wordprocessing.Color() { Val = ColorHex.Substring(2) });
                     }
 
                     if (isUnderline)
+                    {
                         runProperties.AppendChild(new Underline() { Val = UnderlineValues.Single });
+                    }
 
                     if (!string.IsNullOrEmpty(backColor))
                     {
-                        int colorShade = ColorParser.FromName(backColor).ToArgb();
+                        var colorShade = ColorParser.FromName(backColor).ToArgb();
                         if (colorShade == 0)
-                            throw new OpenXmlPowerToolsException(String.Format("Add-DocxText: The specified color {0} is unsupported, Please specify the valid color. Ex, Red, Green", foreColor));
+                        {
+                            throw new OpenXmlPowerToolsException(string.Format("Add-DocxText: The specified color {0} is unsupported, Please specify the valid color. Ex, Red, Green", foreColor));
+                        }
 
-                        string ColorShadeHex = string.Format("{0:x6}", colorShade);
+                        var ColorShadeHex = string.Format("{0:x6}", colorShade);
                         runProperties.AppendChild(new Shading() { Fill = ColorShadeHex.Substring(2), Val = ShadingPatternValues.Clear });
                     }
 
                     if (!string.IsNullOrEmpty(styleName))
                     {
-                        Style style = part.Styles.Elements<Style>().Where(s => s.StyleId == styleName).FirstOrDefault();
+                        var style = part.Styles.Elements<Style>().Where(s => s.StyleId == styleName).FirstOrDefault();
                         //if the specified style is not present in word document add it
                         if (style == null)
                         {
-                            using (MemoryStream memoryStream = new MemoryStream())
+                            using (var memoryStream = new MemoryStream())
                             {
                                 #region Default.dotx Template has been used to get all the paragraph styles
-                                string base64 =
+
+                                var base64 =
         @"UEsDBBQABgAIAAAAIQDTMB8uXgEAACAFAAATAAAAW0NvbnRlbnRfVHlwZXNdLnhtbLSUy27CMBBF
 95X6D5G3VWLooqoqAos+li1S6QcYewJW/ZI9vP6+EwKoqiCRCmwiJTP33jNWxoPR2ppsCTFp70rW
 L3osAye90m5Wsq/JW/7IsoTCKWG8g5JtILHR8PZmMNkESBmpXSrZHDE8cZ7kHKxIhQ/gqFL5aAXS
@@ -297,22 +305,27 @@ AAAAAAAAAAAAAAAAOhEAAHdvcmQvc3R5bGVzLnhtbFBLAQItABQABgAIANFqBkEJ28MF3QYAAFAb
 AAAVAAAAAAAAAAAAAAAAALojAAB3b3JkL3RoZW1lL3RoZW1lMS54bWxQSwECLQAUAAYACADRagZB
 joxzCXABAAD0AQAAFAAAAAAAAAAAAAAAAADKKgAAd29yZC93ZWJTZXR0aW5ncy54bWxQSwUGAAAA
 AAsACwDBAgAAbCwAAAAA";
-                                #endregion
 
-                                char[] base64CharArray = base64.Where(c => c != '\r' && c != '\n').ToArray();
-                                byte[] byteArray = System.Convert.FromBase64CharArray(base64CharArray, 0, base64CharArray.Length);
+                                #endregion Default.dotx Template has been used to get all the paragraph styles
+
+                                var base64CharArray = base64.Where(c => c != '\r' && c != '\n').ToArray();
+                                var byteArray = System.Convert.FromBase64CharArray(base64CharArray, 0, base64CharArray.Length);
                                 memoryStream.Write(byteArray, 0, byteArray.Length);
 
-                                using (WordprocessingDocument defaultDotx = WordprocessingDocument.Open(memoryStream, true))
+                                using (var defaultDotx = WordprocessingDocument.Open(memoryStream, true))
                                 {
                                     //Get the specified style from Default.dotx template for paragraph
-                                    Style templateStyle = defaultDotx.MainDocumentPart.StyleDefinitionsPart.Styles.Elements<Style>().Where(s => s.StyleId == styleName && s.Type == StyleValues.Paragraph).FirstOrDefault();
+                                    var templateStyle = defaultDotx.MainDocumentPart.StyleDefinitionsPart.Styles.Elements<Style>().Where(s => s.StyleId == styleName && s.Type == StyleValues.Paragraph).FirstOrDefault();
 
                                     //Check if the style is proper style. Ex, Heading1, Heading2
                                     if (templateStyle == null)
-                                        throw new OpenXmlPowerToolsException(String.Format("Add-DocxText: The specified style name {0} is unsupported, Please specify the valid style. Ex, Heading1, Heading2, Title", styleName));
+                                    {
+                                        throw new OpenXmlPowerToolsException(string.Format("Add-DocxText: The specified style name {0} is unsupported, Please specify the valid style. Ex, Heading1, Heading2, Title", styleName));
+                                    }
                                     else
+                                    {
                                         part.Styles.Append((templateStyle.CloneNode(true)));
+                                    }
                                 }
                             }
                         }
@@ -324,9 +337,13 @@ AAsACwDBAgAAbCwAAAAA";
                     run.AppendChild(new Text(strParagraph));
 
                     if (sectionProperties != null)
+                    {
                         body.InsertBefore(paragraph, sectionProperties);
+                    }
                     else
+                    {
                         body.AppendChild(paragraph);
+                    }
                 }
                 return streamDoc.GetModifiedWmlDocument();
             }
@@ -338,16 +355,16 @@ AAsACwDBAgAAbCwAAAAA";
         public static void ConvertToHtml(string file, string outputDirectory)
         {
             var fi = new FileInfo(file);
-            byte[] byteArray = File.ReadAllBytes(fi.FullName);
-            using (MemoryStream memoryStream = new MemoryStream())
+            var byteArray = File.ReadAllBytes(fi.FullName);
+            using (var memoryStream = new MemoryStream())
             {
                 memoryStream.Write(byteArray, 0, byteArray.Length);
-                using (WordprocessingDocument wDoc = WordprocessingDocument.Open(memoryStream, true))
+                using (var wDoc = WordprocessingDocument.Open(memoryStream, true))
                 {
                     var destFileName = new FileInfo(fi.Name.Replace(".docx", ".html"));
                     if (outputDirectory != null && outputDirectory != string.Empty)
                     {
-                        DirectoryInfo di = new DirectoryInfo(outputDirectory);
+                        var di = new DirectoryInfo(outputDirectory);
                         if (!di.Exists)
                         {
                             throw new OpenXmlPowerToolsException("Output directory does not exist");
@@ -355,12 +372,14 @@ AAsACwDBAgAAbCwAAAAA";
                         destFileName = new FileInfo(Path.Combine(di.FullName, destFileName.Name));
                     }
                     var imageDirectoryName = destFileName.FullName.Substring(0, destFileName.FullName.Length - 5) + "_files";
-                    int imageCounter = 0;
+                    var imageCounter = 0;
                     var pageTitle = (string)wDoc.CoreFilePropertiesPart.GetXDocument().Descendants(DC.title).FirstOrDefault();
                     if (pageTitle == null)
+                    {
                         pageTitle = fi.FullName;
+                    }
 
-                    WmlToHtmlConverterSettings settings = new WmlToHtmlConverterSettings()
+                    var settings = new WmlToHtmlConverterSettings()
                     {
                         PageTitle = pageTitle,
                         FabricateCssClasses = true,
@@ -369,11 +388,14 @@ AAsACwDBAgAAbCwAAAAA";
                         RestrictToSupportedNumberingFormats = false,
                         ImageHandler = imageInfo =>
                         {
-                            DirectoryInfo localDirInfo = new DirectoryInfo(imageDirectoryName);
+                            var localDirInfo = new DirectoryInfo(imageDirectoryName);
                             if (!localDirInfo.Exists)
+                            {
                                 localDirInfo.Create();
+                            }
+
                             ++imageCounter;
-                            string extension = imageInfo.ContentType.Split('/')[1].ToLower();
+                            var extension = imageInfo.ContentType.Split('/')[1].ToLower();
                             ImageFormat imageFormat = null;
                             if (extension == "png")
                             {
@@ -382,11 +404,17 @@ AAsACwDBAgAAbCwAAAAA";
                                 imageFormat = ImageFormat.Gif;
                             }
                             else if (extension == "gif")
+                            {
                                 imageFormat = ImageFormat.Gif;
+                            }
                             else if (extension == "bmp")
+                            {
                                 imageFormat = ImageFormat.Bmp;
+                            }
                             else if (extension == "jpeg")
+                            {
                                 imageFormat = ImageFormat.Jpeg;
+                            }
                             else if (extension == "tiff")
                             {
                                 // Convert tiff to gif.
@@ -402,9 +430,11 @@ AAsACwDBAgAAbCwAAAAA";
                             // If the image format isn't one that we expect, ignore it,
                             // and don't return markup for the link.
                             if (imageFormat == null)
+                            {
                                 return null;
+                            }
 
-                            string imageFileName = imageDirectoryName + "/image" +
+                            var imageFileName = imageDirectoryName + "/image" +
                                 imageCounter.ToString() + "." + extension;
                             try
                             {
@@ -414,7 +444,7 @@ AAsACwDBAgAAbCwAAAAA";
                             {
                                 return null;
                             }
-                            XElement img = new XElement(Xhtml.img,
+                            var img = new XElement(Xhtml.img,
                                 new XAttribute(NoNamespace.src, imageFileName),
                                 imageInfo.ImgStyleAttribute,
                                 imageInfo.AltText != null ?
@@ -422,7 +452,7 @@ AAsACwDBAgAAbCwAAAAA";
                             return img;
                         }
                     };
-                    XElement html = WmlToHtmlConverter.ConvertToHtml(wDoc, settings);
+                    var html = WmlToHtmlConverter.ConvertToHtml(wDoc, settings);
 
                     // Note: the xhtml returned by ConvertToHtmlTransform contains objects of type
                     // XEntity.  PtOpenXmlUtil.cs define the XEntity class.  See
@@ -444,7 +474,7 @@ AAsACwDBAgAAbCwAAAAA";
         public static bool IsValid(string fileName, string officeVersion)
         {
 #if !NET35
-            FileFormatVersions fileFormatVersion = FileFormatVersions.Office2013;
+            var fileFormatVersion = FileFormatVersions.Office2013;
 #else
             FileFormatVersions fileFormatVersion = FileFormatVersions.Office2010;
 #endif
@@ -461,34 +491,34 @@ AAsACwDBAgAAbCwAAAAA";
 #endif
             }
 
-            FileInfo fi = new FileInfo(fileName);
+            var fi = new FileInfo(fileName);
             if (Util.IsWordprocessingML(fi.Extension))
             {
-                using (WordprocessingDocument wDoc = WordprocessingDocument.Open(fileName, false))
+                using (var wDoc = WordprocessingDocument.Open(fileName, false))
                 {
-                    OpenXmlValidator validator = new OpenXmlValidator(fileFormatVersion);
+                    var validator = new OpenXmlValidator(fileFormatVersion);
                     var errors = validator.Validate(wDoc);
-                    bool valid = errors.Count() == 0;
+                    var valid = errors.Count() == 0;
                     return valid;
                 }
             }
             else if (Util.IsSpreadsheetML(fi.Extension))
             {
-                using (SpreadsheetDocument sDoc = SpreadsheetDocument.Open(fileName, false))
+                using (var sDoc = SpreadsheetDocument.Open(fileName, false))
                 {
-                    OpenXmlValidator validator = new OpenXmlValidator(fileFormatVersion);
+                    var validator = new OpenXmlValidator(fileFormatVersion);
                     var errors = validator.Validate(sDoc);
-                    bool valid = errors.Count() == 0;
+                    var valid = errors.Count() == 0;
                     return valid;
                 }
             }
             else if (Util.IsPresentationML(fi.Extension))
             {
-                using (PresentationDocument pDoc = PresentationDocument.Open(fileName, false))
+                using (var pDoc = PresentationDocument.Open(fileName, false))
                 {
-                    OpenXmlValidator validator = new OpenXmlValidator(fileFormatVersion);
+                    var validator = new OpenXmlValidator(fileFormatVersion);
                     var errors = validator.Validate(pDoc);
-                    bool valid = errors.Count() == 0;
+                    var valid = errors.Count() == 0;
                     return valid;
                 }
             }
@@ -499,7 +529,7 @@ AAsACwDBAgAAbCwAAAAA";
             string officeVersion)
         {
 #if !NET35
-            FileFormatVersions fileFormatVersion = FileFormatVersions.Office2013;
+            var fileFormatVersion = FileFormatVersions.Office2013;
 #else
             FileFormatVersions fileFormatVersion = FileFormatVersions.Office2010;
 #endif
@@ -516,36 +546,36 @@ AAsACwDBAgAAbCwAAAAA";
 #endif
             }
 
-            FileInfo fi = new FileInfo(fileName);
+            var fi = new FileInfo(fileName);
             if (Util.IsWordprocessingML(fi.Extension))
             {
-                WmlDocument wml = new WmlDocument(fileName);
-                using (OpenXmlMemoryStreamDocument streamDoc = new OpenXmlMemoryStreamDocument(wml))
-                using (WordprocessingDocument wDoc = streamDoc.GetWordprocessingDocument())
+                var wml = new WmlDocument(fileName);
+                using (var streamDoc = new OpenXmlMemoryStreamDocument(wml))
+                using (var wDoc = streamDoc.GetWordprocessingDocument())
                 {
-                    OpenXmlValidator validator = new OpenXmlValidator(fileFormatVersion);
+                    var validator = new OpenXmlValidator(fileFormatVersion);
                     var errors = validator.Validate(wDoc);
                     return errors.ToList();
                 }
             }
             else if (Util.IsSpreadsheetML(fi.Extension))
             {
-                SmlDocument Sml = new SmlDocument(fileName);
-                using (OpenXmlMemoryStreamDocument streamDoc = new OpenXmlMemoryStreamDocument(Sml))
-                using (SpreadsheetDocument wDoc = streamDoc.GetSpreadsheetDocument())
+                var Sml = new SmlDocument(fileName);
+                using (var streamDoc = new OpenXmlMemoryStreamDocument(Sml))
+                using (var wDoc = streamDoc.GetSpreadsheetDocument())
                 {
-                    OpenXmlValidator validator = new OpenXmlValidator(fileFormatVersion);
+                    var validator = new OpenXmlValidator(fileFormatVersion);
                     var errors = validator.Validate(wDoc);
                     return errors.ToList();
                 }
             }
             else if (Util.IsPresentationML(fi.Extension))
             {
-                PmlDocument Pml = new PmlDocument(fileName);
-                using (OpenXmlMemoryStreamDocument streamDoc = new OpenXmlMemoryStreamDocument(Pml))
-                using (PresentationDocument wDoc = streamDoc.GetPresentationDocument())
+                var Pml = new PmlDocument(fileName);
+                using (var streamDoc = new OpenXmlMemoryStreamDocument(Pml))
+                using (var wDoc = streamDoc.GetPresentationDocument())
                 {
-                    OpenXmlValidator validator = new OpenXmlValidator(fileFormatVersion);
+                    var validator = new OpenXmlValidator(fileFormatVersion);
                     var errors = validator.Validate(wDoc);
                     return errors.ToList();
                 }
@@ -558,39 +588,39 @@ AAsACwDBAgAAbCwAAAAA";
     {
         public string FileName;
 
-	    public int ActiveX;
-	    public int AltChunk;
-	    public int AsciiCharCount;
-	    public int AsciiRunCount;
-	    public int AverageParagraphLength;
-	    public int ComplexField;
-	    public int ContentControlCount;
-	    public XmlDocument ContentControls;
-	    public int CSCharCount;
-	    public int CSRunCount;
-	    public bool DocumentProtection;
-	    public int EastAsiaCharCount;
-	    public int EastAsiaRunCount;
-	    public int ElementCount;
-	    public bool EmbeddedXlsx;
-	    public int HAnsiCharCount;
-	    public int HAnsiRunCount;
-	    public int Hyperlink;
-	    public bool InvalidSaveThroughXslt;
-	    public string Languages;
-	    public int LegacyFrame;
-	    public int MultiFontRun;
-	    public string NumberingFormatList;
-	    public int ReferenceToNullImage;
-	    public bool RevisionTracking;
-	    public int RunCount;
-	    public int SimpleField;
-	    public XmlDocument StyleHierarchy;
-	    public int SubDocument;
-	    public int Table;
-	    public int TextBox;
-	    public bool TrackRevisionsEnabled;
-	    public bool Valid;
+        public int ActiveX;
+        public int AltChunk;
+        public int AsciiCharCount;
+        public int AsciiRunCount;
+        public int AverageParagraphLength;
+        public int ComplexField;
+        public int ContentControlCount;
+        public XmlDocument ContentControls;
+        public int CSCharCount;
+        public int CSRunCount;
+        public bool DocumentProtection;
+        public int EastAsiaCharCount;
+        public int EastAsiaRunCount;
+        public int ElementCount;
+        public bool EmbeddedXlsx;
+        public int HAnsiCharCount;
+        public int HAnsiRunCount;
+        public int Hyperlink;
+        public bool InvalidSaveThroughXslt;
+        public string Languages;
+        public int LegacyFrame;
+        public int MultiFontRun;
+        public string NumberingFormatList;
+        public int ReferenceToNullImage;
+        public bool RevisionTracking;
+        public int RunCount;
+        public int SimpleField;
+        public XmlDocument StyleHierarchy;
+        public int SubDocument;
+        public int Table;
+        public int TextBox;
+        public bool TrackRevisionsEnabled;
+        public bool Valid;
         public int ZeroLengthText;
     }
 
@@ -598,48 +628,52 @@ AAsACwDBAgAAbCwAAAAA";
     {
         public static DocxMetrics GetDocxMetrics(string fileName)
         {
-            WmlDocument wmlDoc = new WmlDocument(fileName);
-            MetricsGetterSettings settings = new MetricsGetterSettings();
-            settings.IncludeTextInContentControls = false;
-            settings.IncludeXlsxTableCellData = false;
+            var wmlDoc = new WmlDocument(fileName);
+            var settings = new MetricsGetterSettings
+            {
+                IncludeTextInContentControls = false,
+                IncludeXlsxTableCellData = false
+            };
             var metricsXml = MetricsGetter.GetDocxMetrics(wmlDoc, settings);
-            DocxMetrics metrics = new DocxMetrics();
-            metrics.FileName = wmlDoc.FileName;
+            var metrics = new DocxMetrics
+            {
+                FileName = wmlDoc.FileName,
 
-            metrics.StyleHierarchy         = GetXmlDocumentForMetrics(metricsXml, H.StyleHierarchy);
-            metrics.ContentControls        = GetXmlDocumentForMetrics(metricsXml, H.Parts);
-            metrics.TextBox                = GetIntForMetrics(metricsXml, H.TextBox);
-            metrics.ContentControlCount    = GetIntForMetrics(metricsXml, H.ContentControl);
-            metrics.ComplexField           = GetIntForMetrics(metricsXml, H.ComplexField);
-            metrics.SimpleField            = GetIntForMetrics(metricsXml, H.SimpleField);
-            metrics.AltChunk               = GetIntForMetrics(metricsXml, H.AltChunk);
-            metrics.Table                  = GetIntForMetrics(metricsXml, H.Table);
-            metrics.Hyperlink              = GetIntForMetrics(metricsXml, H.Hyperlink);
-            metrics.LegacyFrame            = GetIntForMetrics(metricsXml, H.LegacyFrame);
-            metrics.ActiveX                = GetIntForMetrics(metricsXml, H.ActiveX);
-            metrics.SubDocument            = GetIntForMetrics(metricsXml, H.SubDocument);
-            metrics.ReferenceToNullImage   = GetIntForMetrics(metricsXml, H.ReferenceToNullImage);
-            metrics.ElementCount           = GetIntForMetrics(metricsXml, H.ElementCount);
-            metrics.AverageParagraphLength = GetIntForMetrics(metricsXml, H.AverageParagraphLength);
-            metrics.RunCount               = GetIntForMetrics(metricsXml, H.RunCount);
-            metrics.ZeroLengthText         = GetIntForMetrics(metricsXml, H.ZeroLengthText);
-            metrics.MultiFontRun           = GetIntForMetrics(metricsXml, H.MultiFontRun);
-            metrics.AsciiCharCount         = GetIntForMetrics(metricsXml, H.AsciiCharCount);
-            metrics.CSCharCount            = GetIntForMetrics(metricsXml, H.CSCharCount);
-            metrics.EastAsiaCharCount      = GetIntForMetrics(metricsXml, H.EastAsiaCharCount);
-            metrics.HAnsiCharCount         = GetIntForMetrics(metricsXml, H.HAnsiCharCount);
-            metrics.AsciiRunCount          = GetIntForMetrics(metricsXml, H.AsciiRunCount);
-            metrics.CSRunCount             = GetIntForMetrics(metricsXml, H.CSRunCount);
-            metrics.EastAsiaRunCount       = GetIntForMetrics(metricsXml, H.EastAsiaRunCount);
-            metrics.HAnsiRunCount          = GetIntForMetrics(metricsXml, H.HAnsiRunCount);
-            metrics.RevisionTracking       = GetBoolForMetrics(metricsXml, H.RevisionTracking);
-            metrics.EmbeddedXlsx           = GetBoolForMetrics(metricsXml, H.EmbeddedXlsx);
-            metrics.InvalidSaveThroughXslt = GetBoolForMetrics(metricsXml, H.InvalidSaveThroughXslt);
-            metrics.TrackRevisionsEnabled  = GetBoolForMetrics(metricsXml, H.TrackRevisionsEnabled);
-            metrics.DocumentProtection     = GetBoolForMetrics(metricsXml, H.DocumentProtection);
-            metrics.Valid                  = GetBoolForMetrics(metricsXml, H.Valid);
-            metrics.Languages              = GetStringForMetrics(metricsXml, H.Languages);
-            metrics.NumberingFormatList    = GetStringForMetrics(metricsXml, H.NumberingFormatList);
+                StyleHierarchy = GetXmlDocumentForMetrics(metricsXml, H.StyleHierarchy),
+                ContentControls = GetXmlDocumentForMetrics(metricsXml, H.Parts),
+                TextBox = GetIntForMetrics(metricsXml, H.TextBox),
+                ContentControlCount = GetIntForMetrics(metricsXml, H.ContentControl),
+                ComplexField = GetIntForMetrics(metricsXml, H.ComplexField),
+                SimpleField = GetIntForMetrics(metricsXml, H.SimpleField),
+                AltChunk = GetIntForMetrics(metricsXml, H.AltChunk),
+                Table = GetIntForMetrics(metricsXml, H.Table),
+                Hyperlink = GetIntForMetrics(metricsXml, H.Hyperlink),
+                LegacyFrame = GetIntForMetrics(metricsXml, H.LegacyFrame),
+                ActiveX = GetIntForMetrics(metricsXml, H.ActiveX),
+                SubDocument = GetIntForMetrics(metricsXml, H.SubDocument),
+                ReferenceToNullImage = GetIntForMetrics(metricsXml, H.ReferenceToNullImage),
+                ElementCount = GetIntForMetrics(metricsXml, H.ElementCount),
+                AverageParagraphLength = GetIntForMetrics(metricsXml, H.AverageParagraphLength),
+                RunCount = GetIntForMetrics(metricsXml, H.RunCount),
+                ZeroLengthText = GetIntForMetrics(metricsXml, H.ZeroLengthText),
+                MultiFontRun = GetIntForMetrics(metricsXml, H.MultiFontRun),
+                AsciiCharCount = GetIntForMetrics(metricsXml, H.AsciiCharCount),
+                CSCharCount = GetIntForMetrics(metricsXml, H.CSCharCount),
+                EastAsiaCharCount = GetIntForMetrics(metricsXml, H.EastAsiaCharCount),
+                HAnsiCharCount = GetIntForMetrics(metricsXml, H.HAnsiCharCount),
+                AsciiRunCount = GetIntForMetrics(metricsXml, H.AsciiRunCount),
+                CSRunCount = GetIntForMetrics(metricsXml, H.CSRunCount),
+                EastAsiaRunCount = GetIntForMetrics(metricsXml, H.EastAsiaRunCount),
+                HAnsiRunCount = GetIntForMetrics(metricsXml, H.HAnsiRunCount),
+                RevisionTracking = GetBoolForMetrics(metricsXml, H.RevisionTracking),
+                EmbeddedXlsx = GetBoolForMetrics(metricsXml, H.EmbeddedXlsx),
+                InvalidSaveThroughXslt = GetBoolForMetrics(metricsXml, H.InvalidSaveThroughXslt),
+                TrackRevisionsEnabled = GetBoolForMetrics(metricsXml, H.TrackRevisionsEnabled),
+                DocumentProtection = GetBoolForMetrics(metricsXml, H.DocumentProtection),
+                Valid = GetBoolForMetrics(metricsXml, H.Valid),
+                Languages = GetStringForMetrics(metricsXml, H.Languages),
+                NumberingFormatList = GetStringForMetrics(metricsXml, H.NumberingFormatList)
+            };
 
             return metrics;
         }
@@ -648,7 +682,10 @@ AAsACwDBAgAAbCwAAAAA";
         {
             var ele = metricsXml.Element(xName);
             if (ele == null)
+            {
                 return "";
+            }
+
             return (string)ele.Attribute(H.Val);
         }
 
@@ -656,7 +693,10 @@ AAsACwDBAgAAbCwAAAAA";
         {
             var ele = metricsXml.Element(xName);
             if (ele == null)
+            {
                 return false;
+            }
+
             return (bool)ele.Attribute(H.Val);
         }
 
@@ -664,7 +704,10 @@ AAsACwDBAgAAbCwAAAAA";
         {
             var ele = metricsXml.Element(xName);
             if (ele == null)
+            {
                 return 0;
+            }
+
             return (int)ele.Attribute(H.Val);
         }
 
@@ -672,7 +715,10 @@ AAsACwDBAgAAbCwAAAAA";
         {
             var ele = metricsXml.Element(xName);
             if (ele == null)
+            {
                 return null;
+            }
+
             return (new XDocument(metricsXml.Element(xName))).GetXmlDocument();
         }
     }

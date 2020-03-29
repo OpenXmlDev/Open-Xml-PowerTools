@@ -1,12 +1,30 @@
-os: Visual Studio 2017
+version: 4.6.{build}
+image: Visual Studio 2019
+skip_tags: true
+branches:
+  only:
+    - master
+configuration: Release
+nuget:
+  account_feed: true
+  project_feed: true
+before_build:
+  - ps: >-
+      nuget restore
+      . "C:\Program Files (x86)\Microsoft SDKs\Windows\v10.0A\bin\NETFX 4.7.2 Tools\x64\sn.exe" -k ./OpenXmlPowerTools/OpenXmlPowerTools.snk
+build:
+  project: OpenXmlPowerTools.sln
+  publish_aspnet_core: true
+  verbosity: minimal
 
-environment:
-  image: Visual Studio 2017
-  Configuration: Release
+dotnet_csproj:
+  patch: true
+  file: '**\*.csproj'
+  version: "{version}"
+  package_version: "{version}"
+  assembly_version: "{version}"
+  file_version: "{version}"
+  informational_version: "{version}"
 
-build_script:
-  - cmd: dotnet restore
-  - cmd: dotnet build
-
-test_script:
-  - cmd: dotnet test .\OpenXmlPowerTools.Tests
+artifacts:
+  - path: '**\OpenXmlPowerTools.*.nupkg'
