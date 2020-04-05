@@ -1,54 +1,51 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Xml;
-using System.Xml.Linq;
-using System.IO;
-using System.Timers;
 using DocumentFormat.OpenXml.Packaging;
 using OpenXmlPowerTools;
+using System;
+using System.IO;
 
 namespace ExamplePivotTables
 {
-    class PivotTableExample
+    internal class PivotTableExample
     {
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
             var n = DateTime.Now;
             var tempDi = new DirectoryInfo(string.Format("ExampleOutput-{0:00}-{1:00}-{2:00}-{3:00}{4:00}{5:00}", n.Year - 2000, n.Month, n.Day, n.Hour, n.Minute, n.Second));
             tempDi.Create();
 
             // Update an existing pivot table
-            FileInfo qs = new FileInfo("../../QuarterlySales.xlsx");
-            FileInfo qsu = new FileInfo(Path.Combine(tempDi.FullName, "QuarterlyPivot.xlsx"));
+            var qs = new FileInfo("../../QuarterlySales.xlsx");
+            var qsu = new FileInfo(Path.Combine(tempDi.FullName, "QuarterlyPivot.xlsx"));
 
-            int row = 1;
-            using (OpenXmlMemoryStreamDocument streamDoc = new OpenXmlMemoryStreamDocument(
+            var row = 1;
+            using (var streamDoc = new OpenXmlMemoryStreamDocument(
                 SmlDocument.FromFileName(qs.FullName)))
             {
-                using (SpreadsheetDocument doc = streamDoc.GetSpreadsheetDocument())
+                using (var doc = streamDoc.GetSpreadsheetDocument())
                 {
-                    WorksheetPart sheet = WorksheetAccessor.GetWorksheet(doc, "Range");
-                    using (StreamReader source = new StreamReader("../../PivotData.txt"))
+                    var sheet = WorksheetAccessor.GetWorksheet(doc, "Range");
+                    using (var source = new StreamReader("../../PivotData.txt"))
                     {
                         while (!source.EndOfStream)
                         {
-                            string line = source.ReadLine();
+                            var line = source.ReadLine();
                             if (line.Length > 3)
                             {
-                                string[] fields = line.Split(',');
-                                int column = 1;
-                                foreach (string item in fields)
+                                var fields = line.Split(',');
+                                var column = 1;
+                                foreach (var item in fields)
                                 {
-                                    double num;
-                                    if (double.TryParse(item, out num))
+                                    if (double.TryParse(item, out var num))
+                                    {
                                         WorksheetAccessor.SetCellValue(doc, sheet, row, column++, num);
+                                    }
                                     else
+                                    {
                                         WorksheetAccessor.SetCellValue(doc, sheet, row, column++, item);
+                                    }
                                 }
                             }
                             row++;
@@ -63,14 +60,14 @@ namespace ExamplePivotTables
 
             // Create from scratch
             row = 1;
-            int maxColumn = 1;
-            using (OpenXmlMemoryStreamDocument streamDoc = OpenXmlMemoryStreamDocument.CreateSpreadsheetDocument())
+            var maxColumn = 1;
+            using (var streamDoc = OpenXmlMemoryStreamDocument.CreateSpreadsheetDocument())
             {
-                using (SpreadsheetDocument doc = streamDoc.GetSpreadsheetDocument())
+                using (var doc = streamDoc.GetSpreadsheetDocument())
                 {
                     WorksheetAccessor.CreateDefaultStyles(doc);
-                    WorksheetPart sheet = WorksheetAccessor.AddWorksheet(doc, "Range");
-                    MemorySpreadsheet ms = new MemorySpreadsheet();
+                    var sheet = WorksheetAccessor.AddWorksheet(doc, "Range");
+                    var ms = new MemorySpreadsheet();
 
 #if false
                     int font0 = WorksheetAccessor.GetFontIndex(doc, new WorksheetAccessor.Font
@@ -356,13 +353,13 @@ namespace ExamplePivotTables
                     });
 #endif
 
-                    int southIndex = WorksheetAccessor.GetStyleIndex(doc, 0, 8, 1, 2,
+                    var southIndex = WorksheetAccessor.GetStyleIndex(doc, 0, 8, 1, 2,
                         new WorksheetAccessor.CellAlignment { HorizontalAlignment = WorksheetAccessor.CellAlignment.Horizontal.Center },
                         true, false);
-                    WorksheetAccessor.GradientFill gradient = new WorksheetAccessor.GradientFill(90);
+                    var gradient = new WorksheetAccessor.GradientFill(90);
                     gradient.AddStop(new WorksheetAccessor.GradientStop(0, new WorksheetAccessor.ColorInfo("FF92D050")));
                     gradient.AddStop(new WorksheetAccessor.GradientStop(1, new WorksheetAccessor.ColorInfo("FF0070C0")));
-                    int northIndex = WorksheetAccessor.GetStyleIndex(doc, 0,
+                    var northIndex = WorksheetAccessor.GetStyleIndex(doc, 0,
                         WorksheetAccessor.GetFontIndex(doc, new WorksheetAccessor.Font
                         {
                             Italic = true,
@@ -380,35 +377,46 @@ namespace ExamplePivotTables
                     }),
                     null, false, false);
                     WorksheetAccessor.CheckNumberFormat(doc, 100, "_(\"$\"* #,##0.00_);_(\"$\"* \\(#,##0.00\\);_(\"$\"* \"-\"??_);_(@_)");
-                    int amountIndex = WorksheetAccessor.GetStyleIndex(doc, 100, 0, 0, 0, null, false, false);
+                    var amountIndex = WorksheetAccessor.GetStyleIndex(doc, 100, 0, 0, 0, null, false, false);
 
-                    using (StreamReader source = new StreamReader("../../PivotData.txt"))
+                    using (var source = new StreamReader("../../PivotData.txt"))
                     {
                         while (!source.EndOfStream)
                         {
-                            string line = source.ReadLine();
+                            var line = source.ReadLine();
                             if (line.Length > 3)
                             {
-                                string[] fields = line.Split(',');
-                                int column = 1;
-                                foreach (string item in fields)
+                                var fields = line.Split(',');
+                                var column = 1;
+                                foreach (var item in fields)
                                 {
-                                    double num;
-                                    if (double.TryParse(item, out num))
+                                    if (double.TryParse(item, out var num))
                                     {
                                         if (column == 6)
+                                        {
                                             ms.SetCellValue(row, column++, num, amountIndex);
+                                        }
                                         else
+                                        {
                                             ms.SetCellValue(row, column++, num);
+                                        }
                                     }
                                     else if (item == "Accessories")
+                                    {
                                         ms.SetCellValue(row, column++, item, WorksheetAccessor.GetStyleIndex(doc, "Good"));
+                                    }
                                     else if (item == "South")
+                                    {
                                         ms.SetCellValue(row, column++, item, southIndex);
+                                    }
                                     else if (item == "North")
+                                    {
                                         ms.SetCellValue(row, column++, item, northIndex);
+                                    }
                                     else
+                                    {
                                         ms.SetCellValue(row, column++, item);
+                                    }
                                 }
                                 maxColumn = column - 1;
                             }
@@ -417,7 +425,7 @@ namespace ExamplePivotTables
                     }
                     WorksheetAccessor.SetSheetContents(doc, sheet, ms);
                     WorksheetAccessor.SetRange(doc, "Sales", "Range", 1, 1, row - 1, maxColumn);
-                    WorksheetPart pivot = WorksheetAccessor.AddWorksheet(doc, "Pivot");
+                    var pivot = WorksheetAccessor.AddWorksheet(doc, "Pivot");
                     WorksheetAccessor.CreatePivotTable(doc, "Sales", pivot);
 
                     // Configure pivot table rows, columns, data and filters
@@ -431,15 +439,14 @@ namespace ExamplePivotTables
                 streamDoc.GetModifiedSmlDocument().SaveAs(Path.Combine(tempDi.FullName, "NewPivot.xlsx"));
             }
 
-
             // Add pivot table to existing spreadsheet
             // Demonstrate multiple data fields
-            using (OpenXmlMemoryStreamDocument streamDoc = new OpenXmlMemoryStreamDocument(
+            using (var streamDoc = new OpenXmlMemoryStreamDocument(
                 SmlDocument.FromFileName("../../QuarterlyUnitSales.xlsx")))
             {
-                using (SpreadsheetDocument doc = streamDoc.GetSpreadsheetDocument())
+                using (var doc = streamDoc.GetSpreadsheetDocument())
                 {
-                    WorksheetPart pivot = WorksheetAccessor.AddWorksheet(doc, "Pivot");
+                    var pivot = WorksheetAccessor.AddWorksheet(doc, "Pivot");
                     WorksheetAccessor.CreatePivotTable(doc, "Sales", pivot);
 
                     // Configure pivot table rows, columns, data and filters

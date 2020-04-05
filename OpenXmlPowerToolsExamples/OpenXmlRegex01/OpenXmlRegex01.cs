@@ -1,14 +1,14 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using DocumentFormat.OpenXml.Packaging;
+using OpenXmlPowerTools;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
-using DocumentFormat.OpenXml.Packaging;
-using OpenXmlPowerTools;
 
 namespace OpenXmlRegex01
 {
@@ -16,7 +16,7 @@ namespace OpenXmlRegex01
     {
         public static void Main(string[] args)
         {
-            DateTime n = DateTime.Now;
+            var n = DateTime.Now;
             var tempDi = new DirectoryInfo(
                 $"ExampleOutput-{n.Year - 2000:00}-{n.Month:00}-{n.Day:00}-{n.Hour:00}{n.Minute:00}{n.Second:00}");
             tempDi.Create();
@@ -24,14 +24,14 @@ namespace OpenXmlRegex01
             var sourceDoc = new FileInfo("../../TestDocument.docx");
             var newDoc = new FileInfo(Path.Combine(tempDi.FullName, "Modified.docx"));
             File.Copy(sourceDoc.FullName, newDoc.FullName);
-            using (WordprocessingDocument wDoc = WordprocessingDocument.Open(newDoc.FullName, true))
+            using (var wDoc = WordprocessingDocument.Open(newDoc.FullName, true))
             {
-                XDocument xDoc = wDoc.MainDocumentPart.GetXDocument();
+                var xDoc = wDoc.MainDocumentPart.GetXDocument();
 
                 // Match content (paragraph 1)
-                IEnumerable<XElement> content = xDoc.Descendants(W.p).Take(1);
+                var content = xDoc.Descendants(W.p).Take(1);
                 var regex = new Regex("Video");
-                int count = OpenXmlRegex.Match(content, regex);
+                var count = OpenXmlRegex.Match(content, regex);
                 Console.WriteLine("Example #1 Count: {0}", count);
 
                 // Match content, case insensitive (paragraph 1)
@@ -177,7 +177,7 @@ namespace OpenXmlRegex01
                 Console.WriteLine("Example #23 Replaced: {0}", count);
 
                 // Remove soft hyphens (paragraph 22)
-                List<XElement> paras = xDoc.Descendants(W.p).Skip(21).Take(1).ToList();
+                var paras = xDoc.Descendants(W.p).Skip(21).Take(1).ToList();
                 count = OpenXmlRegex.Replace(paras, new Regex($"{UnicodeMapper.SoftHyphen}"), "", null);
                 count += OpenXmlRegex.Replace(paras, new Regex("use"), "no longer use", null);
                 Console.WriteLine("Example #24 Replaced: {0}", count);
@@ -198,10 +198,10 @@ namespace OpenXmlRegex01
                 // spider (same value with different font) will be represented by U+E001.
                 // If spider had been assigned first, spider would be U+F021 and pencil
                 // would be U+E001.
-                char oldPhone = UnicodeMapper.SymToChar("Wingdings", 40);
-                char newPhone = UnicodeMapper.SymToChar("Wingdings", 41);
-                char pencil = UnicodeMapper.SymToChar("Wingdings", 0x21);
-                char spider = UnicodeMapper.SymToChar("Webdings", 0x21);
+                var oldPhone = UnicodeMapper.SymToChar("Wingdings", 40);
+                var newPhone = UnicodeMapper.SymToChar("Wingdings", 41);
+                var pencil = UnicodeMapper.SymToChar("Wingdings", 0x21);
+                var spider = UnicodeMapper.SymToChar("Webdings", 0x21);
 
                 // Replace or comment on symbols (paragraph 23)
                 paras = xDoc.Descendants(W.p).Skip(22).Take(1).ToList();
@@ -216,16 +216,16 @@ namespace OpenXmlRegex01
             var sourcePres = new FileInfo("../../TestPresentation.pptx");
             var newPres = new FileInfo(Path.Combine(tempDi.FullName, "Modified.pptx"));
             File.Copy(sourcePres.FullName, newPres.FullName);
-            using (PresentationDocument pDoc = PresentationDocument.Open(newPres.FullName, true))
+            using (var pDoc = PresentationDocument.Open(newPres.FullName, true))
             {
-                foreach (SlidePart slidePart in pDoc.PresentationPart.SlideParts)
+                foreach (var slidePart in pDoc.PresentationPart.SlideParts)
                 {
-                    XDocument xDoc = slidePart.GetXDocument();
+                    var xDoc = slidePart.GetXDocument();
 
                     // Replace content
-                    IEnumerable<XElement> content = xDoc.Descendants(A.p);
+                    var content = xDoc.Descendants(A.p);
                     var regex = new Regex("Hello");
-                    int count = OpenXmlRegex.Replace(content, regex, "H e l l o", null);
+                    var count = OpenXmlRegex.Replace(content, regex, "H e l l o", null);
                     Console.WriteLine("Example #18 Replaced: {0}", count);
 
                     // If you absolutely want to preserve compatibility with PowerPoint 2007, then you will need to strip the xml:space="preserve" attribute throughout.

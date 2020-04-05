@@ -1,21 +1,19 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using DocumentFormat.OpenXml.Packaging;
+using ExcelFormula;
 using System;
-using System.Text;
 using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Linq;
-using DocumentFormat.OpenXml.Packaging;
-using System.Xml;
-using ExcelFormula;
 
 namespace OpenXmlPowerTools
 {
     // Classes for "bulk load" of a spreadsheet
     public class MemorySpreadsheet
     {
-        private SortedList<int, MemoryRow> rowList;
+        private readonly SortedList<int, MemoryRow> rowList;
 
         public MemorySpreadsheet()
         {
@@ -25,42 +23,57 @@ namespace OpenXmlPowerTools
         public void SetCellValue(int row, int column, object value)
         {
             if (!rowList.ContainsKey(row))
+            {
                 rowList.Add(row, new MemoryRow(row));
-            MemoryRow mr = rowList[row];
+            }
+
+            var mr = rowList[row];
             mr.SetCell(new MemoryCell(column, value));
         }
 
         public void SetCellValue(int row, int column, object value, int styleIndex)
         {
             if (!rowList.ContainsKey(row))
+            {
                 rowList.Add(row, new MemoryRow(row));
-            MemoryRow mr = rowList[row];
+            }
+
+            var mr = rowList[row];
             mr.SetCell(new MemoryCell(column, value, styleIndex));
         }
 
         public object GetCellValue(int row, int column)
         {
             if (!rowList.ContainsKey(row))
+            {
                 return null;
-            MemoryCell cell = rowList[row].GetCell(column);
+            }
+
+            var cell = rowList[row].GetCell(column);
             if (cell == null)
+            {
                 return null;
+            }
+
             return cell.GetValue();
         }
 
         public XElement GetElements()
         {
-            XElement root = new XElement(S.sheetData);
-            foreach (KeyValuePair<int, MemoryRow> item in rowList)
+            var root = new XElement(S.sheetData);
+            foreach (var item in rowList)
+            {
                 root.Add(item.Value.GetElements());
+            }
+
             return root;
         }
     }
 
     public class MemoryRow
     {
-        private int row;
-        private SortedList<int, MemoryCell> cellList;
+        private readonly int row;
+        private readonly SortedList<int, MemoryCell> cellList;
 
         public MemoryRow(int Row)
         {
@@ -71,31 +84,40 @@ namespace OpenXmlPowerTools
         public MemoryCell GetCell(int column)
         {
             if (!cellList.ContainsKey(column))
+            {
                 return null;
+            }
+
             return cellList[column];
         }
 
         public void SetCell(MemoryCell cell)
         {
             if (cellList.ContainsKey(cell.GetColumn()))
+            {
                 cellList.Remove(cell.GetColumn());
+            }
+
             cellList.Add(cell.GetColumn(), cell);
         }
 
         public XElement GetElements()
         {
-            XElement root = new XElement(S.row, new XAttribute(NoNamespace.r, row));
-            foreach (KeyValuePair<int, MemoryCell> item in cellList)
+            var root = new XElement(S.row, new XAttribute(NoNamespace.r, row));
+            foreach (var item in cellList)
+            {
                 root.Add(item.Value.GetElements(row));
+            }
+
             return root;
         }
     }
 
     public class MemoryCell
     {
-        private int column;
-        private object cellValue;
-        private int styleIndex;
+        private readonly int column;
+        private readonly object cellValue;
+        private readonly int styleIndex;
 
         public MemoryCell(int col, object value)
         {
@@ -125,22 +147,31 @@ namespace OpenXmlPowerTools
 
         public XElement GetElements(int row)
         {
-            string cellReference = WorksheetAccessor.GetColumnId(column) + row.ToString();
+            var cellReference = WorksheetAccessor.GetColumnId(column) + row.ToString();
             XElement newCell = null;
 
             if (cellValue is int || cellValue is double)
+            {
                 newCell = new XElement(S.c, new XAttribute(NoNamespace.r, cellReference), new XElement(S.v, cellValue.ToString()));
+            }
             else if (cellValue is bool)
+            {
                 newCell = new XElement(S.c, new XAttribute(NoNamespace.r, cellReference), new XAttribute(NoNamespace.t, "b"), new XElement(S.v, (bool)cellValue ? "1" : "0"));
+            }
             else if (cellValue is string)
             {
                 newCell = new XElement(S.c, new XAttribute(NoNamespace.r, cellReference), new XAttribute(NoNamespace.t, "inlineStr"),
                     new XElement(S._is, new XElement(S.t, cellValue.ToString())));
             }
             if (newCell == null)
+            {
                 throw new ArgumentException("Invalid cell type.");
+            }
+
             if (styleIndex != 0)
+            {
                 newCell.Add(new XAttribute(NoNamespace.s, styleIndex));
+            }
 
             return newCell;
         }
@@ -149,13 +180,13 @@ namespace OpenXmlPowerTools
     // Static methods to modify worksheets in SpreadsheetML
     public class WorksheetAccessor
     {
-        private static XNamespace ns = "http://schemas.openxmlformats.org/spreadsheetml/2006/main";
-        private static XNamespace relationshipsns = "http://schemas.openxmlformats.org/officeDocument/2006/relationships";
+        private static readonly XNamespace ns = "http://schemas.openxmlformats.org/spreadsheetml/2006/main";
+        private static readonly XNamespace relationshipsns = "http://schemas.openxmlformats.org/officeDocument/2006/relationships";
 
         // Finds the WorksheetPart by sheet name
         public static WorksheetPart GetWorksheet(SpreadsheetDocument document, string worksheetName)
         {
-            XDocument workbook = document.WorkbookPart.GetXDocument();
+            var workbook = document.WorkbookPart.GetXDocument();
             return (WorksheetPart)document.WorkbookPart.GetPartById(
                 workbook.Root.Element(S.sheets).Elements(S.sheet).Where(
                     s => s.Attribute(NoNamespace.name).Value.ToLower().Equals(worksheetName.ToLower()))
@@ -166,20 +197,24 @@ namespace OpenXmlPowerTools
         public static WorksheetPart AddWorksheet(SpreadsheetDocument document, string worksheetName)
         {
             // Create the empty sheet
-            WorksheetPart worksheetPart = document.WorkbookPart.AddNewPart<WorksheetPart>();
+            var worksheetPart = document.WorkbookPart.AddNewPart<WorksheetPart>();
             worksheetPart.PutXDocument(new XDocument(
                 new XElement(S.worksheet, new XAttribute("xmlns", S.s), new XAttribute(XNamespace.Xmlns + "r", R.r),
                     new XElement(S.sheetData))));
-            XDocument wb = document.WorkbookPart.GetXDocument();
+            var wb = document.WorkbookPart.GetXDocument();
 
             // Generate a unique sheet ID number
-            int sheetId = 1;
+            var sheetId = 1;
             if (wb.Root.Element(S.sheets).Elements(S.sheet).Count() != 0)
+            {
                 sheetId = wb.Root.Element(S.sheets).Elements(S.sheet).Max(n => Convert.ToInt32(n.Attribute(NoNamespace.sheetId).Value)) + 1;
+            }
 
             // If name is null, generate a name based on the sheet ID
             if (worksheetName == null)
+            {
                 worksheetName = "Sheet" + sheetId.ToString();
+            }
 
             // Create the new sheet element in the workbook
             wb.Root.Element(S.sheets).Add(new XElement(S.sheet,
@@ -193,7 +228,7 @@ namespace OpenXmlPowerTools
         // Creates a new worksheet with the specified name and contents from a memory spreadsheet
         public static void SetSheetContents(SpreadsheetDocument document, WorksheetPart worksheet, MemorySpreadsheet contents)
         {
-            XDocument worksheetXDocument = worksheet.GetXDocument();
+            var worksheetXDocument = worksheet.GetXDocument();
             worksheetXDocument.Root.Element(S.sheetData).ReplaceWith(contents.GetElements());
             worksheet.PutXDocument();
         }
@@ -201,10 +236,10 @@ namespace OpenXmlPowerTools
         // Translates the column number to the column reference string (e.g. 1 -> A, 2-> B)
         public static string GetColumnId(int columnNumber)
         {
-            string result = "";
+            var result = "";
             do
             {
-                result = ((char)((columnNumber - 1) % 26 + (int)'A')).ToString() + result;
+                result = ((char)((columnNumber - 1) % 26 + 'A')).ToString() + result;
                 columnNumber = (columnNumber - 1) / 26;
             } while (columnNumber != 0);
             return result;
@@ -214,16 +249,19 @@ namespace OpenXmlPowerTools
         // Returned object can be double/Double, int/Int32, bool/Boolean or string/String types
         public static object GetCellValue(SpreadsheetDocument document, WorksheetPart worksheet, int column, int row)
         {
-            XDocument worksheetXDocument = worksheet.GetXDocument();
-            XElement cellValue = GetCell(worksheetXDocument, column, row);
+            var worksheetXDocument = worksheet.GetXDocument();
+            var cellValue = GetCell(worksheetXDocument, column, row);
 
             if (cellValue != null)
             {
                 if (cellValue.Attribute(NoNamespace.t) == null)
                 {
-                    string value = cellValue.Element(S.v).Value;
+                    var value = cellValue.Element(S.v).Value;
                     if (value.Contains("."))
+                    {
                         return Convert.ToDouble(value);
+                    }
+
                     return Convert.ToInt32(value);
                 }
                 switch (cellValue.Attribute(NoNamespace.t).Value)
@@ -242,20 +280,23 @@ namespace OpenXmlPowerTools
         // Finds the shared string using its index
         private static string GetSharedString(SpreadsheetDocument document, int index)
         {
-            XDocument sharedStringsXDocument = document.WorkbookPart.SharedStringTablePart.GetXDocument();
+            var sharedStringsXDocument = document.WorkbookPart.SharedStringTablePart.GetXDocument();
             return sharedStringsXDocument.Root.Elements().ElementAt<XElement>(index).Value;
         }
 
         // Gets the cell element (c) for the specified cell
         private static XElement GetCell(XDocument worksheet, int column, int row)
         {
-            string cellReference = GetColumnId(column) + row.ToString();
-            XElement rowElement = worksheet.Root
+            var cellReference = GetColumnId(column) + row.ToString();
+            var rowElement = worksheet.Root
                    .Element(S.sheetData)
                    .Elements(S.row)
                    .Where(r => r.Attribute(NoNamespace.r).Value.Equals(row.ToString())).FirstOrDefault<XElement>();
             if (rowElement == null)
+            {
                 return null;
+            }
+
             return rowElement.Elements(S.c).Where(c => c.Attribute(NoNamespace.r).Value.Equals(cellReference)).FirstOrDefault<XElement>();
         }
 
@@ -263,21 +304,27 @@ namespace OpenXmlPowerTools
         // The "value" must be double/Double, int/Int32, bool/Boolean or string/String type
         public static void SetCellValue(SpreadsheetDocument document, WorksheetPart worksheet, int row, int column, object value)
         {
-            XDocument worksheetXDocument = worksheet.GetXDocument();
-            string cellReference = GetColumnId(column) + row.ToString();
+            var worksheetXDocument = worksheet.GetXDocument();
+            var cellReference = GetColumnId(column) + row.ToString();
             XElement newCell = null;
 
             if (value is int || value is double)
+            {
                 newCell = new XElement(S.c, new XAttribute(NoNamespace.r, cellReference), new XElement(S.v, value.ToString()));
+            }
             else if (value is bool)
+            {
                 newCell = new XElement(S.c, new XAttribute(NoNamespace.r, cellReference), new XAttribute(NoNamespace.t, "b"), new XElement(S.v, (bool)value ? "1" : "0"));
+            }
             else if (value is string)
             {
                 newCell = new XElement(S.c, new XAttribute(NoNamespace.r, cellReference), new XAttribute(NoNamespace.t, "inlineStr"),
                     new XElement(S._is, new XElement(S.t, value.ToString())));
             }
             if (newCell == null)
+            {
                 throw new ArgumentException("Invalid cell type.");
+            }
 
             SetCell(worksheetXDocument, newCell);
         }
@@ -285,13 +332,11 @@ namespace OpenXmlPowerTools
         // Sets the specified cell
         private static void SetCell(XDocument worksheetXDocument, XElement newCell)
         {
-            int row;
-            int column;
-            string cellReference = newCell.Attribute(NoNamespace.r).Value;
-            GetRowColumn(cellReference, out row, out column);
+            var cellReference = newCell.Attribute(NoNamespace.r).Value;
+            GetRowColumn(cellReference, out var row, out var column);
 
             // Find the row containing the cell to add the value to
-            XElement rowElement = worksheetXDocument.Root
+            var rowElement = worksheetXDocument.Root
                 .Element(S.sheetData)
                 .Elements(S.row)
                 .Where(t => t.Attribute(NoNamespace.r).Value == row.ToString())
@@ -307,7 +352,7 @@ namespace OpenXmlPowerTools
                 if (worksheetXDocument.Root.Element(S.sheetData).HasElements)
                 {   //if there are more rows already defined at sheetData element
                     //find the row with the inmediate higher index for the row containing the cell to set the value to
-                    XElement rowAfterElement = FindRowAfter(worksheetXDocument, row);
+                    var rowAfterElement = FindRowAfter(worksheetXDocument, row);
                     //if there is a row with an inmediate higher index already defined at sheetData
                     if (rowAfterElement != null)
                     {
@@ -332,7 +377,7 @@ namespace OpenXmlPowerTools
             {
                 //row containing the cell to set the value to is already defined at sheetData
                 //look if cell already exist at that row
-                XElement currentCell = rowElement
+                var currentCell = rowElement
                     .Elements(S.c)
                     .Where(t => t.Attribute(NoNamespace.r).Value == cellReference)
                     .FirstOrDefault();
@@ -340,7 +385,7 @@ namespace OpenXmlPowerTools
                 if (currentCell == null)
                 {   //cell element does not exist at row indicated as parameter
                     //find the inmediate right column for the cell to set the value to
-                    XElement columnAfterXElement = FindColumAfter(worksheetXDocument, row, column);
+                    var columnAfterXElement = FindColumAfter(worksheetXDocument, row, column);
                     if (columnAfterXElement != null)
                     {
                         //Insert the new cell before the inmediate right column
@@ -384,11 +429,13 @@ namespace OpenXmlPowerTools
         // Converts the column reference string to a column number (e.g. A -> 1, B -> 2)
         public static int GetColumnNumber(string cellReference)
         {
-            int columnNumber = 0;
-            foreach (char c in cellReference)
+            var columnNumber = 0;
+            foreach (var c in cellReference)
             {
-                if (Char.IsLetter(c))
+                if (char.IsLetter(c))
+                {
                     columnNumber = columnNumber * 26 + System.Convert.ToInt32(c) - System.Convert.ToInt32('A') + 1;
+                }
             }
             return columnNumber;
         }
@@ -399,28 +446,38 @@ namespace OpenXmlPowerTools
         {
             row = 0;
             column = 0;
-            foreach (char c in cellReference)
+            foreach (var c in cellReference)
             {
-                if (Char.IsLetter(c))
+                if (char.IsLetter(c))
+                {
                     column = column * 26 + System.Convert.ToInt32(c) - System.Convert.ToInt32('A') + 1;
+                }
                 else
+                {
                     row = row * 10 + System.Convert.ToInt32(c) - System.Convert.ToInt32('0');
+                }
             }
         }
 
         // Returns the row and column numbers and worksheet part for the named range
         public static WorksheetPart GetRange(SpreadsheetDocument doc, string rangeName, out int startRow, out int startColumn, out int endRow, out int endColumn)
         {
-            XDocument book = doc.WorkbookPart.GetXDocument();
+            var book = doc.WorkbookPart.GetXDocument();
             if (book.Root.Element(S.definedNames) == null)
+            {
                 throw new ArgumentException("Range name not found: " + rangeName);
-            XElement element = book.Root.Element(S.definedNames).Elements(S.definedName)
+            }
+
+            var element = book.Root.Element(S.definedNames).Elements(S.definedName)
                 .Where(t => t.Attribute(NoNamespace.name).Value == rangeName).FirstOrDefault();
             if (element == null)
+            {
                 throw new ArgumentException("Range name not found: " + rangeName);
-            string sheetName = element.Value.Substring(0, element.Value.IndexOf('!'));
-            string range = element.Value.Substring(element.Value.IndexOf('!') + 1).Replace("$","");
-            int colonIndex = range.IndexOf(':');
+            }
+
+            var sheetName = element.Value.Substring(0, element.Value.IndexOf('!'));
+            var range = element.Value.Substring(element.Value.IndexOf('!') + 1).Replace("$", "");
+            var colonIndex = range.IndexOf(':');
             GetRowColumn(range.Substring(0, colonIndex), out startRow, out startColumn);
             GetRowColumn(range.Substring(colonIndex + 1), out endRow, out endColumn);
             return GetWorksheet(doc, sheetName);
@@ -429,17 +486,20 @@ namespace OpenXmlPowerTools
         // Sets the named range with the specified range of row and column numbers
         public static void SetRange(SpreadsheetDocument doc, string rangeName, string sheetName, int startRow, int startColumn, int endRow, int endColumn)
         {
-            XDocument book = doc.WorkbookPart.GetXDocument();
+            var book = doc.WorkbookPart.GetXDocument();
             if (book.Root.Element(S.definedNames) == null)
+            {
                 book.Root.Add(new XElement(S.definedNames));
-            XElement element = book.Root.Element(S.definedNames).Elements(S.definedName)
+            }
+
+            var element = book.Root.Element(S.definedNames).Elements(S.definedName)
                 .Where(t => t.Attribute(NoNamespace.name).Value == rangeName).FirstOrDefault();
             if (element == null)
             {
                 element = new XElement(S.definedName, new XAttribute(NoNamespace.name, rangeName));
                 book.Root.Element(S.definedNames).Add(element);
             }
-            element.SetValue(String.Format("{0}!${1}${2}:${3}${4}", sheetName, GetColumnId(startColumn), startRow, GetColumnId(endColumn), endRow));
+            element.SetValue(string.Format("{0}!${1}${2}:${3}${4}", sheetName, GetColumnId(startColumn), startRow, GetColumnId(endColumn), endRow));
             doc.WorkbookPart.PutXDocument();
         }
 
@@ -447,12 +507,12 @@ namespace OpenXmlPowerTools
         public static void UpdateRangeEndRow(SpreadsheetDocument doc, string rangeName, int lastRow)
         {
             // Update named range used by pivot table
-            XDocument book = doc.WorkbookPart.GetXDocument();
-            XElement element = book.Root.Element(S.definedNames).Elements(S.definedName)
+            var book = doc.WorkbookPart.GetXDocument();
+            var element = book.Root.Element(S.definedNames).Elements(S.definedName)
                 .Where(t => t.Attribute(NoNamespace.name).Value == rangeName).FirstOrDefault();
             if (element != null)
             {
-                string original = element.Value;
+                var original = element.Value;
                 element.SetValue(original.Substring(0, original.Length - 1) + lastRow.ToString());
             }
             doc.WorkbookPart.PutXDocument();
@@ -466,8 +526,8 @@ namespace OpenXmlPowerTools
 
         public static void ForceCalculateOnLoad(SpreadsheetDocument document)
         {
-            XDocument book = document.WorkbookPart.GetXDocument();
-            XElement element = book.Root.Element(S.calcPr);
+            var book = document.WorkbookPart.GetXDocument();
+            var element = book.Root.Element(S.calcPr);
             if (element == null)
             {
                 book.Root.Add(new XElement(S.calcPr));
@@ -478,14 +538,14 @@ namespace OpenXmlPowerTools
 
         public static void FormulaReplaceSheetName(SpreadsheetDocument document, string oldName, string newName)
         {
-            foreach (WorksheetPart sheetPart in document.WorkbookPart.WorksheetParts)
+            foreach (var sheetPart in document.WorkbookPart.WorksheetParts)
             {
-                XDocument sheetDoc = sheetPart.GetXDocument();
-                bool changed = false;
-                foreach (XElement formula in sheetDoc.Descendants(S.f))
+                var sheetDoc = sheetPart.GetXDocument();
+                var changed = false;
+                foreach (var formula in sheetDoc.Descendants(S.f))
                 {
-                    ParseFormula parser = new ParseFormula(formula.Value);
-                    string newFormula = parser.ReplaceSheetName(oldName, newName);
+                    var parser = new ParseFormula(formula.Value);
+                    var newFormula = parser.ReplaceSheetName(oldName, newName);
                     if (newFormula != formula.Value)
                     {
                         formula.SetValue(newFormula);
@@ -504,26 +564,29 @@ namespace OpenXmlPowerTools
         public static void CopyCellRange(SpreadsheetDocument document, WorksheetPart worksheet, int startRow, int startColumn, int endRow, int endColumn,
             int toRow, int toColumn)
         {
-            int rowOffset = toRow - startRow;
-            int columnOffset = toColumn - startColumn;
-            XDocument worksheetXDocument = worksheet.GetXDocument();
-            for (int row = startRow; row <= endRow; row++)
-                for (int column = startColumn; column <= endColumn; column++)
+            var rowOffset = toRow - startRow;
+            var columnOffset = toColumn - startColumn;
+            var worksheetXDocument = worksheet.GetXDocument();
+            for (var row = startRow; row <= endRow; row++)
+            {
+                for (var column = startColumn; column <= endColumn; column++)
                 {
-                    XElement oldCell = GetCell(worksheetXDocument, column, row);
+                    var oldCell = GetCell(worksheetXDocument, column, row);
                     if (oldCell != null)
                     {
-                        XElement newCell = new XElement(oldCell);
+                        var newCell = new XElement(oldCell);
                         newCell.SetAttributeValue(NoNamespace.r, GetColumnId(column + columnOffset) + (row + rowOffset).ToString());
-                        XElement formula = newCell.Element(S.f);
+                        var formula = newCell.Element(S.f);
                         if (formula != null)
                         {
-                            ParseFormula parser = new ParseFormula(formula.Value);
+                            var parser = new ParseFormula(formula.Value);
                             formula.SetValue(parser.ReplaceRelativeCell(rowOffset, columnOffset));
                         }
                         SetCell(worksheetXDocument, newCell);
                     }
                 }
+            }
+
             worksheet.PutXDocument();
             ForceCalculateOnLoad(document);
         }
@@ -532,41 +595,53 @@ namespace OpenXmlPowerTools
         // The new pivot table will not be configured with any fields in the rows, columns, filters or values
         public static PivotTablePart CreatePivotTable(SpreadsheetDocument document, string rangeName, WorksheetPart sheet)
         {
-            int startRow, startColumn, endRow, endColumn;
-            WorksheetPart sourceSheet = GetRange(document, rangeName, out startRow, out startColumn, out endRow, out endColumn);
+            var sourceSheet = GetRange(document, rangeName, out var startRow, out var startColumn, out var endRow, out var endColumn);
 
             // Fill out pivotFields element (for PivotTablePart) and cacheFields element (for PivotTableCacheDefinitionPart)
             // with an element for each column in the source range
-            XElement pivotFields = new XElement(S.pivotFields, new XAttribute(NoNamespace.count, (endColumn - startColumn + 1).ToString()));
-            XElement cacheFields = new XElement(S.cacheFields, new XAttribute(NoNamespace.count, (endColumn - startColumn + 1).ToString()));
-            for (int column = startColumn; column <= endColumn; column++)
+            var pivotFields = new XElement(S.pivotFields, new XAttribute(NoNamespace.count, (endColumn - startColumn + 1).ToString()));
+            var cacheFields = new XElement(S.cacheFields, new XAttribute(NoNamespace.count, (endColumn - startColumn + 1).ToString()));
+            for (var column = startColumn; column <= endColumn; column++)
             {
                 pivotFields.Add(new XElement(S.pivotField, new XAttribute(NoNamespace.showAll, "0")));
-                XElement sharedItems = new XElement(S.sharedItems);
+                var sharedItems = new XElement(S.sharedItems);
                 // Determine numeric sharedItems values, if any
-                object value = GetCellValue(document, sourceSheet, column, startRow + 1);
-                if (value is double || value is Int32)
+                var value = GetCellValue(document, sourceSheet, column, startRow + 1);
+                if (value is double || value is int)
                 {
-                    bool hasDouble = false;
-                    double minValue = Convert.ToDouble(value);
-                    double maxValue = Convert.ToDouble(value);
+                    var hasDouble = false;
+                    var minValue = Convert.ToDouble(value);
+                    var maxValue = Convert.ToDouble(value);
                     if (value is double)
+                    {
                         hasDouble = true;
-                    for (int row = startRow + 1; row <= endRow; row++)
+                    }
+
+                    for (var row = startRow + 1; row <= endRow; row++)
                     {
                         value = GetCellValue(document, sourceSheet, column, row);
                         if (value is double)
+                        {
                             hasDouble = true;
+                        }
+
                         if (Convert.ToDouble(value) < minValue)
+                        {
                             minValue = Convert.ToDouble(value);
+                        }
+
                         if (Convert.ToDouble(value) > maxValue)
+                        {
                             maxValue = Convert.ToDouble(value);
+                        }
                     }
                     sharedItems.Add(new XAttribute(NoNamespace.containsSemiMixedTypes, "0"),
                         new XAttribute(NoNamespace.containsString, "0"), new XAttribute(NoNamespace.containsNumber, "1"),
                         new XAttribute(NoNamespace.minValue, minValue.ToString()), new XAttribute(NoNamespace.maxValue, maxValue.ToString()));
                     if (!hasDouble)
+                    {
                         sharedItems.Add(new XAttribute(NoNamespace.containsInteger, "1"));
+                    }
                 }
                 cacheFields.Add(new XElement(S.cacheField, new XAttribute(NoNamespace.name, GetCellValue(document, sourceSheet, column, startRow).ToString()),
                     new XAttribute(NoNamespace.numFmtId, "0"), sharedItems));
@@ -574,28 +649,32 @@ namespace OpenXmlPowerTools
 
             // Fill out pivotCacheRecords element (for PivotTableCacheRecordsPart) with an element
             // for each row in the source range
-            XElement pivotCacheRecords = new XElement(S.pivotCacheRecords, new XAttribute("xmlns", S.s),
+            var pivotCacheRecords = new XElement(S.pivotCacheRecords, new XAttribute("xmlns", S.s),
                 new XAttribute(XNamespace.Xmlns + "r", R.r), new XAttribute(NoNamespace.count, (endRow - startRow).ToString()));
-            for (int row = startRow + 1; row <= endRow; row++)
+            for (var row = startRow + 1; row <= endRow; row++)
             {
-                XElement r = new XElement(S.r);
+                var r = new XElement(S.r);
 
                 // Fill the record element with a value from each column in the source row
-                for (int column = startColumn; column <= endColumn; column++)
+                for (var column = startColumn; column <= endColumn; column++)
                 {
-                    object value = GetCellValue(document, sourceSheet, column, row);
-                    if (value is String)
+                    var value = GetCellValue(document, sourceSheet, column, row);
+                    if (value is string)
+                    {
                         r.Add(new XElement(S._s, new XAttribute(NoNamespace.v, value.ToString())));
+                    }
                     else
+                    {
                         r.Add(new XElement(S.n, new XAttribute(NoNamespace.v, value.ToString())));
+                    }
                 }
                 pivotCacheRecords.Add(r);
             }
 
             // Create pivot table parts with proper links
-            PivotTablePart pivotTable = sheet.AddNewPart<PivotTablePart>();
-            PivotTableCacheDefinitionPart cacheDef = pivotTable.AddNewPart<PivotTableCacheDefinitionPart>();
-            PivotTableCacheRecordsPart records = cacheDef.AddNewPart<PivotTableCacheRecordsPart>();
+            var pivotTable = sheet.AddNewPart<PivotTablePart>();
+            var cacheDef = pivotTable.AddNewPart<PivotTableCacheDefinitionPart>();
+            var records = cacheDef.AddNewPart<PivotTableCacheRecordsPart>();
             document.WorkbookPart.AddPart<PivotTableCacheDefinitionPart>(cacheDef);
 
             // Set content for the PivotTableCacheRecordsPart and PivotTableCacheDefinitionPart
@@ -608,14 +687,18 @@ namespace OpenXmlPowerTools
                     cacheFields)));
 
             // Create the pivotCache entry in the workbook part
-            int cacheId = 1;
-            XDocument wb = document.WorkbookPart.GetXDocument();
+            var cacheId = 1;
+            var wb = document.WorkbookPart.GetXDocument();
             if (wb.Root.Element(S.pivotCaches) == null)
+            {
                 wb.Root.Add(new XElement(S.pivotCaches));
+            }
             else
             {
                 if (wb.Root.Element(S.pivotCaches).Elements(S.pivotCache).Count() != 0)
+                {
                     cacheId = wb.Root.Element(S.pivotCaches).Elements(S.pivotCache).Max(n => Convert.ToInt32(n.Attribute(NoNamespace.cacheId).Value)) + 1;
+                }
             }
             wb.Root.Element(S.pivotCaches).Add(new XElement(S.pivotCache,
                 new XAttribute(NoNamespace.cacheId, cacheId),
@@ -637,18 +720,18 @@ namespace OpenXmlPowerTools
         public static void AddPivotAxis(SpreadsheetDocument document, WorksheetPart sheet, string fieldName, PivotAxis axis)
         {
             // Create indexed items in cache and definition
-            PivotTablePart pivotTablePart = sheet.GetPartsOfType<PivotTablePart>().First();
-            PivotTableCacheDefinitionPart cacheDefPart = pivotTablePart.GetPartsOfType<PivotTableCacheDefinitionPart>().First();
-            PivotTableCacheRecordsPart recordsPart = cacheDefPart.GetPartsOfType<PivotTableCacheRecordsPart>().First();
-            XDocument cacheDef = cacheDefPart.GetXDocument();
-            int index = Array.FindIndex(cacheDef.Descendants(S.cacheField).ToArray(),
+            var pivotTablePart = sheet.GetPartsOfType<PivotTablePart>().First();
+            var cacheDefPart = pivotTablePart.GetPartsOfType<PivotTableCacheDefinitionPart>().First();
+            var recordsPart = cacheDefPart.GetPartsOfType<PivotTableCacheRecordsPart>().First();
+            var cacheDef = cacheDefPart.GetXDocument();
+            var index = Array.FindIndex(cacheDef.Descendants(S.cacheField).ToArray(),
                 z => z.Attribute(NoNamespace.name).Value == fieldName);
-            XDocument records = recordsPart.GetXDocument();
-            List<XElement> values = new List<XElement>();
-            foreach (XElement rec in records.Descendants(S.r))
+            var records = recordsPart.GetXDocument();
+            var values = new List<XElement>();
+            foreach (var rec in records.Descendants(S.r))
             {
-                XElement val = rec.Elements().Skip(index).First();
-                int x = Array.FindIndex(values.ToArray(), z => XElement.DeepEquals(z, val));
+                var val = rec.Elements().Skip(index).First();
+                var x = Array.FindIndex(values.ToArray(), z => XElement.DeepEquals(z, val));
                 if (x == -1)
                 {
                     values.Add(val);
@@ -656,15 +739,15 @@ namespace OpenXmlPowerTools
                 }
                 val.ReplaceWith(new XElement(S.x, new XAttribute(NoNamespace.v, x)));
             }
-            XElement sharedItems = cacheDef.Descendants(S.cacheField).Skip(index).First().Element(S.sharedItems);
+            var sharedItems = cacheDef.Descendants(S.cacheField).Skip(index).First().Element(S.sharedItems);
             sharedItems.Add(new XAttribute(NoNamespace.count, values.Count()), values);
             recordsPart.PutXDocument();
             cacheDefPart.PutXDocument();
 
             // Add axis definition to pivot table field
-            XDocument pivotTable = pivotTablePart.GetXDocument();
-            XElement pivotField = pivotTable.Descendants(S.pivotField).Skip(index).First();
-            XElement items = new XElement(S.items, new XAttribute(NoNamespace.count, values.Count() + 1),
+            var pivotTable = pivotTablePart.GetXDocument();
+            var pivotField = pivotTable.Descendants(S.pivotField).Skip(index).First();
+            var items = new XElement(S.items, new XAttribute(NoNamespace.count, values.Count() + 1),
                 values.OrderBy(z => z.Attribute(NoNamespace.v).Value).Select(z => new XElement(S.item,
                     new XAttribute(NoNamespace.x, Array.FindIndex(values.ToArray(),
                         a => a.Attribute(NoNamespace.v).Value == z.Attribute(NoNamespace.v).Value)))));
@@ -675,15 +758,19 @@ namespace OpenXmlPowerTools
                     pivotField.Add(new XAttribute(NoNamespace.axis, "axisCol"), items);
                     // Add to colFields
                     {
-                        XElement fields = pivotTable.Element(S.pivotTableDefinition).Element(S.colFields);
+                        var fields = pivotTable.Element(S.pivotTableDefinition).Element(S.colFields);
                         if (fields == null)
                         {
                             fields = new XElement(S.colFields, new XAttribute(NoNamespace.count, 0));
-                            XElement rowFields = pivotTable.Element(S.pivotTableDefinition).Element(S.rowFields);
+                            var rowFields = pivotTable.Element(S.pivotTableDefinition).Element(S.rowFields);
                             if (rowFields == null)
+                            {
                                 pivotTable.Element(S.pivotTableDefinition).Element(S.pivotFields).AddAfterSelf(fields);
+                            }
                             else
+                            {
                                 rowFields.AddAfterSelf(fields);
+                            }
                         }
                         fields.Add(new XElement(S.field, new XAttribute(NoNamespace.x, index)));
                         fields.Attribute(NoNamespace.count).Value = fields.Elements(S.field).Count().ToString();
@@ -693,7 +780,7 @@ namespace OpenXmlPowerTools
                     pivotField.Add(new XAttribute(NoNamespace.axis, "axisRow"), items);
                     // Add to rowFields
                     {
-                        XElement fields = pivotTable.Element(S.pivotTableDefinition).Element(S.rowFields);
+                        var fields = pivotTable.Element(S.pivotTableDefinition).Element(S.rowFields);
                         if (fields == null)
                         {
                             fields = new XElement(S.rowFields, new XAttribute(NoNamespace.count, 0));
@@ -707,17 +794,24 @@ namespace OpenXmlPowerTools
                     pivotField.Add(new XAttribute(NoNamespace.axis, "axisPage"), items);
                     // Add to pageFields
                     {
-                        XElement fields = pivotTable.Element(S.pivotTableDefinition).Element(S.pageFields);
+                        var fields = pivotTable.Element(S.pivotTableDefinition).Element(S.pageFields);
                         if (fields == null)
                         {
                             fields = new XElement(S.pageFields, new XAttribute(NoNamespace.count, 0));
-                            XElement prev = pivotTable.Element(S.pivotTableDefinition).Element(S.colFields);
+                            var prev = pivotTable.Element(S.pivotTableDefinition).Element(S.colFields);
                             if (prev == null)
+                            {
                                 prev = pivotTable.Element(S.pivotTableDefinition).Element(S.rowFields);
+                            }
+
                             if (prev == null)
+                            {
                                 pivotTable.Element(S.pivotTableDefinition).Element(S.pivotFields).AddAfterSelf(fields);
+                            }
                             else
+                            {
                                 prev.AddAfterSelf(fields);
+                            }
                         }
                         fields.Add(new XElement(S.pageField, new XAttribute(NoNamespace.fld, index)));
                         fields.Attribute(NoNamespace.count).Value = fields.Elements(S.field).Count().ToString();
@@ -730,22 +824,26 @@ namespace OpenXmlPowerTools
 
         public static void AddDataValueLabel(SpreadsheetDocument document, WorksheetPart sheet, PivotAxis axis)
         {
-            PivotTablePart pivotTablePart = sheet.GetPartsOfType<PivotTablePart>().First();
-            XDocument pivotTable = pivotTablePart.GetXDocument();
+            var pivotTablePart = sheet.GetPartsOfType<PivotTablePart>().First();
+            var pivotTable = pivotTablePart.GetXDocument();
             switch (axis)
             {
                 case PivotAxis.Column:
                     // Add to colFields
                     {
-                        XElement fields = pivotTable.Element(S.pivotTableDefinition).Element(S.colFields);
+                        var fields = pivotTable.Element(S.pivotTableDefinition).Element(S.colFields);
                         if (fields == null)
                         {
                             fields = new XElement(S.colFields, new XAttribute(NoNamespace.count, 0));
-                            XElement rowFields = pivotTable.Element(S.pivotTableDefinition).Element(S.rowFields);
+                            var rowFields = pivotTable.Element(S.pivotTableDefinition).Element(S.rowFields);
                             if (rowFields == null)
+                            {
                                 pivotTable.Element(S.pivotTableDefinition).Element(S.pivotFields).AddAfterSelf(fields);
+                            }
                             else
+                            {
                                 rowFields.AddAfterSelf(fields);
+                            }
                         }
                         fields.Add(new XElement(S.field, new XAttribute(NoNamespace.x, -2)));
                         fields.Attribute(NoNamespace.count).Value = fields.Elements(S.field).Count().ToString();
@@ -754,7 +852,7 @@ namespace OpenXmlPowerTools
                 case PivotAxis.Row:
                     // Add to rowFields
                     {
-                        XElement fields = pivotTable.Element(S.pivotTableDefinition).Element(S.rowFields);
+                        var fields = pivotTable.Element(S.pivotTableDefinition).Element(S.rowFields);
                         if (fields == null)
                         {
                             fields = new XElement(S.rowFields, new XAttribute(NoNamespace.count, 0));
@@ -767,17 +865,24 @@ namespace OpenXmlPowerTools
                 case PivotAxis.Page:
                     // Add to pageFields
                     {
-                        XElement fields = pivotTable.Element(S.pivotTableDefinition).Element(S.pageFields);
+                        var fields = pivotTable.Element(S.pivotTableDefinition).Element(S.pageFields);
                         if (fields == null)
                         {
                             fields = new XElement(S.pageFields, new XAttribute(NoNamespace.count, 0));
-                            XElement prev = pivotTable.Element(S.pivotTableDefinition).Element(S.colFields);
+                            var prev = pivotTable.Element(S.pivotTableDefinition).Element(S.colFields);
                             if (prev == null)
+                            {
                                 prev = pivotTable.Element(S.pivotTableDefinition).Element(S.rowFields);
+                            }
+
                             if (prev == null)
+                            {
                                 pivotTable.Element(S.pivotTableDefinition).Element(S.pivotFields).AddAfterSelf(fields);
+                            }
                             else
+                            {
                                 prev.AddAfterSelf(fields);
+                            }
                         }
                         fields.Add(new XElement(S.pageField, new XAttribute(NoNamespace.fld, -2)));
                         fields.Attribute(NoNamespace.count).Value = fields.Elements(S.field).Count().ToString();
@@ -785,37 +890,46 @@ namespace OpenXmlPowerTools
                     break;
             }
             pivotTablePart.PutXDocument();
-            PivotTableCacheDefinitionPart cacheDefPart = pivotTablePart.GetPartsOfType<PivotTableCacheDefinitionPart>().First();
+            var cacheDefPart = pivotTablePart.GetPartsOfType<PivotTableCacheDefinitionPart>().First();
             ForcePivotRefresh(cacheDefPart);
         }
 
         public static void AddDataValue(SpreadsheetDocument document, WorksheetPart sheet, string fieldName)
         {
-            PivotTablePart pivotTablePart = sheet.GetPartsOfType<PivotTablePart>().First();
-            PivotTableCacheDefinitionPart cacheDefPart = pivotTablePart.GetPartsOfType<PivotTableCacheDefinitionPart>().First();
-            XDocument cacheDef = cacheDefPart.GetXDocument();
-            int index = Array.FindIndex(cacheDef.Descendants(S.cacheField).ToArray(),
+            var pivotTablePart = sheet.GetPartsOfType<PivotTablePart>().First();
+            var cacheDefPart = pivotTablePart.GetPartsOfType<PivotTableCacheDefinitionPart>().First();
+            var cacheDef = cacheDefPart.GetXDocument();
+            var index = Array.FindIndex(cacheDef.Descendants(S.cacheField).ToArray(),
                 z => z.Attribute(NoNamespace.name).Value == fieldName);
-            XDocument pivotTable = pivotTablePart.GetXDocument();
-            XElement pivotField = pivotTable.Descendants(S.pivotField).Skip(index).First();
+            var pivotTable = pivotTablePart.GetXDocument();
+            var pivotField = pivotTable.Descendants(S.pivotField).Skip(index).First();
             pivotField.Add(new XAttribute(NoNamespace.dataField, "1"));
-            XElement fields = pivotTable.Element(S.pivotTableDefinition).Element(S.dataFields);
+            var fields = pivotTable.Element(S.pivotTableDefinition).Element(S.dataFields);
             if (fields == null)
             {
                 fields = new XElement(S.dataFields, new XAttribute(NoNamespace.count, 0));
-                XElement prev = pivotTable.Element(S.pivotTableDefinition).Element(S.pageFields);
+                var prev = pivotTable.Element(S.pivotTableDefinition).Element(S.pageFields);
                 if (prev == null)
+                {
                     prev = pivotTable.Element(S.pivotTableDefinition).Element(S.colFields);
+                }
+
                 if (prev == null)
+                {
                     prev = pivotTable.Element(S.pivotTableDefinition).Element(S.rowFields);
+                }
+
                 if (prev == null)
+                {
                     prev = pivotTable.Element(S.pivotTableDefinition).Element(S.pivotFields);
+                }
+
                 prev.AddAfterSelf(fields);
             }
             fields.Add(new XElement(S.dataField, new XAttribute(NoNamespace.name, "Sum of " + fieldName),
                         new XAttribute(NoNamespace.fld, index), new XAttribute(NoNamespace.baseField, 0),
                         new XAttribute(NoNamespace.baseItem, 0)));
-            int count = fields.Elements(S.dataField).Count();
+            var count = fields.Elements(S.dataField).Count();
             fields.Attribute(NoNamespace.count).Value = count.ToString();
             if (count == 2)
             {   // Only when data field count goes from 1 to 2 do we add a special column to label the data fields
@@ -827,27 +941,32 @@ namespace OpenXmlPowerTools
 
         private static void ForcePivotRefresh(PivotTableCacheDefinitionPart cacheDef)
         {
-            XDocument doc = cacheDef.GetXDocument();
-            XElement def = doc.Element(S.pivotCacheDefinition);
+            var doc = cacheDef.GetXDocument();
+            var def = doc.Element(S.pivotCacheDefinition);
             if (def.Attribute(NoNamespace.refreshOnLoad) == null)
+            {
                 def.Add(new XAttribute(NoNamespace.refreshOnLoad, 1));
+            }
             else
+            {
                 def.Attribute(NoNamespace.refreshOnLoad).Value = "1";
+            }
+
             cacheDef.PutXDocument();
         }
 
         public static void CheckNumberFormat(SpreadsheetDocument document, int fmtID, string formatCode)
         {
-            XElement numFmt = new XElement(S.numFmt, new XAttribute(NoNamespace.numFmtId, fmtID.ToString()),
+            var numFmt = new XElement(S.numFmt, new XAttribute(NoNamespace.numFmtId, fmtID.ToString()),
                 new XAttribute(NoNamespace.formatCode, formatCode));
-            XDocument styles = document.WorkbookPart.WorkbookStylesPart.GetXDocument();
-            XElement numFmts = styles.Root.Element(S.numFmts);
+            var styles = document.WorkbookPart.WorkbookStylesPart.GetXDocument();
+            var numFmts = styles.Root.Element(S.numFmts);
             if (numFmts == null)
             {
                 styles.Root.Element(S.fonts).AddBeforeSelf(new XElement(S.numFmts, new XAttribute(NoNamespace.count, "0")));
                 numFmts = styles.Root.Element(S.numFmts);
             }
-            int index = Array.FindIndex(numFmts.Elements(S.numFmt).ToArray(),
+            var index = Array.FindIndex(numFmts.Elements(S.numFmt).ToArray(),
                 z => XElement.DeepEquals(z, numFmt));
             if (index == -1)
             {
@@ -861,11 +980,11 @@ namespace OpenXmlPowerTools
         {
             public enum ColorType { Theme, Indexed };
 
-            private bool Auto;
-            private string RGB;
-            private int Indexed;
-            private int Theme;
-            private double Tint;
+            private readonly bool Auto;
+            private readonly string RGB;
+            private readonly int Indexed;
+            private readonly int Theme;
+            private readonly double Tint;
 
             public ColorInfo()
             {
@@ -874,9 +993,13 @@ namespace OpenXmlPowerTools
             public ColorInfo(ColorType type, int value)
             {
                 if (type == ColorType.Indexed)
+                {
                     Indexed = value;
+                }
                 else if (type == ColorType.Theme)
+                {
                     Theme = value;
+                }
             }
             public ColorInfo(int theme, double tint)
             {
@@ -890,17 +1013,29 @@ namespace OpenXmlPowerTools
 
             public XElement GetXElement(XName colorName)
             {
-                XElement color = new XElement(colorName);
+                var color = new XElement(colorName);
                 if (Auto)
+                {
                     color.Add(new XAttribute(NoNamespace.auto, "1"));
+                }
                 else if (RGB != null)
+                {
                     color.Add(new XAttribute(NoNamespace.rgb, RGB));
+                }
                 else if (Indexed != 0)
+                {
                     color.Add(new XAttribute(NoNamespace.indexed, Indexed));
+                }
                 else
+                {
                     color.Add(new XAttribute(NoNamespace.theme, Theme));
+                }
+
                 if (Tint != 0)
+                {
                     color.Add(new XAttribute(NoNamespace.tint, Tint));
+                }
+
                 return color;
             }
         }
@@ -925,31 +1060,67 @@ namespace OpenXmlPowerTools
 
             public XElement GetXElement()
             {
-                XElement font = new XElement(S.font);
+                var font = new XElement(S.font);
                 if (Bold)
+                {
                     font.Add(new XElement(S.b));
+                }
+
                 if (Italic)
+                {
                     font.Add(new XElement(S.i));
+                }
+
                 if (Underline)
+                {
                     font.Add(new XElement(S.u));
+                }
+
                 if (StrikeThrough)
+                {
                     font.Add(new XElement(S.strike));
+                }
+
                 if (Condense)
+                {
                     font.Add(new XElement(S.condense));
+                }
+
                 if (Extend)
+                {
                     font.Add(new XElement(S.extend));
+                }
+
                 if (Outline)
+                {
                     font.Add(new XElement(S.outline));
+                }
+
                 if (Shadow)
+                {
                     font.Add(new XElement(S.shadow));
+                }
+
                 if (Size != 0)
+                {
                     font.Add(new XElement(S.sz, new XAttribute(NoNamespace.val, Size.ToString())));
+                }
+
                 if (Color != null)
+                {
                     font.Add(Color.GetXElement(S.color));
+                }
+
                 if (Name != null)
+                {
                     font.Add(new XElement(S.name, new XAttribute(NoNamespace.val, Name)));
+                }
+
                 if (Family != 0)
+                {
                     font.Add(new XElement(S.family, new XAttribute(NoNamespace.val, Family.ToString())));
+                }
+
                 switch (Scheme)
                 {
                     case SchemeType.Major:
@@ -965,13 +1136,16 @@ namespace OpenXmlPowerTools
 
         public static int GetFontIndex(SpreadsheetDocument document, Font f)
         {
-            XElement font = f.GetXElement();
-            XDocument styles = document.WorkbookPart.WorkbookStylesPart.GetXDocument();
-            XElement fonts = styles.Root.Element(S.fonts);
-            int index = Array.FindIndex(fonts.Elements(S.font).ToArray(),
+            var font = f.GetXElement();
+            var styles = document.WorkbookPart.WorkbookStylesPart.GetXDocument();
+            var fonts = styles.Root.Element(S.fonts);
+            var index = Array.FindIndex(fonts.Elements(S.font).ToArray(),
                 z => XElement.DeepEquals(z, font));
             if (index != -1)
+            {
                 return index;
+            }
+
             fonts.Add(font);
             fonts.Attribute(NoNamespace.count).Value = fonts.Elements(S.font).Count().ToString();
             document.WorkbookPart.WorkbookStylesPart.PutXDocument();
@@ -986,9 +1160,9 @@ namespace OpenXmlPowerTools
                 Gray0625, Gray125, LightDown, LightGray, LightGrid, LightHorizontal, LightTrellis, LightUp, LightVertical, MediumGray
             };
 
-            private PatternType Pattern;
-            private ColorInfo BgColor;
-            private ColorInfo FgColor;
+            private readonly PatternType Pattern;
+            private readonly ColorInfo BgColor;
+            private readonly ColorInfo FgColor;
 
             public PatternFill(PatternType pattern, ColorInfo bgColor, ColorInfo fgColor)
             {
@@ -999,7 +1173,7 @@ namespace OpenXmlPowerTools
 
             public XElement GetXElement()
             {
-                XElement pattern = new XElement(S.patternFill);
+                var pattern = new XElement(S.patternFill);
                 switch (Pattern)
                 {
                     case PatternType.DarkDown:
@@ -1061,17 +1235,23 @@ namespace OpenXmlPowerTools
                         break;
                 }
                 if (FgColor != null)
+                {
                     pattern.Add(FgColor.GetXElement(S.fgColor));
+                }
+
                 if (BgColor != null)
+                {
                     pattern.Add(BgColor.GetXElement(S.bgColor));
+                }
+
                 return new XElement(S.fill, pattern);
             }
         }
 
         public class GradientStop
         {
-            private double Position;
-            private ColorInfo Color;
+            private readonly double Position;
+            private readonly ColorInfo Color;
 
             public GradientStop(double position, ColorInfo color)
             {
@@ -1087,13 +1267,13 @@ namespace OpenXmlPowerTools
 
         public class GradientFill
         {
-            private bool PathGradient;
-            private int LinearDegree;
-            private double PathTop;
-            private double PathLeft;
-            private double PathBottom;
-            private double PathRight;
-            private List<GradientStop> Stops;
+            private readonly bool PathGradient;
+            private readonly int LinearDegree;
+            private readonly double PathTop;
+            private readonly double PathLeft;
+            private readonly double PathBottom;
+            private readonly double PathRight;
+            private readonly List<GradientStop> Stops;
 
             public GradientFill(int degree)
             {
@@ -1119,7 +1299,7 @@ namespace OpenXmlPowerTools
 
             public XElement GetXElement()
             {
-                XElement gradient = new XElement(S.gradientFill);
+                var gradient = new XElement(S.gradientFill);
                 if (PathGradient)
                 {
                     gradient.Add(new XAttribute(NoNamespace.type, "path"),
@@ -1130,8 +1310,11 @@ namespace OpenXmlPowerTools
                 {
                     gradient.Add(new XAttribute(NoNamespace.degree, LinearDegree.ToString()));
                 }
-                foreach (GradientStop stop in Stops)
+                foreach (var stop in Stops)
+                {
                     gradient.Add(stop.GetXElement());
+                }
+
                 return new XElement(S.fill, gradient);
             }
         }
@@ -1148,12 +1331,15 @@ namespace OpenXmlPowerTools
 
         private static int GetFillIndex(SpreadsheetDocument document, XElement fill)
         {
-            XDocument styles = document.WorkbookPart.WorkbookStylesPart.GetXDocument();
-            XElement fills = styles.Root.Element(S.fills);
-            int index = Array.FindIndex(fills.Elements(S.fill).ToArray(),
+            var styles = document.WorkbookPart.WorkbookStylesPart.GetXDocument();
+            var fills = styles.Root.Element(S.fills);
+            var index = Array.FindIndex(fills.Elements(S.fill).ToArray(),
                 z => XElement.DeepEquals(z, fill));
             if (index != -1)
+            {
                 return index;
+            }
+
             fills.Add(fill);
             fills.Attribute(NoNamespace.count).Value = fills.Elements(S.fill).Count().ToString();
             document.WorkbookPart.WorkbookStylesPart.PutXDocument();
@@ -1167,8 +1353,8 @@ namespace OpenXmlPowerTools
                 None, DashDot, DashDotDot, Dashed, Dotted, Double, Hair,
                 Medium, MediumDashDot, MediumDashDotDot, MediumDashed, SlantDashDot, Thick, Thin
             };
-            private LineStyle Style;
-            private ColorInfo Color;
+            private readonly LineStyle Style;
+            private readonly ColorInfo Color;
 
             public BorderLine(LineStyle style, ColorInfo color)
             {
@@ -1178,7 +1364,7 @@ namespace OpenXmlPowerTools
 
             public XElement GetXElement(XName name)
             {
-                XElement line = new XElement(name);
+                var line = new XElement(name);
                 switch (Style)
                 {
                     case LineStyle.DashDot:
@@ -1241,50 +1427,93 @@ namespace OpenXmlPowerTools
 
             public XElement GetXElement()
             {
-                XElement border = new XElement(S.border);
+                var border = new XElement(S.border);
                 if (DiagonalDown)
+                {
                     border.Add(new XAttribute(NoNamespace.diagonalDown, "1"));
+                }
+
                 if (DiagonalUp)
+                {
                     border.Add(new XAttribute(NoNamespace.diagonalUp, "1"));
+                }
+
                 if (Outline)
+                {
                     border.Add(new XAttribute(NoNamespace.outline, "1"));
+                }
+
                 if (Left == null)
+                {
                     border.Add(new XElement(S.left));
+                }
                 else
+                {
                     border.Add(Left.GetXElement(S.left));
+                }
+
                 if (Right == null)
+                {
                     border.Add(new XElement(S.right));
+                }
                 else
+                {
                     border.Add(Right.GetXElement(S.right));
+                }
+
                 if (Top == null)
+                {
                     border.Add(new XElement(S.top));
+                }
                 else
+                {
                     border.Add(Top.GetXElement(S.top));
+                }
+
                 if (Bottom == null)
+                {
                     border.Add(new XElement(S.bottom));
+                }
                 else
+                {
                     border.Add(Bottom.GetXElement(S.bottom));
+                }
+
                 if (Diagonal == null)
+                {
                     border.Add(new XElement(S.diagonal));
+                }
                 else
+                {
                     border.Add(Diagonal.GetXElement(S.diagonal));
+                }
+
                 if (Horizontal != null)
+                {
                     border.Add(Horizontal.GetXElement(S.horizontal));
+                }
+
                 if (Vertical != null)
+                {
                     border.Add(Vertical.GetXElement(S.vertical));
+                }
+
                 return border;
             }
         }
 
         public static int GetBorderIndex(SpreadsheetDocument document, Border b)
         {
-            XElement border = b.GetXElement();
-            XDocument styles = document.WorkbookPart.WorkbookStylesPart.GetXDocument();
-            XElement borders = styles.Root.Element(S.borders);
-            int index = Array.FindIndex(borders.Elements(S.border).ToArray(),
+            var border = b.GetXElement();
+            var styles = document.WorkbookPart.WorkbookStylesPart.GetXDocument();
+            var borders = styles.Root.Element(S.borders);
+            var index = Array.FindIndex(borders.Elements(S.border).ToArray(),
                 z => XElement.DeepEquals(z, border));
             if (index != -1)
+            {
                 return index;
+            }
+
             borders.Add(border);
             borders.Attribute(NoNamespace.count).Value = borders.Elements(S.border).Count().ToString();
             document.WorkbookPart.WorkbookStylesPart.PutXDocument();
@@ -1293,16 +1522,19 @@ namespace OpenXmlPowerTools
 
         public static int GetStyleIndex(SpreadsheetDocument document, string styleName)
         {
-            XDocument styles = document.WorkbookPart.WorkbookStylesPart.GetXDocument();
-            string xfId = styles.Root.Element(S.cellStyles).Elements(S.cellStyle)
+            var styles = document.WorkbookPart.WorkbookStylesPart.GetXDocument();
+            var xfId = styles.Root.Element(S.cellStyles).Elements(S.cellStyle)
                 .Where(t => t.Attribute(NoNamespace.name).Value == styleName)
                 .FirstOrDefault().Attribute(NoNamespace.xfId).Value;
-            XElement cellXfs = styles.Root.Element(S.cellXfs);
-            int index = Array.FindIndex(cellXfs.Elements(S.xf).ToArray(),
+            var cellXfs = styles.Root.Element(S.cellXfs);
+            var index = Array.FindIndex(cellXfs.Elements(S.xf).ToArray(),
                 z => z.Attribute(NoNamespace.xfId).Value == xfId);
             if (index != -1)
+            {
                 return index;
-            XElement cellStyleXf = styles.Root.Element(S.cellStyleXfs).Elements(S.xf).ToArray()[Convert.ToInt32(xfId)];
+            }
+
+            var cellStyleXf = styles.Root.Element(S.cellStyleXfs).Elements(S.xf).ToArray()[Convert.ToInt32(xfId)];
             if (cellStyleXf != null)
             {   // Create new xf element under cellXfs
                 cellXfs.Add(new XElement(S.xf, new XAttribute(NoNamespace.numFmtId, cellStyleXf.Attribute(NoNamespace.numFmtId).Value),
@@ -1346,7 +1578,7 @@ namespace OpenXmlPowerTools
 
             public XElement GetXElement()
             {
-                XElement align = new XElement(S.alignment);
+                var align = new XElement(S.alignment);
                 switch (HorizontalAlignment)
                 {
                     case Horizontal.Center:
@@ -1372,15 +1604,30 @@ namespace OpenXmlPowerTools
                         break;
                 }
                 if (Indent != 0)
+                {
                     align.Add(new XAttribute(NoNamespace.indent, Indent));
+                }
+
                 if (JustifyLastLine)
+                {
                     align.Add(new XAttribute(NoNamespace.justifyLastLine, true));
+                }
+
                 if (ReadingOrder != 0)
+                {
                     align.Add(new XAttribute(NoNamespace.readingOrder, ReadingOrder));
+                }
+
                 if (ShrinkToFit)
+                {
                     align.Add(new XAttribute(NoNamespace.shrinkToFit, true));
+                }
+
                 if (TextRotation != 0)
+                {
                     align.Add(new XAttribute(NoNamespace.textRotation, TextRotation));
+                }
+
                 switch (VerticalAlignment)
                 {
                     case Vertical.Center:
@@ -1397,14 +1644,17 @@ namespace OpenXmlPowerTools
                         break;
                 }
                 if (WrapText)
+                {
                     align.Add(new XAttribute(NoNamespace.wrapText, true));
+                }
+
                 return align;
             }
         }
 
         public static int GetStyleIndex(SpreadsheetDocument document, int numFmt, int font, int fill, int border, CellAlignment alignment, bool hidden, bool locked)
         {
-            XElement xf = new XElement(S.xf, new XAttribute(NoNamespace.numFmtId, numFmt),
+            var xf = new XElement(S.xf, new XAttribute(NoNamespace.numFmtId, numFmt),
                 new XAttribute(NoNamespace.fontId, font), new XAttribute(NoNamespace.fillId, fill),
                 new XAttribute(NoNamespace.borderId, border), new XAttribute(NoNamespace.xfId, 0),
                 new XAttribute(NoNamespace.applyNumberFormat, (numFmt == 0) ? 0 : 1),
@@ -1417,26 +1667,40 @@ namespace OpenXmlPowerTools
                 xf.Add(alignment.GetXElement());
             }
             else
+            {
                 xf.Add(new XAttribute(NoNamespace.applyAlignment, "0"));
+            }
+
             if (hidden || locked)
             {
-                XElement prot = new XElement(S.protection);
+                var prot = new XElement(S.protection);
                 if (hidden)
+                {
                     prot.Add(new XAttribute(NoNamespace.hidden, true));
+                }
+
                 if (locked)
+                {
                     prot.Add(new XAttribute(NoNamespace.locked, true));
+                }
+
                 xf.Add(prot);
                 xf.Add(new XAttribute(NoNamespace.applyProtection, "1"));
             }
             else
+            {
                 xf.Add(new XAttribute(NoNamespace.applyProtection, "0"));
+            }
 
-            XDocument styles = document.WorkbookPart.WorkbookStylesPart.GetXDocument();
-            XElement cellXfs = styles.Root.Element(S.cellXfs);
-            int index = Array.FindIndex(cellXfs.Elements(S.xf).ToArray(),
+            var styles = document.WorkbookPart.WorkbookStylesPart.GetXDocument();
+            var cellXfs = styles.Root.Element(S.cellXfs);
+            var index = Array.FindIndex(cellXfs.Elements(S.xf).ToArray(),
                 z => XElement.DeepEquals(z, xf));
             if (index != -1)
+            {
                 return index;
+            }
+
             cellXfs.Add(xf);
             cellXfs.Attribute(NoNamespace.count).Value = cellXfs.Elements(S.xf).Count().ToString();
             document.WorkbookPart.WorkbookStylesPart.PutXDocument();
@@ -1446,7 +1710,7 @@ namespace OpenXmlPowerTools
         public static void CreateDefaultStyles(SpreadsheetDocument document)
         {
             // Create the style part
-            WorkbookStylesPart stylesPart = document.WorkbookPart.AddNewPart<WorkbookStylesPart>();
+            var stylesPart = document.WorkbookPart.AddNewPart<WorkbookStylesPart>();
             stylesPart.PutXDocument(new XDocument(XElement.Parse(
 @"<?xml version='1.0' encoding='UTF-8' standalone='yes'?>
 <styleSheet xmlns='http://schemas.openxmlformats.org/spreadsheetml/2006/main'>
@@ -1989,23 +2253,23 @@ namespace OpenXmlPowerTools
         /// <returns></returns>
         internal static WorksheetPart Create(SpreadsheetDocument document, List<string> headerList, string[][] valueTable, int headerRow)
         {
-            XDocument xDocument = CreateEmptyWorksheet();
-            
-            for (int i = 0; i < headerList.Count; i++)
+            var xDocument = CreateEmptyWorksheet();
+
+            for (var i = 0; i < headerList.Count; i++)
             {
                 AddValue(xDocument, headerRow, i + 1, headerList[i]);
             }
-            int rows = valueTable.GetLength(0);
-            int cols = valueTable[0].GetLength(0);
+            var rows = valueTable.GetLength(0);
+            var cols = valueTable[0].GetLength(0);
 
-            for (int i = 0; i < rows; i++)
+            for (var i = 0; i < rows; i++)
             {
-                for (int j = 0; j < cols; j++)
+                for (var j = 0; j < cols; j++)
                 {
                     AddValue(xDocument, i + headerRow + 1, j + 1, valueTable[i][j]);
                 }
             }
-            WorksheetPart part = Add(document, xDocument);
+            var part = Add(document, xDocument);
             return part;
         }
 
@@ -2015,7 +2279,7 @@ namespace OpenXmlPowerTools
         /// <returns>Document with contents for an empty worksheet</returns>
         private static XDocument CreateEmptyWorksheet()
         {
-            XDocument document =
+            var document =
                 new XDocument(
                     new XElement(ns + "worksheet",
                         new XAttribute("xmlns", ns),
@@ -2036,13 +2300,12 @@ namespace OpenXmlPowerTools
         private static void AddValue(XDocument worksheet, int row, int column, string value)
         {
             //Set the cell reference
-            string cellReference = GetColumnId(column) + row.ToString();
-            double numericValue;
+            var cellReference = GetColumnId(column) + row.ToString();
             //Determining if value for cell is text or numeric
-            bool valueIsNumeric = double.TryParse(value, out numericValue);
+            var valueIsNumeric = double.TryParse(value, out var numericValue);
 
             //Creating the new cell element (markup)
-            XElement newCellXElement = valueIsNumeric ?
+            var newCellXElement = valueIsNumeric ?
                     new XElement(ns + "c",
                         new XAttribute("r", cellReference),
                         new XElement(ns + "v", numericValue)
@@ -2058,7 +2321,7 @@ namespace OpenXmlPowerTools
 
             // Find the row containing the cell to add the value to
             XName rowName = "r";
-            XElement rowElement =
+            var rowElement =
                 worksheet.Root
                     .Element(ns + "sheetData")
                     .Elements(ns + "row")
@@ -2078,7 +2341,7 @@ namespace OpenXmlPowerTools
                  .Element(ns + "sheetData").HasElements)
                 {   //if there are more rows already defined at sheetData element
                     //find the row with the inmediate higher index for the row containing the cell to set the value to
-                    XElement rowAfterElement = FindRowAfter(worksheet, row);
+                    var rowAfterElement = FindRowAfter(worksheet, row);
                     //if there is a row with an inmediate higher index already defined at sheetData
                     if (rowAfterElement != null)
                     {
@@ -2108,7 +2371,7 @@ namespace OpenXmlPowerTools
             {
                 //row containing the cell to set the value to is already defined at sheetData
                 //look if cell already exist at that row
-                XElement currentCellXElement = rowElement
+                var currentCellXElement = rowElement
                     .Elements(ns + "c")
                     .Where(
                         t => t.Attribute("r").Value == cellReference
@@ -2117,7 +2380,7 @@ namespace OpenXmlPowerTools
                 if (currentCellXElement == null)
                 {   //cell element does not exist at row indicated as parameter
                     //find the inmediate right column for the cell to set the value to
-                    XElement columnAfterXElement = FindColumAfter(worksheet, row, column);
+                    var columnAfterXElement = FindColumAfter(worksheet, row, column);
                     if (columnAfterXElement != null)
                     {
                         //Insert the new cell before the inmediate right column
@@ -2146,19 +2409,19 @@ namespace OpenXmlPowerTools
         public static WorksheetPart Add(SpreadsheetDocument doc, XDocument worksheet)
         {
             // Associates base content to a new worksheet part
-            WorkbookPart workbook = doc.WorkbookPart;
-            WorksheetPart worksheetPart = workbook.AddNewPart<WorksheetPart>();
+            var workbook = doc.WorkbookPart;
+            var worksheetPart = workbook.AddNewPart<WorksheetPart>();
             worksheetPart.PutXDocument(worksheet);
 
             // Associates the worksheet part to the workbook part
-            XDocument document = doc.WorkbookPart.GetXDocument();
-            int sheetId =
+            var document = doc.WorkbookPart.GetXDocument();
+            var sheetId =
                 document.Root
                 .Element(ns + "sheets")
                 .Elements(ns + "sheet")
                 .Count() + 1;
 
-            int worksheetCount =
+            var worksheetCount =
                 document.Root
                 .Element(ns + "sheets")
                 .Elements(ns + "sheet")

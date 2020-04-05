@@ -4,7 +4,7 @@
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <RepositoryUrl>https://github.com/Codeuctivity/Open-Xml-PowerTools</RepositoryUrl>
-    <PackageTags>openxml office</PackageTags>
+    <PackageTags>openxml office docx</PackageTags>
     <Authors>Contributors</Authors>
     <Company>Codeuctivity</Company>
     <AssemblyVersion>5.0.0.0</AssemblyVersion>
@@ -30,6 +30,7 @@ It supports scenarios such as:
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <!--Causes a hanging build -->
     <!--<Nullable>enable</Nullable>-->
     <LangVersion>8.0</LangVersion>
     <SignAssembly>true</SignAssembly>
@@ -43,11 +44,16 @@ It supports scenarios such as:
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="SonarAnalyzer.CSharp" Version="8.6.0.16497">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
     <!--Causes a hanging build see https://github.com/dotnet/roslyn-analyzers/issues/2790 for details-->
     <!--<PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="2.9.8">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>-->
+   
     <PackageReference Include="System.Drawing.Common" Version="4.7.0" />
   </ItemGroup>
 

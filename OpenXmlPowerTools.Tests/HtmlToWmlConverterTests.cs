@@ -7,7 +7,6 @@ using OpenXmlPowerTools;
 using System;
 using System.IO;
 using System.Linq;
-using System.Xml.Linq;
 using Xunit;
 
 /*******************************************************************************************
@@ -28,10 +27,6 @@ using Xunit;
  * We don't include the HtmlAgilityPack in Open-Xml-PowerTools, to simplify installation.  The XUnit tests in
  * this module do not require the HtmlAgilityPack to run.
 *******************************************************************************************/
-
-#if DO_CONVERSION_VIA_WORD
-using Word = Microsoft.Office.Interop.Word;
-#endif
 
 #if !ELIDE_XUNIT_TESTS
 
@@ -365,8 +360,7 @@ namespace OxPt
             }
 
             var settings = HtmlToWmlConverter.GetDefaultSettings();
-            // image references in HTML files contain the path to the subdir that contains the images, so base URI is the name of the directory
-            // that contains the HTML files
+            // image references in HTML files contain the path to the subdir that contains the images, so base URI is the name of the directory that contains the HTML files
             settings.BaseUriForImages = Path.Combine(TestUtil.TempDir.FullName);
 
             var doc = HtmlToWmlConverter.ConvertHtmlToWml(defaultCss, usedAuthorCss, userCss, html, settings, null, s_ProduceAnnotatedHtml ? annotatedHtmlFi.FullName : null);
@@ -375,12 +369,6 @@ namespace OxPt
             {
                 SaveValidateAndFormatMainDocPart(destDocxFi, doc);
             }
-
-#if DO_CONVERSION_VIA_WORD
-            var newAltChunkBeforeFi = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, name.Replace(".html", "-5-AltChunkBefore.docx")));
-            var newAltChunkAfterFi = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, name.Replace(".html", "-6-ConvertedViaWord.docx")));
-            WordAutomationUtilities.DoConversionViaWord(newAltChunkBeforeFi, newAltChunkAfterFi, html);
-#endif
         }
 
         [Theory]
@@ -436,7 +424,7 @@ namespace OxPt
             formattedDoc.SaveAs(destDocxFi.FullName);
         }
 
-        private static readonly string defaultCss =
+        private const string defaultCss =
             @"html, address,
 blockquote,
 body, dd, div,
@@ -510,7 +498,7 @@ BDO[DIR=""rtl""] { direction: rtl; unicode-bidi: bidi-override }
 
 ";
 
-        private static readonly string userCss = @"";
+        private const string userCss = @"";
     }
 }
 

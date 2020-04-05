@@ -22,10 +22,13 @@ namespace OpenXmlPowerTools
         {
             get
             {
-                if (_descendantContentAtomsCount != null) return (int) _descendantContentAtomsCount;
+                if (_descendantContentAtomsCount != null)
+                {
+                    return (int)_descendantContentAtomsCount;
+                }
 
                 _descendantContentAtomsCount = DescendantContentAtoms().Count();
-                return (int) _descendantContentAtomsCount;
+                return (int)_descendantContentAtomsCount;
             }
         }
 
@@ -45,11 +48,13 @@ namespace OpenXmlPowerTools
             ComparisonUnit comparisonUnit,
             List<ComparisonUnit> comparisonUnitList)
         {
-            foreach (ComparisonUnit cu in comparisonUnit.Contents)
+            foreach (var cu in comparisonUnit.Contents)
             {
                 comparisonUnitList.Add(cu);
                 if (cu.Contents != null && cu.Contents.Any())
+                {
                     DescendantsInternal(cu, comparisonUnitList);
+                }
             }
         }
 
@@ -59,7 +64,10 @@ namespace OpenXmlPowerTools
         {
             var sb = new StringBuilder();
             sb.Append("Dump Comparision Unit List To String" + Environment.NewLine);
-            foreach (ComparisonUnit item in cul) sb.Append(item.ToString(2) + Environment.NewLine);
+            foreach (var item in cul)
+            {
+                sb.Append(item.ToString(2) + Environment.NewLine);
+            }
 
             return sb.ToString();
         }

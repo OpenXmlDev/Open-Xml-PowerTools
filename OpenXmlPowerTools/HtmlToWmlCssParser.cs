@@ -1,18 +1,6 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-/***************************************************************************
-
-Copyright (c) Microsoft Corporation 2012-2015.
-
-This code is licensed using the Microsoft Public License (Ms-PL).  The text of the license can be found here:
-
-http://www.microsoft.com/resources/sharedsource/licensingbasics/publiclicense.mspx
-
-Published at http://OpenXmlDeveloper.org
-Resource Center and Documentation: http://openxmldeveloper.org/wiki/w/wiki/powertools-for-open-xml.aspx
-
-***************************************************************************/
 
 using System;
 using System.Collections;
@@ -27,51 +15,35 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
 {
     public class CssAttribute
     {
-        private string m_operand;
-        private CssAttributeOperator? m_op = null;
-        private string m_val;
+        public string Operand { get; set; }
 
-        public string Operand
-        {
-            get => m_operand;
-            set => m_operand = value;
-        }
-
-        public CssAttributeOperator? Operator
-        {
-            get => m_op;
-            set => m_op = value;
-        }
+        public CssAttributeOperator? Operator { get; set; } = null;
 
         public string CssOperatorString
         {
             get
             {
-                if (m_op.HasValue)
+                if (Operator.HasValue)
                 {
-                    return m_op.Value.ToString();
+                    return Operator.Value.ToString();
                 }
                 else
                 {
                     return null;
                 }
             }
-            set => m_op = (CssAttributeOperator)Enum.Parse(typeof(CssAttributeOperator), value);
+            set => Operator = (CssAttributeOperator)Enum.Parse(typeof(CssAttributeOperator), value);
         }
 
-        public string Value
-        {
-            get => m_val;
-            set => m_val = value;
-        }
+        public string Value { get; set; }
 
         public override string ToString()
         {
             var sb = new StringBuilder();
-            sb.AppendFormat("[{0}", m_operand);
-            if (m_op.HasValue)
+            sb.AppendFormat("[{0}", Operand);
+            if (Operator.HasValue)
             {
-                switch (m_op.Value)
+                switch (Operator.Value)
                 {
                     case CssAttributeOperator.Equals:
                         sb.Append("=");
@@ -97,7 +69,7 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
                         sb.Append("*=");
                         break;
                 }
-                sb.Append(m_val);
+                sb.Append(Value);
             }
             sb.Append("]");
             return sb.ToString();
@@ -121,27 +93,16 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
         PrecededBy,
     }
 
-    public class CssDocument : ItfRuleSetContainer
+    public class CssDocument : IRuleSetContainer
     {
-        private List<CssDirective> m_dirs = new List<CssDirective>();
-        private List<CssRuleSet> m_rulesets = new List<CssRuleSet>();
+        public IList<CssDirective> Directives { get; set; } = new List<CssDirective>();
 
-        public List<CssDirective> Directives
-        {
-            get => m_dirs;
-            set => m_dirs = value;
-        }
-
-        public List<CssRuleSet> RuleSets
-        {
-            get => m_rulesets;
-            set => m_rulesets = value;
-        }
+        public IList<CssRuleSet> RuleSets { get; set; } = new List<CssRuleSet>();
 
         public override string ToString()
         {
             var sb = new StringBuilder();
-            foreach (var cssDir in m_dirs)
+            foreach (var cssDir in Directives)
             {
                 sb.AppendFormat("{0}" + Environment.NewLine, cssDir.ToString());
             }
@@ -149,7 +110,7 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
             {
                 sb.Append(Environment.NewLine);
             }
-            foreach (var rules in m_rulesets)
+            foreach (var rules in RuleSets)
             {
                 sb.AppendFormat("{0}" + Environment.NewLine,
                     rules.ToString());
@@ -160,90 +121,38 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
 
     public class CssDeclaration
     {
-        private string m_name;
-        private CssExpression m_expression;
-        private bool m_important;
+        public string Name { get; set; }
 
-        public string Name
-        {
-            get => m_name;
-            set => m_name = value;
-        }
+        public bool Important { get; set; }
 
-        public bool Important
-        {
-            get => m_important;
-            set => m_important = value;
-        }
-
-        public CssExpression Expression
-        {
-            get => m_expression;
-            set => m_expression = value;
-        }
+        public CssExpression Expression { get; set; }
 
         public override string ToString()
         {
             var sb = new StringBuilder();
             sb.AppendFormat("{0}: {1}{2}",
-                m_name,
-                m_expression.ToString(),
-                m_important ? " !important" : "");
+                Name,
+                Expression.ToString(),
+                Important ? " !important" : "");
             return sb.ToString();
         }
     }
 
-    public class CssDirective : ItfDeclarationContainer, ItfRuleSetContainer
+    public class CssDirective : IDeclarationContainer, IRuleSetContainer
     {
-        private CssDirectiveType m_type;
-        private string m_name;
-        private CssExpression m_expression;
-        private List<CssMedium> m_mediums = new List<CssMedium>();
-        private List<CssDirective> m_directives = new List<CssDirective>();
-        private List<CssRuleSet> m_rulesets = new List<CssRuleSet>();
-        private List<CssDeclaration> m_declarations = new List<CssDeclaration>();
+        public CssDirectiveType Type { get; set; }
 
-        public CssDirectiveType Type
-        {
-            get => m_type;
-            set => m_type = value;
-        }
+        public string Name { get; set; }
 
-        public string Name
-        {
-            get => m_name;
-            set => m_name = value;
-        }
+        public CssExpression Expression { get; set; }
 
-        public CssExpression Expression
-        {
-            get => m_expression;
-            set => m_expression = value;
-        }
+        public IList<CssMedium> Mediums { get; set; } = new List<CssMedium>();
 
-        public List<CssMedium> Mediums
-        {
-            get => m_mediums;
-            set => m_mediums = value;
-        }
+        public IList<CssDirective> Directives { get; set; } = new List<CssDirective>();
 
-        public List<CssDirective> Directives
-        {
-            get => m_directives;
-            set => m_directives = value;
-        }
+        public IList<CssRuleSet> RuleSets { get; set; } = new List<CssRuleSet>();
 
-        public List<CssRuleSet> RuleSets
-        {
-            get => m_rulesets;
-            set => m_rulesets = value;
-        }
-
-        public List<CssDeclaration> Declarations
-        {
-            get => m_declarations;
-            set => m_declarations = value;
-        }
+        public IList<CssDeclaration> Declarations { get; set; } = new List<CssDeclaration>();
 
         public override string ToString()
         {
@@ -254,7 +163,7 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
         {
             var start = "".PadRight(indentLevel, '\t');
 
-            switch (m_type)
+            switch (Type)
             {
                 case CssDirectiveType.Charset:
                     return ToCharSetString(start);
@@ -274,15 +183,15 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
 
             var sb = new StringBuilder();
 
-            sb.AppendFormat("{0} ", m_name);
+            sb.AppendFormat("{0} ", Name);
 
-            if (m_expression != null)
+            if (Expression != null)
             {
-                sb.AppendFormat("{0} ", m_expression);
+                sb.AppendFormat("{0} ", Expression);
             }
 
             var first = true;
-            foreach (var med in m_mediums)
+            foreach (var med in Mediums)
             {
                 if (first)
                 {
@@ -296,7 +205,7 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
                 sb.Append(med.ToString());
             }
 
-            var HasBlock = (m_declarations.Count > 0 || m_directives.Count > 0 || m_rulesets.Count > 0);
+            var HasBlock = (Declarations.Count > 0 || Directives.Count > 0 || RuleSets.Count > 0);
 
             if (!HasBlock)
             {
@@ -306,18 +215,18 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
 
             sb.Append(" {" + Environment.NewLine + start);
 
-            foreach (var dir in m_directives)
+            foreach (var dir in Directives)
             {
                 sb.AppendFormat("{0}" + Environment.NewLine, dir.ToCharSetString(start + "\t"));
             }
 
-            foreach (var rules in m_rulesets)
+            foreach (var rules in RuleSets)
             {
                 sb.AppendFormat("{0}" + Environment.NewLine, rules.ToString(indentLevel + 1));
             }
 
             first = true;
-            foreach (var decl in m_declarations)
+            foreach (var decl in Declarations)
             {
                 if (first)
                 {
@@ -341,7 +250,7 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
             sb.Append("@font-face {");
 
             var first = true;
-            foreach (var decl in m_declarations)
+            foreach (var decl in Declarations)
             {
                 if (first)
                 {
@@ -363,12 +272,12 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
         {
             var sb = new StringBuilder();
             sb.Append("@import ");
-            if (m_expression != null)
+            if (Expression != null)
             {
-                sb.AppendFormat("{0} ", m_expression);
+                sb.AppendFormat("{0} ", Expression);
             }
             var first = true;
-            foreach (var med in m_mediums)
+            foreach (var med in Mediums)
             {
                 if (first)
                 {
@@ -391,7 +300,7 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
             sb.Append("@media");
 
             var first = true;
-            foreach (var medium in m_mediums)
+            foreach (var medium in Mediums)
             {
                 if (first)
                 {
@@ -406,7 +315,7 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
             }
             sb.Append(" {" + Environment.NewLine);
 
-            foreach (var ruleset in m_rulesets)
+            foreach (var ruleset in RuleSets)
             {
                 sb.AppendFormat("{0}" + Environment.NewLine, ruleset.ToString(indentLevel + 1));
             }
@@ -419,14 +328,14 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
         {
             var sb = new StringBuilder();
             sb.Append("@page ");
-            if (m_expression != null)
+            if (Expression != null)
             {
-                sb.AppendFormat("{0} ", m_expression);
+                sb.AppendFormat("{0} ", Expression);
             }
             sb.Append("{" + Environment.NewLine);
 
             var first = true;
-            foreach (var decl in m_declarations)
+            foreach (var decl in Declarations)
             {
                 if (first)
                 {
@@ -447,8 +356,8 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
         private string ToCharSetString(string start)
         {
             return string.Format("{2}{0} {1}",
-                m_name,
-                m_expression.ToString(),
+                Name,
+                Expression.ToString(),
                 start);
         }
     }
@@ -466,27 +375,21 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
 
     public class CssExpression
     {
-        private List<CssTerm> m_terms = new List<CssTerm>();
+        public List<CssTerm> Terms { get; set; } = new List<CssTerm>();
 
-        public List<CssTerm> Terms
-        {
-            get => m_terms;
-            set => m_terms = value;
-        }
+        public bool IsNotAuto => this != null && ToString() != "auto";
 
-        public bool IsNotAuto => (this != null && ToString() != "auto");
+        public bool IsAuto => this != null && ToString() == "auto";
 
-        public bool IsAuto => (this != null && ToString() == "auto");
+        public bool IsNotNormal => this != null && ToString() != "normal";
 
-        public bool IsNotNormal => (this != null && ToString() != "normal");
-
-        public bool IsNormal => (this != null && ToString() == "normal");
+        public bool IsNormal => this != null && ToString() == "normal";
 
         public override string ToString()
         {
             var sb = new StringBuilder();
             var first = true;
-            foreach (var term in m_terms)
+            foreach (var term in Terms)
             {
                 if (first)
                 {
@@ -548,29 +451,18 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
 
     public class CssFunction
     {
-        private string m_name;
-        private CssExpression m_expression;
+        public string Name { get; set; }
 
-        public string Name
-        {
-            get => m_name;
-            set => m_name = value;
-        }
-
-        public CssExpression Expression
-        {
-            get => m_expression;
-            set => m_expression = value;
-        }
+        public CssExpression Expression { get; set; }
 
         public override string ToString()
         {
             var sb = new StringBuilder();
-            sb.AppendFormat("{0}(", m_name);
-            if (m_expression != null)
+            sb.AppendFormat("{0}(", Name);
+            if (Expression != null)
             {
                 var first = true;
-                foreach (var t in m_expression.Terms)
+                foreach (var t in Expression.Terms)
                 {
                     if (first)
                     {
@@ -602,19 +494,19 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
         }
     }
 
-    public interface ItfDeclarationContainer
+    public interface IDeclarationContainer
     {
-        List<CssDeclaration> Declarations { get; set; }
+        IList<CssDeclaration> Declarations { get; set; }
     }
 
-    public interface ItfRuleSetContainer
+    public interface IRuleSetContainer
     {
-        List<CssRuleSet> RuleSets { get; set; }
+        IList<CssRuleSet> RuleSets { get; set; }
     }
 
-    public interface ItfSelectorContainer
+    public interface ISelectorContainer
     {
-        List<CssSelector> Selectors { get; set; }
+        IList<CssSelector> Selectors { get; set; }
     }
 
     public enum CssMedium
@@ -633,37 +525,21 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
 
     public class CssPropertyValue
     {
-        private CssValueType m_type;
-        private CssUnit m_unit;
-        private string m_value;
+        public CssValueType Type { get; set; }
 
-        public CssValueType Type
-        {
-            get => m_type;
-            set => m_type = value;
-        }
+        public CssUnit Unit { get; set; }
 
-        public CssUnit Unit
-        {
-            get => m_unit;
-            set => m_unit = value;
-        }
-
-        public string Value
-        {
-            get => m_value;
-            set => m_value = value;
-        }
+        public string Value { get; set; }
 
         public override string ToString()
         {
-            var sb = new StringBuilder(m_value);
-            if (m_type == CssValueType.Unit)
+            var sb = new StringBuilder(Value);
+            if (Type == CssValueType.Unit)
             {
-                sb.Append(m_unit.ToString().ToLower());
+                sb.Append(Unit.ToString().ToLower());
             }
             sb.Append(" [");
-            sb.Append(m_type.ToString());
+            sb.Append(Type.ToString());
             sb.Append("]");
             return sb.ToString();
         }
@@ -672,12 +548,12 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
         {
             get
             {
-                if (((m_type == CssValueType.Hex)
-                    || (m_type == CssValueType.String && m_value.StartsWith("#")))
-                    && (m_value.Length == 6 || (m_value.Length == 7 && m_value.StartsWith("#"))))
+                if (((Type == CssValueType.Hex)
+                    || (Type == CssValueType.String && Value.StartsWith("#")))
+                    && (Value.Length == 6 || (Value.Length == 7 && Value.StartsWith("#"))))
                 {
                     var hex = true;
-                    foreach (var c in m_value)
+                    foreach (var c in Value)
                     {
                         if (!char.IsDigit(c)
                             && c != '#'
@@ -700,10 +576,10 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
                     }
                     return hex;
                 }
-                else if (m_type == CssValueType.String)
+                else if (Type == CssValueType.String)
                 {
                     var number = true;
-                    foreach (var c in m_value)
+                    foreach (var c in Value)
                     {
                         if (!char.IsDigit(c))
                         {
@@ -713,7 +589,7 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
                     }
                     if (number) { return false; }
 
-                    if (ColorParser.IsValidName(m_value))
+                    if (ColorParser.IsValidName(Value))
                     {
                         return true;
                     }
@@ -725,20 +601,20 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
         public Color ToColor()
         {
             var hex = "000000";
-            if (m_type == CssValueType.Hex)
+            if (Type == CssValueType.Hex)
             {
-                if (m_value.Length == 7 && m_value.StartsWith("#"))
+                if (Value.Length == 7 && Value.StartsWith("#"))
                 {
-                    hex = m_value.Substring(1);
+                    hex = Value.Substring(1);
                 }
-                else if (m_value.Length == 6)
+                else if (Value.Length == 6)
                 {
-                    hex = m_value;
+                    hex = Value;
                 }
             }
             else
             {
-                if (ColorParser.TryFromName(m_value, out var c))
+                if (ColorParser.TryFromName(Value, out var c))
                 {
                     return c;
                 }
@@ -799,22 +675,11 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
         }
     }
 
-    public class CssRuleSet : ItfDeclarationContainer
+    public class CssRuleSet : IDeclarationContainer
     {
-        private List<CssSelector> m_selectors = new List<CssSelector>();
-        private List<CssDeclaration> m_declarations = new List<CssDeclaration>();
+        public IList<CssSelector> Selectors { get; set; } = new List<CssSelector>();
 
-        public List<CssSelector> Selectors
-        {
-            get => m_selectors;
-            set => m_selectors = value;
-        }
-
-        public List<CssDeclaration> Declarations
-        {
-            get => m_declarations;
-            set => m_declarations = value;
-        }
+        public IList<CssDeclaration> Declarations { get; set; } = new List<CssDeclaration>();
 
         public override string ToString()
         {
@@ -823,15 +688,15 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
 
         public string ToString(int indentLevel)
         {
-            var start = "";
+            var start = new StringBuilder();
             for (var i = 0; i < indentLevel; i++)
             {
-                start += "\t";
+                start.Append("\t");
             }
 
             var sb = new StringBuilder();
             var first = true;
-            foreach (var sel in m_selectors)
+            foreach (var sel in Selectors)
             {
                 if (first)
                 {
@@ -847,7 +712,7 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
             sb.Append(" {" + Environment.NewLine);
             sb.Append(start);
 
-            foreach (var dec in m_declarations)
+            foreach (var dec in Declarations)
             {
                 sb.AppendFormat("\t{0};" + Environment.NewLine + "{1}", dec.ToString(), start);
             }
@@ -859,19 +724,13 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
 
     public class CssSelector
     {
-        private List<CssSimpleSelector> m_simpleSelectors = new List<CssSimpleSelector>();
-
-        public List<CssSimpleSelector> SimpleSelectors
-        {
-            get => m_simpleSelectors;
-            set => m_simpleSelectors = value;
-        }
+        public List<CssSimpleSelector> SimpleSelectors { get; set; } = new List<CssSimpleSelector>();
 
         public override string ToString()
         {
             var sb = new StringBuilder();
             var first = true;
-            foreach (var ss in m_simpleSelectors)
+            foreach (var ss in SimpleSelectors)
             {
                 if (first)
                 {
@@ -1020,79 +879,38 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
 
     public class CssTag
     {
-        private CssTagType m_tagtype;
-        private string m_name;
-        private string m_cls;
-        private string m_pseudo;
-        private string m_id;
-        private char m_parentrel = '\0';
-        private CssTag m_subtag;
-        private List<string> m_attribs = new List<string>();
+        public CssTagType TagType { get; set; }
 
-        public CssTagType TagType
-        {
-            get => m_tagtype;
-            set => m_tagtype = value;
-        }
+        public bool IsIDSelector => Id != null;
 
-        public bool IsIDSelector => m_id != null;
+        public bool HasName => Name != null;
 
-        public bool HasName => m_name != null;
+        public bool HasClass => Class != null;
 
-        public bool HasClass => m_cls != null;
+        public bool HasPseudoClass => Pseudo != null;
 
-        public bool HasPseudoClass => m_pseudo != null;
+        public string Name { get; set; }
 
-        public string Name
-        {
-            get => m_name;
-            set => m_name = value;
-        }
+        public string Class { get; set; }
 
-        public string Class
-        {
-            get => m_cls;
-            set => m_cls = value;
-        }
+        public string Pseudo { get; set; }
 
-        public string Pseudo
-        {
-            get => m_pseudo;
-            set => m_pseudo = value;
-        }
+        public string Id { get; set; }
 
-        public string Id
-        {
-            get => m_id;
-            set => m_id = value;
-        }
+        public char ParentRelationship { get; set; } = '\0';
 
-        public char ParentRelationship
-        {
-            get => m_parentrel;
-            set => m_parentrel = value;
-        }
+        public CssTag SubTag { get; set; }
 
-        public CssTag SubTag
-        {
-            get => m_subtag;
-            set => m_subtag = value;
-        }
-
-        public List<string> Attributes
-        {
-            get => m_attribs;
-            set => m_attribs = value;
-        }
+        public List<string> Attributes { get; set; } = new List<string>();
 
         public override string ToString()
         {
             var sb = new StringBuilder(ToShortString());
 
-            if (m_subtag != null)
+            if (SubTag != null)
             {
                 sb.Append(" ");
-                sb.Append(m_subtag.ToString());
+                sb.Append(SubTag.ToString());
             }
             return sb.ToString();
         }
@@ -1100,32 +918,32 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
         public string ToShortString()
         {
             var sb = new StringBuilder();
-            if (m_parentrel != '\0')
+            if (ParentRelationship != '\0')
             {
-                sb.AppendFormat("{0} ", m_parentrel.ToString());
+                sb.AppendFormat("{0} ", ParentRelationship.ToString());
             }
             if (HasName)
             {
-                sb.Append(m_name);
+                sb.Append(Name);
             }
-            foreach (var atr in m_attribs)
+            foreach (var atr in Attributes)
             {
                 sb.AppendFormat("[{0}]", atr);
             }
             if (HasClass)
             {
                 sb.Append(".");
-                sb.Append(m_cls);
+                sb.Append(Class);
             }
             if (IsIDSelector)
             {
                 sb.Append("#");
-                sb.Append(m_id);
+                sb.Append(Id);
             }
             if (HasPseudoClass)
             {
                 sb.Append(":");
-                sb.Append(m_pseudo);
+                sb.Append(Pseudo);
             }
             return sb.ToString();
         }
@@ -1143,113 +961,82 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
 
     public class CssTerm
     {
-        private char? m_separator;
-        private char? m_sign;
-        private CssTermType m_type;
-        private string m_val;
-        private CssUnit? m_unit;
-        private CssFunction m_function;
-
-        public char? Separator
-        {
-            get => m_separator;
-            set => m_separator = value;
-        }
+        public char? Separator { get; set; }
 
         public string SeparatorChar
         {
-            get => m_separator.HasValue ? m_separator.Value.ToString() : null;
-            set => m_separator = !string.IsNullOrEmpty(value) ? value[0] : '\0';
+            get => Separator.HasValue ? Separator.Value.ToString() : null;
+            set => Separator = !string.IsNullOrEmpty(value) ? value[0] : '\0';
         }
 
-        public char? Sign
-        {
-            get => m_sign;
-            set => m_sign = value;
-        }
+        public char? Sign { get; set; }
 
         public string SignChar
         {
-            get => m_sign.HasValue ? m_sign.Value.ToString() : null;
-            set => m_sign = !string.IsNullOrEmpty(value) ? value[0] : '\0';
+            get => Sign.HasValue ? Sign.Value.ToString() : null;
+            set => Sign = !string.IsNullOrEmpty(value) ? value[0] : '\0';
         }
 
-        public CssTermType Type
-        {
-            get => m_type;
-            set => m_type = value;
-        }
+        public CssTermType Type { get; set; }
 
-        public string Value
-        {
-            get => m_val;
-            set => m_val = value;
-        }
+        public string Value { get; set; }
 
-        public CssUnit? Unit
-        {
-            get => m_unit;
-            set => m_unit = value;
-        }
+        public CssUnit? Unit { get; set; }
 
         public string UnitString
         {
             get
             {
-                if (m_unit.HasValue)
+                if (Unit.HasValue)
                 {
-                    return m_unit.ToString();
+                    return Unit.ToString();
                 }
                 else
                 {
                     return null;
                 }
             }
-            set => m_unit = (CssUnit)Enum.Parse(typeof(CssUnit), value);
+            set => Unit = (CssUnit)Enum.Parse(typeof(CssUnit), value);
         }
 
-        public CssFunction Function
-        {
-            get => m_function;
-            set => m_function = value;
-        }
+        public CssFunction Function { get; set; }
 
         public override string ToString()
         {
             var sb = new StringBuilder();
 
-            if (m_type == CssTermType.Function)
+            if (Type == CssTermType.Function)
             {
-                sb.Append(m_function.ToString());
+                sb.Append(Function.ToString());
             }
-            else if (m_type == CssTermType.Url)
+            else if (Type == CssTermType.Url)
             {
-                sb.AppendFormat("url('{0}')", m_val);
+                sb.AppendFormat("url('{0}')", Value);
             }
-            else if (m_type == CssTermType.Unicode)
+            else if (Type == CssTermType.Unicode)
             {
-                sb.AppendFormat("U\\{0}", m_val.ToUpper());
+                sb.AppendFormat("U\\{0}", Value.ToUpper());
             }
-            else if (m_type == CssTermType.Hex)
+            else if (Type == CssTermType.Hex)
             {
-                sb.Append(m_val.ToUpper());
+                sb.Append(Value.ToUpper());
             }
             else
             {
-                if (m_sign.HasValue)
+                if (Sign.HasValue)
                 {
-                    sb.Append(m_sign.Value);
+                    sb.Append(Sign.Value);
                 }
-                sb.Append(m_val);
-                if (m_unit.HasValue)
+                sb.Append(Value);
+                if (Unit.HasValue)
                 {
-                    if (m_unit.Value == OpenXmlPowerTools.HtmlToWml.CSS.CssUnit.Percent)
+                    if (Unit.Value == CssUnit.Percent)
                     {
                         sb.Append("%");
                     }
                     else
                     {
-                        sb.Append(CssUnitOutput.ToString(m_unit.Value));
+                        sb.Append(CssUnitOutput.ToString(Unit.Value));
                     }
                 }
             }
@@ -1261,13 +1048,13 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
         {
             get
             {
-                if (((m_type == CssTermType.Hex)
-                    || (m_type == CssTermType.String && m_val.StartsWith("#")))
-                    && (m_val.Length == 6 || m_val.Length == 3 || ((m_val.Length == 7 || m_val.Length == 4)
-                    && m_val.StartsWith("#"))))
+                if (((Type == CssTermType.Hex)
+                    || (Type == CssTermType.String && Value.StartsWith("#")))
+                    && (Value.Length == 6 || Value.Length == 3 || ((Value.Length == 7 || Value.Length == 4)
+                    && Value.StartsWith("#"))))
                 {
                     var hex = true;
-                    foreach (var c in m_val)
+                    foreach (var c in Value)
                     {
                         if (!char.IsDigit(c)
                             && c != '#'
@@ -1290,10 +1077,10 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
                     }
                     return hex;
                 }
-                else if (m_type == CssTermType.String)
+                else if (Type == CssTermType.String)
                 {
                     var number = true;
-                    foreach (var c in m_val)
+                    foreach (var c in Value)
                     {
                         if (!char.IsDigit(c))
                         {
@@ -1306,33 +1093,19 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
                         return false;
                     }
 
-                    if (ColorParser.IsValidName(m_val))
+                    if (ColorParser.IsValidName(Value))
                     {
                         return true;
                     }
                 }
-                else if (m_type == CssTermType.Function)
+                else if (Type == CssTermType.Function)
                 {
-                    if ((m_function.Name.ToLower().Equals("rgb") && m_function.Expression.Terms.Count == 3)
-                        || (m_function.Name.ToLower().Equals("rgba") && m_function.Expression.Terms.Count == 4)
-                        )
+                    if (((Function.Name.ToLower().Equals("hsl") || Function.Name.ToLower().Equals("rgb")) && Function.Expression.Terms.Count == 3) ||
+                        ((Function.Name.ToLower().Equals("hsla") || Function.Name.ToLower().Equals("rgba")) && Function.Expression.Terms.Count == 4))
                     {
-                        for (var i = 0; i < m_function.Expression.Terms.Count; i++)
+                        for (var i = 0; i < Function.Expression.Terms.Count; i++)
                         {
-                            if (m_function.Expression.Terms[i].Type != CssTermType.Number)
-                            {
-                                return false;
-                            }
-                        }
-                        return true;
-                    }
-                    else if ((m_function.Name.ToLower().Equals("hsl") && m_function.Expression.Terms.Count == 3)
-                      || (m_function.Name.ToLower().Equals("hsla") && m_function.Expression.Terms.Count == 4)
-                      )
-                    {
-                        for (var i = 0; i < m_function.Expression.Terms.Count; i++)
-                        {
-                            if (m_function.Expression.Terms[i].Type != CssTermType.Number)
+                            if (Function.Expression.Terms[i].Type != CssTermType.Number)
                             {
                                 return false;
                             }
@@ -1348,7 +1121,7 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
         {
             try
             {
-                if (t.Unit.HasValue && t.Unit.Value == OpenXmlPowerTools.HtmlToWml.CSS.CssUnit.Percent)
+                if (t.Unit.HasValue && t.Unit.Value == CssUnit.Percent)
                 {
                     return (int)(255f * float.Parse(t.Value) / 100f);
                 }
@@ -1371,67 +1144,67 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
         public Color ToColor()
         {
             var hex = "000000";
-            if (m_type == CssTermType.Hex)
+            if (Type == CssTermType.Hex)
             {
-                if ((m_val.Length == 7 || m_val.Length == 4) && m_val.StartsWith("#"))
+                if ((Value.Length == 7 || Value.Length == 4) && Value.StartsWith("#"))
                 {
-                    hex = m_val.Substring(1);
+                    hex = Value.Substring(1);
                 }
-                else if (m_val.Length == 6 || m_val.Length == 3)
+                else if (Value.Length == 6 || Value.Length == 3)
                 {
-                    hex = m_val;
+                    hex = Value;
                 }
             }
-            else if (m_type == CssTermType.Function)
+            else if (Type == CssTermType.Function)
             {
-                if ((m_function.Name.ToLower().Equals("rgb") && m_function.Expression.Terms.Count == 3)
-                    || (m_function.Name.ToLower().Equals("rgba") && m_function.Expression.Terms.Count == 4)
+                if ((Function.Name.ToLower().Equals("rgb") && Function.Expression.Terms.Count == 3)
+                    || (Function.Name.ToLower().Equals("rgba") && Function.Expression.Terms.Count == 4)
                     )
                 {
                     int fr = 0, fg = 0, fb = 0;
-                    for (var i = 0; i < m_function.Expression.Terms.Count; i++)
+                    for (var i = 0; i < Function.Expression.Terms.Count; i++)
                     {
-                        if (m_function.Expression.Terms[i].Type != CssTermType.Number)
+                        if (Function.Expression.Terms[i].Type != CssTermType.Number)
                         {
                             return Color.Black;
                         }
                         switch (i)
                         {
                             case 0:
-                                fr = GetRGBValue(m_function.Expression.Terms[i]);
+                                fr = GetRGBValue(Function.Expression.Terms[i]);
                                 break;
 
                             case 1:
-                                fg = GetRGBValue(m_function.Expression.Terms[i]);
+                                fg = GetRGBValue(Function.Expression.Terms[i]);
                                 break;
 
                             case 2:
-                                fb = GetRGBValue(m_function.Expression.Terms[i]);
+                                fb = GetRGBValue(Function.Expression.Terms[i]);
                                 break;
                         }
                     }
                     return Color.FromArgb(fr, fg, fb);
                 }
-                else if ((m_function.Name.ToLower().Equals("hsl") && m_function.Expression.Terms.Count == 3)
-                  || (m_function.Name.Equals("hsla") && m_function.Expression.Terms.Count == 4)
+                else if ((Function.Name.ToLower().Equals("hsl") && Function.Expression.Terms.Count == 3)
+                  || (Function.Name.Equals("hsla") && Function.Expression.Terms.Count == 4)
                   )
                 {
                     int h = 0, s = 0, v = 0;
-                    for (var i = 0; i < m_function.Expression.Terms.Count; i++)
+                    for (var i = 0; i < Function.Expression.Terms.Count; i++)
                     {
-                        if (m_function.Expression.Terms[i].Type != CssTermType.Number) { return Color.Black; }
+                        if (Function.Expression.Terms[i].Type != CssTermType.Number) { return Color.Black; }
                         switch (i)
                         {
                             case 0:
-                                h = GetHueValue(m_function.Expression.Terms[i]);
+                                h = GetHueValue(Function.Expression.Terms[i]);
                                 break;
 
                             case 1:
-                                s = GetRGBValue(m_function.Expression.Terms[i]);
+                                s = GetRGBValue(Function.Expression.Terms[i]);
                                 break;
 
                             case 2:
-                                v = GetRGBValue(m_function.Expression.Terms[i]);
+                                v = GetRGBValue(Function.Expression.Terms[i]);
                                 break;
                         }
                     }
@@ -1441,7 +1214,7 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
             }
             else
             {
-                if (ColorParser.TryFromName(m_val, out var c))
+                if (ColorParser.TryFromName(Value, out var c))
                 {
                     return c;
                 }
@@ -1618,42 +1391,26 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
     // Hue Sat and Val values from 0 - 255.
     internal struct HueSatVal
     {
-        private int m_hue;
-        private int m_sat;
-        private int m_val;
-
         public HueSatVal(int h, int s, int v)
         {
-            m_hue = h;
-            m_sat = s;
-            m_val = v;
+            Hue = h;
+            Saturation = s;
+            Value = v;
         }
 
         public HueSatVal(Color color)
         {
-            m_hue = 0;
-            m_sat = 0;
-            m_val = 0;
+            Hue = 0;
+            Saturation = 0;
+            Value = 0;
             ConvertFromRGB(color);
         }
 
-        public int Hue
-        {
-            get => m_hue;
-            set => m_hue = value;
-        }
+        public int Hue { get; set; }
 
-        public int Saturation
-        {
-            get => m_sat;
-            set => m_sat = value;
-        }
+        public int Saturation { get; set; }
 
-        public int Value
-        {
-            get => m_val;
-            set => m_val = value;
-        }
+        public int Value { get; set; }
 
         public Color Color
         {
@@ -1931,46 +1688,6 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
         private bool StartOf(int s)
         {
             return set[s, m_lookaheadToken.m_tokenKind];
-        }
-
-        private void ExpectWeak(int n, int follow)
-        {
-            if (m_lookaheadToken.m_tokenKind == n)
-            {
-                Get();
-            }
-            else
-            {
-                SyntaxErr(n);
-                while (!StartOf(follow))
-                {
-                    Get();
-                }
-            }
-        }
-
-        private bool WeakSeparator(int n, int syFol, int repFol)
-        {
-            var kind = m_lookaheadToken.m_tokenKind;
-            if (kind == n)
-            {
-                Get();
-                return true;
-            }
-            else if (StartOf(repFol))
-            {
-                return false;
-            }
-            else
-            {
-                SyntaxErr(n);
-                while (!(set[syFol, kind] || set[repFol, kind] || set[0, kind]))
-                {
-                    Get();
-                    kind = m_lookaheadToken.m_tokenKind;
-                }
-                return StartOf(syFol);
-            }
         }
 
         private void Css3()
@@ -3086,16 +2803,9 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
                             val += m_lastRecognizedToken.m_tokenValue;
                             if (m_lookaheadToken.m_tokenKind == 24 || m_lookaheadToken.m_tokenKind == 29)
                             {
-                                if (m_lookaheadToken.m_tokenKind == 29)
-                                {
-                                    Get();
-                                    val += m_lastRecognizedToken.m_tokenValue;
-                                }
-                                else
-                                {
-                                    Get();
-                                    val += m_lastRecognizedToken.m_tokenValue;
-                                }
+                                Get();
+                                val += m_lastRecognizedToken.m_tokenValue;
+
                                 Expect(3);
                                 val += m_lastRecognizedToken.m_tokenValue;
                                 while (m_lookaheadToken.m_tokenKind == 3)

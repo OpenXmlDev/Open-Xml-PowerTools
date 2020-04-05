@@ -1,21 +1,20 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using DocumentFormat.OpenXml.Packaging;
+using OpenXmlPowerTools;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Xml.Linq;
-using DocumentFormat.OpenXml.Packaging;
-using OpenXmlPowerTools;
 
 // Insert content into a document
 // Delete content from a document
 // Shred a document
 // Assemble it again, insert TOC
 
-class DocumentBuilderExample02
+internal class DocumentBuilderExample02
 {
     private class DocumentInfo
     {
@@ -24,7 +23,7 @@ class DocumentBuilderExample02
         public int Count;
     }
 
-    static void Main(string[] args)
+    private static void Main(string[] args)
     {
         var n = DateTime.Now;
         var tempDi = new DirectoryInfo(string.Format("ExampleOutput-{0:00}-{1:00}-{2:00}-{3:00}{4:00}{5:00}", n.Year - 2000, n.Month, n.Day, n.Hour, n.Minute, n.Second));
@@ -43,7 +42,7 @@ class DocumentBuilderExample02
         DocumentBuilder.BuildDocument(sources, Path.Combine(tempDi.FullName, "AssembledPaper.docx"));
 
         // Delete all paragraphs with a specific style.
-        using (WordprocessingDocument doc =
+        using (var doc =
             WordprocessingDocument.Open("../../Notes.docx", false))
         {
             sources = doc
@@ -72,7 +71,7 @@ class DocumentBuilderExample02
 
         // Shred a document into multiple parts for each section
         List<DocumentInfo> documentList;
-        using (WordprocessingDocument doc =
+        using (var doc =
             WordprocessingDocument.Open("../../Spec.docx", false))
         {
             var sectionCounts = doc
@@ -98,11 +97,11 @@ class DocumentBuilderExample02
                     Index = i,
                 });
             var zipped = PtExtensions.PtZip(beforeZipped, sectionCounts, (pi, sc) => new
-                {
-                    Paragraph = pi.Paragraph,
-                    Index = pi.Index,
-                    SectionIndex = sc,
-                });
+            {
+                Paragraph = pi.Paragraph,
+                Index = pi.Index,
+                SectionIndex = sc,
+            });
             documentList = zipped
                 .GroupAdjacent(p => p.SectionIndex)
                 .Select(g => new DocumentInfo
@@ -115,8 +114,8 @@ class DocumentBuilderExample02
         }
         foreach (var doc in documentList)
         {
-            string fileName = String.Format("Section{0:000}.docx", doc.DocumentNumber);
-            List<Source> documentSource = new List<Source> {
+            var fileName = string.Format("Section{0:000}.docx", doc.DocumentNumber);
+            var documentSource = new List<Source> {
                 new Source(new WmlDocument("../../Spec.docx"), doc.Start, doc.Count, true)
             };
             DocumentBuilder.BuildDocument(documentSource, Path.Combine(tempDi.FullName, fileName));

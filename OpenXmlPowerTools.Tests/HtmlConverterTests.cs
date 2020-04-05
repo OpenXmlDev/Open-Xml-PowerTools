@@ -3,20 +3,15 @@
 
 #define COPY_FILES_FOR_DEBUGGING
 
-// DO_CONVERSION_VIA_WORD is defined in the project OpenXmlPowerTools.Tests.OA.csproj, but not in the OpenXmlPowerTools.Tests.csproj
-
 using DocumentFormat.OpenXml.Packaging;
 using OpenXmlPowerTools;
 using System.Drawing.Imaging;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Xml.Linq;
 using Xunit;
-
-#if DO_CONVERSION_VIA_WORD
-using Word = Microsoft.Office.Interop.Word;
-#endif
 
 #if !ELIDE_XUNIT_TESTS
 
@@ -24,10 +19,6 @@ namespace OxPt
 {
     public class HcTests
     {
-        public static bool s_CopySourceFiles = true;
-        public static bool s_CopyFormattingAssembledDocx = true;
-        public static bool s_ConvertUsingWord = true;
-
         // PowerShell oneliner that generates InlineData for all files in a directory
         // dir | % { '[InlineData("' + $_.Name + '")]' } | clip
 
@@ -106,11 +97,6 @@ namespace OxPt
 
             var oxPtConvertedDestHtml = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, sourceDocx.Name.Replace(".docx", "-3-OxPt.html")));
             ConvertToHtml(sourceDocx, oxPtConvertedDestHtml);
-
-#if DO_CONVERSION_VIA_WORD
-            var wordConvertedDocHtml = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, sourceDocx.Name.Replace(".docx", "-4-Word.html")));
-            ConvertToHtmlUsingWord(sourceDocx, wordConvertedDocHtml);
-#endif
         }
 
         [Theory]
@@ -206,47 +192,45 @@ namespace OxPt
                             }
 
                             ++imageCounter;
-                            var extension = imageInfo.ContentType.Split('/')[1].ToLower();
+                            var extension = imageInfo.ContentType.Split('/')[1].ToUpperInvariant();
                             ImageFormat imageFormat = null;
-                            if (extension == "png")
+                            if (extension == "PNG")
                             {
                                 // Convert png to jpeg.
-                                extension = "gif";
+                                extension = "GIF";
                                 imageFormat = ImageFormat.Gif;
                             }
-                            else if (extension == "gif")
+                            else if (extension == "GIF")
                             {
                                 imageFormat = ImageFormat.Gif;
                             }
-                            else if (extension == "bmp")
+                            else if (extension == "BMP")
                             {
                                 imageFormat = ImageFormat.Bmp;
                             }
-                            else if (extension == "jpeg")
+                            else if (extension == "JPEG")
                             {
                                 imageFormat = ImageFormat.Jpeg;
                             }
-                            else if (extension == "tiff")
+                            else if (extension == "TIFF")
                             {
                                 // Convert tiff to gif.
-                                extension = "gif";
+                                extension = "GIF";
                                 imageFormat = ImageFormat.Gif;
                             }
-                            else if (extension == "x-wmf")
+                            else if (extension == "X-WMF")
                             {
-                                extension = "wmf";
+                                extension = "WMF";
                                 imageFormat = ImageFormat.Wmf;
                             }
 
-                            // If the image format isn't one that we expect, ignore it,
-                            // and don't return markup for the link.
+                            // If the image format isn't one that we expect, ignore it, and don't return markup for the link.
                             if (imageFormat == null)
                             {
                                 return null;
                             }
 
-                            var imageFileName = imageDirectoryName + "/image" +
-                                imageCounter.ToString() + "." + extension;
+                            var imageFileName = imageDirectoryName + "/image" + imageCounter.ToString(CultureInfo.InvariantCulture) + "." + extension;
                             try
                             {
                                 imageInfo.Bitmap.Save(imageFileName, imageFormat);
@@ -312,35 +296,35 @@ namespace OxPt
                             }
 
                             ++imageCounter;
-                            var extension = imageInfo.ContentType.Split('/')[1].ToLower();
+                            var extension = imageInfo.ContentType.Split('/')[1].ToUpperInvariant();
                             ImageFormat imageFormat = null;
-                            if (extension == "png")
+                            if (extension == "PNG")
                             {
                                 // Convert png to jpeg.
-                                extension = "gif";
+                                extension = "GIF";
                                 imageFormat = ImageFormat.Gif;
                             }
-                            else if (extension == "gif")
+                            else if (extension == "GIF")
                             {
                                 imageFormat = ImageFormat.Gif;
                             }
-                            else if (extension == "bmp")
+                            else if (extension == "BMP")
                             {
                                 imageFormat = ImageFormat.Bmp;
                             }
-                            else if (extension == "jpeg")
+                            else if (extension == "JPEG")
                             {
                                 imageFormat = ImageFormat.Jpeg;
                             }
-                            else if (extension == "tiff")
+                            else if (extension == "TIFF")
                             {
                                 // Convert tiff to gif.
-                                extension = "gif";
+                                extension = "GIF";
                                 imageFormat = ImageFormat.Gif;
                             }
-                            else if (extension == "x-wmf")
+                            else if (extension == "X-WMF")
                             {
-                                extension = "wmf";
+                                extension = "WMF";
                                 imageFormat = ImageFormat.Wmf;
                             }
 
@@ -351,8 +335,7 @@ namespace OxPt
                                 return null;
                             }
 
-                            var imageFileName = imageDirectoryName + "/image" +
-                                imageCounter.ToString() + "." + extension;
+                            var imageFileName = imageDirectoryName + "/image" + imageCounter.ToString(CultureInfo.InvariantCulture) + "." + extension;
                             try
                             {
                                 imageInfo.Bitmap.Save(imageFileName, imageFormat);
@@ -384,26 +367,6 @@ namespace OxPt
                 }
             }
         }
-
-#if DO_CONVERSION_VIA_WORD
-        public static void ConvertToHtmlUsingWord(FileInfo sourceFileName, FileInfo destFileName)
-        {
-            Word.Application app = new Word.Application();
-            app.Visible = false;
-            try
-            {
-                Word.Document doc = app.Documents.Open(sourceFileName.FullName);
-                doc.SaveAs2(destFileName.FullName, Word.WdSaveFormat.wdFormatFilteredHTML);
-            }
-            catch (System.Runtime.InteropServices.COMException)
-            {
-                Console.WriteLine("Caught unexpected COM exception.");
-                ((Microsoft.Office.Interop.Word._Application)app).Quit();
-                Environment.Exit(0);
-            }
-            ((Microsoft.Office.Interop.Word._Application)app).Quit();
-        }
-#endif
     }
 }
 

@@ -100,7 +100,7 @@ namespace OpenXmlPowerTools
             {
                 var pxd = part.GetXDocument();
                 pxd.Root.Descendants().Attributes().Where(a => a.IsNamespaceDeclaration).Remove();
-                FormattingAssembler.NormalizePropsForPart(pxd, settings);
+                NormalizePropsForPart(pxd, settings);
                 var newRoot = (XElement)CleanupTransform(pxd.Root);
                 pxd.Root.ReplaceWith(newRoot);
                 part.PutXDocument();
@@ -173,8 +173,7 @@ namespace OpenXmlPowerTools
                     return null;
                 }
 
-                // a cleaner solution would be to not include the w:ins and w:del elements when rolling up the paragraph run properties into
-                // the run properties.
+                // a cleaner solution would be to not include the w:ins and w:del elements when rolling up the paragraph run properties into the run properties.
                 if ((element.Name == W.ins || element.Name == W.del) && element.Parent.Name == W.rPr)
                 {
                     if (element.Parent.Parent.Name == W.r || element.Parent.Parent.Name == W.rPrChange)
@@ -1061,7 +1060,7 @@ namespace OpenXmlPowerTools
                     tbl.Add(style);
 
                     // merge tblPr in table style with tblPr of the table
-                    // annnotate in PowerTools namespace
+                    // annotate in PowerTools namespace
                     var tblPr2 = style.Element(W.tblPr);
                     var tblPr3 = MergeStyleElement(tbl.Element(W.tblPr), tblPr2, true);
                     if (tblPr3 != null)
@@ -1279,7 +1278,8 @@ namespace OpenXmlPowerTools
 
                     AddTcPrPtToEveryCell(tbl);
                 }
-                RollInDirectFormatting(tbl); // it is important that this is last.  This merges in direct formatting.
+                // it is important that this is last.  This merges in direct formatting.
+                RollInDirectFormatting(tbl);
             }
         }
 
@@ -1309,8 +1309,7 @@ namespace OpenXmlPowerTools
             {
                 var o = style
                     .Elements(W.tblStylePr)
-                    .Where(tsp => (string)tsp.Attribute(W.type) == ot)
-                    .FirstOrDefault();
+                    .FirstOrDefault(tsp => (string)tsp.Attribute(W.type) == ot);
                 if (o != null)
                 {
                     var tcPrPtExists = false;

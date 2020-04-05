@@ -1,11 +1,11 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using DocumentFormat.OpenXml.Packaging;
 using System;
 using System.Linq;
 using System.Xml;
 using System.Xml.Linq;
-using DocumentFormat.OpenXml.Packaging;
 
 namespace OpenXmlPowerTools
 {
@@ -30,7 +30,10 @@ namespace OpenXmlPowerTools
         /// </param>
         public static void BeginPowerToolsBlock(this OpenXmlPackage package)
         {
-            if (package == null) throw new ArgumentNullException("package");
+            if (package == null)
+            {
+                throw new ArgumentNullException("package");
+            }
 
             package.RemovePowerToolsAnnotations();
             package.Save();
@@ -47,20 +50,28 @@ namespace OpenXmlPowerTools
         /// </param>
         public static void EndPowerToolsBlock(this OpenXmlPackage package)
         {
-            if (package == null) throw new ArgumentNullException("package");
+            if (package == null)
+            {
+                throw new ArgumentNullException("package");
+            }
 
-            foreach (OpenXmlPart part in package.GetAllParts())
+            foreach (var part in package.GetAllParts())
             {
                 if (part.Annotations<XDocument>().Any() && part.RootElement != null)
+                {
                     part.RootElement.Reload();
+                }
             }
         }
 
         private static void RemovePowerToolsAnnotations(this OpenXmlPackage package)
         {
-            if (package == null) throw new ArgumentNullException("package");
+            if (package == null)
+            {
+                throw new ArgumentNullException("package");
+            }
 
-            foreach (OpenXmlPart part in package.GetAllParts())
+            foreach (var part in package.GetAllParts())
             {
                 part.RemoveAnnotations<XDocument>();
                 part.RemoveAnnotations<XmlNamespaceManager>();

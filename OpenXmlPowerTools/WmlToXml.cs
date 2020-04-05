@@ -1,14 +1,6 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-// Portions Copyright (c) Eric White Inc. All rights reserved.
-// Published at http://EricWhite.com
-// Resource Center and Documentation: http://ericwhite.com/
-// Developer: Eric White
-// Blog: http://www.ericwhite.com
-// Twitter: @EricWhiteDev
-// Email: eric@ericwhite.com
-
 using DocumentFormat.OpenXml.Packaging;
 using System;
 using System.Collections.Generic;

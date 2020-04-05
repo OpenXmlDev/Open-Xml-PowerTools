@@ -1,16 +1,14 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using DocumentFormat.OpenXml.Packaging;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Drawing;
-using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Xml.Linq;
-using DocumentFormat.OpenXml.Packaging;
-using System.IO;
 
 namespace OpenXmlPowerTools
 {
@@ -25,7 +23,7 @@ namespace OpenXmlPowerTools
         [SuppressMessage("ReSharper", "UnusedMember.Global")]
         public XElement ConvertTableToHtml(string tableName)
         {
-            SmlToHtmlConverterSettings settings = new SmlToHtmlConverterSettings();
+            var settings = new SmlToHtmlConverterSettings();
             return SmlToHtmlConverter.ConvertTableToHtml(this, settings, tableName);
         }
     }
@@ -60,17 +58,15 @@ namespace OpenXmlPowerTools
 
     public static class SmlToHtmlConverter
     {
-        // ***********************************************************************************************************************************
-        #region PublicApis
         public static XElement ConvertTableToHtml(SmlDocument smlDoc, SmlToHtmlConverterSettings settings, string tableName)
         {
-            using (MemoryStream ms = new MemoryStream())
+            using (var ms = new MemoryStream())
             {
                 ms.Write(smlDoc.DocumentByteArray, 0, smlDoc.DocumentByteArray.Length);
-                using (SpreadsheetDocument sDoc = SpreadsheetDocument.Open(ms, false))
+                using (var sDoc = SpreadsheetDocument.Open(ms, false))
                 {
                     var rangeXml = SmlDataRetriever.RetrieveTable(sDoc, tableName);
-                    var xhtml = SmlToHtmlConverter.ConvertToHtmlInternal(sDoc, settings, rangeXml);
+                    var xhtml = ConvertToHtmlInternal(sDoc, settings, rangeXml);
                     return xhtml;
                 }
             }
@@ -79,15 +75,13 @@ namespace OpenXmlPowerTools
         public static XElement ConvertTableToHtml(SpreadsheetDocument sDoc, SmlToHtmlConverterSettings settings, string tableName)
         {
             var rangeXml = SmlDataRetriever.RetrieveTable(sDoc, tableName);
-            var xhtml = SmlToHtmlConverter.ConvertToHtmlInternal(sDoc, settings, rangeXml);
+            var xhtml = ConvertToHtmlInternal(sDoc, settings, rangeXml);
             return xhtml;
         }
-        #endregion
-        // ***********************************************************************************************************************************
 
         private static XElement ConvertToHtmlInternal(SpreadsheetDocument sDoc, SmlToHtmlConverterSettings htmlConverterSettings, XElement rangeXml)
         {
-            XElement xhtml = (XElement)ConvertToHtmlTransform(sDoc, htmlConverterSettings, rangeXml);
+            var xhtml = (XElement)ConvertToHtmlTransform(sDoc, htmlConverterSettings, rangeXml);
 
             ReifyStylesAndClasses(htmlConverterSettings, xhtml);
 
@@ -136,7 +130,7 @@ namespace OpenXmlPowerTools
                     })
                     .GroupBy(p => p.StylesString)
                     .ToList();
-                int classCounter = 1000000;
+                var classCounter = 1000000;
                 var sb = new StringBuilder();
                 sb.Append(Environment.NewLine);
                 foreach (var grp in augmented)
@@ -171,7 +165,9 @@ namespace OpenXmlPowerTools
                     sb.Append("}" + Environment.NewLine);
                     var classAtt = new XAttribute("class", classNameToUse);
                     foreach (var gc in grp)
+                    {
                         gc.Element.Add(classAtt);
+                    }
                 }
                 var styleValue = htmlConverterSettings.GeneralCss + sb + htmlConverterSettings.AdditionalCss;
 
@@ -187,18 +183,25 @@ namespace OpenXmlPowerTools
                 {
                     var style = d.Annotation<Dictionary<string, string>>();
                     if (style == null)
+                    {
                         continue;
+                    }
+
                     var styleValue =
                         style
                         .Where(p => p.Key != "PtStyleName")
                         .OrderBy(p => p.Key)
                         .Select(e => string.Format("{0}: {1};", e.Key, e.Value))
                         .StringConcatenate();
-                    XAttribute st = new XAttribute("style", styleValue);
+                    var st = new XAttribute("style", styleValue);
                     if (d.Attribute("style") != null)
+                    {
                         d.Attribute("style").Value += styleValue;
+                    }
                     else
+                    {
                         d.Add(st);
+                    }
                 }
             }
         }
@@ -209,38 +212,17 @@ namespace OpenXmlPowerTools
                 .Descendants(Xhtml.style)
                 .FirstOrDefault();
             if (styleElement != null)
+            {
                 styleElement.Value = styleValue;
+            }
             else
             {
                 styleElement = new XElement(Xhtml.style, styleValue);
                 var head = xhtml.Element(Xhtml.head);
                 if (head != null)
-                    head.Add(styleElement);
-            }
-        }
-
-        private static object ConvertToHtmlTransform(WordprocessingDocument wordDoc,
-            WmlToHtmlConverterSettings settings, XNode node)
-        {
-            // Ignore element.
-            return null;
-        }
-
-        private static readonly HashSet<string> UnknownFonts = new HashSet<string>();
-        private static HashSet<string> _knownFamilies;
-
-        private static HashSet<string> KnownFamilies
-        {
-            get
-            {
-                if (_knownFamilies == null)
                 {
-                    _knownFamilies = new HashSet<string>();
-                    var families = FontFamily.Families;
-                    foreach (var fam in families)
-                        _knownFamilies.Add(fam.Name);
+                    head.Add(styleElement);
                 }
-                return _knownFamilies;
             }
         }
 
@@ -278,31 +260,5 @@ namespace OpenXmlPowerTools
             { "Courier New", @"'{0}'" },
             { "Lucida Console", @"'{0}'" },
         };
-
-        private static void CreateFontCssProperty(string font, Dictionary<string, string> style)
-        {
-            if (FontFallback.ContainsKey(font))
-            {
-                style.AddIfMissing("font-family", string.Format(FontFallback[font], font));
-                return;
-            }
-            style.AddIfMissing("font-family", font);
-        }
-
-        private static bool GetBoolProp(XElement runProps, XName xName)
-        {
-            var p = runProps.Element(xName);
-            if (p == null)
-                return false;
-            var v = p.Attribute(W.val);
-            if (v == null)
-                return true;
-            var s = v.Value.ToLower();
-            if (s == "0" || s == "false")
-                return false;
-            if (s == "1" || s == "true")
-                return true;
-            return false;
-        }
     }
 }

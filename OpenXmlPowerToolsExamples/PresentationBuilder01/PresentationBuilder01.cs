@@ -1,32 +1,30 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using OpenXmlPowerTools;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.IO;
-using OpenXmlPowerTools;
 
 namespace ExamplePresentatonBuilder01
 {
-    class ExamplePresentationBuilder01
+    internal class ExamplePresentationBuilder01
     {
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
             var n = DateTime.Now;
             var tempDi = new DirectoryInfo(string.Format("ExampleOutput-{0:00}-{1:00}-{2:00}-{3:00}{4:00}{5:00}", n.Year - 2000, n.Month, n.Day, n.Hour, n.Minute, n.Second));
             tempDi.Create();
 
-            string source1 = "../../Contoso.pptx";
-            string source2 = "../../Companies.pptx";
-            string source3 = "../../Customer Content.pptx";
-            string source4 = "../../Presentation One.pptx";
-            string source5 = "../../Presentation Two.pptx";
-            string source6 = "../../Presentation Three.pptx";
-            string contoso1 = "../../Contoso One.pptx";
-            string contoso2 = "../../Contoso Two.pptx";
-            string contoso3 = "../../Contoso Three.pptx";
+            var source1 = "../../Contoso.pptx";
+            var source2 = "../../Companies.pptx";
+            var source3 = "../../Customer Content.pptx";
+            var source4 = "../../Presentation One.pptx";
+            var source5 = "../../Presentation Two.pptx";
+            var source6 = "../../Presentation Three.pptx";
+            var contoso1 = "../../Contoso One.pptx";
+            var contoso2 = "../../Contoso Two.pptx";
+            var contoso3 = "../../Contoso Three.pptx";
             List<SlideSource> sources = null;
 
             var sourceDoc = new PmlDocument(source1);

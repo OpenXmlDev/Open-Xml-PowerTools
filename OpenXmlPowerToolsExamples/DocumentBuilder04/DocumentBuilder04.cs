@@ -1,29 +1,25 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.IO;
-using System.Xml;
-using System.Xml.Linq;
 using DocumentFormat.OpenXml.Packaging;
 using OpenXmlPowerTools;
+using System;
+using System.IO;
+using System.Linq;
 
 namespace ExampleDocumentBuilder04
 {
-    class ContentControlsExample
+    internal class ContentControlsExample
     {
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
             var n = DateTime.Now;
             var tempDi = new DirectoryInfo(string.Format("ExampleOutput-{0:00}-{1:00}-{2:00}-{3:00}{4:00}{5:00}", n.Year - 2000, n.Month, n.Day, n.Hour, n.Minute, n.Second));
             tempDi.Create();
 
-            WmlDocument solarSystemDoc = new WmlDocument("../../solar-system.docx");
-            using (OpenXmlMemoryStreamDocument streamDoc = new OpenXmlMemoryStreamDocument(solarSystemDoc))
-            using (WordprocessingDocument solarSystem = streamDoc.GetWordprocessingDocument())
+            var solarSystemDoc = new WmlDocument("../../solar-system.docx");
+            using (var streamDoc = new OpenXmlMemoryStreamDocument(solarSystemDoc))
+            using (var solarSystem = streamDoc.GetWordprocessingDocument())
             {
                 // get children elements of the <w:body> element
                 var q1 = solarSystem
@@ -38,14 +34,20 @@ namespace ExampleDocumentBuilder04
                     .Select(
                         e =>
                         {
-                            string keyForGroupAdjacent = ".NonContentControl";
+                            var keyForGroupAdjacent = ".NonContentControl";
                             if (e.Name == W.sdt)
+                            {
                                 keyForGroupAdjacent = e.Element(W.sdtPr)
                                     .Element(W.tag)
                                     .Attribute(W.val)
                                     .Value;
+                            }
+
                             if (e.Name == W.sectPr)
+                            {
                                 keyForGroupAdjacent = null;
+                            }
+
                             return new
                             {
                                 Element = e,
@@ -59,15 +61,16 @@ namespace ExampleDocumentBuilder04
 
                 // temporary code to dump q3
                 foreach (var g in q3)
+                {
                     Console.WriteLine("{0}:  {1}", g.Key, g.Count());
+                }
                 //Environment.Exit(0);
-
 
                 // validate existence of files referenced in content controls
                 foreach (var f in q3.Where(g => g.Key != ".NonContentControl"))
                 {
-                    string filename = "../../" + f.Key + ".docx";
-                    FileInfo fi = new FileInfo(filename);
+                    var filename = "../../" + f.Key + ".docx";
+                    var fi = new FileInfo(filename);
                     if (!fi.Exists)
                     {
                         Console.WriteLine("{0} doesn't exist.", filename);
@@ -91,6 +94,7 @@ namespace ExampleDocumentBuilder04
                         g =>
                         {
                             if (g.Group.Key == ".NonContentControl")
+                            {
                                 return new Source(
                                     g.Document,
                                     g.Group
@@ -101,8 +105,11 @@ namespace ExampleDocumentBuilder04
                                     g.Group
                                         .Count(),
                                     false);
+                            }
                             else
+                            {
                                 return new Source(g.Document, false);
+                            }
                         }
                     ).ToList();
 

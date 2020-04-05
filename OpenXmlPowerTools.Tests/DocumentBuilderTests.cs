@@ -876,7 +876,7 @@ namespace OxPt
                     return !found;
                 });
 
-                if (errors.Count() != 0)
+                if (errors.Any())
                 {
                     var sb = new StringBuilder();
                     foreach (var item in errors)

@@ -1,17 +1,12 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using DocumentFormat.OpenXml.Packaging;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using System.Drawing;
-using System.Globalization;
-using System.Linq;
-using System.Text;
-using System.Xml.Linq;
-using DocumentFormat.OpenXml.Packaging;
 using System.IO;
-using OpenXmlPowerTools;
+using System.Linq;
+using System.Xml.Linq;
 
 namespace OpenXmlPowerTools
 {
@@ -19,10 +14,10 @@ namespace OpenXmlPowerTools
     {
         public static XElement RetrieveSheet(SmlDocument smlDoc, string sheetName)
         {
-            using (MemoryStream ms = new MemoryStream())
+            using (var ms = new MemoryStream())
             {
                 ms.Write(smlDoc.DocumentByteArray, 0, smlDoc.DocumentByteArray.Length);
-                using (SpreadsheetDocument sDoc = SpreadsheetDocument.Open(ms, false))
+                using (var sDoc = SpreadsheetDocument.Open(ms, false))
                 {
                     return RetrieveSheet(sDoc, sheetName);
                 }
@@ -31,7 +26,7 @@ namespace OpenXmlPowerTools
 
         public static XElement RetrieveSheet(string fileName, string sheetName)
         {
-            using (SpreadsheetDocument sDoc = SpreadsheetDocument.Open(fileName, false))
+            using (var sDoc = SpreadsheetDocument.Open(fileName, false))
             {
                 return RetrieveSheet(sDoc, sheetName);
             }
@@ -46,19 +41,21 @@ namespace OpenXmlPowerTools
                 .Elements(S.sheet)
                 .FirstOrDefault(s => (string)s.Attribute("name") == sheetName);
             if (sheet == null)
+            {
                 throw new ArgumentException("Invalid sheet name passed to RetrieveSheet", "sheetName");
+            }
+
             var range = "A1:XFD1048576";
-            int leftColumn, topRow, rightColumn, bottomRow;
-            XlsxTables.ParseRange(range, out leftColumn, out topRow, out rightColumn, out bottomRow);
+            XlsxTables.ParseRange(range, out var leftColumn, out var topRow, out var rightColumn, out var bottomRow);
             return RetrieveRange(sDoc, sheetName, leftColumn, topRow, rightColumn, bottomRow);
         }
 
         public static XElement RetrieveRange(SmlDocument smlDoc, string sheetName, string range)
         {
-            using (MemoryStream ms = new MemoryStream())
+            using (var ms = new MemoryStream())
             {
                 ms.Write(smlDoc.DocumentByteArray, 0, smlDoc.DocumentByteArray.Length);
-                using (SpreadsheetDocument sDoc = SpreadsheetDocument.Open(ms, false))
+                using (var sDoc = SpreadsheetDocument.Open(ms, false))
                 {
                     return RetrieveRange(sDoc, sheetName, range);
                 }
@@ -67,7 +64,7 @@ namespace OpenXmlPowerTools
 
         public static XElement RetrieveRange(string fileName, string sheetName, string range)
         {
-            using (SpreadsheetDocument sDoc = SpreadsheetDocument.Open(fileName, false))
+            using (var sDoc = SpreadsheetDocument.Open(fileName, false))
             {
                 return RetrieveRange(sDoc, sheetName, range);
             }
@@ -75,17 +72,16 @@ namespace OpenXmlPowerTools
 
         public static XElement RetrieveRange(SpreadsheetDocument sDoc, string sheetName, string range)
         {
-            int leftColumn, topRow, rightColumn, bottomRow;
-            XlsxTables.ParseRange(range, out leftColumn, out topRow, out rightColumn, out bottomRow);
+            XlsxTables.ParseRange(range, out var leftColumn, out var topRow, out var rightColumn, out var bottomRow);
             return RetrieveRange(sDoc, sheetName, leftColumn, topRow, rightColumn, bottomRow);
         }
 
         public static XElement RetrieveRange(SmlDocument smlDoc, string sheetName, int leftColumn, int topRow, int rightColumn, int bottomRow)
         {
-            using (MemoryStream ms = new MemoryStream())
+            using (var ms = new MemoryStream())
             {
                 ms.Write(smlDoc.DocumentByteArray, 0, smlDoc.DocumentByteArray.Length);
-                using (SpreadsheetDocument sDoc = SpreadsheetDocument.Open(ms, false))
+                using (var sDoc = SpreadsheetDocument.Open(ms, false))
                 {
                     return RetrieveRange(sDoc, sheetName, leftColumn, topRow, rightColumn, bottomRow);
                 }
@@ -94,7 +90,7 @@ namespace OpenXmlPowerTools
 
         public static XElement RetrieveRange(string fileName, string sheetName, int leftColumn, int topRow, int rightColumn, int bottomRow)
         {
-            using (SpreadsheetDocument sDoc = SpreadsheetDocument.Open(fileName, false))
+            using (var sDoc = SpreadsheetDocument.Open(fileName, false))
             {
                 return RetrieveRange(sDoc, sheetName, leftColumn, topRow, rightColumn, bottomRow);
             }
@@ -109,23 +105,35 @@ namespace OpenXmlPowerTools
                 .Elements(S.sheet)
                 .FirstOrDefault(s => (string)s.Attribute("name") == sheetName);
             if (sheet == null)
+            {
                 throw new ArgumentException("Invalid sheet name passed to RetrieveRange", "sheetName");
+            }
+
             var rId = (string)sheet.Attribute(R.id);
             if (rId == null)
+            {
                 throw new FileFormatException("Invalid spreadsheet");
+            }
+
             var sheetPart = sDoc.WorkbookPart.GetPartById(rId);
             if (sheetPart == null)
+            {
                 throw new FileFormatException("Invalid spreadsheet");
+            }
+
             var shXDoc = sheetPart.GetXDocument();
 
             if (sDoc.WorkbookPart.WorkbookStylesPart == null)
+            {
                 throw new FileFormatException("Invalid spreadsheet.  No WorkbookStylesPart.");
+            }
+
             var styleXDoc = sDoc.WorkbookPart.WorkbookStylesPart.GetXDocument();
 
             // if there is no shared string table, sharedStringTable will be null
             // it will only be used if there is a cell type == "s", in which case, referencing this
             // part would indicate an invalid spreadsheet.
-            SharedStringTablePart sharedStringTable = sDoc.WorkbookPart.SharedStringTablePart;
+            var sharedStringTable = sDoc.WorkbookPart.SharedStringTablePart;
 
             FixUpCellsThatHaveNoRAtt(shXDoc);
 
@@ -137,16 +145,26 @@ namespace OpenXmlPowerTools
                 .Select(row =>
                 {
                     // filter
-                    string ra = (string)row.Attribute("r");
+                    var ra = (string)row.Attribute("r");
                     if (ra == null)
+                    {
                         return null;
-                    int rowNbr;
-                    if (!int.TryParse(ra, out rowNbr))
+                    }
+
+                    if (!int.TryParse(ra, out var rowNbr))
+                    {
                         return null;
+                    }
+
                     if (rowNbr < topRow)
+                    {
                         return null;
+                    }
+
                     if (rowNbr > bottomRow)
+                    {
                         return null;
+                    }
 
                     var cells = row
                         .Elements(S.c)
@@ -154,30 +172,46 @@ namespace OpenXmlPowerTools
                         {
                             var cellAddress = (string)cell.Attribute("r");
                             if (cellAddress == null)
+                            {
                                 throw new FileFormatException("Invalid spreadsheet - cell does not have r attribute.");
+                            }
+
                             var splitCellAddress = XlsxTables.SplitAddress(cellAddress);
                             var columnAddress = splitCellAddress[0];
                             var columnIndex = XlsxTables.ColumnAddressToIndex(columnAddress);
 
                             // filter
                             if (columnIndex < leftColumn || columnIndex > rightColumn)
+                            {
                                 return null;
+                            }
 
                             var cellType = (string)cell.Attribute("t");
                             string sharedString = null;
                             if (cellType == "s")
                             {
-                                int sharedStringIndex;
-                                string sharedStringBeforeParsing = (string)cell.Element(S.v);
+                                var sharedStringBeforeParsing = (string)cell.Element(S.v);
                                 if (sharedStringBeforeParsing == null)
+                                {
                                     sharedStringBeforeParsing = (string)cell.Elements(S._is).Elements(S.t).FirstOrDefault();
+                                }
+
                                 if (sharedStringBeforeParsing == null)
+                                {
                                     throw new FileFormatException("Invalid document");
-                                if (!int.TryParse(sharedStringBeforeParsing, out sharedStringIndex))
+                                }
+
+                                if (!int.TryParse(sharedStringBeforeParsing, out var sharedStringIndex))
+                                {
                                     throw new FileFormatException("Invalid document");
+                                }
+
                                 XElement sharedStringElement = null;
                                 if (sharedStringTable == null)
+                                {
                                     throw new FileFormatException("Invalid spreadsheet.  Shared string, but no Shared String Part.");
+                                }
+
                                 sharedStringElement =
                                     sharedStringTable
                                     .GetXDocument()
@@ -186,7 +220,10 @@ namespace OpenXmlPowerTools
                                     .Skip(sharedStringIndex)
                                     .FirstOrDefault();
                                 if (sharedStringElement == null)
+                                {
                                     throw new FileFormatException("Invalid spreadsheet.  Shared string reference not valid.");
+                                }
+
                                 sharedString =
                                     sharedStringElement
                                     .Descendants(S.t)
@@ -195,18 +232,23 @@ namespace OpenXmlPowerTools
 
                             if (sharedString != null)
                             {
-                                XElement cellProps = GetCellProps_NotInTable(sDoc, styleXDoc, cell);
-                                string value = sharedString;
+                                var cellProps = GetCellProps_NotInTable(sDoc, styleXDoc, cell);
+                                var value = sharedString;
                                 string displayValue;
                                 string color = null;
                                 if (cellProps != null)
+                                {
                                     displayValue = SmlCellFormatter.FormatCell(
                                         (string)cellProps.Attribute("formatCode"),
                                         value,
                                         out color);
+                                }
                                 else
+                                {
                                     displayValue = value;
-                                XElement newCell1 = new XElement("Cell",
+                                }
+
+                                var newCell1 = new XElement("Cell",
                                     new XAttribute("Ref", (string)cell.Attribute("r")),
                                     new XAttribute("ColumnId", columnAddress),
                                     new XAttribute("ColumnNumber", columnIndex),
@@ -223,29 +265,36 @@ namespace OpenXmlPowerTools
                             else
                             {
                                 var type = (string)cell.Attribute("t");
-                                XElement value = new XElement("Value", cell.Value);
+                                var value = new XElement("Value", cell.Value);
                                 if (type != null && type == "inlineStr")
                                 {
                                     type = "s";
                                 }
                                 XAttribute typeAttr = null;
                                 if (type != null)
+                                {
                                     typeAttr = new XAttribute("Type", type);
+                                }
 
-                                XElement cellProps = GetCellProps_NotInTable(sDoc, styleXDoc, cell);
+                                var cellProps = GetCellProps_NotInTable(sDoc, styleXDoc, cell);
                                 string displayValue;
                                 string color = null;
                                 if (cellProps != null)
+                                {
                                     displayValue = SmlCellFormatter.FormatCell(
                                         (string)cellProps.Attribute("formatCode"),
                                         cell.Value,
                                         out color);
+                                }
                                 else
+                                {
                                     displayValue = displayValue = SmlCellFormatter.FormatCell(
-                                        (string)"General",
+                                        "General",
                                         cell.Value,
                                         out color);
-                                XElement newCell2 = new XElement("Cell",
+                                }
+
+                                var newCell2 = new XElement("Cell",
                                     new XAttribute("Ref", (string)cell.Attribute("r")),
                                     new XAttribute("ColumnId", columnAddress),
                                     new XAttribute("ColumnNumber", columnIndex),
@@ -259,14 +308,14 @@ namespace OpenXmlPowerTools
                                 return newCell2;
                             }
                         });
-                    XElement dataRow = new XElement("Row",
+                    var dataRow = new XElement("Row",
                         row.Attribute("r") != null ? new XAttribute("RowNumber", (int)row.Attribute("r")) : null,
                         cells);
                     return dataRow;
                 });
 
             var dataProps = GetDataProps(shXDoc);
-            XElement data = new XElement("Data",
+            var data = new XElement("Data",
                 dataProps,
                 sheetData);
             return data;
@@ -279,7 +328,7 @@ namespace OpenXmlPowerTools
             // if there are any rows that have all cells with no r attribute, then fix them up
             var invalidRows = shXDoc
                 .Descendants(S.row)
-                .Where(r => ! r.Elements(S.c).Any(c => c.Attribute("r") != null))
+                .Where(r => !r.Elements(S.c).Any(c => c.Attribute("r") != null))
                 .ToList();
 
             foreach (var row in invalidRows)
@@ -301,7 +350,7 @@ namespace OpenXmlPowerTools
                     .Where(c => c.Attribute("r") == null)
                     .ToList();
 
-                bool didFixup = false;
+                var didFixup = false;
                 foreach (var cell in invalidCells)
                 {
                     var followingCell = cell.ElementsAfterSelf(S.c).FirstOrDefault();
@@ -327,13 +376,15 @@ namespace OpenXmlPowerTools
                     }
                 }
                 if (!didFixup)
+                {
                     break;
+                }
             }
         }
 
         private static bool FixUpBasedOnPrecedingCell(bool didFixup, XElement cell)
         {
-            XElement precedingCell = GetPrevousElement(cell);
+            var precedingCell = GetPrevousElement(cell);
             if (precedingCell != null)
             {
                 var precedingR = (string)precedingCell.Attribute("r");
@@ -356,20 +407,26 @@ namespace OpenXmlPowerTools
             while (true)
             {
                 if (currentNode.PreviousNode == null)
+                {
                     return null;
+                }
+
                 previousElement = currentNode.PreviousNode as XElement;
                 if (previousElement != null)
+                {
                     return previousElement;
+                }
+
                 currentNode = currentNode.PreviousNode;
             }
         }
 
         public static XElement RetrieveTable(SmlDocument smlDoc, string sheetName, string tableName)
         {
-            using (MemoryStream ms = new MemoryStream())
+            using (var ms = new MemoryStream())
             {
                 ms.Write(smlDoc.DocumentByteArray, 0, smlDoc.DocumentByteArray.Length);
-                using (SpreadsheetDocument sDoc = SpreadsheetDocument.Open(ms, false))
+                using (var sDoc = SpreadsheetDocument.Open(ms, false))
                 {
                     return RetrieveTable(sDoc, tableName);
                 }
@@ -378,7 +435,7 @@ namespace OpenXmlPowerTools
 
         public static XElement RetrieveTable(string fileName, string tableName)
         {
-            using (SpreadsheetDocument sDoc = SpreadsheetDocument.Open(fileName, false))
+            using (var sDoc = SpreadsheetDocument.Open(fileName, false))
             {
                 return RetrieveTable(sDoc, tableName);
             }
@@ -388,12 +445,13 @@ namespace OpenXmlPowerTools
         {
             var table = sDoc.Table(tableName);
             if (table == null)
+            {
                 throw new ArgumentException("Table not found", "tableName");
+            }
 
             var styleXDoc = sDoc.WorkbookPart.WorkbookStylesPart.GetXDocument();
             var r = table.Ref;
-            int leftColumn, topRow, rightColumn, bottomRow;
-            XlsxTables.ParseRange(r, out leftColumn, out topRow, out rightColumn, out bottomRow);
+            XlsxTables.ParseRange(r, out var leftColumn, out var topRow, out var rightColumn, out var bottomRow);
             var shXDoc = table.Parent.GetXDocument();
 
             FixUpCellsThatHaveNoRAtt(shXDoc);
@@ -417,34 +475,44 @@ namespace OpenXmlPowerTools
                 dataProps,
                 table.TableRows().Select(tr =>
                 {
-                    int rowRef;
-                    if (!int.TryParse(tr.Row.RowId, out rowRef))
+                    if (!int.TryParse(tr.Row.RowId, out var rowRef))
+                    {
                         throw new FileFormatException("Invalid spreadsheet");
+                    }
 
                     // filter
                     if (rowRef < topRow || rowRef > bottomRow)
+                    {
                         return null;
+                    }
 
                     var cellData = tr.Row.Cells().Select(tc =>
                     {
                         // filter
                         var columnIndex = tc.ColumnIndex;
                         if (columnIndex < leftColumn || columnIndex > rightColumn)
+                        {
                             return null;
+                        }
 
-                        XElement cellProps = GetCellProps_InTable(sDoc, styleXDoc, table, tc);
+                        var cellProps = GetCellProps_InTable(sDoc, styleXDoc, table, tc);
                         if (tc.SharedString != null)
                         {
                             string displayValue;
                             string color = null;
                             if (cellProps != null)
+                            {
                                 displayValue = SmlCellFormatter.FormatCell(
                                     (string)cellProps.Attribute("formatCode"),
                                     tc.SharedString,
                                     out color);
+                            }
                             else
+                            {
                                 displayValue = tc.SharedString;
-                            XElement newCell1 = new XElement("Cell",
+                            }
+
+                            var newCell1 = new XElement("Cell",
                                 tc.CellElement != null ? new XAttribute("Ref", (string)tc.CellElement.Attribute("r")) : null,
                                 tc.ColumnAddress != null ? new XAttribute("ColumnId", tc.ColumnAddress) : null,
                                 new XAttribute("ColumnNumber", tc.ColumnIndex),
@@ -463,23 +531,32 @@ namespace OpenXmlPowerTools
                             if (tc.Type != null)
                             {
                                 if (tc.Type == "inlineStr")
+                                {
                                     type = new XAttribute("Type", "s");
+                                }
                                 else
+                                {
                                     type = new XAttribute("Type", tc.Type);
+                                }
                             }
                             string displayValue;
                             string color = null;
                             if (cellProps != null)
+                            {
                                 displayValue = SmlCellFormatter.FormatCell(
                                     (string)cellProps.Attribute("formatCode"),
                                     tc.Value,
                                     out color);
+                            }
                             else
+                            {
                                 displayValue = SmlCellFormatter.FormatCell(
-                                    (string)"General",
+                                    "General",
                                     tc.Value,
                                     out color);
-                            XElement newCell = new XElement("Cell",
+                            }
+
+                            var newCell = new XElement("Cell",
                                 tc.CellElement != null ? new XAttribute("Ref", (string)tc.CellElement.Attribute("r")) : null,
                                 tc.ColumnAddress != null ? new XAttribute("ColumnId", tc.ColumnAddress) : null,
                                 new XAttribute("ColumnNumber", tc.ColumnIndex),
@@ -501,7 +578,7 @@ namespace OpenXmlPowerTools
                     return newRow;
                 }));
 
-            XElement tableProps = GetTableProps(table);
+            var tableProps = GetTableProps(table);
             var tableXml = new XElement("Table",
                 tableProps,
                 table.TableName != null ? new XAttribute("TableName", table.TableName) : null,
@@ -516,10 +593,10 @@ namespace OpenXmlPowerTools
 
         public static string[] SheetNames(SmlDocument smlDoc)
         {
-            using (MemoryStream ms = new MemoryStream())
+            using (var ms = new MemoryStream())
             {
                 ms.Write(smlDoc.DocumentByteArray, 0, smlDoc.DocumentByteArray.Length);
-                using (SpreadsheetDocument sDoc = SpreadsheetDocument.Open(ms, false))
+                using (var sDoc = SpreadsheetDocument.Open(ms, false))
                 {
                     return SheetNames(sDoc);
                 }
@@ -528,7 +605,7 @@ namespace OpenXmlPowerTools
 
         public static string[] SheetNames(string fileName)
         {
-            using (SpreadsheetDocument sDoc = SpreadsheetDocument.Open(fileName, false))
+            using (var sDoc = SpreadsheetDocument.Open(fileName, false))
             {
                 return SheetNames(sDoc);
             }
@@ -543,10 +620,10 @@ namespace OpenXmlPowerTools
 
         public static string[] TableNames(SmlDocument smlDoc)
         {
-            using (MemoryStream ms = new MemoryStream())
+            using (var ms = new MemoryStream())
             {
                 ms.Write(smlDoc.DocumentByteArray, 0, smlDoc.DocumentByteArray.Length);
-                using (SpreadsheetDocument sDoc = SpreadsheetDocument.Open(ms, false))
+                using (var sDoc = SpreadsheetDocument.Open(ms, false))
                 {
                     return TableNames(sDoc);
                 }
@@ -555,7 +632,7 @@ namespace OpenXmlPowerTools
 
         public static string[] TableNames(string fileName)
         {
-            using (SpreadsheetDocument sDoc = SpreadsheetDocument.Open(fileName, false))
+            using (var sDoc = SpreadsheetDocument.Open(fileName, false))
             {
                 return TableNames(sDoc);
             }
@@ -572,7 +649,10 @@ namespace OpenXmlPowerTools
                     var sheetXDoc = sheetPart.GetXDocument();
                     var tableParts = sheetXDoc.Root.Element(S.tableParts);
                     if (tableParts == null)
+                    {
                         return new List<string>();
+                    }
+
                     var tableNames2 = tableParts
                         .Elements(S.tablePart)
                         .Select(tp =>
@@ -593,8 +673,8 @@ namespace OpenXmlPowerTools
 
         private static XElement GetTableProps(Table table)
         {
-            XElement tableProps = new XElement("TableProps");
-            XElement tableStyleInfo = table.TableStyleInfo;
+            var tableProps = new XElement("TableProps");
+            var tableStyleInfo = table.TableStyleInfo;
             if (tableStyleInfo != null)
             {
                 var newTableStyleInfo = TransformRemoveNamespace(tableStyleInfo);
@@ -602,7 +682,10 @@ namespace OpenXmlPowerTools
             }
 
             if (!tableProps.HasElements && !tableProps.HasElements)
+            {
                 tableProps = null;
+            }
+
             return tableProps;
         }
 
@@ -610,9 +693,14 @@ namespace OpenXmlPowerTools
         {
             var sheetFormatPr = shXDoc.Root.Element(S.sheetFormatPr);
             if (sheetFormatPr != null && sheetFormatPr.Attribute("defaultColWidth") == null)
+            {
                 sheetFormatPr.Add(new XAttribute("defaultColWidth", "9.25"));
+            }
+
             if (sheetFormatPr != null && sheetFormatPr.Attribute("defaultRowHeight") == null)
+            {
                 sheetFormatPr.Add(new XAttribute("defaultRowHeight", "14.25"));
+            }
 
             var mergeCells = TransformRemoveNamespace(shXDoc.Root.Element(S.mergeCells));
 
@@ -620,9 +708,12 @@ namespace OpenXmlPowerTools
                 TransformRemoveNamespace(sheetFormatPr),
                 TransformRemoveNamespace(shXDoc.Root.Element(S.cols)),
                 mergeCells);
-            
+
             if (!dataProps.HasAttributes && !dataProps.HasElements)
+            {
                 dataProps = null;
+            }
+
             return dataProps;
         }
 
@@ -631,13 +722,21 @@ namespace OpenXmlPowerTools
             var rowProps = new XElement("RowProps");
             var ht = rowElement.Attribute("ht");
             if (ht != null)
+            {
                 rowProps.Add(ht);
+            }
+
             var dyDescent = rowElement.Attribute(x14ac + "dyDescent");
             if (dyDescent != null)
+            {
                 rowProps.Add(new XAttribute("dyDescent", (string)dyDescent));
+            }
 
             if (!rowProps.HasAttributes && !rowProps.HasElements)
+            {
                 rowProps = null;
+            }
+
             return rowProps;
         }
 
@@ -646,7 +745,9 @@ namespace OpenXmlPowerTools
             var cellProps = new XElement("CellProps");
             var style = (int?)cell.Attribute("s");
             if (style == null)
+            {
                 return cellProps;
+            }
 
             var xf = styleXDoc
                 .Root
@@ -657,7 +758,9 @@ namespace OpenXmlPowerTools
 
             var numFmtId = (int?)xf.Attribute("numFmtId");
             if (numFmtId != null)
+            {
                 AddNumFmtIdAndFormatCode(styleXDoc, cellProps, numFmtId);
+            }
 
             var masterXfId = (int?)xf.Attribute("xfId");
             if (masterXfId != null)
@@ -669,14 +772,19 @@ namespace OpenXmlPowerTools
                     .Skip((int)masterXfId)
                     .FirstOrDefault();
                 if (masterXf != null)
+                {
                     AddFormattingToCellProps(styleXDoc, cellProps, masterXf);
+                }
             }
 
             AddFormattingToCellProps(styleXDoc, cellProps, xf);
             AugmentAndCleanUpProps(cellProps);
 
             if (!cellProps.HasElements && !cellProps.HasAttributes)
+            {
                 return null;
+            }
+
             return cellProps;
         }
 
@@ -684,13 +792,17 @@ namespace OpenXmlPowerTools
         {
             var style = tc.Style;
             if (style == null)
+            {
                 return null;
+            }
 
             var colIdStr = tc.ColumnAddress;
-            int colNbr = XlsxTables.ColumnAddressToIndex(colIdStr);
-            TableColumn column = table.TableColumns().FirstOrDefault(z => z.ColumnNumber == colNbr);
+            var colNbr = XlsxTables.ColumnAddressToIndex(colIdStr);
+            var column = table.TableColumns().FirstOrDefault(z => z.ColumnNumber == colNbr);
             if (column == null)
+            {
                 throw new FileFormatException("Invalid spreadsheet");
+            }
 
             var cellProps = new XElement("CellProps");
             var d = column.DataDxfId;
@@ -703,17 +815,24 @@ namespace OpenXmlPowerTools
                     .Skip((int)d)
                     .FirstOrDefault();
                 if (dataDxf == null)
+                {
                     throw new FileFormatException("Invalid spreadsheet");
+                }
 
                 var numFmt = dataDxf.Element(S.numFmt);
                 if (numFmt != null)
                 {
                     var numFmtId = (int?)numFmt.Attribute("numFmtId");
                     if (numFmtId != null)
+                    {
                         cellProps.Add(new XAttribute("numFmtId", numFmtId));
+                    }
+
                     var formatCode = (string)numFmt.Attribute("formatCode");
                     if (formatCode != null)
+                    {
                         cellProps.Add(new XAttribute("formatCode", formatCode));
+                    }
                 }
             }
 
@@ -723,12 +842,16 @@ namespace OpenXmlPowerTools
                 .Skip((int)style)
                 .FirstOrDefault();
             if (xf == null)
+            {
                 throw new FileFormatException("Invalid spreadsheet");
+            }
 
             // if xf has different numFmtId, then replace the ones from the table definition
             var numFmtId2 = (int?)xf.Attribute("numFmtId");
             if (numFmtId2 != null)
+            {
                 AddNumFmtIdAndFormatCode(styleXDoc, cellProps, numFmtId2);
+            }
 
             var masterXfId = (int?)xf.Attribute("xfId");
             if (masterXfId != null)
@@ -740,14 +863,19 @@ namespace OpenXmlPowerTools
                     .Skip((int)masterXfId)
                     .FirstOrDefault();
                 if (masterXf != null)
+                {
                     AddFormattingToCellProps(styleXDoc, cellProps, masterXf);
+                }
             }
 
             AddFormattingToCellProps(styleXDoc, cellProps, xf);
             AugmentAndCleanUpProps(cellProps);
 
             if (!cellProps.HasElements && !cellProps.HasAttributes)
+            {
                 return null;
+            }
+
             return cellProps;
         }
 
@@ -755,9 +883,13 @@ namespace OpenXmlPowerTools
         {
             var existingNumFmtId = props.Attribute("numFmtId");
             if (existingNumFmtId != null)
+            {
                 existingNumFmtId.Value = numFmtId.ToString();
+            }
             else
+            {
                 props.Add(new XAttribute("numFmtId", numFmtId));
+            }
 
             var numFmt = styleXDoc
                 .Root
@@ -772,9 +904,13 @@ namespace OpenXmlPowerTools
                 {
                     var existingFormatCode = props.Attribute("formatCode");
                     if (existingFormatCode != null)
+                    {
                         existingFormatCode.Value = formatCode;
+                    }
                     else
+                    {
                         props.Add(new XAttribute("formatCode", formatCode));
+                    }
                 }
             }
             else
@@ -784,9 +920,13 @@ namespace OpenXmlPowerTools
                 {
                     var existingFormatCode = props.Attribute("formatCode");
                     if (existingFormatCode != null)
+                    {
                         existingFormatCode.Value = formatCode;
+                    }
                     else
+                    {
                         props.Add(new XAttribute("formatCode", formatCode));
+                    }
                 }
             }
         }
@@ -799,9 +939,9 @@ namespace OpenXmlPowerTools
             MoveBooleanAttribute(props, xf, "applyFont");
             MoveBooleanAttribute(props, xf, "applyNumberFormat");
 
-            int? borderId = (int?)xf.Attribute("borderId");
-            int? fillId = (int?)xf.Attribute("fillId");
-            int? fontId = (int?)xf.Attribute("fontId");
+            var borderId = (int?)xf.Attribute("borderId");
+            var fillId = (int?)xf.Attribute("fillId");
+            var fontId = (int?)xf.Attribute("fontId");
 
             if (fontId != null)
             {
@@ -857,13 +997,17 @@ namespace OpenXmlPowerTools
 
         private static void MoveBooleanAttribute(XElement props, XElement xf, XName attributeName)
         {
-            bool attrValue = ConvertAttributeToBool(xf.Attribute(attributeName));
+            var attrValue = ConvertAttributeToBool(xf.Attribute(attributeName));
             if (attrValue)
             {
                 if (props.Attribute(attributeName) == null)
+                {
                     props.Add(new XAttribute(attributeName, attrValue ? "1" : "0"));
+                }
                 else
+                {
                     props.Attribute(attributeName).Value = attrValue ? "1" : "0";
+                }
             }
         }
 
@@ -936,7 +1080,7 @@ namespace OpenXmlPowerTools
             "System Background",
         };
 
-        private static string[] FontFamilyList = new string[] {
+        private static readonly string[] FontFamilyList = new string[] {
             "Not applicable",
             "Roman",
             "Swiss",
@@ -976,34 +1120,45 @@ namespace OpenXmlPowerTools
                 RemoveIfEmpty(border.Element("bottom"));
                 RemoveIfEmpty(border.Element("diagonal"));
                 if (!border.HasAttributes && !border.HasElements)
+                {
                     border.Remove();
+                }
             }
             foreach (var fill in props.Descendants("fill").ToList())
             {
                 fill.Elements("patternFill").Where(pf => (string)pf.Attribute("patternType") == "none").Remove();
                 if (!fill.HasAttributes && !fill.HasElements)
+                {
                     fill.Remove();
+                }
             }
         }
 
         private static void RemoveIfEmpty(XElement xElement)
         {
             if (xElement == null)
+            {
                 return;
-            if (!xElement.HasAttributes && !xElement.HasElements)
-                xElement.Remove();
-        }
+            }
 
+            if (!xElement.HasAttributes && !xElement.HasElements)
+            {
+                xElement.Remove();
+            }
+        }
 
         private static object TransformRemoveNamespace(XNode node)
         {
             if (node == null)
+            {
                 return null;
-            XElement element = node as XElement;
+            }
+
+            var element = node as XElement;
             if (element != null)
             {
                 return new XElement(element.Name.LocalName,
-                    element.Attributes().Select(a => new XAttribute(a.Name.LocalName, (string)a)).OrderBy(a => (string)a.Name.LocalName),
+                    element.Attributes().Select(a => new XAttribute(a.Name.LocalName, (string)a)).OrderBy(a => a.Name.LocalName),
                     element.Nodes().Select(n => TransformRemoveNamespace(n)));
             }
             return node;
@@ -1045,47 +1200,38 @@ namespace OpenXmlPowerTools
             }
         }
 
-        private static void AddOrReplaceElement(XElement props, XName childElementName, int value)
-        {
-            var existingElement = props.Element(childElementName);
-            if (existingElement != null)
-                existingElement.ReplaceWith(new XElement(childElementName, new XAttribute("Val", value)));
-            else
-                props.Add(new XElement(childElementName, new XAttribute("Val", value)));
-        }
-
-        private static void AddOrReplaceElement(XElement props, XName childElementName, string value)
-        {
-            var existingElement = props.Element(childElementName);
-            if (existingElement != null)
-                existingElement.ReplaceWith(new XElement(childElementName, new XAttribute("Val", value)));
-            else
-                props.Add(new XElement(childElementName, new XAttribute("Val", value)));
-        }
-
         private static void AddOrReplaceElement(XElement props, XElement element)
         {
             var existingElement = props.Element(element.Name);
             if (existingElement != null)
+            {
                 existingElement.ReplaceWith(element);
+            }
             else
+            {
                 props.Add(element);
+            }
         }
 
         private static bool ConvertAttributeToBool(XAttribute xAttribute)
         {
-            string applyNumberFormatStr = (string)xAttribute;
-            bool returnValue = false;
+            var applyNumberFormatStr = (string)xAttribute;
+            var returnValue = false;
             if (applyNumberFormatStr != null)
             {
                 if (applyNumberFormatStr == "1")
+                {
                     returnValue = true;
+                }
+
                 if (applyNumberFormatStr.Substring(0, 1).ToUpper() == "T")
+                {
                     returnValue = true;
+                }
             }
             return returnValue;
         }
 
-        private static XNamespace x14ac = "http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac";
+        private static readonly XNamespace x14ac = "http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac";
     }
 }

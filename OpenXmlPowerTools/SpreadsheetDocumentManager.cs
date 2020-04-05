@@ -1,10 +1,10 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using DocumentFormat.OpenXml.Packaging;
 using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Linq;
-using DocumentFormat.OpenXml.Packaging;
 
 namespace OpenXmlPowerTools
 {
@@ -13,20 +13,14 @@ namespace OpenXmlPowerTools
     /// </summary>
     public class SpreadsheetDocumentManager
     {
-        private static XNamespace ns;
-        private static XNamespace relationshipsns;
+        private static readonly XNamespace ns = "http://schemas.openxmlformats.org/spreadsheetml/2006/main";
+        private static readonly XNamespace relationshipsns = "http://schemas.openxmlformats.org/officeDocument/2006/relationships";
         private static int headerRow = 1;
-
-        static SpreadsheetDocumentManager()
-        {
-            ns = "http://schemas.openxmlformats.org/spreadsheetml/2006/main";
-            relationshipsns = "http://schemas.openxmlformats.org/officeDocument/2006/relationships";
-        }
 
         /// <summary>
         /// Creates a spreadsheet document from a value table
         /// </summary>
-        /// <param name="filePath">Path to store the document</param>
+        /// <param name="document">The document</param>
         /// <param name="headerList">Contents of first row (header)</param>
         /// <param name="valueTable">Contents of data</param>
         /// <param name="initialRow">Row to start copying data from</param>
@@ -36,7 +30,7 @@ namespace OpenXmlPowerTools
             headerRow = initialRow;
 
             //Creates a worksheet with given data
-            WorksheetPart worksheet = WorksheetAccessor.Create(document, headerList, valueTable, headerRow);
+            var worksheet = WorksheetAccessor.Create(document, headerList, valueTable, headerRow);
         }
 
         /// <summary>
@@ -73,10 +67,10 @@ namespace OpenXmlPowerTools
         private static string GetSheetName(WorksheetPart worksheet, SpreadsheetDocument document)
         {
             //Gets the id of worksheet part
-            string partId = document.WorkbookPart.GetIdOfPart(worksheet);
-            XDocument workbookDocument = document.WorkbookPart.GetXDocument();
+            var partId = document.WorkbookPart.GetIdOfPart(worksheet);
+            var workbookDocument = document.WorkbookPart.GetXDocument();
             //Gets the name from sheet tag related to worksheet
-            string sheetName =
+            var sheetName =
                 workbookDocument.Root
                 .Element(ns + "sheets")
                 .Elements(ns + "sheet")
@@ -87,6 +81,7 @@ namespace OpenXmlPowerTools
                 .Attribute("name").Value;
             return sheetName;
         }
+
         /// <summary>
         /// Gets the range reference for category
         /// </summary>
@@ -97,8 +92,8 @@ namespace OpenXmlPowerTools
         /// <returns></returns>
         private static string GetCategoryReference(string sheetName, string headerColumn, List<string> headerList, string[][] valueTable)
         {
-            int categoryColumn = headerList.IndexOf(headerColumn.ToUpper()) + 1;
-            int numRows = valueTable.GetLength(0);
+            var categoryColumn = headerList.IndexOf(headerColumn.ToUpper()) + 1;
+            var numRows = valueTable.GetLength(0);
 
             return GetRangeReference(
                 sheetName,
@@ -120,9 +115,9 @@ namespace OpenXmlPowerTools
         /// <returns></returns>
         private static List<string> GetHeaderReferences(string sheetName, string headerColumn, List<string> headerList, List<string> colsToChart, string[][] valueTable)
         {
-            List<string> valueReferenceList = new List<string>();
+            var valueReferenceList = new List<string>();
 
-            foreach (string column in colsToChart)
+            foreach (var column in colsToChart)
             {
                 valueReferenceList.Add(
                     GetRangeReference(
@@ -146,12 +141,12 @@ namespace OpenXmlPowerTools
         /// <returns></returns>
         private static List<string> GetValueReferences(string sheetName, string headerColumn, List<string> headerList, List<string> colsToChart, string[][] valueTable)
         {
-            List<string> valueReferenceList = new List<string>();
-            int numRows = valueTable.GetLength(0);
+            var valueReferenceList = new List<string>();
+            var numRows = valueTable.GetLength(0);
 
-            foreach (string column in colsToChart)
+            foreach (var column in colsToChart)
             {
-                int dataColumn = headerList.IndexOf(column.ToUpper()) + 1;
+                var dataColumn = headerList.IndexOf(column.ToUpper()) + 1;
                 valueReferenceList.Add(
                     GetRangeReference(
                         sheetName,
@@ -193,7 +188,7 @@ namespace OpenXmlPowerTools
         /// <returns></returns>
         private static XDocument CreateEmptyWorkbook()
         {
-            XDocument document =
+            var document =
                 new XDocument(
                     new XElement(ns + "workbook",
                         new XAttribute("xmlns", ns),

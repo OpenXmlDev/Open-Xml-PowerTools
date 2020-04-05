@@ -1,28 +1,27 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using DocumentFormat.OpenXml.Packaging;
+using OpenXmlPowerTools;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
-using DocumentFormat.OpenXml.Packaging;
-using OpenXmlPowerTools;
 
 namespace PresentationBuilder02
 {
-    class PresentationBuilder02
+    internal class PresentationBuilder02
     {
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
             var n = DateTime.Now;
             var tempDi = new DirectoryInfo(string.Format("ExampleOutput-{0:00}-{1:00}-{2:00}-{3:00}{4:00}{5:00}", n.Year - 2000, n.Month, n.Day, n.Hour, n.Minute, n.Second));
             tempDi.Create();
 
-            string presentation = "../../Presentation1.pptx";
-            string hiddenPresentation = "../../HiddenPresentation.pptx";
+            var presentation = "../../Presentation1.pptx";
+            var hiddenPresentation = "../../HiddenPresentation.pptx";
 
             // First, load both presentations into byte arrays, simulating retrieving presentations from some source
             // such as a SharePoint server
@@ -32,9 +31,9 @@ namespace PresentationBuilder02
             // Next, replace "thee" with "the" in the main presentation
             var pmlMainPresentation = new PmlDocument("Main.pptx", baPresentation);
             PmlDocument modifiedMainPresentation = null;
-            using (OpenXmlMemoryStreamDocument streamDoc = new OpenXmlMemoryStreamDocument(pmlMainPresentation))
+            using (var streamDoc = new OpenXmlMemoryStreamDocument(pmlMainPresentation))
             {
-                using (PresentationDocument document = streamDoc.GetPresentationDocument())
+                using (var document = streamDoc.GetPresentationDocument())
                 {
                     var pXDoc = document.PresentationPart.GetXDocument();
                     foreach (var slideId in pXDoc.Root.Elements(P.sldIdLst).Elements(P.sldId))
@@ -56,13 +55,13 @@ namespace PresentationBuilder02
                 new SlideSource(new PmlDocument("Hidden.pptx", baHiddenPresentation), true),
                 new SlideSource(modifiedMainPresentation, 1, true),
             };
-            PmlDocument combinedPresentation = PresentationBuilder.BuildPresentation(slideSources);
+            var combinedPresentation = PresentationBuilder.BuildPresentation(slideSources);
 
             // Replace <# TRADEMARK #> with AdventureWorks (c)
             PmlDocument modifiedCombinedPresentation = null;
-            using (OpenXmlMemoryStreamDocument streamDoc = new OpenXmlMemoryStreamDocument(combinedPresentation))
+            using (var streamDoc = new OpenXmlMemoryStreamDocument(combinedPresentation))
             {
-                using (PresentationDocument document = streamDoc.GetPresentationDocument())
+                using (var document = streamDoc.GetPresentationDocument())
                 {
                     var pXDoc = document.PresentationPart.GetXDocument();
                     foreach (var slideId in pXDoc.Root.Elements(P.sldIdLst).Elements(P.sldId).Skip(1).Take(1))

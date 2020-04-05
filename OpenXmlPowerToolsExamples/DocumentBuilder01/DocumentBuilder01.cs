@@ -1,28 +1,24 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using OpenXmlPowerTools;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using DocumentFormat.OpenXml.Packaging;
-using DocumentFormat.OpenXml.Validation;
-using OpenXmlPowerTools;
 
 namespace DocumentBuilderExample
 {
-    class DocumentBuilderExample
+    internal class DocumentBuilderExample
     {
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
             var n = DateTime.Now;
             var tempDi = new DirectoryInfo(string.Format("ExampleOutput-{0:00}-{1:00}-{2:00}-{3:00}{4:00}{5:00}", n.Year - 2000, n.Month, n.Day, n.Hour, n.Minute, n.Second));
             tempDi.Create();
 
-            string source1 = "../../Source1.docx";
-            string source2 = "../../Source2.docx";
-            string source3 = "../../Source3.docx";
+            var source1 = "../../Source1.docx";
+            var source2 = "../../Source2.docx";
+            var source3 = "../../Source3.docx";
             List<Source> sources = null;
 
             // Create new document from 10 paragraphs starting at paragraph 5 of Source1.docx
@@ -67,7 +63,7 @@ namespace DocumentBuilderExample
                 new Source(new WmlDocument(source1), 0, 5, false),
                 new Source(new WmlDocument(source2), 0, 5, true),
             };
-            WmlDocument out5 = DocumentBuilder.BuildDocument(sources);
+            var out5 = DocumentBuilder.BuildDocument(sources);
             out5.SaveAs(Path.Combine(tempDi.FullName, "Out5.docx"));  // save it to the file system, but we could just as easily done something
                                                                       // else with it.
         }

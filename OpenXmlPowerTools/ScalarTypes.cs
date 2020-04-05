@@ -9,32 +9,30 @@ namespace OpenXmlPowerTools
 {
     internal static class DefaultScalarTypes
     {
-        private static readonly Hashtable defaultScalarTypesHash;
+        private static readonly Hashtable defaultScalarTypesHash = new Hashtable(StringComparer.OrdinalIgnoreCase)
+        {
+            { "System.String", null },
+                { "System.SByte", null },
+                { "System.Byte", null },
+                { "System.Int16", null },
+                { "System.UInt16", null },
+                { "System.Int32", 10 },
+                { "System.UInt32", 10 },
+                { "System.Int64", null },
+                { "System.UInt64", null },
+                { "System.Char", 1 },
+                { "System.Single", null },
+                { "System.Double", null },
+                { "System.Boolean", 5 },
+                { "System.Decimal", null },
+                { "System.IntPtr", null },
+                { "System.Security.SecureString", null }
+        };
+
         internal static bool IsTypeInList(Collection<string> typeNames)
         {
-            string text = PSObjectIsOfExactType(typeNames);
-            return !string.IsNullOrEmpty(text) && (PSObjectIsEnum(typeNames) || DefaultScalarTypes.defaultScalarTypesHash.ContainsKey(text));
-        }
-
-        static DefaultScalarTypes()
-        {
-            DefaultScalarTypes.defaultScalarTypesHash = new Hashtable(StringComparer.OrdinalIgnoreCase);
-            DefaultScalarTypes.defaultScalarTypesHash.Add("System.String", null);
-            DefaultScalarTypes.defaultScalarTypesHash.Add("System.SByte", null);
-            DefaultScalarTypes.defaultScalarTypesHash.Add("System.Byte", null);
-            DefaultScalarTypes.defaultScalarTypesHash.Add("System.Int16", null);
-            DefaultScalarTypes.defaultScalarTypesHash.Add("System.UInt16", null);
-            DefaultScalarTypes.defaultScalarTypesHash.Add("System.Int32", 10);
-            DefaultScalarTypes.defaultScalarTypesHash.Add("System.UInt32", 10);
-            DefaultScalarTypes.defaultScalarTypesHash.Add("System.Int64", null);
-            DefaultScalarTypes.defaultScalarTypesHash.Add("System.UInt64", null);
-            DefaultScalarTypes.defaultScalarTypesHash.Add("System.Char", 1);
-            DefaultScalarTypes.defaultScalarTypesHash.Add("System.Single", null);
-            DefaultScalarTypes.defaultScalarTypesHash.Add("System.Double", null);
-            DefaultScalarTypes.defaultScalarTypesHash.Add("System.Boolean", 5);
-            DefaultScalarTypes.defaultScalarTypesHash.Add("System.Decimal", null);
-            DefaultScalarTypes.defaultScalarTypesHash.Add("System.IntPtr", null);
-            DefaultScalarTypes.defaultScalarTypesHash.Add("System.Security.SecureString", null);
+            var text = PSObjectIsOfExactType(typeNames);
+            return !string.IsNullOrEmpty(text) && (PSObjectIsEnum(typeNames) || defaultScalarTypesHash.ContainsKey(text));
         }
 
         internal static string PSObjectIsOfExactType(Collection<string> typeNames)

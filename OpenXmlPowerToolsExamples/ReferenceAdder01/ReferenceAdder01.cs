@@ -1,30 +1,30 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using DocumentFormat.OpenXml.Packaging;
+using OpenXmlPowerTools;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Xml.Linq;
-using DocumentFormat.OpenXml.Packaging;
-using OpenXmlPowerTools;
 
-class TestTocAdder
+internal class TestTocAdder
 {
-    static void Main(string[] args)
+    private static void Main(string[] args)
     {
         var n = DateTime.Now;
         var tempDi = new DirectoryInfo(string.Format("ExampleOutput-{0:00}-{1:00}-{2:00}-{3:00}{4:00}{5:00}", n.Year - 2000, n.Month, n.Day, n.Hour, n.Minute, n.Second));
         tempDi.Create();
 
-        DirectoryInfo di2 = new DirectoryInfo("../../");
+        var di2 = new DirectoryInfo("../../");
         foreach (var file in di2.GetFiles("*.docx"))
+        {
             file.CopyTo(Path.Combine(tempDi.FullName, file.Name));
+        }
 
-        List<string> filesToProcess = new List<string>();
+        var filesToProcess = new List<string>();
 
         // Inserts a basic TOC before the first paragraph of the document
-        using (WordprocessingDocument wdoc =
+        using (var wdoc =
             WordprocessingDocument.Open(Path.Combine(tempDi.FullName, "Test01.docx"), true))
         {
             ReferenceAdder.AddToc(wdoc, "/w:document/w:body/w:p[1]",
@@ -32,7 +32,7 @@ class TestTocAdder
         }
 
         // Inserts a TOC after the title of the document
-        using (WordprocessingDocument wdoc =
+        using (var wdoc =
             WordprocessingDocument.Open(Path.Combine(tempDi.FullName, "Test02.docx"), true))
         {
             ReferenceAdder.AddToc(wdoc, "/w:document/w:body/w:p[2]",
@@ -40,7 +40,7 @@ class TestTocAdder
         }
 
         // Inserts a TOC with a different title
-        using (WordprocessingDocument wdoc =
+        using (var wdoc =
             WordprocessingDocument.Open(Path.Combine(tempDi.FullName, "Test03.docx"), true))
         {
             ReferenceAdder.AddToc(wdoc, "/w:document/w:body/w:p[1]",
@@ -48,7 +48,7 @@ class TestTocAdder
         }
 
         // Inserts a TOC that includes headings through level 4
-        using (WordprocessingDocument wdoc =
+        using (var wdoc =
             WordprocessingDocument.Open(Path.Combine(tempDi.FullName, "Test04.docx"), true))
         {
             ReferenceAdder.AddToc(wdoc, "/w:document/w:body/w:p[1]",
@@ -56,7 +56,7 @@ class TestTocAdder
         }
 
         // Inserts a table of figures
-        using (WordprocessingDocument wdoc =
+        using (var wdoc =
             WordprocessingDocument.Open(Path.Combine(tempDi.FullName, "Test05.docx"), true))
         {
             ReferenceAdder.AddTof(wdoc, "/w:document/w:body/w:p[2]",
@@ -65,7 +65,7 @@ class TestTocAdder
 
         // Inserts a basic TOC before the first paragraph of the document.
         // Test06.docx does not include a StylesWithEffects part.
-        using (WordprocessingDocument wdoc =
+        using (var wdoc =
             WordprocessingDocument.Open(Path.Combine(tempDi.FullName, "Test06.docx"), true))
         {
             ReferenceAdder.AddToc(wdoc, "/w:document/w:body/w:p[1]",
@@ -73,7 +73,7 @@ class TestTocAdder
         }
 
         // Inserts a TOA before the first paragraph of the document.
-        using (WordprocessingDocument wdoc =
+        using (var wdoc =
             WordprocessingDocument.Open(Path.Combine(tempDi.FullName, "Test07.docx"), true))
         {
             ReferenceAdder.AddToa(wdoc, "/w:document/w:body/w:p[2]",

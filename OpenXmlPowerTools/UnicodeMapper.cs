@@ -1,19 +1,6 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-/***************************************************************************
-
-Copyright (c) Microsoft Corporation 2016.
-
-This code is licensed using the Microsoft Public License (Ms-PL).  The text of the license can be found here:
-
-http://www.microsoft.com/resources/sharedsource/licensingbasics/publiclicense.mspx
-
-Developer: Thomas Barnekow
-Email: thomas@barnekow.info
-
-***************************************************************************/
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -25,6 +12,7 @@ namespace OpenXmlPowerTools
     {
         // Unicode character values.
         public static readonly char StartOfHeading = '\u0001';
+
         public static readonly char HorizontalTabulation = '\u0009';
         public static readonly char LineFeed = '\u000A';
         public static readonly char FormFeed = '\u000C';
@@ -34,6 +22,7 @@ namespace OpenXmlPowerTools
 
         // Unicode area boundaries.
         public static readonly char StartOfPrivateUseArea = '\uE000';
+
         public static readonly char StartOfSymbolArea = '\uF000';
         public static readonly char EndOfPrivateUseArea = '\uF8FF';
 
@@ -61,36 +50,58 @@ namespace OpenXmlPowerTools
         public static string RunToString(XElement element)
         {
             if (element.Name == W.r && (element.Parent == null || element.Parent.Name != W.del))
+            {
                 return element.Elements().Select(RunToString).StringConcatenate();
+            }
 
             // We need to ignore run properties.
             if (element.Name == W.rPr)
+            {
                 return string.Empty;
+            }
 
             // For w:t elements, we obviously want the element's value.
             if (element.Name == W.t)
-                return (string) element;
+            {
+                return (string)element;
+            }
 
             // Turn elements representing special characters into their corresponding
             // unicode characters.
             if (element.Name == W.br)
             {
-                XAttribute typeAttribute = element.Attribute(W.type);
-                string type = typeAttribute != null ? typeAttribute.Value : null;
+                var typeAttribute = element.Attribute(W.type);
+                var type = typeAttribute != null ? typeAttribute.Value : null;
                 if (type == null || type == "textWrapping")
+                {
                     return CarriageReturn.ToString();
+                }
+
                 if (type == "page")
+                {
                     return FormFeed.ToString();
+                }
             }
 
             if (element.Name == W.cr)
+            {
                 return CarriageReturn.ToString();
+            }
+
             if (element.Name == W.noBreakHyphen)
+            {
                 return NonBreakingHyphen.ToString();
+            }
+
             if (element.Name == W.softHyphen)
+            {
                 return SoftHyphen.ToString();
+            }
+
             if (element.Name == W.tab)
+            {
                 return HorizontalTabulation.ToString();
+            }
 
             if (element.Name == W.fldChar)
             {
@@ -99,15 +110,19 @@ namespace OpenXmlPowerTools
                 {
                     case "begin":
                         return "{";
+
                     case "end":
                         return "}";
+
                     default:
                         return "_";
                 }
             }
 
             if (element.Name == W.instrText)
+            {
                 return "_";
+            }
 
             // Turn w:sym elements into Unicode character values. A w:char attribute
             // value can be stored (a) directly in its Unicode character value from
@@ -115,7 +130,9 @@ namespace OpenXmlPowerTools
             // U+F000 to the character value, thereby shifting the value into the
             // Unicode private use area.
             if (element.Name == W.sym)
+            {
                 return SymToChar(element).ToString();
+            }
 
             // Elements we don't recognize will be turned into a character that
             // doesn't typically appear in documents.
@@ -141,7 +158,7 @@ namespace OpenXmlPowerTools
         /// <returns>The Unicode character used to represent the symbol.</returns>
         public static char SymToChar(string fontAttributeValue, char unicodeValue)
         {
-            return SymToChar(fontAttributeValue, (int) unicodeValue);
+            return SymToChar(fontAttributeValue, (int)unicodeValue);
         }
 
         /// <summary>
@@ -163,7 +180,7 @@ namespace OpenXmlPowerTools
         /// <returns>The Unicode character used to represent the symbol.</returns>
         public static char SymToChar(string fontAttributeValue, int unicodeValue)
         {
-            int effectiveUnicodeValue = unicodeValue < 0x1000 ? 0xF000 + unicodeValue : unicodeValue;
+            var effectiveUnicodeValue = unicodeValue < 0x1000 ? 0xF000 + unicodeValue : unicodeValue;
             return SymToChar(fontAttributeValue, effectiveUnicodeValue.ToString("X4"));
         }
 
@@ -186,9 +203,14 @@ namespace OpenXmlPowerTools
         public static char SymToChar(string fontAttributeValue, string charAttributeValue)
         {
             if (string.IsNullOrEmpty(fontAttributeValue))
+            {
                 throw new ArgumentException("Argument is null or empty.", "fontAttributeValue");
+            }
+
             if (string.IsNullOrEmpty(charAttributeValue))
+            {
                 throw new ArgumentException("Argument is null or empty.", "charAttributeValue");
+            }
 
             return SymToChar(new XElement(W.sym,
                 new XAttribute(W.font, fontAttributeValue),
@@ -206,36 +228,49 @@ namespace OpenXmlPowerTools
         public static char SymToChar(XElement sym)
         {
             if (sym == null)
+            {
                 throw new ArgumentNullException("sym");
+            }
+
             if (sym.Name != W.sym)
+            {
                 throw new ArgumentException(string.Format("Not a w:sym: {0}", sym.Name), "sym");
+            }
 
-            XAttribute fontAttribute = sym.Attribute(W.font);
-            string fontAttributeValue = fontAttribute != null ? fontAttribute.Value : null;
+            var fontAttribute = sym.Attribute(W.font);
+            var fontAttributeValue = fontAttribute != null ? fontAttribute.Value : null;
             if (fontAttributeValue == null)
+            {
                 throw new ArgumentException("w:sym element has no w:font attribute.", "sym");
+            }
 
-            XAttribute charAttribute = sym.Attribute(W._char);
-            string charAttributeValue = charAttribute != null ? charAttribute.Value : null;
+            var charAttribute = sym.Attribute(W._char);
+            var charAttributeValue = charAttribute != null ? charAttribute.Value : null;
             if (charAttributeValue == null)
+            {
                 throw new ArgumentException("w:sym element has no w:char attribute.", "sym");
+            }
 
             // Return Unicode value if it is in the dictionary.
             var standardizedSym = new XElement(W.sym,
                 new XAttribute(W.font, fontAttributeValue),
                 new XAttribute(W._char, charAttributeValue),
                 new XAttribute(XNamespace.Xmlns + "w", W.w));
-            string standardizedSymString = standardizedSym.ToString(SaveOptions.None);
+            var standardizedSymString = standardizedSym.ToString(SaveOptions.None);
             if (SymStringToUnicodeCharDictionary.ContainsKey(standardizedSymString))
+            {
                 return SymStringToUnicodeCharDictionary[standardizedSymString];
+            }
 
             // Determine Unicode value to be used to represent the current w:sym element.
             // Use the actual Unicode value if it has not yet been used with another font.
             // Otherwise, create a special Unicode value in the private use area to represent
             // the current w:sym element.
-            var unicodeChar = (char) Convert.ToInt32(charAttributeValue, 16);
+            var unicodeChar = (char)Convert.ToInt32(charAttributeValue, 16);
             if (UnicodeCharToSymDictionary.ContainsKey(unicodeChar))
+            {
                 unicodeChar = ++_lastUnicodeChar;
+            }
 
             SymStringToUnicodeCharDictionary.Add(standardizedSymString, unicodeChar);
             UnicodeCharToSymDictionary.Add(unicodeChar, standardizedSym);
@@ -255,7 +290,7 @@ namespace OpenXmlPowerTools
                 .Select(CharToRunChild)
                 .GroupAdjacent(e => e.Name == W.t)
                 .SelectMany(grouping => grouping.Key
-                    ? StringToSingleRunList(grouping.Select(t => (string) t).StringConcatenate(), runProperties)
+                    ? StringToSingleRunList(grouping.Select(t => (string)t).StringConcatenate(), runProperties)
                     : grouping.Select(e => new XElement(W.r, runProperties, e)))
                 .ToList();
         }
@@ -310,25 +345,43 @@ namespace OpenXmlPowerTools
             // Ignore the special character that represents the Open XML elements we
             // wanted to ignore.
             if (character == StartOfHeading)
+            {
                 return null;
+            }
 
             // Translate special characters into their corresponding Open XML elements.
             // Turn a Carriage Return into an empty w:br element, regardless of whether
             // the former was created from an equivalent w:cr element.
             if (character == CarriageReturn)
+            {
                 return new XElement(W.br);
+            }
+
             if (character == FormFeed)
+            {
                 return new XElement(W.br, new XAttribute(W.type, "page"));
+            }
+
             if (character == HorizontalTabulation)
+            {
                 return new XElement(W.tab);
+            }
+
             if (character == NonBreakingHyphen)
+            {
                 return new XElement(W.noBreakHyphen);
+            }
+
             if (character == SoftHyphen)
+            {
                 return new XElement(W.softHyphen);
+            }
 
             // Translate symbol characters into their corresponding w:sym elements.
             if (UnicodeCharToSymDictionary.ContainsKey(character))
+            {
                 return UnicodeCharToSymDictionary[character];
+            }
 
             // Turn "normal" characters into text elements.
             return new XElement(W.t, XmlUtil.GetXmlSpaceAttribute(character), character);

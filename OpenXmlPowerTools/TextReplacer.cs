@@ -1,14 +1,10 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System;
-using System.Collections.Generic;
+using DocumentFormat.OpenXml.Packaging;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Xml;
 using System.Xml.Linq;
-using DocumentFormat.OpenXml.Packaging;
 
 namespace OpenXmlPowerTools
 {
@@ -41,14 +37,16 @@ namespace OpenXmlPowerTools
 
         private static XObject CloneWithAnnotation(XNode node)
         {
-            XElement element = node as XElement;
+            var element = node as XElement;
             if (element != null)
             {
-                XElement newElement = new XElement(element.Name,
+                var newElement = new XElement(element.Name,
                     element.Attributes(),
                     element.Nodes().Select(n => CloneWithAnnotation(n)));
                 if (element.Annotation<MatchSemaphore>() != null)
+                {
                     newElement.AddAnnotation(element.Annotation<MatchSemaphore>());
+                }
             }
             return node;
         }
@@ -56,30 +54,34 @@ namespace OpenXmlPowerTools
         private static object WmlSearchAndReplaceTransform(XNode node,
             string search, string replace, bool matchCase)
         {
-            XElement element = node as XElement;
+            var element = node as XElement;
             if (element != null)
             {
                 if (element.Name == W.p)
                 {
-                    string contents = element.Descendants(W.t).Select(t => (string)t).StringConcatenate();
+                    var contents = element.Descendants(W.t).Select(t => (string)t).StringConcatenate();
                     if (contents.Contains(search) ||
                         (!matchCase && contents.ToUpper().Contains(search.ToUpper())))
                     {
-                        XElement paragraphWithSplitRuns = new XElement(W.p,
+                        var paragraphWithSplitRuns = new XElement(W.p,
                             element.Attributes(),
                             element.Nodes().Select(n => WmlSearchAndReplaceTransform(n, search,
                                 replace, matchCase)));
-                        XElement[] subRunArray = paragraphWithSplitRuns
+                        var subRunArray = paragraphWithSplitRuns
                             .Elements(W.r)
-                            .Where(e => {
-                                XElement subRunElement = e.Elements().FirstOrDefault(el => el.Name != W.rPr);
+                            .Where(e =>
+                            {
+                                var subRunElement = e.Elements().FirstOrDefault(el => el.Name != W.rPr);
                                 if (subRunElement == null)
+                                {
                                     return false;
+                                }
+
                                 return W.SubRunLevelContent.Contains(subRunElement.Name);
                             })
                             .ToArray();
-                        int paragraphChildrenCount = subRunArray.Length;
-                        int matchId = 1;
+                        var paragraphChildrenCount = subRunArray.Length;
+                        var matchId = 1;
                         foreach (var pc in subRunArray
                             .Take(paragraphChildrenCount - (search.Length - 1))
                             .Select((c, i) => new { Child = c, Index = i, }))
@@ -90,35 +92,51 @@ namespace OpenXmlPowerTools
                                 ParagraphChildProjection = pcp,
                                 CharacterToCompare = c,
                             });
-                            bool dontMatch = zipped.Any(z => {
+                            var dontMatch = zipped.Any(z =>
+                            {
                                 if (z.ParagraphChildProjection.Annotation<MatchSemaphore>() != null)
+                                {
                                     return true;
+                                }
+
                                 bool b;
                                 if (matchCase)
+                                {
                                     b = z.ParagraphChildProjection.Value != z.CharacterToCompare.ToString();
+                                }
                                 else
+                                {
                                     b = z.ParagraphChildProjection.Value.ToUpper() != z.CharacterToCompare.ToString().ToUpper();
+                                }
+
                                 return b;
                             });
-                            bool match = !dontMatch;
+                            var match = !dontMatch;
                             if (match)
                             {
                                 foreach (var item in subSequence)
+                                {
                                     item.AddAnnotation(new MatchSemaphore(matchId));
+                                }
+
                                 ++matchId;
                             }
                         }
 
                         // The following code is locally impure, as this is the most expressive way to write it.
-                        XElement paragraphWithReplacedRuns = (XElement)CloneWithAnnotation(paragraphWithSplitRuns);
-                        for (int id = 1; id < matchId; ++id)
+                        var paragraphWithReplacedRuns = (XElement)CloneWithAnnotation(paragraphWithSplitRuns);
+                        for (var id = 1; id < matchId; ++id)
                         {
-                            List<XElement> elementsToReplace = paragraphWithReplacedRuns
+                            var elementsToReplace = paragraphWithReplacedRuns
                                 .Elements()
-                                .Where(e => {
+                                .Where(e =>
+                                {
                                     var sem = e.Annotation<MatchSemaphore>();
                                     if (sem == null)
+                                    {
                                         return false;
+                                    }
+
                                     return sem.MatchId == id;
                                 })
                                 .ToList();
@@ -134,23 +152,38 @@ namespace OpenXmlPowerTools
                             .GroupAdjacent(ce =>
                             {
                                 if (ce.Name != W.r)
+                                {
                                     return "DontConsolidate";
+                                }
+
                                 if (ce.Elements().Where(e => e.Name != W.rPr).Count() != 1 ||
                                     ce.Element(W.t) == null)
+                                {
                                     return "DontConsolidate";
+                                }
+
                                 if (ce.Element(W.rPr) == null)
+                                {
                                     return "";
+                                }
+
                                 return ce.Element(W.rPr).ToString(SaveOptions.None);
                             });
-                        XElement paragraphWithConsolidatedRuns = new XElement(W.p,
+                        var paragraphWithConsolidatedRuns = new XElement(W.p,
                             groupedAdjacentRunsWithIdenticalFormatting.Select(g =>
                                 {
                                     if (g.Key == "DontConsolidate")
+                                    {
                                         return (object)g;
-                                    string textValue = g.Select(r => r.Element(W.t).Value).StringConcatenate();
+                                    }
+
+                                    var textValue = g.Select(r => r.Element(W.t).Value).StringConcatenate();
                                     XAttribute xs = null;
                                     if (textValue[0] == ' ' || textValue[textValue.Length - 1] == ' ')
+                                    {
                                         xs = new XAttribute(XNamespace.Xml + "space", "preserve");
+                                    }
+
                                     return new XElement(W.r,
                                         g.First().Elements(W.rPr),
                                         new XElement(W.t, xs, textValue));
@@ -167,10 +200,10 @@ namespace OpenXmlPowerTools
                             {
                                 if (e.Name == W.t)
                                 {
-                                    string s = (string)e;
-                                    IEnumerable<XElement> collectionOfSubRuns = s.Select(c =>
+                                    var s = (string)e;
+                                    var collectionOfSubRuns = s.Select(c =>
                                     {
-                                        XElement newRun = new XElement(W.r,
+                                        var newRun = new XElement(W.r,
                                             element.Elements(W.rPr),
                                             new XElement(W.t,
                                                 c == ' ' ?
@@ -182,7 +215,7 @@ namespace OpenXmlPowerTools
                                 }
                                 else
                                 {
-                                    XElement newRun = new XElement(W.r,
+                                    var newRun = new XElement(W.r,
                                         element.Elements(W.rPr),
                                         e);
                                     return newRun;
@@ -201,16 +234,16 @@ namespace OpenXmlPowerTools
         private static void WmlSearchAndReplaceInXDocument(XDocument xDocument, string search,
             string replace, bool matchCase)
         {
-            XElement newRoot = (XElement)WmlSearchAndReplaceTransform(xDocument.Root,
+            var newRoot = (XElement)WmlSearchAndReplaceTransform(xDocument.Root,
                 search, replace, matchCase);
             xDocument.Elements().First().ReplaceWith(newRoot);
         }
 
         public static WmlDocument SearchAndReplace(WmlDocument doc, string search, string replace, bool matchCase)
         {
-            using (OpenXmlMemoryStreamDocument streamDoc = new OpenXmlMemoryStreamDocument(doc))
+            using (var streamDoc = new OpenXmlMemoryStreamDocument(doc))
             {
-                using (WordprocessingDocument document = streamDoc.GetWordprocessingDocument())
+                using (var document = streamDoc.GetWordprocessingDocument())
                 {
                     SearchAndReplace(document, search, replace, matchCase);
                 }
@@ -222,13 +255,18 @@ namespace OpenXmlPowerTools
             string replace, bool matchCase)
         {
             if (RevisionAccepter.HasTrackedRevisions(wordDoc))
+            {
                 throw new InvalidDataException(
                     "Search and replace will not work with documents " +
                     "that contain revision tracking.");
+            }
+
             XDocument xDoc;
             xDoc = wordDoc.MainDocumentPart.DocumentSettingsPart.GetXDocument();
             if (xDoc.Descendants(W.trackRevisions).Any())
+            {
                 throw new InvalidDataException("Revision tracking is turned on for document.");
+            }
 
             xDoc = wordDoc.MainDocumentPart.GetXDocument();
             WmlSearchAndReplaceInXDocument(xDoc, search, replace, matchCase);
@@ -262,31 +300,34 @@ namespace OpenXmlPowerTools
         private static object PmlReplaceTextTransform(XNode node, string search, string replace,
             bool matchCase)
         {
-            XElement element = node as XElement;
+            var element = node as XElement;
             if (element != null)
             {
                 if (element.Name == A.p)
                 {
-                    string contents = element.Descendants(A.t).Select(t => (string)t).StringConcatenate();
+                    var contents = element.Descendants(A.t).Select(t => (string)t).StringConcatenate();
                     if (contents.Contains(search) ||
                         (!matchCase && contents.ToUpper().Contains(search.ToUpper())))
                     {
-                        XElement paragraphWithSplitRuns = new XElement(A.p,
+                        var paragraphWithSplitRuns = new XElement(A.p,
                             element.Attributes(),
                             element.Nodes().Select(n => PmlReplaceTextTransform(n, search,
                                 replace, matchCase)));
-                        XElement[] subRunArray = paragraphWithSplitRuns
+                        var subRunArray = paragraphWithSplitRuns
                             .Elements(A.r)
                             .Where(e =>
                             {
-                                XElement subRunElement = e.Elements().FirstOrDefault(el => el.Name != A.rPr);
+                                var subRunElement = e.Elements().FirstOrDefault(el => el.Name != A.rPr);
                                 if (subRunElement == null)
+                                {
                                     return false;
+                                }
+
                                 return subRunElement.Name == A.t;
                             })
                             .ToArray();
-                        int paragraphChildrenCount = subRunArray.Length;
-                        int matchId = 1;
+                        var paragraphChildrenCount = subRunArray.Length;
+                        var matchId = 1;
                         foreach (var pc in subRunArray
                             .Take(paragraphChildrenCount - (search.Length - 1))
                             .Select((c, i) => new { Child = c, Index = i, }))
@@ -297,37 +338,51 @@ namespace OpenXmlPowerTools
                                 ParagraphChildProjection = pcp,
                                 CharacterToCompare = c,
                             });
-                            bool dontMatch = zipped.Any(z =>
+                            var dontMatch = zipped.Any(z =>
                             {
                                 if (z.ParagraphChildProjection.Annotation<MatchSemaphore>() != null)
+                                {
                                     return true;
+                                }
+
                                 bool b;
                                 if (matchCase)
+                                {
                                     b = z.ParagraphChildProjection.Value != z.CharacterToCompare.ToString();
+                                }
                                 else
+                                {
                                     b = z.ParagraphChildProjection.Value.ToUpper() != z.CharacterToCompare.ToString().ToUpper();
+                                }
+
                                 return b;
                             });
-                            bool match = !dontMatch;
+                            var match = !dontMatch;
                             if (match)
                             {
                                 foreach (var item in subSequence)
+                                {
                                     item.AddAnnotation(new MatchSemaphore(matchId));
+                                }
+
                                 ++matchId;
                             }
                         }
 
                         // The following code is locally impure, as this is the most expressive way to write it.
-                        XElement paragraphWithReplacedRuns = (XElement)CloneWithAnnotation(paragraphWithSplitRuns);
-                        for (int id = 1; id < matchId; ++id)
+                        var paragraphWithReplacedRuns = (XElement)CloneWithAnnotation(paragraphWithSplitRuns);
+                        for (var id = 1; id < matchId; ++id)
                         {
-                            List<XElement> elementsToReplace = paragraphWithReplacedRuns
+                            var elementsToReplace = paragraphWithReplacedRuns
                                 .Elements()
                                 .Where(e =>
                                 {
                                     var sem = e.Annotation<MatchSemaphore>();
                                     if (sem == null)
+                                    {
                                         return false;
+                                    }
+
                                     return sem.MatchId == id;
                                 })
                                 .ToList();
@@ -344,20 +399,32 @@ namespace OpenXmlPowerTools
                             .GroupAdjacent(ce =>
                             {
                                 if (ce.Name != A.r)
+                                {
                                     return "DontConsolidate";
+                                }
+
                                 if (ce.Elements().Where(e => e.Name != A.rPr).Count() != 1 ||
                                     ce.Element(A.t) == null)
+                                {
                                     return "DontConsolidate";
+                                }
+
                                 if (ce.Element(A.rPr) == null)
+                                {
                                     return "";
+                                }
+
                                 return ce.Element(A.rPr).ToString(SaveOptions.None);
                             });
-                        XElement paragraphWithConsolidatedRuns = new XElement(A.p,
+                        var paragraphWithConsolidatedRuns = new XElement(A.p,
                             groupedAdjacentRunsWithIdenticalFormatting.Select(g =>
                             {
                                 if (g.Key == "DontConsolidate")
+                                {
                                     return (object)g;
-                                string textValue = g.Select(r => r.Element(A.t).Value).StringConcatenate();
+                                }
+
+                                var textValue = g.Select(r => r.Element(A.t).Value).StringConcatenate();
                                 return new XElement(A.r,
                                     g.First().Elements(A.rPr),
                                     new XElement(A.t, textValue));
@@ -373,10 +440,10 @@ namespace OpenXmlPowerTools
                         {
                             if (e.Name == A.t)
                             {
-                                string s = (string)e;
-                                IEnumerable<XElement> collectionOfSubRuns = s.Select(c =>
+                                var s = (string)e;
+                                var collectionOfSubRuns = s.Select(c =>
                                 {
-                                    XElement newRun = new XElement(A.r,
+                                    var newRun = new XElement(A.r,
                                         element.Elements(A.rPr),
                                         new XElement(A.t, c));
                                     return newRun;
@@ -385,7 +452,7 @@ namespace OpenXmlPowerTools
                             }
                             else
                             {
-                                XElement newRun = new XElement(A.r,
+                                var newRun = new XElement(A.r,
                                     element.Elements(A.rPr),
                                     e);
                                 return newRun;
@@ -402,9 +469,9 @@ namespace OpenXmlPowerTools
 
         public static PmlDocument SearchAndReplace(PmlDocument doc, string search, string replace, bool matchCase)
         {
-            using (OpenXmlMemoryStreamDocument streamDoc = new OpenXmlMemoryStreamDocument(doc))
+            using (var streamDoc = new OpenXmlMemoryStreamDocument(doc))
             {
-                using (PresentationDocument document = streamDoc.GetPresentationDocument())
+                using (var document = streamDoc.GetPresentationDocument())
                 {
                     SearchAndReplace(document, search, replace, matchCase);
                 }
@@ -415,12 +482,12 @@ namespace OpenXmlPowerTools
         public static void SearchAndReplace(PresentationDocument pDoc, string search,
             string replace, bool matchCase)
         {
-            PresentationPart presentationPart = pDoc.PresentationPart;
+            var presentationPart = pDoc.PresentationPart;
             foreach (var slidePart in presentationPart.SlideParts)
             {
-                XDocument slideXDoc = slidePart.GetXDocument();
-                XElement root = slideXDoc.Root;
-                XElement newRoot = (XElement)PmlReplaceTextTransform(root, search, replace, matchCase);
+                var slideXDoc = slidePart.GetXDocument();
+                var root = slideXDoc.Root;
+                var newRoot = (XElement)PmlReplaceTextTransform(root, search, replace, matchCase);
                 slidePart.PutXDocument(new XDocument(newRoot));
             }
         }

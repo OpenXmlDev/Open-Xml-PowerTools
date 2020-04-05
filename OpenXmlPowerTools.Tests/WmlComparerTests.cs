@@ -14,11 +14,6 @@ using System.Text;
 using System.Xml.Linq;
 using Xunit;
 
-/****************************************************************************************************************/
-// Large tests have been commented out below.  If and when there is an effort to improve performance for WmlComparer,
-// then uncomment.  Performance isn't bad, but certainly is possible to improve.
-/****************************************************************************************************************/
-
 #if !ELIDE_XUNIT_TESTS
 
 namespace OxPt
@@ -279,7 +274,6 @@ namespace OxPt
         [InlineData("WCB-1100", "WC/WC002-Unmodified.docx", "WC/WC002-DeleteInMiddle.docx")]
         [InlineData("WCB-1110", "WC/WC002-Unmodified.docx", "WC/WC002-InsertInMiddle.docx")]
         [InlineData("WCB-1120", "WC/WC002-DeleteInMiddle.docx", "WC/WC002-Unmodified.docx")]
-        //[InlineData("WCB-1130", "WC/WC004-Large.docx", "WC/WC004-Large-Mod.docx")]
         [InlineData("WCB-1140", "WC/WC006-Table.docx", "WC/WC006-Table-Delete-Row.docx")]
         [InlineData("WCB-1150", "WC/WC006-Table-Delete-Row.docx", "WC/WC006-Table.docx")]
         [InlineData("WCB-1160", "WC/WC006-Table.docx", "WC/WC006-Table-Delete-Contests-of-Row.docx")]
@@ -517,7 +511,6 @@ namespace OxPt
         [InlineData("WC-1100", "WC/WC002-Unmodified.docx", "WC/WC002-DeleteInMiddle.docx", 1)]
         [InlineData("WC-1110", "WC/WC002-Unmodified.docx", "WC/WC002-InsertInMiddle.docx", 1)]
         [InlineData("WC-1120", "WC/WC002-DeleteInMiddle.docx", "WC/WC002-Unmodified.docx", 1)]
-        //[InlineData("WC-1130", "WC/WC004-Large.docx", "WC/WC004-Large-Mod.docx", 2)]
         [InlineData("WC-1140", "WC/WC006-Table.docx", "WC/WC006-Table-Delete-Row.docx", 1)]
         [InlineData("WC-1150", "WC/WC006-Table-Delete-Row.docx", "WC/WC006-Table.docx", 1)]
         [InlineData("WC-1160", "WC/WC006-Table.docx", "WC/WC006-Table-Delete-Contests-of-Row.docx", 2)]
@@ -610,13 +603,6 @@ namespace OxPt
         [InlineData("WC-2090", "WC/WC066-Textbox-Before-Ins.docx", "WC/WC066-Textbox-Before-Ins-Mod.docx", 1)]
         [InlineData("WC-2092", "WC/WC066-Textbox-Before-Ins-Mod.docx", "WC/WC066-Textbox-Before-Ins.docx", 1)]
         [InlineData("WC-2100", "WC/WC067-Textbox-Image.docx", "WC/WC067-Textbox-Image-Mod.docx", 2)]
-        //[InlineData("WC-1000", "", "", 0)]
-        //[InlineData("WC-1000", "", "", 0)]
-        //[InlineData("WC-1000", "", "", 0)]
-        //[InlineData("WC-1000", "", "", 0)]
-        //[InlineData("WC-1000", "", "", 0)]
-        //[InlineData("WC-1000", "", "", 0)]
-
         public void WC003_Compare(string testId, string name1, string name2, int revisionCount)
         {
             var sourceDir = new DirectoryInfo("../../../../TestFiles/");
@@ -641,7 +627,6 @@ namespace OxPt
 
             var before = source1CopiedToDestDocx.Name.Replace(".docx", "");
             var after = source2CopiedToDestDocx.Name.Replace(".docx", "");
-            //var baselineDocxWithRevisionsFi = new FileInfo(Path.Combine(source1Docx.DirectoryName, before + "-COMPARE-" + after + ".docx"));
             var docxWithRevisionsFi = new FileInfo(Path.Combine(thisTestTempDir.FullName, before + "-COMPARE-" + after + ".docx"));
 
             /************************************************************************************************************************/
@@ -673,32 +658,6 @@ namespace OxPt
             var comparedWml = WmlComparer.Compare(source1Wml, source2Wml, settings);
             comparedWml.SaveAs(docxWithRevisionsFi.FullName);
 
-#if false
-            ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            // create batch file to copy newly generated ContentTypeXml and NarrDoc to the TestFiles directory.
-            while (true)
-            {
-                try
-                {
-                    ////////// CODE TO REPEAT UNTIL SUCCESS //////////
-                    var batchFileName = "Copy-Gen-Files-To-TestFiles.bat";
-                    var batchFi = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, batchFileName));
-                    var batch = "";
-                    batch += "copy " + docxWithRevisionsFi.FullName + " " + source1Docx.DirectoryName + Environment.NewLine;
-                    if (batchFi.Exists)
-                        File.AppendAllText(batchFi.FullName, batch);
-                    else
-                        File.WriteAllText(batchFi.FullName, batch);
-                    //////////////////////////////////////////////////
-                    break;
-                }
-                catch (IOException)
-                {
-                    System.Threading.Thread.Sleep(50);
-                }
-            }
-#endif
-
             ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // validate generated document
             var validationErrors = "";
@@ -715,15 +674,11 @@ namespace OxPt
                         var sb = new StringBuilder();
                         foreach (var err in errors)
                         {
-#if true
                             sb.Append("Error" + Environment.NewLine);
                             sb.Append(ind + "ErrorType: " + err.ErrorType.ToString() + Environment.NewLine);
                             sb.Append(ind + "Description: " + err.Description + Environment.NewLine);
                             sb.Append(ind + "Part: " + err.Part.Uri.ToString() + Environment.NewLine);
                             sb.Append(ind + "XPath: " + err.Path.XPath + Environment.NewLine);
-#else
-                        sb.Append("            \"" + err.Description + "\"," + Environment.NewLine);
-#endif
                         }
                         validationErrors = sb.ToString();
                     }
@@ -817,36 +772,11 @@ namespace OxPt
                 Assert.True(false, "Sanity Check #1 failed");
             }
 
-            if (sanityCheck2.Count() != 0)
+            if (sanityCheck2.Count != 0)
             {
                 Assert.True(false, "Sanity Check #2 failed");
             }
         }
-
-#if false
-        [Theory]
-        [InlineData("WC/WC037-Textbox-Before.docx", "WC/WC037-Textbox-After1.docx", 2)]
-        public void WC003_Throws(string name1, string name2, int revisionCount)
-        {
-            FileInfo source1Docx = new FileInfo(Path.Combine(sourceDir.FullName, name1));
-            FileInfo source2Docx = new FileInfo(Path.Combine(sourceDir.FullName, name2));
-
-            var source1CopiedToDestDocx = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, source1Docx.Name));
-            var source2CopiedToDestDocx = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, source2Docx.Name));
-            if (!source1CopiedToDestDocx.Exists)
-                File.Copy(source1Docx.FullName, source1CopiedToDestDocx.FullName);
-            if (!source2CopiedToDestDocx.Exists)
-                File.Copy(source2Docx.FullName, source2CopiedToDestDocx.FullName);
-
-            WmlDocument source1Wml = new WmlDocument(source1CopiedToDestDocx.FullName);
-            WmlDocument source2Wml = new WmlDocument(source2CopiedToDestDocx.FullName);
-            WmlComparerSettings settings = new WmlComparerSettings();
-            Assert.Throws<OpenXmlPowerToolsException>(() =>
-                {
-                    WmlDocument comparedWml = WmlComparer.Compare(source1Wml, source2Wml, settings);
-                });
-        }
-#endif
 
         [Theory]
         [InlineData("WCS-1000", "WC/WC001-Digits.docx")]
@@ -861,8 +791,6 @@ namespace OxPt
         [InlineData("WCS-1090", "WC/WC002-InsertAtEnd.docx")]
         [InlineData("WCS-1100", "WC/WC002-InsertInMiddle.docx")]
         [InlineData("WCS-1110", "WC/WC002-Unmodified.docx")]
-        //[InlineData("WCS-1120", "WC/WC004-Large.docx")]
-        //[InlineData("WCS-1130", "WC/WC004-Large-Mod.docx")]
         [InlineData("WCS-1140", "WC/WC006-Table.docx")]
         [InlineData("WCS-1150", "WC/WC006-Table-Delete-Contests-of-Row.docx")]
         [InlineData("WCS-1160", "WC/WC006-Table-Delete-Row.docx")]
@@ -907,11 +835,6 @@ namespace OxPt
         [InlineData("WCS-1550", "WC/WC021-Math-Before-1.docx")]
         [InlineData("WCS-1560", "WC/WC022-Image-Math-Para-After.docx")]
         [InlineData("WCS-1570", "WC/WC022-Image-Math-Para-Before.docx")]
-        //[InlineData("WCS-1580", "", "")]
-        //[InlineData("WCS-1590", "", "")]
-        //[InlineData("WCS-1600", "", "")]
-        //[InlineData("WCS-1610", "", "")]
-
         public void WC004_Compare_To_Self(string testId, string name)
         {
             var sourceDir = new DirectoryInfo("../../../../TestFiles/");
@@ -1036,15 +959,11 @@ namespace OxPt
                         var sb = new StringBuilder();
                         foreach (var err in errors)
                         {
-#if true
                             sb.Append("Error" + Environment.NewLine);
                             sb.Append(ind + "ErrorType: " + err.ErrorType.ToString() + Environment.NewLine);
                             sb.Append(ind + "Description: " + err.Description + Environment.NewLine);
                             sb.Append(ind + "Part: " + err.Part.Uri.ToString() + Environment.NewLine);
                             sb.Append(ind + "XPath: " + err.Path.XPath + Environment.NewLine);
-#else
-                        sb.Append("            \"" + err.Description + "\"," + Environment.NewLine);
-#endif
                         }
                         var sbs = sb.ToString();
                         Assert.Equal("", sbs);
@@ -1082,15 +1001,11 @@ namespace OxPt
                         var sb = new StringBuilder();
                         foreach (var err in errors)
                         {
-#if true
                             sb.Append("Error" + Environment.NewLine);
                             sb.Append(ind + "ErrorType: " + err.ErrorType.ToString() + Environment.NewLine);
                             sb.Append(ind + "Description: " + err.Description + Environment.NewLine);
                             sb.Append(ind + "Part: " + err.Part.Uri.ToString() + Environment.NewLine);
                             sb.Append(ind + "XPath: " + err.Path.XPath + Environment.NewLine);
-#else
-                        sb.Append("            \"" + err.Description + "\"," + Environment.NewLine);
-#endif
                         }
                         var sbs = sb.ToString();
                         Assert.Equal("", sbs);
@@ -1128,7 +1043,7 @@ namespace OxPt
         };
     }
 
-    public class WordRunner
+    public static class WordRunner
     {
         public static void RunWord(FileInfo executablePath, FileInfo docxPath)
         {

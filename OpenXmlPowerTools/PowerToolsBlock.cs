@@ -1,8 +1,8 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System;
 using DocumentFormat.OpenXml.Packaging;
+using System;
 
 namespace OpenXmlPowerTools
 {
@@ -45,7 +45,10 @@ namespace OpenXmlPowerTools
 
         public PowerToolsBlock(OpenXmlPackage package)
         {
-            if (package == null) throw new ArgumentNullException("package");
+            if (package == null)
+            {
+                throw new ArgumentNullException("package");
+            }
 
             _package = package;
             _package.BeginPowerToolsBlock();
@@ -53,7 +56,10 @@ namespace OpenXmlPowerTools
 
         public void Dispose()
         {
-            if (_package == null) return;
+            if (_package == null)
+            {
+                return;
+            }
 
             _package.EndPowerToolsBlock();
             _package = null;

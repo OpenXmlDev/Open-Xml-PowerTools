@@ -46,12 +46,12 @@ Here is creating a new WmlDocument:
     }
 */
 
+using DocumentFormat.OpenXml.Packaging;
 using System;
 using System.IO;
+using System.IO.Packaging;
 using System.Linq;
 using System.Xml.Linq;
-using System.IO.Packaging;
-using DocumentFormat.OpenXml.Packaging;
 
 namespace OpenXmlPowerTools
 {
@@ -71,7 +71,7 @@ namespace OpenXmlPowerTools
 
         public static OpenXmlPowerToolsDocument FromFileName(string fileName)
         {
-            byte[] bytes = File.ReadAllBytes(fileName);
+            var bytes = File.ReadAllBytes(fileName);
             Type type;
             try
             {
@@ -82,15 +82,26 @@ namespace OpenXmlPowerTools
                 throw new PowerToolsDocumentException("Not an Open XML document.");
             }
             if (type == typeof(WordprocessingDocument))
+            {
                 return new WmlDocument(fileName, bytes);
+            }
+
             if (type == typeof(SpreadsheetDocument))
+            {
                 return new SmlDocument(fileName, bytes);
+            }
+
             if (type == typeof(PresentationDocument))
+            {
                 return new PmlDocument(fileName, bytes);
+            }
+
             if (type == typeof(Package))
             {
-                OpenXmlPowerToolsDocument pkg = new OpenXmlPowerToolsDocument(bytes);
-                pkg.FileName = fileName;
+                var pkg = new OpenXmlPowerToolsDocument(bytes)
+                {
+                    FileName = fileName
+                };
                 return pkg;
             }
             throw new PowerToolsDocumentException("Not an Open XML document.");
@@ -98,13 +109,22 @@ namespace OpenXmlPowerTools
 
         public static OpenXmlPowerToolsDocument FromDocument(OpenXmlPowerToolsDocument doc)
         {
-            Type type = doc.GetDocumentType();
+            var type = doc.GetDocumentType();
             if (type == typeof(WordprocessingDocument))
+            {
                 return new WmlDocument(doc);
+            }
+
             if (type == typeof(SpreadsheetDocument))
+            {
                 return new SmlDocument(doc);
+            }
+
             if (type == typeof(PresentationDocument))
+            {
                 return new PmlDocument(doc);
+            }
+
             return null;    // This should not be possible from a valid OpenXmlPowerToolsDocument object
         }
 
@@ -131,13 +151,13 @@ namespace OpenXmlPowerTools
 
         public OpenXmlPowerToolsDocument(string fileName)
         {
-            this.FileName = fileName;
+            FileName = fileName;
             DocumentByteArray = File.ReadAllBytes(fileName);
         }
 
         public OpenXmlPowerToolsDocument(string fileName, bool convertToTransitional)
         {
-            this.FileName = fileName;
+            FileName = fileName;
 
             if (convertToTransitional)
             {
@@ -146,7 +166,7 @@ namespace OpenXmlPowerTools
             }
             else
             {
-                this.FileName = fileName;
+                FileName = fileName;
                 DocumentByteArray = File.ReadAllBytes(fileName);
             }
         }
@@ -163,12 +183,12 @@ namespace OpenXmlPowerTools
                 throw new PowerToolsDocumentException("Not an Open XML document.");
             }
 
-            using (MemoryStream ms = new MemoryStream())
+            using (var ms = new MemoryStream())
             {
                 ms.Write(tempByteArray, 0, tempByteArray.Length);
                 if (type == typeof(WordprocessingDocument))
                 {
-                    using (WordprocessingDocument sDoc = WordprocessingDocument.Open(ms, true))
+                    using (var sDoc = WordprocessingDocument.Open(ms, true))
                     {
                         // following code forces the SDK to serialize
                         foreach (var part in sDoc.Parts)
@@ -186,7 +206,7 @@ namespace OpenXmlPowerTools
                 }
                 else if (type == typeof(SpreadsheetDocument))
                 {
-                    using (SpreadsheetDocument sDoc = SpreadsheetDocument.Open(ms, true))
+                    using (var sDoc = SpreadsheetDocument.Open(ms, true))
                     {
                         // following code forces the SDK to serialize
                         foreach (var part in sDoc.Parts)
@@ -204,7 +224,7 @@ namespace OpenXmlPowerTools
                 }
                 else if (type == typeof(PresentationDocument))
                 {
-                    using (PresentationDocument sDoc = PresentationDocument.Open(ms, true))
+                    using (var sDoc = PresentationDocument.Open(ms, true))
                     {
                         // following code forces the SDK to serialize
                         foreach (var part in sDoc.Parts)
@@ -220,7 +240,7 @@ namespace OpenXmlPowerTools
                         }
                     }
                 }
-                this.FileName = fileName;
+                FileName = fileName;
                 DocumentByteArray = ms.ToArray();
             }
         }
@@ -229,7 +249,7 @@ namespace OpenXmlPowerTools
         {
             DocumentByteArray = new byte[byteArray.Length];
             Array.Copy(byteArray, DocumentByteArray, byteArray.Length);
-            this.FileName = null;
+            FileName = null;
         }
 
         public OpenXmlPowerToolsDocument(byte[] byteArray, bool convertToTransitional)
@@ -242,7 +262,7 @@ namespace OpenXmlPowerTools
             {
                 DocumentByteArray = new byte[byteArray.Length];
                 Array.Copy(byteArray, DocumentByteArray, byteArray.Length);
-                this.FileName = null;
+                FileName = null;
             }
         }
 
@@ -270,8 +290,11 @@ namespace OpenXmlPowerTools
         public string GetName()
         {
             if (FileName == null)
+            {
                 return "Unnamed Document";
-            FileInfo file = new FileInfo(FileName);
+            }
+
+            var file = new FileInfo(FileName);
             return file.Name;
         }
 
@@ -282,9 +305,12 @@ namespace OpenXmlPowerTools
 
         public void Save()
         {
-            if (this.FileName == null)
+            if (FileName == null)
+            {
                 throw new InvalidOperationException("Attempting to Save a document that has no file name.  Use SaveAs instead.");
-            File.WriteAllBytes(this.FileName, DocumentByteArray);
+            }
+
+            File.WriteAllBytes(FileName, DocumentByteArray);
         }
 
         public void WriteByteArray(Stream stream)
@@ -299,17 +325,20 @@ namespace OpenXmlPowerTools
 
         private static Type GetDocumentType(byte[] bytes)
         {
-            using (MemoryStream stream = new MemoryStream())
+            using (var stream = new MemoryStream())
             {
                 stream.Write(bytes, 0, bytes.Length);
-                using (Package package = Package.Open(stream, FileMode.Open))
+                using (var package = Package.Open(stream, FileMode.Open))
                 {
-                    PackageRelationship relationship = package.GetRelationshipsByType("http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument").FirstOrDefault();
+                    var relationship = package.GetRelationshipsByType("http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument").FirstOrDefault();
                     if (relationship == null)
+                    {
                         relationship = package.GetRelationshipsByType("http://purl.oclc.org/ooxml/officeDocument/relationships/officeDocument").FirstOrDefault();
+                    }
+
                     if (relationship != null)
                     {
-                        PackagePart part = package.GetPart(PackUriHelper.ResolvePartUri(relationship.SourceUri, relationship.TargetUri));
+                        var part = package.GetPart(PackUriHelper.ResolvePartUri(relationship.SourceUri, relationship.TargetUri));
                         switch (part.ContentType)
                         {
                             case "application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml":
@@ -339,8 +368,8 @@ namespace OpenXmlPowerTools
 
         public static void SavePartAs(OpenXmlPart part, string filePath)
         {
-            Stream partStream = part.GetStream(FileMode.Open, FileAccess.Read);
-            byte[] partContent = new byte[partStream.Length];
+            var partStream = part.GetStream(FileMode.Open, FileAccess.Read);
+            var partContent = new byte[partStream.Length];
             partStream.Read(partContent, 0, (int)partStream.Length);
 
             File.WriteAllBytes(filePath, partContent);
@@ -353,28 +382,36 @@ namespace OpenXmlPowerTools
             : base(original)
         {
             if (GetDocumentType() != typeof(WordprocessingDocument))
+            {
                 throw new PowerToolsDocumentException("Not a Wordprocessing document.");
+            }
         }
 
         public WmlDocument(OpenXmlPowerToolsDocument original, bool convertToTransitional)
             : base(original, convertToTransitional)
         {
             if (GetDocumentType() != typeof(WordprocessingDocument))
+            {
                 throw new PowerToolsDocumentException("Not a Wordprocessing document.");
+            }
         }
 
         public WmlDocument(string fileName)
             : base(fileName)
         {
             if (GetDocumentType() != typeof(WordprocessingDocument))
+            {
                 throw new PowerToolsDocumentException("Not a Wordprocessing document.");
+            }
         }
 
         public WmlDocument(string fileName, bool convertToTransitional)
             : base(fileName, convertToTransitional)
         {
             if (GetDocumentType() != typeof(WordprocessingDocument))
+            {
                 throw new PowerToolsDocumentException("Not a Wordprocessing document.");
+            }
         }
 
         public WmlDocument(string fileName, byte[] byteArray)
@@ -382,7 +419,9 @@ namespace OpenXmlPowerTools
         {
             FileName = fileName;
             if (GetDocumentType() != typeof(WordprocessingDocument))
+            {
                 throw new PowerToolsDocumentException("Not a Wordprocessing document.");
+            }
         }
 
         public WmlDocument(string fileName, byte[] byteArray, bool convertToTransitional)
@@ -390,7 +429,9 @@ namespace OpenXmlPowerTools
         {
             FileName = fileName;
             if (GetDocumentType() != typeof(WordprocessingDocument))
+            {
                 throw new PowerToolsDocumentException("Not a Wordprocessing document.");
+            }
         }
 
         public WmlDocument(string fileName, MemoryStream memStream)
@@ -410,28 +451,36 @@ namespace OpenXmlPowerTools
             : base(original)
         {
             if (GetDocumentType() != typeof(SpreadsheetDocument))
+            {
                 throw new PowerToolsDocumentException("Not a Spreadsheet document.");
+            }
         }
 
         public SmlDocument(OpenXmlPowerToolsDocument original, bool convertToTransitional)
             : base(original, convertToTransitional)
         {
             if (GetDocumentType() != typeof(SpreadsheetDocument))
+            {
                 throw new PowerToolsDocumentException("Not a Spreadsheet document.");
+            }
         }
 
         public SmlDocument(string fileName)
             : base(fileName)
         {
             if (GetDocumentType() != typeof(SpreadsheetDocument))
+            {
                 throw new PowerToolsDocumentException("Not a Spreadsheet document.");
+            }
         }
 
         public SmlDocument(string fileName, bool convertToTransitional)
             : base(fileName, convertToTransitional)
         {
             if (GetDocumentType() != typeof(SpreadsheetDocument))
+            {
                 throw new PowerToolsDocumentException("Not a Spreadsheet document.");
+            }
         }
 
         public SmlDocument(string fileName, byte[] byteArray)
@@ -439,7 +488,9 @@ namespace OpenXmlPowerTools
         {
             FileName = fileName;
             if (GetDocumentType() != typeof(SpreadsheetDocument))
+            {
                 throw new PowerToolsDocumentException("Not a Spreadsheet document.");
+            }
         }
 
         public SmlDocument(string fileName, byte[] byteArray, bool convertToTransitional)
@@ -447,7 +498,9 @@ namespace OpenXmlPowerTools
         {
             FileName = fileName;
             if (GetDocumentType() != typeof(SpreadsheetDocument))
+            {
                 throw new PowerToolsDocumentException("Not a Spreadsheet document.");
+            }
         }
 
         public SmlDocument(string fileName, MemoryStream memStream)
@@ -467,28 +520,36 @@ namespace OpenXmlPowerTools
             : base(original)
         {
             if (GetDocumentType() != typeof(PresentationDocument))
+            {
                 throw new PowerToolsDocumentException("Not a Presentation document.");
+            }
         }
 
         public PmlDocument(OpenXmlPowerToolsDocument original, bool convertToTransitional)
             : base(original, convertToTransitional)
         {
             if (GetDocumentType() != typeof(PresentationDocument))
+            {
                 throw new PowerToolsDocumentException("Not a Presentation document.");
+            }
         }
 
         public PmlDocument(string fileName)
             : base(fileName)
         {
             if (GetDocumentType() != typeof(PresentationDocument))
+            {
                 throw new PowerToolsDocumentException("Not a Presentation document.");
+            }
         }
 
         public PmlDocument(string fileName, bool convertToTransitional)
             : base(fileName, convertToTransitional)
         {
             if (GetDocumentType() != typeof(PresentationDocument))
+            {
                 throw new PowerToolsDocumentException("Not a Presentation document.");
+            }
         }
 
         public PmlDocument(string fileName, byte[] byteArray)
@@ -496,7 +557,9 @@ namespace OpenXmlPowerTools
         {
             FileName = fileName;
             if (GetDocumentType() != typeof(PresentationDocument))
+            {
                 throw new PowerToolsDocumentException("Not a Presentation document.");
+            }
         }
 
         public PmlDocument(string fileName, byte[] byteArray, bool convertToTransitional)
@@ -504,7 +567,9 @@ namespace OpenXmlPowerTools
         {
             FileName = fileName;
             if (GetDocumentType() != typeof(PresentationDocument))
+            {
                 throw new PowerToolsDocumentException("Not a Presentation document.");
+            }
         }
 
         public PmlDocument(string fileName, MemoryStream memStream)
@@ -520,7 +585,7 @@ namespace OpenXmlPowerTools
 
     public class OpenXmlMemoryStreamDocument : IDisposable
     {
-        private OpenXmlPowerToolsDocument Document;
+        private readonly OpenXmlPowerToolsDocument Document;
         private MemoryStream DocMemoryStream;
         private Package DocPackage;
 
@@ -554,8 +619,8 @@ namespace OpenXmlPowerTools
 
         public static OpenXmlMemoryStreamDocument CreateWordprocessingDocument()
         {
-            MemoryStream stream = new MemoryStream();
-            using (WordprocessingDocument doc = WordprocessingDocument.Create(stream, DocumentFormat.OpenXml.WordprocessingDocumentType.Document))
+            var stream = new MemoryStream();
+            using (var doc = WordprocessingDocument.Create(stream, DocumentFormat.OpenXml.WordprocessingDocumentType.Document))
             {
                 doc.AddMainDocumentPart();
                 doc.MainDocumentPart.PutXDocument(new XDocument(
@@ -569,8 +634,8 @@ namespace OpenXmlPowerTools
         }
         public static OpenXmlMemoryStreamDocument CreateSpreadsheetDocument()
         {
-            MemoryStream stream = new MemoryStream();
-            using (SpreadsheetDocument doc = SpreadsheetDocument.Create(stream, DocumentFormat.OpenXml.SpreadsheetDocumentType.Workbook))
+            var stream = new MemoryStream();
+            using (var doc = SpreadsheetDocument.Create(stream, DocumentFormat.OpenXml.SpreadsheetDocumentType.Workbook))
             {
                 doc.AddWorkbookPart();
                 XNamespace ns = "http://schemas.openxmlformats.org/spreadsheetml/2006/main";
@@ -586,8 +651,8 @@ namespace OpenXmlPowerTools
         }
         public static OpenXmlMemoryStreamDocument CreatePresentationDocument()
         {
-            MemoryStream stream = new MemoryStream();
-            using (PresentationDocument doc = PresentationDocument.Create(stream, DocumentFormat.OpenXml.PresentationDocumentType.Presentation))
+            var stream = new MemoryStream();
+            using (var doc = PresentationDocument.Create(stream, DocumentFormat.OpenXml.PresentationDocumentType.Presentation))
             {
                 doc.AddPresentationPart();
                 XNamespace ns = "http://schemas.openxmlformats.org/presentationml/2006/main";
@@ -608,8 +673,8 @@ namespace OpenXmlPowerTools
 
         public static OpenXmlMemoryStreamDocument CreatePackage()
         {
-            MemoryStream stream = new MemoryStream();
-            Package package = Package.Open(stream, FileMode.Create);
+            var stream = new MemoryStream();
+            var package = Package.Open(stream, FileMode.Create);
             package.Close();
             return new OpenXmlMemoryStreamDocument(stream);
         }
@@ -624,7 +689,10 @@ namespace OpenXmlPowerTools
             try
             {
                 if (GetDocumentType() != typeof(WordprocessingDocument))
+                {
                     throw new PowerToolsDocumentException("Not a Wordprocessing document.");
+                }
+
                 return WordprocessingDocument.Open(DocPackage);
             }
             catch (Exception e)
@@ -637,7 +705,10 @@ namespace OpenXmlPowerTools
             try
             {
                 if (GetDocumentType() != typeof(SpreadsheetDocument))
+                {
                     throw new PowerToolsDocumentException("Not a Spreadsheet document.");
+                }
+
                 return SpreadsheetDocument.Open(DocPackage);
             }
             catch (Exception e)
@@ -651,7 +722,10 @@ namespace OpenXmlPowerTools
             try
             {
                 if (GetDocumentType() != typeof(PresentationDocument))
+                {
                     throw new PowerToolsDocumentException("Not a Presentation document.");
+                }
+
                 return PresentationDocument.Open(DocPackage);
             }
             catch (Exception e)
@@ -662,12 +736,18 @@ namespace OpenXmlPowerTools
 
         public Type GetDocumentType()
         {
-            PackageRelationship relationship = DocPackage.GetRelationshipsByType("http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument").FirstOrDefault();
+            var relationship = DocPackage.GetRelationshipsByType("http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument").FirstOrDefault();
             if (relationship == null)
+            {
                 relationship = DocPackage.GetRelationshipsByType("http://purl.oclc.org/ooxml/officeDocument/relationships/officeDocument").FirstOrDefault();
+            }
+
             if (relationship == null)
+            {
                 throw new PowerToolsDocumentException("Not an Open XML Document.");
-            PackagePart part = DocPackage.GetPart(PackUriHelper.ResolvePartUri(relationship.SourceUri, relationship.TargetUri));
+            }
+
+            var part = DocPackage.GetPart(PackUriHelper.ResolvePartUri(relationship.SourceUri, relationship.TargetUri));
             switch (part.ContentType)
             {
                 case "application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml":
@@ -734,7 +814,7 @@ namespace OpenXmlPowerTools
             Dispose(false);
         }
 
-        private void Dispose(Boolean disposing)
+        private void Dispose(bool disposing)
         {
             if (disposing)
             {
@@ -748,7 +828,10 @@ namespace OpenXmlPowerTools
                 }
             }
             if (DocPackage == null && DocMemoryStream == null)
+            {
                 return;
+            }
+
             DocPackage = null;
             DocMemoryStream = null;
             GC.SuppressFinalize(this);

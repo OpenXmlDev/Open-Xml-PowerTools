@@ -1,18 +1,17 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using DocumentFormat.OpenXml.Packaging;
+using OpenXmlPowerTools;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Xml.Linq;
-using DocumentFormat.OpenXml.Packaging;
-using OpenXmlPowerTools;
 
-class FieldRetriever01
+internal class FieldRetriever01
 {
-    static void Main(string[] args)
+    private static void Main(string[] args)
     {
         var n = DateTime.Now;
         var tempDi = new DirectoryInfo(string.Format("ExampleOutput-{0:00}-{1:00}-{2:00}-{3:00}{4:00}{5:00}", n.Year - 2000, n.Month, n.Day, n.Hour, n.Minute, n.Second));
@@ -21,15 +20,15 @@ class FieldRetriever01
         var docWithFooter = new FileInfo("../../DocWithFooter1.docx");
         var scrubbedDocument = new FileInfo(Path.Combine(tempDi.FullName, "DocWithFooterScrubbed1.docx"));
         File.Copy(docWithFooter.FullName, scrubbedDocument.FullName);
-        using (WordprocessingDocument wDoc = WordprocessingDocument.Open(scrubbedDocument.FullName, true))
+        using (var wDoc = WordprocessingDocument.Open(scrubbedDocument.FullName, true))
         {
-            ScrubFooter(wDoc, new [] { "PAGE" });
+            ScrubFooter(wDoc, new[] { "PAGE" });
         }
 
         docWithFooter = new FileInfo("../../DocWithFooter2.docx");
         scrubbedDocument = new FileInfo(Path.Combine(tempDi.FullName, "DocWithFooterScrubbed2.docx"));
         File.Copy(docWithFooter.FullName, scrubbedDocument.FullName);
-        using (WordprocessingDocument wDoc = WordprocessingDocument.Open(scrubbedDocument.FullName, true))
+        using (var wDoc = WordprocessingDocument.Open(scrubbedDocument.FullName, true))
         {
             ScrubFooter(wDoc, new[] { "PAGE", "DATE" });
         }
@@ -40,7 +39,7 @@ class FieldRetriever01
         foreach (var footer in wDoc.MainDocumentPart.FooterParts)
         {
             FieldRetriever.AnnotateWithFieldInfo(footer);
-            XElement root = footer.GetXDocument().Root;
+            var root = footer.GetXDocument().Root;
             RemoveAllButSpecificFields(root, fieldTypesToKeep);
             footer.PutXDocument();
         }
@@ -49,18 +48,24 @@ class FieldRetriever01
     private static void RemoveAllButSpecificFields(XElement root, string[] fieldTypesToRetain)
     {
         var cachedAnnotationInformation = root.Annotation<Dictionary<int, List<XElement>>>();
-        List<XElement> runsToKeep = new List<XElement>();
+        var runsToKeep = new List<XElement>();
         foreach (var item in cachedAnnotationInformation)
         {
             var runsForField = root
                 .Descendants()
                 .Where(d =>
                 {
-                    Stack<FieldRetriever.FieldElementTypeInfo> stack = d.Annotation<Stack<FieldRetriever.FieldElementTypeInfo>>();
+                    var stack = d.Annotation<Stack<FieldRetriever.FieldElementTypeInfo>>();
                     if (stack == null)
+                    {
                         return false;
+                    }
+
                     if (stack.Any(stackItem => stackItem.Id == item.Key))
+                    {
                         return true;
+                    }
+
                     return false;
                 })
                 .Select(d => d.AncestorsAndSelf(W.r).FirstOrDefault())
@@ -68,7 +73,9 @@ class FieldRetriever01
                 .Select(g => g.First())
                 .ToList();
             foreach (var r in runsForField)
+            {
                 runsToKeep.Add(r);
+            }
         }
         foreach (var paragraph in root.Descendants(W.p).ToList())
         {

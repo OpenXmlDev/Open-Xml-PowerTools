@@ -7,9 +7,9 @@ using System.Xml.Linq;
 
 namespace OpenXmlPowerTools
 {
-    class Program
+    internal class Program
     {
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
             if (args.Length != 3)
             {
@@ -17,21 +17,21 @@ namespace OpenXmlPowerTools
                 Environment.Exit(0);
             }
 
-            FileInfo templateDoc = new FileInfo(args[0]);
+            var templateDoc = new FileInfo(args[0]);
             if (!templateDoc.Exists)
             {
                 Console.WriteLine("Error, {0} does not exist.", args[0]);
                 PrintUsage();
                 Environment.Exit(0);
             }
-            FileInfo dataFile = new FileInfo(args[1]);
+            var dataFile = new FileInfo(args[1]);
             if (!dataFile.Exists)
             {
                 Console.WriteLine("Error, {0} does not exist.", args[1]);
                 PrintUsage();
                 Environment.Exit(0);
             }
-            FileInfo assembledDoc = new FileInfo(args[2]);
+            var assembledDoc = new FileInfo(args[2]);
             if (assembledDoc.Exists)
             {
                 Console.WriteLine("Error, {0} exists.", args[2]);
@@ -39,10 +39,9 @@ namespace OpenXmlPowerTools
                 Environment.Exit(0);
             }
 
-            WmlDocument wmlDoc = new WmlDocument(templateDoc.FullName);
-            XElement data = XElement.Load(dataFile.FullName);
-            bool templateError;
-            WmlDocument wmlAssembledDoc = DocumentAssembler.AssembleDocument(wmlDoc, data, out templateError);
+            var wmlDoc = new WmlDocument(templateDoc.FullName);
+            var data = XElement.Load(dataFile.FullName);
+            var wmlAssembledDoc = DocumentAssembler.AssembleDocument(wmlDoc, data, out var templateError);
             if (templateError)
             {
                 Console.WriteLine("Errors in template.");
@@ -52,7 +51,7 @@ namespace OpenXmlPowerTools
             wmlAssembledDoc.SaveAs(assembledDoc.FullName);
         }
 
-        static void PrintUsage()
+        private static void PrintUsage()
         {
             Console.WriteLine("Usage: DocumentAssembler TemplateDocument.docx Data.xml AssembledDoc.docx");
         }

@@ -1,17 +1,12 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using OpenXmlPowerTools;
 using System;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
 using System.Xml;
 using System.Xml.Linq;
-using DocumentFormat.OpenXml.Packaging;
-using DocumentFormat.OpenXml.Validation;
-using OpenXmlPowerTools;
-using OpenXmlPowerTools.HtmlToWml;
 
 /*******************************************************************************************
  * HtmlToWmlConverter expects the HTML to be passed as an XElement, i.e. as XML.  While the HTML test files that
@@ -19,22 +14,22 @@ using OpenXmlPowerTools.HtmlToWml;
  * The best solution is to use the HtmlAgilityPack, which can parse HTML and save as XML.  The HtmlAgilityPack
  * is licensed under the Ms-PL (same as Open-Xml-PowerTools) so it is convenient to include it in your solution,
  * and thereby you can convert HTML to XML that can be processed by the HtmlToWmlConverter.
- * 
+ *
  * A convenient way to get the DLL that has been checked out with HtmlToWmlConverter is to clone the repo at
  * https://github.com/EricWhiteDev/HtmlAgilityPack
- * 
+ *
  * That repo contains only the DLL that has been checked out with HtmlToWmlConverter.
- * 
+ *
  * Of course, you can also get the HtmlAgilityPack source and compile it to get the DLL.  You can find it at
  * http://codeplex.com/HtmlAgilityPack
- * 
+ *
  * We don't include the HtmlAgilityPack in Open-Xml-PowerTools, to simplify installation.  The example files
  * in this module do not require HtmlAgilityPack to run.
 *******************************************************************************************/
 
-class HtmlToWmlConverterExample
+internal class HtmlToWmlConverterExample
 {
-    static void Main(string[] args)
+    private static void Main(string[] args)
     {
         var n = DateTime.Now;
         var tempDi = new DirectoryInfo(string.Format("ExampleOutput-{0:00}-{1:00}-{2:00}-{3:00}{4:00}{5:00}", n.Year - 2000, n.Month, n.Day, n.Hour, n.Minute, n.Second));
@@ -48,7 +43,7 @@ class HtmlToWmlConverterExample
 
     private static void ConvertToDocx(string file, string destinationDir)
     {
-        bool s_ProduceAnnotatedHtml = true;
+        var s_ProduceAnnotatedHtml = true;
 
         var sourceHtmlFi = new FileInfo(file);
         Console.WriteLine("Converting " + sourceHtmlFi.Name);
@@ -58,17 +53,17 @@ class HtmlToWmlConverterExample
         var destDocxFi = new FileInfo(Path.Combine(destinationDir, sourceHtmlFi.Name.Replace(".html", "-3-ConvertedByHtmlToWml.docx")));
         var annotatedHtmlFi = new FileInfo(Path.Combine(destinationDir, sourceHtmlFi.Name.Replace(".html", "-4-Annotated.txt")));
 
-        XElement html = HtmlToWmlReadAsXElement.ReadAsXElement(sourceHtmlFi);
-        
-        string usedAuthorCss = HtmlToWmlConverter.CleanUpCss((string)html.Descendants().FirstOrDefault(d => d.Name.LocalName.ToLower() == "style"));
+        var html = HtmlToWmlReadAsXElement.ReadAsXElement(sourceHtmlFi);
+
+        var usedAuthorCss = HtmlToWmlConverter.CleanUpCss((string)html.Descendants().FirstOrDefault(d => d.Name.LocalName.ToLower() == "style"));
         File.WriteAllText(destCssFi.FullName, usedAuthorCss);
 
-        HtmlToWmlConverterSettings settings = HtmlToWmlConverter.GetDefaultSettings();
+        var settings = HtmlToWmlConverter.GetDefaultSettings();
         // image references in HTML files contain the path to the subdir that contains the images, so base URI is the name of the directory
         // that contains the HTML files
         settings.BaseUriForImages = sourceHtmlFi.DirectoryName;
 
-        WmlDocument doc = HtmlToWmlConverter.ConvertHtmlToWml(defaultCss, usedAuthorCss, userCss, html, settings, null, s_ProduceAnnotatedHtml ? annotatedHtmlFi.FullName : null);
+        var doc = HtmlToWmlConverter.ConvertHtmlToWml(defaultCss, usedAuthorCss, userCss, html, settings, null, s_ProduceAnnotatedHtml ? annotatedHtmlFi.FullName : null);
         doc.SaveAs(destDocxFi.FullName);
     }
 
@@ -76,7 +71,7 @@ class HtmlToWmlConverterExample
     {
         public static XElement ReadAsXElement(FileInfo sourceHtmlFi)
         {
-            string htmlString = File.ReadAllText(sourceHtmlFi.FullName);
+            var htmlString = File.ReadAllText(sourceHtmlFi.FullName);
             XElement html = null;
             try
             {
@@ -116,7 +111,7 @@ class HtmlToWmlConverterExample
 
         private static object ConvertToNoNamespace(XNode node)
         {
-            XElement element = node as XElement;
+            var element = node as XElement;
             if (element != null)
             {
                 return new XElement(element.Name.LocalName,
@@ -127,7 +122,7 @@ class HtmlToWmlConverterExample
         }
     }
 
-    static string defaultCss =
+    private static readonly string defaultCss =
         @"html, address,
 blockquote,
 body, dd, div,
@@ -201,5 +196,5 @@ BDO[DIR=""rtl""] { direction: rtl; unicode-bidi: bidi-override }
 
 ";
 
-    static string userCss = @"";
+    private static readonly string userCss = @"";
 }

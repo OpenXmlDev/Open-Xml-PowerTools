@@ -1,10 +1,6 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Xml.Linq;
 using DocumentFormat.OpenXml.Packaging;
 
 namespace OpenXmlPowerTools
@@ -13,9 +9,9 @@ namespace OpenXmlPowerTools
     {
         public static WmlDocument AcceptRevisions(WmlDocument document)
         {
-            using (OpenXmlMemoryStreamDocument streamDoc = new OpenXmlMemoryStreamDocument(document))
+            using (var streamDoc = new OpenXmlMemoryStreamDocument(document))
             {
-                using (WordprocessingDocument doc = streamDoc.GetWordprocessingDocument())
+                using (var doc = streamDoc.GetWordprocessingDocument())
                 {
                     AcceptRevisions(doc);
                 }

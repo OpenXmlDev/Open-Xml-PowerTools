@@ -1,15 +1,15 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using DocumentFormat.OpenXml.Packaging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Linq;
-using DocumentFormat.OpenXml.Packaging;
 
 namespace OpenXmlPowerTools
 {
-    class ReverseRevisionsInfo
+    internal class ReverseRevisionsInfo
     {
         public bool InInsert;
     }
@@ -18,9 +18,9 @@ namespace OpenXmlPowerTools
     {
         public static WmlDocument RejectRevisions(WmlDocument document)
         {
-            using (OpenXmlMemoryStreamDocument streamDoc = new OpenXmlMemoryStreamDocument(document))
+            using (var streamDoc = new OpenXmlMemoryStreamDocument(document))
             {
-                using (WordprocessingDocument doc = streamDoc.GetWordprocessingDocument())
+                using (var doc = streamDoc.GetWordprocessingDocument())
                 {
                     RejectRevisions(doc);
                 }
@@ -32,28 +32,56 @@ namespace OpenXmlPowerTools
         {
             RejectRevisionsForPart(doc.MainDocumentPart);
             foreach (var part in doc.MainDocumentPart.HeaderParts)
+            {
                 RejectRevisionsForPart(part);
+            }
+
             foreach (var part in doc.MainDocumentPart.FooterParts)
+            {
                 RejectRevisionsForPart(part);
+            }
+
             if (doc.MainDocumentPart.EndnotesPart != null)
+            {
                 RejectRevisionsForPart(doc.MainDocumentPart.EndnotesPart);
+            }
+
             if (doc.MainDocumentPart.FootnotesPart != null)
+            {
                 RejectRevisionsForPart(doc.MainDocumentPart.FootnotesPart);
+            }
+
             if (doc.MainDocumentPart.StyleDefinitionsPart != null)
+            {
                 RejectRevisionsForStylesDefinitionPart(doc.MainDocumentPart.StyleDefinitionsPart);
+            }
 
             ReverseRevisions(doc);
             AcceptRevisionsForPart(doc.MainDocumentPart);
             foreach (var part in doc.MainDocumentPart.HeaderParts)
+            {
                 AcceptRevisionsForPart(part);
+            }
+
             foreach (var part in doc.MainDocumentPart.FooterParts)
+            {
                 AcceptRevisionsForPart(part);
+            }
+
             if (doc.MainDocumentPart.EndnotesPart != null)
+            {
                 AcceptRevisionsForPart(doc.MainDocumentPart.EndnotesPart);
+            }
+
             if (doc.MainDocumentPart.FootnotesPart != null)
+            {
                 AcceptRevisionsForPart(doc.MainDocumentPart.FootnotesPart);
+            }
+
             if (doc.MainDocumentPart.StyleDefinitionsPart != null)
+            {
                 AcceptRevisionsForStylesDefinitionPart(doc.MainDocumentPart.StyleDefinitionsPart);
+            }
         }
 
         // Reject revisions for those revisions that can't be rejected by inverting the sense of the revision, and then accepting.
@@ -94,7 +122,9 @@ namespace OpenXmlPowerTools
     </w:p>
 #endif
                 if (element.Name == W.numPr && element.Element(W.ins) != null)
+                {
                     return null;
+                }
 
                 ////////////////////////////////////////////////////////////////////////////////////////
                 // Paragraph properties change
@@ -130,7 +160,10 @@ namespace OpenXmlPowerTools
                 {
                     var pPr = element.Element(W.pPrChange).Element(W.pPr);
                     if (pPr == null)
+                    {
                         pPr = new XElement(W.pPr);
+                    }
+
                     var new_pPr = new XElement(pPr); // clone it
                     new_pPr.Add(RejectRevisionsForPartTransform(element.Element(W.rPr)));
                     return RejectRevisionsForPartTransform(new_pPr);
@@ -188,7 +221,9 @@ namespace OpenXmlPowerTools
     </w:p>
 #endif
                 if (element.Name == W.numberingChange)
+                {
                     return null;
+                }
 
                 ////////////////////////////////////////////////////////////////////////////////////
                 // Change w:sectPr
@@ -367,11 +402,15 @@ namespace OpenXmlPowerTools
 
                 if (element.Name == W.cellDel ||
                     element.Name == W.cellMerge)
+                {
                     return null;
+                }
 
                 if (element.Name == W.tc &&
                     element.Elements(W.tcPr).Elements(W.cellIns).Any())
+                {
                     return null;
+                }
 
                 return new XElement(element.Name,
                     element.Attributes(),
@@ -390,7 +429,7 @@ namespace OpenXmlPowerTools
 
         private static object RejectRevisionsForStylesTransform(XNode node)
         {
-            XElement element = node as XElement;
+            var element = node as XElement;
             if (element != null)
             {
                 if (element.Name == W.pPr &&
@@ -414,26 +453,37 @@ namespace OpenXmlPowerTools
             return node;
         }
 
-
-
         private static void ReverseRevisions(WordprocessingDocument doc)
         {
             ReverseRevisionsForPart(doc.MainDocumentPart);
             foreach (var part in doc.MainDocumentPart.HeaderParts)
+            {
                 ReverseRevisionsForPart(part);
+            }
+
             foreach (var part in doc.MainDocumentPart.FooterParts)
+            {
                 ReverseRevisionsForPart(part);
+            }
+
             if (doc.MainDocumentPart.EndnotesPart != null)
+            {
                 ReverseRevisionsForPart(doc.MainDocumentPart.EndnotesPart);
+            }
+
             if (doc.MainDocumentPart.FootnotesPart != null)
+            {
                 ReverseRevisionsForPart(doc.MainDocumentPart.FootnotesPart);
+            }
         }
 
         private static void ReverseRevisionsForPart(OpenXmlPart part)
         {
             var xDoc = part.GetXDocument();
-            ReverseRevisionsInfo rri = new ReverseRevisionsInfo();
-            rri.InInsert = false;
+            var rri = new ReverseRevisionsInfo
+            {
+                InInsert = false
+            };
             var newRoot = (XElement)ReverseRevisionsTransform(xDoc.Root, rri);
             newRoot = (XElement)RemoveRsidTransform(newRoot);
             xDoc.Root.ReplaceWith(newRoot);
@@ -442,11 +492,14 @@ namespace OpenXmlPowerTools
 
         private static object RemoveRsidTransform(XNode node)
         {
-            XElement element = node as XElement;
+            var element = node as XElement;
             if (element != null)
             {
                 if (element.Name == W.rsid)
+                {
                     return null;
+                }
+
                 return new XElement(element.Name,
                     element.Attributes().Where(a => a.Name != W.rsid &&
                         a.Name != W.rsidDel &&
@@ -463,7 +516,7 @@ namespace OpenXmlPowerTools
 
         private static object MergeAdjacentTablesTransform(XNode node)
         {
-            XElement element = node as XElement;
+            var element = node as XElement;
             if (element != null)
             {
                 if (element.Element(W.tbl) != null)
@@ -473,7 +526,10 @@ namespace OpenXmlPowerTools
                         .GroupAdjacent(e =>
                         {
                             if (e.Name != W.tbl)
+                            {
                                 return "";
+                            }
+
                             var bidiVisual = e.Elements(W.tblPr).Elements(W.bidiVisual).FirstOrDefault();
                             var bidiVisString = bidiVisual == null ? "" : "|bidiVisual";
                             var key = "tbl" + bidiVisString;
@@ -484,7 +540,10 @@ namespace OpenXmlPowerTools
                         .Select(g =>
                         {
                             if (g.Key == "" || g.Count() == 1)
+                            {
                                 return (object)g;
+                            }
+
                             var rolled = g
                                 .Select(tbl =>
                                 {
@@ -507,9 +566,14 @@ namespace OpenXmlPowerTools
                                     {
                                         int v;
                                         if (i == 0)
+                                        {
                                             v = r;
+                                        }
                                         else
+                                        {
                                             v = r - rolled[i - 1];
+                                        }
+
                                         return new XElement(W.gridCol,
                                             new XAttribute(W._w, v));
                                     })),
@@ -519,30 +583,36 @@ namespace OpenXmlPowerTools
                                     var newRows = fixedWidthsTbl.Elements(W.tr)
                                         .Select(tr =>
                                         {
-                                            XElement newRow = new XElement(W.tr,
+                                            var newRow = new XElement(W.tr,
                                                 tr.Attributes(),
                                                 tr.Elements().Where(e => e.Name != W.tc),
                                                 tr.Elements(W.tc).Select(tc =>
                                                 {
-                                                    int? w = (int?)tc
+                                                    var w = (int?)tc
                                                         .Elements(W.tcPr)
                                                         .Elements(W.tcW)
                                                         .Attributes(W._w)
                                                         .FirstOrDefault();
                                                     if (w == null)
+                                                    {
                                                         return tc;
+                                                    }
+
                                                     var cellsToLeft = tc
                                                         .Parent
                                                         .Elements(W.tc)
                                                         .TakeWhile(btc => btc != tc);
-                                                    int widthToLeft = 0;
+                                                    var widthToLeft = 0;
                                                     if (cellsToLeft.Any())
+                                                    {
                                                         widthToLeft = cellsToLeft
                                                         .Elements(W.tcPr)
                                                         .Elements(W.tcW)
                                                         .Attributes(W._w)
                                                         .Select(wi => (int)wi)
                                                         .Sum();
+                                                    }
+
                                                     var rolledPairs = new[] { new
                                                         {
                                                             GridValue = 0,
@@ -573,7 +643,10 @@ namespace OpenXmlPowerTools
                                                             tcPr.Elements().OrderBy(e =>
                                                             {
                                                                 if (Order_tcPr.ContainsKey(e.Name))
+                                                                {
                                                                     return Order_tcPr[e.Name];
+                                                                }
+
                                                                 return 999;
                                                             }));
                                                         var newCell = new XElement(W.tc,
@@ -608,8 +681,7 @@ namespace OpenXmlPowerTools
             {
                 var parent = element
                     .Ancestors()
-                    .Where(a => a.Name != W.sdtContent && a.Name != W.sdt && a.Name != W.smartTag)
-                    .FirstOrDefault();
+                    .FirstOrDefault(a => a.Name != W.sdtContent && a.Name != W.sdt && a.Name != W.smartTag);
 
                 ////////////////////////////////////////////////////////////////////////////////////
                 // Deleted run
@@ -710,7 +782,6 @@ namespace OpenXmlPowerTools
                 if (element.Name == W.ins &&
                     parent.Name == W.p)
                 {
-                    var newRri = new ReverseRevisionsInfo() { InInsert = true };
                     return new XElement(W.del,
                         element.Nodes().Select(n => ReverseRevisionsTransform(n, rri)));
                 }
@@ -1256,9 +1327,9 @@ namespace OpenXmlPowerTools
 
         public static WmlDocument AcceptRevisions(WmlDocument document)
         {
-            using (OpenXmlMemoryStreamDocument streamDoc = new OpenXmlMemoryStreamDocument(document))
+            using (var streamDoc = new OpenXmlMemoryStreamDocument(document))
             {
-                using (WordprocessingDocument doc = streamDoc.GetWordprocessingDocument())
+                using (var doc = streamDoc.GetWordprocessingDocument())
                 {
                     AcceptRevisions(doc);
                 }
@@ -1270,15 +1341,29 @@ namespace OpenXmlPowerTools
         {
             AcceptRevisionsForPart(doc.MainDocumentPart);
             foreach (var part in doc.MainDocumentPart.HeaderParts)
+            {
                 AcceptRevisionsForPart(part);
+            }
+
             foreach (var part in doc.MainDocumentPart.FooterParts)
+            {
                 AcceptRevisionsForPart(part);
+            }
+
             if (doc.MainDocumentPart.EndnotesPart != null)
+            {
                 AcceptRevisionsForPart(doc.MainDocumentPart.EndnotesPart);
+            }
+
             if (doc.MainDocumentPart.FootnotesPart != null)
+            {
                 AcceptRevisionsForPart(doc.MainDocumentPart.FootnotesPart);
+            }
+
             if (doc.MainDocumentPart.StyleDefinitionsPart != null)
+            {
                 AcceptRevisionsForStylesDefinitionPart(doc.MainDocumentPart.StyleDefinitionsPart);
+            }
         }
 
         private static void AcceptRevisionsForStylesDefinitionPart(StyleDefinitionsPart stylesDefinitionsPart)
@@ -1291,11 +1376,14 @@ namespace OpenXmlPowerTools
 
         private static object AcceptRevisionsForStylesTransform(XNode node)
         {
-            XElement element = node as XElement;
+            var element = node as XElement;
             if (element != null)
             {
                 if (element.Name == W.pPrChange || element.Name == W.rPrChange)
+                {
                     return null;
+                }
+
                 return new XElement(element.Name,
                     element.Attributes(),
                     element.Nodes().Select(n => AcceptRevisionsForStylesTransform(n)));
@@ -1305,7 +1393,7 @@ namespace OpenXmlPowerTools
 
         public static void AcceptRevisionsForPart(OpenXmlPart part)
         {
-            XElement documentElement = part.GetXDocument().Root;
+            var documentElement = part.GetXDocument().Root;
             documentElement = (XElement)RemoveRsidTransform(documentElement);
             documentElement = (XElement)FixUpDeletedOrInsertedFieldCodesTransform(documentElement);
             var containsMoveFromMoveTo = documentElement.Descendants(W.moveFrom).Any();
@@ -1316,14 +1404,17 @@ namespace OpenXmlPowerTools
             documentElement = AcceptDeletedAndMovedFromContentControls(documentElement);
             documentElement = AcceptDeletedAndMoveFromParagraphMarks(documentElement);
             if (containsMoveFromMoveTo)
+            {
                 documentElement = (XElement)RemoveRowsLeftEmptyByMoveFrom(documentElement);
+            }
+
             documentElement = (XElement)AcceptAllOtherRevisionsTransform(documentElement);
             documentElement = (XElement)AcceptDeletedCellsTransform(documentElement);
             documentElement = (XElement)MergeAdjacentTablesTransform(documentElement);
             documentElement = (XElement)AddEmptyParagraphToAnyEmptyCells(documentElement);
             documentElement.Descendants().Attributes().Where(a => a.Name == PT.UniqueId || a.Name == PT.RunIds).Remove();
             documentElement.Descendants(W.numPr).Where(np => !np.HasElements).Remove();
-            XDocument newXDoc = new XDocument(documentElement);
+            var newXDoc = new XDocument(documentElement);
             part.PutXDocument(newXDoc);
         }
 
@@ -1333,9 +1424,8 @@ namespace OpenXmlPowerTools
         // case.
         public static XElement AcceptRevisionsForElement(XElement element)
         {
-            XElement rElement = element;
+            var rElement = element;
             rElement = (XElement)RemoveRsidTransform(rElement);
-            var containsMoveFromMoveTo = rElement.Descendants(W.moveFrom).Any();
             rElement = (XElement)AcceptMoveFromMoveToTransform(rElement);
             rElement = (XElement)AcceptAllOtherRevisionsTransform(rElement);
             rElement.Descendants().Attributes().Where(a => a.Name == PT.UniqueId || a.Name == PT.RunIds).Remove();
@@ -1361,11 +1451,20 @@ namespace OpenXmlPowerTools
                     var groupedParaContentsKey = element.Elements().Select(e =>
                     {
                         if (e.Name == W.del && e.Elements(W.r).Elements(W.fldChar).Any())
+                        {
                             return 2;
+                        }
+
                         if (e.Name == W.ins && e.Elements(W.r).Elements(W.fldChar).Any())
+                        {
                             return 3;
+                        }
+
                         if (e.Name == W.r && e.Element(W.instrText) != null)
+                        {
                             return 4;
+                        }
+
                         return 1;
                     });
 
@@ -1375,20 +1474,23 @@ namespace OpenXmlPowerTools
 
                     var gLen = grouped.Length;
 
-                    //if (gLen != 1)
-                    //    Console.WriteLine();
-
                     var newParaContents = grouped
                         .Select((g, i) =>
                         {
                             if (g.Key == 1 || g.Key == 2 || g.Key == 3)
+                            {
                                 return (object)g.Select(gc => FixUpDeletedOrInsertedFieldCodesTransform(gc.Ele));
+                            }
+
                             if (g.Key == 4)
                             {
                                 if (i == 0 || i == gLen - 1)
+                                {
                                     return g.Select(gc => FixUpDeletedOrInsertedFieldCodesTransform(gc.Ele));
-                                if (grouped[i-1].Key == 2 &&
-                                    grouped[i+1].Key == 2)
+                                }
+
+                                if (grouped[i - 1].Key == 2 &&
+                                    grouped[i + 1].Key == 2)
                                 {
                                     return new XElement(W.del,
                                         g.Select(gc => TransformInstrTextToDelInstrText(gc.Ele)));
@@ -1426,9 +1528,11 @@ namespace OpenXmlPowerTools
             if (element != null)
             {
                 if (element.Name == W.instrText)
+                {
                     return new XElement(W.delInstrText,
                         element.Attributes(),
                         element.Nodes());
+                }
 
                 return new XElement(element.Name,
                     element.Attributes(),
@@ -1439,14 +1543,16 @@ namespace OpenXmlPowerTools
 
         private static object AddEmptyParagraphToAnyEmptyCells(XNode node)
         {
-            XElement element = node as XElement;
+            var element = node as XElement;
             if (element != null)
             {
-                if (element.Name == W.tc && !element.Elements().Where(e => e.Name != W.tcPr).Any())
+                if (element.Name == W.tc && !element.Elements().Any(e => e.Name != W.tcPr))
+                {
                     return new XElement(W.tc,
                         element.Attributes(),
                         element.Elements(),
                         new XElement(W.p));
+                }
 
                 return new XElement(element.Name,
                     element.Attributes(),
@@ -1455,7 +1561,7 @@ namespace OpenXmlPowerTools
             return node;
         }
 
-        private static Dictionary<XName, int> Order_tcPr = new Dictionary<XName, int>
+        private static readonly Dictionary<XName, int> Order_tcPr = new Dictionary<XName, int>
         {
             { W.cnfStyle, 10 },
             { W.tcW, 20 },
@@ -1479,20 +1585,22 @@ namespace OpenXmlPowerTools
             var gridLines = tbl.Elements(W.tblGrid).Elements(W.gridCol).Attributes(W._w).Select(w => (int)w).ToArray();
             foreach (var tr in newTbl.Elements(W.tr))
             {
-                int used = 0;
-                int lastUsed = -1;
+                var used = 0;
+                var lastUsed = -1;
                 foreach (var tc in tr.Elements(W.tc))
                 {
                     var tcW = tc.Elements(W.tcPr).Elements(W.tcW).Attributes(W._w).FirstOrDefault();
                     if (tcW != null)
                     {
-                        int? gridSpan = (int?)tc.Elements(W.tcPr).Elements(W.gridSpan).Attributes(W.val).FirstOrDefault();
+                        var gridSpan = (int?)tc.Elements(W.tcPr).Elements(W.gridSpan).Attributes(W.val).FirstOrDefault();
 
                         if (gridSpan == null)
+                        {
                             gridSpan = 1;
-                        
+                        }
+
                         var z = Math.Min(gridLines.Length - 1, lastUsed + (int)gridSpan);
-                        int w = gridLines.Where((g, i) => i > lastUsed && i <= z).Sum();
+                        var w = gridLines.Where((g, i) => i > lastUsed && i <= z).Sum();
                         tcW.Value = w.ToString();
 
                         lastUsed += (int)gridSpan;
@@ -1505,13 +1613,19 @@ namespace OpenXmlPowerTools
 
         private static object AcceptMoveFromMoveToTransform(XNode node)
         {
-            XElement element = node as XElement;
+            var element = node as XElement;
             if (element != null)
             {
                 if (element.Name == W.moveTo)
+                {
                     return element.Nodes().Select(n => AcceptMoveFromMoveToTransform(n));
+                }
+
                 if (element.Name == W.moveFrom)
+                {
                     return null;
+                }
+
                 return new XElement(element.Name,
                     element.Attributes(),
                     element.Nodes().Select(n => AcceptMoveFromMoveToTransform(n)));
@@ -1521,28 +1635,26 @@ namespace OpenXmlPowerTools
 
         private static XElement AcceptMoveFromRanges(XElement document)
         {
-            string wordProcessingNamespacePrefix = document.GetPrefixOfNamespace(W.w);
-
             // The following lists contain the elements that are between start/end elements.
-            List<XElement> startElementTagsInMoveFromRange = new List<XElement>();
-            List<XElement> endElementTagsInMoveFromRange = new List<XElement>();
+            var startElementTagsInMoveFromRange = new List<XElement>();
+            var endElementTagsInMoveFromRange = new List<XElement>();
 
             // Following are the elements that *may* be in a range that has both start and end
             // elements.
-            Dictionary<string, PotentialInRangeElements> potentialDeletedElements =
+            var potentialDeletedElements =
                 new Dictionary<string, PotentialInRangeElements>();
 
             foreach (var tag in DescendantAndSelfTags(document))
             {
                 if (tag.Element.Name == W.moveFromRangeStart)
                 {
-                    string id = tag.Element.Attribute(W.id).Value;
+                    var id = tag.Element.Attribute(W.id).Value;
                     potentialDeletedElements.Add(id, new PotentialInRangeElements());
                     continue;
                 }
                 if (tag.Element.Name == W.moveFromRangeEnd)
                 {
-                    string id = tag.Element.Attribute(W.id).Value;
+                    var id = tag.Element.Attribute(W.id).Value;
                     if (potentialDeletedElements.ContainsKey(id))
                     {
                         startElementTagsInMoveFromRange.AddRange(
@@ -1560,7 +1672,10 @@ namespace OpenXmlPowerTools
                          tag.Element.Name != W.moveFromRangeEnd))
                     {
                         foreach (var id in potentialDeletedElements)
+                        {
                             id.Value.PotentialStartElementTagsInRange.Add(tag.Element);
+                        }
+
                         continue;
                     }
                     if (tag.TagType == TagTypeEnum.EmptyElement &&
@@ -1579,7 +1694,10 @@ namespace OpenXmlPowerTools
                         tag.Element.Name != W.moveFromRangeEnd))
                     {
                         foreach (var id in potentialDeletedElements)
+                        {
                             id.Value.PotentialEndElementTagsInRange.Add(tag.Element);
+                        }
+
                         continue;
                     }
                 }
@@ -1587,9 +1705,12 @@ namespace OpenXmlPowerTools
             var moveFromElementsToDelete = startElementTagsInMoveFromRange
                 .Intersect(endElementTagsInMoveFromRange)
                 .ToArray();
-            if (moveFromElementsToDelete.Count() > 0)
+            if (moveFromElementsToDelete.Any())
+            {
                 return (XElement)AcceptMoveFromRangesTransform(
                     document, moveFromElementsToDelete);
+            }
+
             return document;
         }
 
@@ -1601,7 +1722,7 @@ namespace OpenXmlPowerTools
 
         private static object AcceptParagraphEndTagsInMoveFromTransform(XNode node)
         {
-            XElement element = node as XElement;
+            var element = node as XElement;
             if (element != null)
             {
                 if (W.BlockLevelContentContainers.Contains(element.Name))
@@ -1610,25 +1731,28 @@ namespace OpenXmlPowerTools
                         .Elements()
                         .GroupAdjacent(c =>
                         {
-                            BlockContentInfo pi = c.GetParagraphInfo();
+                            var pi = c.GetParagraphInfo();
                             if (pi.ThisBlockContentElement != null)
                             {
-                                bool paragraphMarkIsInMoveFromRange =
+                                var paragraphMarkIsInMoveFromRange =
                                     pi.ThisBlockContentElement.Elements(W.moveFromRangeStart).Any() &&
                                     !pi.ThisBlockContentElement.Elements(W.moveFromRangeEnd).Any();
                                 if (paragraphMarkIsInMoveFromRange)
+                                {
                                     return MoveFromCollectionType.ParagraphEndTagInMoveFromRange;
+                                }
                             }
-                            XElement previousContentElement = c.ContentElementsBeforeSelf()
-                                .Where(e => e.GetParagraphInfo().ThisBlockContentElement != null)
-                                .FirstOrDefault();
+                            var previousContentElement = c.ContentElementsBeforeSelf()
+                                .FirstOrDefault(e => e.GetParagraphInfo().ThisBlockContentElement != null);
                             if (previousContentElement != null)
                             {
-                                BlockContentInfo pi2 = previousContentElement.GetParagraphInfo();
+                                var pi2 = previousContentElement.GetParagraphInfo();
                                 if (c.Name == W.p &&
                                     pi2.ThisBlockContentElement.Elements(W.moveFromRangeStart).Any() &&
                                     !pi2.ThisBlockContentElement.Elements(W.moveFromRangeEnd).Any())
+                                {
                                     return MoveFromCollectionType.ParagraphEndTagInMoveFromRange;
+                                }
                             }
                             return MoveFromCollectionType.Other;
                         })
@@ -1636,15 +1760,17 @@ namespace OpenXmlPowerTools
 
                     // If there is only one group, and it's key is MoveFromCollectionType.Other
                     // then there is nothing to do.
-                    if (groupedBodyChildren.Count() == 1 &&
+                    if (groupedBodyChildren.Count == 1 &&
                         groupedBodyChildren.First().Key == MoveFromCollectionType.Other)
                     {
-                        XElement newElement = new XElement(element.Name,
+                        var newElement = new XElement(element.Name,
                             element.Attributes(),
                             groupedBodyChildren.Select(g =>
                             {
                                 if (g.Key == MoveFromCollectionType.Other)
-                                    return (object)g;
+                                {
+                                    return g;
+                                }
 
                                 // This is a transform that produces the first element in the
                                 // collection, except that the paragraph in the descendents is
@@ -1657,10 +1783,12 @@ namespace OpenXmlPowerTools
                         return newElement;
                     }
                     else
+                    {
                         return new XElement(element.Name,
                             element.Attributes(),
                             element.Nodes().Select(n =>
                                 AcceptParagraphEndTagsInMoveFromTransform(n)));
+                    }
                 }
                 return new XElement(element.Name,
                     element.Attributes(),
@@ -1671,23 +1799,25 @@ namespace OpenXmlPowerTools
 
         private static object AcceptAllOtherRevisionsTransform(XNode node)
         {
-            XElement element = node as XElement;
+            var element = node as XElement;
             if (element != null)
             {
-                /// Accept inserted text, inserted paragraph marks, etc.
-                /// Collapse all w:ins elements.
+                // Accept inserted text, inserted paragraph marks, etc.
+                // Collapse all w:ins elements.
 
                 if (element.Name == W.ins)
+                {
                     return element
                         .Nodes()
                         .Select(n => AcceptAllOtherRevisionsTransform(n));
+                }
 
-                /// Remove all of the following elements.  These elements are processed in:
-                ///   AcceptDeletedAndMovedFromContentControls
-                ///   AcceptMoveFromMoveToTransform
-                ///   AcceptDeletedAndMoveFromParagraphMarksTransform
-                ///   AcceptParagraphEndTagsInMoveFromTransform
-                ///   AcceptMoveFromRanges
+                // Remove all of the following elements.  These elements are processed in:
+                //   AcceptDeletedAndMovedFromContentControls
+                //   AcceptMoveFromMoveToTransform
+                //   AcceptDeletedAndMoveFromParagraphMarksTransform
+                //   AcceptParagraphEndTagsInMoveFromTransform
+                //   AcceptMoveFromRanges
 
                 if (element.Name == W.customXmlDelRangeStart ||
                     element.Name == W.customXmlDelRangeEnd ||
@@ -1701,20 +1831,22 @@ namespace OpenXmlPowerTools
                     element.Name == W.moveFromRangeEnd ||
                     element.Name == W.moveToRangeStart ||
                     element.Name == W.moveToRangeEnd)
+                {
                     return null;
+                }
 
-                /// Accept revisions in formatting on paragraphs.
-                /// Accept revisions in formatting on runs.
-                /// Accept revisions for applied styles to a table.
-                /// Accept revisions for grid revisions to a table.
-                /// Accept revisions for column properties.
-                /// Accept revisions for row properties.
-                /// Accept revisions for table level property exceptions.
-                /// Accept revisions for section properties.
-                /// Accept numbering revision in fields.
-                /// Accept deleted field code text.
-                /// Accept deleted literal text.
-                /// Accept inserted cell.
+                // Accept revisions in formatting on paragraphs.
+                // Accept revisions in formatting on runs.
+                // Accept revisions for applied styles to a table.
+                // Accept revisions for grid revisions to a table.
+                // Accept revisions for column properties.
+                // Accept revisions for row properties.
+                // Accept revisions for table level property exceptions.
+                // Accept revisions for section properties.
+                // Accept numbering revision in fields.
+                // Accept deleted field code text.
+                // Accept deleted literal text.
+                // Accept inserted cell.
 
                 if (element.Name == W.pPrChange ||
                     element.Name == W.rPrChange ||
@@ -1728,26 +1860,34 @@ namespace OpenXmlPowerTools
                     element.Name == W.delInstrText ||
                     element.Name == W.delText ||
                     element.Name == W.cellIns)
+                {
                     return null;
+                }
 
                 // Accept revisions for deleted math control character.
                 // Match m:f/m:fPr/m:ctrlPr/w:del, remove m:f.
 
                 if (element.Name == M.f &&
                     element.Elements(M.fPr).Elements(M.ctrlPr).Elements(W.del).Any())
+                {
                     return null;
+                }
 
                 // Accept revisions for deleted rows in tables.
                 // Match w:tr/w:trPr/w:del, remove w:tr.
 
                 if (element.Name == W.tr &&
                     element.Elements(W.trPr).Elements(W.del).Any())
+                {
                     return null;
+                }
 
                 // Accept deleted text in paragraphs.
 
                 if (element.Name == W.del)
+                {
                     return null;
+                }
 
                 // Accept revisions for vertically merged cells.
                 //   cellMerge with a parent of tcPr, with attribute w:vMerge="rest" transformed
@@ -1758,13 +1898,18 @@ namespace OpenXmlPowerTools
                 if (element.Name == W.cellMerge &&
                     element.Parent.Name == W.tcPr &&
                     (string)element.Attribute(W.vMerge) == "rest")
+                {
                     return new XElement(W.vMerge,
                         new XAttribute(W.val, "restart"));
+                }
+
                 if (element.Name == W.cellMerge &&
                     element.Parent.Name == W.tcPr &&
                     (string)element.Attribute(W.vMerge) == "cont")
+                {
                     return new XElement(W.vMerge,
                         new XAttribute(W.val, "continue"));
+                }
 
                 // Otherwise do identity clone.
                 return new XElement(element.Name,
@@ -1776,11 +1921,14 @@ namespace OpenXmlPowerTools
 
         private static object CollapseParagraphTransform(XNode node)
         {
-            XElement element = node as XElement;
+            var element = node as XElement;
             if (element != null)
             {
                 if (element.Name == W.p)
+                {
                     return element.Elements().Where(e => e.Name != W.pPr);
+                }
+
                 return new XElement(element.Name,
                     element.Attributes(),
                     element.Nodes().Select(n => CollapseParagraphTransform(n)));
@@ -1814,16 +1962,21 @@ namespace OpenXmlPowerTools
             // It contains the same information as the ParagraphInfo annotation on the first
             //   paragraph.
             if (contentContainer.Annotation<BlockContentInfo>() != null)
+            {
                 return;
-            XElement firstContentElement = contentContainer
+            }
+
+            var firstContentElement = contentContainer
                 .Elements()
                 .DescendantsAndSelf()
                 .FirstOrDefault(e => e.Name == W.p || e.Name == W.tbl);
             if (firstContentElement == null)
+            {
                 return;
+            }
 
             // Add the annotation on the contentContainer.
-            BlockContentInfo currentContentInfo = new BlockContentInfo()
+            var currentContentInfo = new BlockContentInfo()
             {
                 PreviousBlockContentElement = null,
                 ThisBlockContentElement = firstContentElement,
@@ -1836,7 +1989,7 @@ namespace OpenXmlPowerTools
                 currentContentInfo.ThisBlockContentElement.AddAnnotation(currentContentInfo);
                 // Find next sibling content element.
                 XElement nextContentElement = null;
-                XElement current = currentContentInfo.ThisBlockContentElement;
+                var current = currentContentInfo.ThisBlockContentElement;
                 while (true)
                 {
                     nextContentElement = current
@@ -1851,7 +2004,9 @@ namespace OpenXmlPowerTools
                     current = current.Parent;
                     // When we've backed up the tree to the contentContainer, we're done.
                     if (current == contentContainer)
+                    {
                         return;
+                    }
                 }
                 currentContentInfo = new BlockContentInfo()
                 {
@@ -1864,18 +2019,24 @@ namespace OpenXmlPowerTools
 
         private static IEnumerable<BlockContentInfo> IterateBlockContentElements(XElement element)
         {
-            XElement current = element.Elements().FirstOrDefault();
+            var current = element.Elements().FirstOrDefault();
             if (current == null)
+            {
                 yield break;
+            }
+
             AnnotateBlockContentElements(element);
-            BlockContentInfo currentBlockContentInfo = element.Annotation<BlockContentInfo>();
+            var currentBlockContentInfo = element.Annotation<BlockContentInfo>();
             if (currentBlockContentInfo != null)
             {
                 while (true)
                 {
                     yield return currentBlockContentInfo;
                     if (currentBlockContentInfo.NextBlockContentElement == null)
+                    {
                         yield break;
+                    }
+
                     currentBlockContentInfo = currentBlockContentInfo.NextBlockContentElement.Annotation<BlockContentInfo>();
                 }
             }
@@ -1883,30 +2044,28 @@ namespace OpenXmlPowerTools
 
         public static class PT
         {
-            public static XNamespace pt = "http://www.codeplex.com/PowerTools/2009/RevisionAccepter";
-            public static XName UniqueId = pt + "UniqueId";
-            public static XName RunIds = pt + "RunIds";
+            public static readonly XNamespace pt = "http://www.codeplex.com/PowerTools/2009/RevisionAccepter";
+            public static readonly XName UniqueId = pt + "UniqueId";
+            public static readonly XName RunIds = pt + "RunIds";
         }
 
         private static void AnnotateRunElementsWithId(XElement element)
         {
-            int runId = 0;
-            foreach (XElement e in element.Descendants().Where(e => e.Name == W.r))
+            var runId = 0;
+            foreach (var e in element.Descendants().Where(e => e.Name == W.r))
             {
                 if (e.Name == W.r)
+                {
                     e.Add(new XAttribute(PT.UniqueId, runId++));
+                }
             }
         }
 
         private static void AnnotateContentControlsWithRunIds(XElement element)
         {
-            int sdtId = 0;
-            foreach (XElement e in element.Descendants(W.sdt))
+            var sdtId = 0;
+            foreach (var e in element.Descendants(W.sdt))
             {
-                // old version
-                //e.Add(new XAttribute(PT.RunIds,
-                //    e.Descendants(W.r).Select(r => r.Attribute(PT.UniqueId).Value).StringConcatenate(s => s + ",").Trim(',')),
-                //    new XAttribute(PT.UniqueId, sdtId++));
                 e.Add(new XAttribute(PT.RunIds,
                     e.DescendantsTrimmed(W.txbxContent)
                      .Where(d => d.Name == W.r)
@@ -1945,13 +2104,20 @@ namespace OpenXmlPowerTools
                 foreach (var run in runsInNewDocument)
                 {
                     if (runAncestorIntersection == null)
+                    {
                         runAncestorIntersection = run.Ancestors().ToList();
+                    }
                     else
+                    {
                         runAncestorIntersection = run.Ancestors().Intersect(runAncestorIntersection).ToList();
+                    }
                 }
                 if (runAncestorIntersection == null)
+                {
                     continue;
-                XElement commonAncestor = runAncestorIntersection.InDocumentOrder().Last();
+                }
+
+                var commonAncestor = runAncestorIntersection.InDocumentOrder().Last();
                 // find child of common ancestor that contains first run
                 // find child of common ancestor that contains last run
                 // create new common ancestor:
@@ -1969,33 +2135,24 @@ namespace OpenXmlPowerTools
                         .Any(z => z.Name == W.r &&
                              z.Attribute(PT.UniqueId).Value == runsInNewDocument.Last().Attribute(PT.UniqueId).Value));
 
-                /// If the list of runs for the content control is exactly the list of runs for the paragraph, then
-                /// create the content control surrounding the paragraph, not surrounding the runs.
+                // If the list of runs for the content control is exactly the list of runs for the paragraph, then
+                // create the content control surrounding the paragraph, not surrounding the runs.
 
                 if (commonAncestor.Name == W.p &&
                     commonAncestor.Elements()
-                        .Where(e => e.Name != W.pPr &&
-                            e.Name != W.commentRangeStart &&
-                            e.Name != W.commentRangeEnd)
-                        .FirstOrDefault() == firstRunChild &&
+                        .FirstOrDefault(e => e.Name != W.pPr && e.Name != W.commentRangeStart && e.Name != W.commentRangeEnd) == firstRunChild &&
                     commonAncestor.Elements()
-                        .Where(e => e.Name != W.pPr &&
-                            e.Name != W.commentRangeStart &&
-                            e.Name != W.commentRangeEnd)
-                        .LastOrDefault() == lastRunChild)
+                        .LastOrDefault(e => e.Name != W.pPr && e.Name != W.commentRangeStart && e.Name != W.commentRangeEnd) == lastRunChild)
                 {
-                    // replace commonAncestor with content control containing commonAncestor
-                    XElement newContentControl = new XElement(contentControl.Name,
-                        contentControl.Attributes(),
-                        contentControl.Elements().Where(e => e.Name != W.sdtContent),
-                        new XElement(W.sdtContent, commonAncestor));
-
-                    XElement newContentControlOrdered = new XElement(contentControl.Name,
+                    var newContentControlOrdered = new XElement(contentControl.Name,
                         contentControl.Attributes(),
                         contentControl.Elements().OrderBy(e =>
                         {
                             if (Order_sdt.ContainsKey(e.Name))
+                            {
                                 return Order_sdt[e.Name];
+                            }
+
                             return 999;
                         }));
 
@@ -2003,16 +2160,16 @@ namespace OpenXmlPowerTools
                     continue;
                 }
 
-                List<XElement> elementsBeforeRange = commonAncestor
+                var elementsBeforeRange = commonAncestor
                     .Elements()
                     .TakeWhile(e => e != firstRunChild)
                     .ToList();
-                List<XElement> elementsInRange = commonAncestor
+                var elementsInRange = commonAncestor
                     .Elements()
                     .SkipWhile(e => e != firstRunChild)
                     .TakeWhile(e => e != lastRunChild.ElementsAfterSelf().FirstOrDefault())
                     .ToList();
-                List<XElement> elementsAfterRange = commonAncestor
+                var elementsAfterRange = commonAncestor
                     .Elements()
                     .SkipWhile(e => e != lastRunChild.ElementsAfterSelf().FirstOrDefault())
                     .ToList();
@@ -2020,17 +2177,20 @@ namespace OpenXmlPowerTools
                 // detatch from current parent
                 commonAncestor.Elements().Remove();
 
-                XElement newContentControl2 = new XElement(contentControl.Name,
+                var newContentControl2 = new XElement(contentControl.Name,
                     contentControl.Attributes(),
                     contentControl.Elements().Where(e => e.Name != W.sdtContent),
                     new XElement(W.sdtContent, elementsInRange));
 
-                XElement newContentControlOrdered2 = new XElement(newContentControl2.Name,
+                var newContentControlOrdered2 = new XElement(newContentControl2.Name,
                     newContentControl2.Attributes(),
                     newContentControl2.Elements().OrderBy(e =>
                     {
                         if (Order_sdt.ContainsKey(e.Name))
+                        {
                             return Order_sdt[e.Name];
+                        }
+
                         return 999;
                     }));
 
@@ -2042,7 +2202,7 @@ namespace OpenXmlPowerTools
             return newDocument;
         }
 
-        private static Dictionary<XName, int> Order_sdt = new Dictionary<XName, int>
+        private static readonly Dictionary<XName, int> Order_sdt = new Dictionary<XName, int>
         {
             { W.sdtPr, 10 },
             { W.sdtEndPr, 20 },
@@ -2055,18 +2215,18 @@ namespace OpenXmlPowerTools
         {
             AnnotateRunElementsWithId(element);
             AnnotateContentControlsWithRunIds(element);
-            XElement newElement = (XElement)AcceptDeletedAndMoveFromParagraphMarksTransform(element);
-            XElement withBlockLevelContentControls = AddBlockLevelContentControls(newElement, element);
+            var newElement = (XElement)AcceptDeletedAndMoveFromParagraphMarksTransform(element);
+            var withBlockLevelContentControls = AddBlockLevelContentControls(newElement, element);
             return withBlockLevelContentControls;
         }
 
-        enum GroupingType
+        private enum GroupingType
         {
             DeletedRange,
             Other,
         };
 
-        class GroupingInfo
+        private class GroupingInfo
         {
             public GroupingType GroupingType;
             public int GroupingKey;
@@ -2074,19 +2234,21 @@ namespace OpenXmlPowerTools
 
         private static object AcceptDeletedAndMoveFromParagraphMarksTransform(XNode node)
         {
-            XElement element = node as XElement;
+            var element = node as XElement;
             if (element != null)
             {
                 if (W.BlockLevelContentContainers.Contains(element.Name))
                 {
                     XElement bodySectPr = null;
                     if (element.Name == W.body)
+                    {
                         bodySectPr = element.Element(W.sectPr);
+                    }
 
-                    int currentKey = 0;
+                    var currentKey = 0;
                     var deletedParagraphGroupingInfo = new List<GroupingInfo>();
 
-                    int state = 0; // 0 = in non deleted paragraphs
+                    var state = 0; // 0 = in non deleted paragraphs
                                    // 1 = in deleted paragraph
                                    // 2 - paragraph following deleted paragraphs
 
@@ -2094,7 +2256,7 @@ namespace OpenXmlPowerTools
                     {
                         if (c.ThisBlockContentElement.Name == W.p)
                         {
-                            bool paragraphMarkIsDeletedOrMovedFrom = c
+                            var paragraphMarkIsDeletedOrMovedFrom = c
                                 .ThisBlockContentElement
                                 .Elements(W.pPr)
                                 .Elements(W.rPr)
@@ -2104,19 +2266,10 @@ namespace OpenXmlPowerTools
 
                             if (paragraphMarkIsDeletedOrMovedFrom)
                             {
-                                if (state == 0)
+                                if (state == 0 || state == 2)
                                 {
                                     state = 1;
                                     currentKey += 1;
-                                    deletedParagraphGroupingInfo.Add(
-                                        new GroupingInfo() {
-                                            GroupingType = GroupingType.DeletedRange,
-                                            GroupingKey = currentKey,
-                                        });
-                                    continue;
-                                }
-                                else if (state == 1)
-                                {
                                     deletedParagraphGroupingInfo.Add(
                                         new GroupingInfo()
                                         {
@@ -2125,10 +2278,8 @@ namespace OpenXmlPowerTools
                                         });
                                     continue;
                                 }
-                                else if (state == 2)
+                                else if (state == 1)
                                 {
-                                    state = 1;
-                                    currentKey += 1;
                                     deletedParagraphGroupingInfo.Add(
                                         new GroupingInfo()
                                         {
@@ -2209,14 +2360,14 @@ namespace OpenXmlPowerTools
                         .GroupAdjacent(z => z.GroupingInfo.GroupingKey);
 
                     // Create a new block level content container.
-                    XElement newBlockLevelContentContainer = new XElement(element.Name,
+                    var newBlockLevelContentContainer = new XElement(element.Name,
                         element.Attributes(),
                         element.Elements().Where(e => e.Name == W.tcPr),
                         groupedParagraphs.Select((g, i) =>
                         {
                             if (g.First().GroupingInfo.GroupingType == GroupingType.DeletedRange)
                             {
-                                XElement newParagraph = new XElement(W.p,
+                                var newParagraph = new XElement(W.p,
 #if false
                                     // previously, this was set to g.First()
                                     // however, this caused test [InlineData("RP/RP052-Deleted-Para-Mark.docx")] to lose paragraph numbering for a paragraph that we did not want to loose it for.
@@ -2234,7 +2385,9 @@ namespace OpenXmlPowerTools
                                     g.Last().BlockLevelContent.ThisBlockContentElement.Elements(W.pPr).Elements(W.rPr).Elements(W.del).Any() &&
                                     (g.Last().BlockLevelContent.NextBlockContentElement == null ||
                                      g.Last().BlockLevelContent.NextBlockContentElement.Name == W.tbl))
+                                {
                                     return null;
+                                }
 
                                 return (object)newParagraph;
                             }
@@ -2275,18 +2428,24 @@ namespace OpenXmlPowerTools
                 {
                     var b = IsRunContent(ce.Name);
                     if (b != null)
+                    {
                         return (bool)b;
+                    }
+
                     throw new Exception("Internal error 20, found element " + ce.Name.ToString());
                 });
             if (contentElements.Any())
+            {
                 return false;
+            }
+
             return true;
         }
 
         // dir, bdo, sdt, ins, moveTo, smartTag
         private static object CollapseTransform(XNode node)
         {
-            XElement element = node as XElement;
+            var element = node as XElement;
             if (element != null)
             {
                 if (element.Name == W.dir ||
@@ -2294,13 +2453,19 @@ namespace OpenXmlPowerTools
                     element.Name == W.ins ||
                     element.Name == W.moveTo ||
                     element.Name == W.smartTag)
+                {
                     return element.Elements();
+                }
 
                 if (element.Name == W.sdt)
+                {
                     return element.Elements(W.sdtContent).Elements();
+                }
 
                 if (element.Name == W.pPr)
+                {
                     return null;
+                }
 
                 return new XElement(element.Name,
                     element.Attributes(),
@@ -2320,7 +2485,9 @@ namespace OpenXmlPowerTools
                 ceName == W.smartTag ||
                 ceName == W.smartTagPr ||
                 ceName.Namespace == M.m)
+            {
                 return true;
+            }
 
             // not content
             // bookmarkStart, bookmarkEnd, commentRangeStart, commentRangeEnd, del, moveFrom, proofErr
@@ -2345,7 +2512,9 @@ namespace OpenXmlPowerTools
                 ceName == W.permStart ||
                 ceName == W.permEnd ||
                 ceName == W.proofErr)
+            {
                 return false;
+            }
 
             return null;
         }
@@ -2357,13 +2526,13 @@ namespace OpenXmlPowerTools
                 Element = element,
                 TagType = TagTypeEnum.Element
             };
-            Stack<IEnumerator<XElement>> iteratorStack = new Stack<IEnumerator<XElement>>();
+            var iteratorStack = new Stack<IEnumerator<XElement>>();
             iteratorStack.Push(element.Elements().GetEnumerator());
             while (iteratorStack.Count > 0)
             {
                 if (iteratorStack.Peek().MoveNext())
                 {
-                    XElement currentXElement = iteratorStack.Peek().Current;
+                    var currentXElement = iteratorStack.Peek().Current;
                     if (!currentXElement.Nodes().Any())
                     {
                         yield return new Tag()
@@ -2383,11 +2552,13 @@ namespace OpenXmlPowerTools
                 }
                 iteratorStack.Pop();
                 if (iteratorStack.Count > 0)
+                {
                     yield return new Tag()
                     {
                         Element = iteratorStack.Peek().Current,
                         TagType = TagTypeEnum.EndElement
                     };
+                }
             }
             yield return new Tag
             {
@@ -2425,17 +2596,23 @@ namespace OpenXmlPowerTools
             XElement[] contentControlElementsToCollapse,
             XElement[] moveFromElementsToDelete)
         {
-            XElement element = node as XElement;
+            var element = node as XElement;
             if (element != null)
             {
                 if (element.Name == W.sdt && contentControlElementsToCollapse.Contains(element))
+                {
                     return element
                         .Element(W.sdtContent)
                         .Nodes()
                         .Select(n => AcceptDeletedAndMovedFromContentControlsTransform(
                             n, contentControlElementsToCollapse, moveFromElementsToDelete));
+                }
+
                 if (moveFromElementsToDelete.Contains(element))
+                {
                     return null;
+                }
+
                 return new XElement(element.Name,
                     element.Attributes(),
                     element.Nodes().Select(n => AcceptDeletedAndMovedFromContentControlsTransform(
@@ -2446,32 +2623,30 @@ namespace OpenXmlPowerTools
 
         private static XElement AcceptDeletedAndMovedFromContentControls(XElement documentRootElement)
         {
-            string wordProcessingNamespacePrefix = documentRootElement.GetPrefixOfNamespace(W.w);
-
             // The following lists contain the elements that are between start/end elements.
-            List<XElement> startElementTagsInDeleteRange = new List<XElement>();
-            List<XElement> endElementTagsInDeleteRange = new List<XElement>();
-            List<XElement> startElementTagsInMoveFromRange = new List<XElement>();
-            List<XElement> endElementTagsInMoveFromRange = new List<XElement>();
+            var startElementTagsInDeleteRange = new List<XElement>();
+            var endElementTagsInDeleteRange = new List<XElement>();
+            var startElementTagsInMoveFromRange = new List<XElement>();
+            var endElementTagsInMoveFromRange = new List<XElement>();
 
             // Following are the elements that *may* be in a range that has both start and end
             // elements.
-            Dictionary<string, PotentialInRangeElements> potentialDeletedElements =
+            var potentialDeletedElements =
                 new Dictionary<string, PotentialInRangeElements>();
-            Dictionary<string, PotentialInRangeElements> potentialMoveFromElements =
+            var potentialMoveFromElements =
                 new Dictionary<string, PotentialInRangeElements>();
 
             foreach (var tag in DescendantAndSelfTags(documentRootElement))
             {
                 if (tag.Element.Name == W.customXmlDelRangeStart)
                 {
-                    string id = tag.Element.Attribute(W.id).Value;
+                    var id = tag.Element.Attribute(W.id).Value;
                     potentialDeletedElements.Add(id, new PotentialInRangeElements());
                     continue;
                 }
                 if (tag.Element.Name == W.customXmlDelRangeEnd)
                 {
-                    string id = tag.Element.Attribute(W.id).Value;
+                    var id = tag.Element.Attribute(W.id).Value;
                     if (potentialDeletedElements.ContainsKey(id))
                     {
                         startElementTagsInDeleteRange.AddRange(
@@ -2484,13 +2659,13 @@ namespace OpenXmlPowerTools
                 }
                 if (tag.Element.Name == W.customXmlMoveFromRangeStart)
                 {
-                    string id = tag.Element.Attribute(W.id).Value;
+                    var id = tag.Element.Attribute(W.id).Value;
                     potentialMoveFromElements.Add(id, new PotentialInRangeElements());
                     continue;
                 }
                 if (tag.Element.Name == W.customXmlMoveFromRangeEnd)
                 {
-                    string id = tag.Element.Attribute(W.id).Value;
+                    var id = tag.Element.Attribute(W.id).Value;
                     if (potentialMoveFromElements.ContainsKey(id))
                     {
                         startElementTagsInMoveFromRange.AddRange(
@@ -2506,9 +2681,15 @@ namespace OpenXmlPowerTools
                     if (tag.TagType == TagTypeEnum.Element)
                     {
                         foreach (var id in potentialDeletedElements)
+                        {
                             id.Value.PotentialStartElementTagsInRange.Add(tag.Element);
+                        }
+
                         foreach (var id in potentialMoveFromElements)
+                        {
                             id.Value.PotentialStartElementTagsInRange.Add(tag.Element);
+                        }
+
                         continue;
                     }
                     if (tag.TagType == TagTypeEnum.EmptyElement)
@@ -2528,14 +2709,20 @@ namespace OpenXmlPowerTools
                     if (tag.TagType == TagTypeEnum.EndElement)
                     {
                         foreach (var id in potentialDeletedElements)
+                        {
                             id.Value.PotentialEndElementTagsInRange.Add(tag.Element);
+                        }
+
                         foreach (var id in potentialMoveFromElements)
+                        {
                             id.Value.PotentialEndElementTagsInRange.Add(tag.Element);
+                        }
+
                         continue;
                     }
                     throw new PowerToolsInvalidDataException("Should not have reached this point.");
                 }
-                if (potentialMoveFromElements.Count() > 0 &&
+                if (potentialMoveFromElements.Any() &&
                     tag.Element.Name != W.moveFromRangeStart &&
                     tag.Element.Name != W.moveFromRangeEnd &&
                     tag.Element.Name != W.customXmlMoveFromRangeStart &&
@@ -2544,7 +2731,10 @@ namespace OpenXmlPowerTools
                     if (tag.TagType == TagTypeEnum.Element)
                     {
                         foreach (var id in potentialMoveFromElements)
+                        {
                             id.Value.PotentialStartElementTagsInRange.Add(tag.Element);
+                        }
+
                         continue;
                     }
                     if (tag.TagType == TagTypeEnum.EmptyElement)
@@ -2559,7 +2749,10 @@ namespace OpenXmlPowerTools
                     if (tag.TagType == TagTypeEnum.EndElement)
                     {
                         foreach (var id in potentialMoveFromElements)
+                        {
                             id.Value.PotentialEndElementTagsInRange.Add(tag.Element);
+                        }
+
                         continue;
                     }
                 }
@@ -2579,17 +2772,22 @@ namespace OpenXmlPowerTools
                 return newDoc as XElement;
             }
             else
+            {
                 return documentRootElement;
+            }
         }
 
         private static object AcceptMoveFromRangesTransform(XNode node,
             XElement[] elementsToDelete)
         {
-            XElement element = node as XElement;
+            var element = node as XElement;
             if (element != null)
             {
                 if (elementsToDelete.Contains(element))
+                {
                     return null;
+                }
+
                 return new XElement(element.Name,
                     element.Attributes(),
                     element.Nodes().Select(n =>
@@ -2601,19 +2799,23 @@ namespace OpenXmlPowerTools
         private static object CoalesqueParagraphEndTagsInMoveFromTransform(XNode node,
             IGrouping<MoveFromCollectionType, XElement> g)
         {
-            XElement element = node as XElement;
+            var element = node as XElement;
             if (element != null)
             {
                 if (element.Name == W.p)
+                {
                     return new XElement(W.p,
                         element.Attributes(),
                         element.Elements(),
                         g.Skip(1).Select(p => CollapseParagraphTransform(p)));
+                }
                 else
+                {
                     return new XElement(element.Name,
                         element.Attributes(),
                         element.Nodes().Select(n =>
                             CoalesqueParagraphEndTagsInMoveFromTransform(n, g)));
+                }
             }
             return node;
         }
@@ -2629,7 +2831,7 @@ namespace OpenXmlPowerTools
         // else.
         private static object AcceptDeletedCellsTransform(XNode node)
         {
-            XElement element = node as XElement;
+            var element = node as XElement;
             if (element != null)
             {
                 if (element.Name == W.tr)
@@ -2638,8 +2840,8 @@ namespace OpenXmlPowerTools
                         .Elements()
                         .GroupAdjacent(e =>
                         {
-                            XElement cellAfter = e.ElementsAfterSelf(W.tc).FirstOrDefault();
-                            bool cellAfterIsDeleted = cellAfter != null &&
+                            var cellAfter = e.ElementsAfterSelf(W.tc).FirstOrDefault();
+                            var cellAfterIsDeleted = cellAfter != null &&
                                 cellAfter.Descendants(W.cellDel).Any();
                             if (e.Name == W.tc &&
                                 (cellAfterIsDeleted || e.Descendants(W.cellDel).Any()))
@@ -2649,9 +2851,8 @@ namespace OpenXmlPowerTools
                                     CollectionType = DeletedCellCollectionType.DeletedCell,
                                     Disambiguator = new[] { e }
                                         .Concat(e.SiblingsBeforeSelfReverseDocumentOrder())
-                                        .Where(z => z.Name == W.tc &&
+                                        .FirstOrDefault(z => z.Name == W.tc &&
                                             !z.Descendants(W.cellDel).Any())
-                                        .FirstOrDefault()
                                 };
                                 return a;
                             }
@@ -2668,20 +2869,26 @@ namespace OpenXmlPowerTools
                         {
                             if (g.Key.CollectionType == DeletedCellCollectionType.DeletedCell
                                 && g.First().Descendants(W.cellDel).Any())
+                            {
                                 return null;
+                            }
+
                             if (g.Key.CollectionType == DeletedCellCollectionType.Other)
-                                return (object)g;
-                            XElement gridSpanElement = g
+                            {
+                                return g;
+                            }
+
+                            var gridSpanElement = g
                                 .First()
                                 .Elements(W.tcPr)
                                 .Elements(W.gridSpan)
                                 .FirstOrDefault();
-                            int gridSpan = gridSpanElement != null ?
+                            var gridSpan = gridSpanElement != null ?
                                 (int)gridSpanElement.Attribute(W.val) :
                                 1;
-                            int newGridSpan = gridSpan + g.Count() - 1;
-                            XElement currentTcPr = g.First().Elements(W.tcPr).FirstOrDefault();
-                            XElement newTcPr = new XElement(W.tcPr,
+                            var newGridSpan = gridSpan + g.Count() - 1;
+                            var currentTcPr = g.First().Elements(W.tcPr).FirstOrDefault();
+                            var newTcPr = new XElement(W.tcPr,
                                 currentTcPr != null ? currentTcPr.Attributes() : null,
                                 new XElement(W.gridSpan,
                                     new XAttribute(W.val, newGridSpan)),
@@ -2690,10 +2897,13 @@ namespace OpenXmlPowerTools
                                 newTcPr.Elements().OrderBy(e =>
                                 {
                                     if (Order_tcPr.ContainsKey(e.Name))
+                                    {
                                         return Order_tcPr[e.Name];
+                                    }
+
                                     return 999;
                                 }));
-                            XElement newTc = new XElement(W.tc,
+                            var newTc = new XElement(W.tc,
                                 orderedTcPr,
                                 g.First().Elements().Where(e => e.Name != W.tcPr));
                             return (object)newTc;
@@ -2719,7 +2929,8 @@ namespace OpenXmlPowerTools
         </w:tc>
       </w:tr>
 #endif
-        private static XName[] BlockLevelElements = new[] {
+
+        private static readonly XName[] BlockLevelElements = new[] {
             W.p,
             W.tbl,
             W.sdt,
@@ -2732,7 +2943,7 @@ namespace OpenXmlPowerTools
 
         private static object RemoveRowsLeftEmptyByMoveFrom(XNode node)
         {
-            XElement element = node as XElement;
+            var element = node as XElement;
             if (element != null)
             {
                 if (element.Name == W.tr)
@@ -2754,7 +2965,7 @@ namespace OpenXmlPowerTools
             return node;
         }
 
-        public static XName[] TrackedRevisionsElements = new[]
+        public static readonly XName[] TrackedRevisionsElements = new[]
         {
             W.cellDel,
             W.cellIns,
@@ -2793,9 +3004,9 @@ namespace OpenXmlPowerTools
 
         public static bool HasTrackedRevisions(WmlDocument document)
         {
-            using (OpenXmlMemoryStreamDocument streamDoc = new OpenXmlMemoryStreamDocument(document))
+            using (var streamDoc = new OpenXmlMemoryStreamDocument(document))
             {
-                using (WordprocessingDocument wdoc = streamDoc.GetWordprocessingDocument())
+                using (var wdoc = streamDoc.GetWordprocessingDocument())
                 {
                     return RevisionAccepter.HasTrackedRevisions(wdoc);
                 }
@@ -2805,19 +3016,42 @@ namespace OpenXmlPowerTools
         public static bool HasTrackedRevisions(WordprocessingDocument doc)
         {
             if (PartHasTrackedRevisions(doc.MainDocumentPart))
+            {
                 return true;
+            }
+
             foreach (var part in doc.MainDocumentPart.HeaderParts)
+            {
                 if (PartHasTrackedRevisions(part))
+                {
                     return true;
+                }
+            }
+
             foreach (var part in doc.MainDocumentPart.FooterParts)
+            {
                 if (PartHasTrackedRevisions(part))
+                {
                     return true;
+                }
+            }
+
             if (doc.MainDocumentPart.EndnotesPart != null)
+            {
                 if (PartHasTrackedRevisions(doc.MainDocumentPart.EndnotesPart))
+                {
                     return true;
+                }
+            }
+
             if (doc.MainDocumentPart.FootnotesPart != null)
+            {
                 if (PartHasTrackedRevisions(doc.MainDocumentPart.FootnotesPart))
+                {
                     return true;
+                }
+            }
+
             return false;
         }
     }
@@ -2828,6 +3062,7 @@ namespace OpenXmlPowerTools
         {
             return RevisionAccepter.AcceptRevisions(document);
         }
+
         public bool HasTrackedRevisions(WmlDocument document)
         {
             return RevisionAccepter.HasTrackedRevisions(document);
@@ -2846,21 +3081,26 @@ namespace OpenXmlPowerTools
         private static void InitializeParagraphInfo(XElement contentContext)
         {
             if (!(W.BlockLevelContentContainers.Contains(contentContext.Name)))
+            {
                 throw new ArgumentException(
                     "GetParagraphInfo called for element that is not child of content container");
+            }
+
             XElement prev = null;
             foreach (var content in contentContext.Elements())
             {
                 // This may return null, indicating that there is no descendant paragraph.  For
                 // example, comment elements have no descendant elements.
-                XElement paragraph = content
+                var paragraph = content
                     .DescendantsAndSelf()
-                    .Where(e => e.Name == W.p || e.Name == W.tc || e.Name == W.txbxContent)
-                    .FirstOrDefault();
+                    .FirstOrDefault(e => e.Name == W.p || e.Name == W.tc || e.Name == W.txbxContent);
                 if (paragraph != null &&
                     (paragraph.Name == W.tc || paragraph.Name == W.txbxContent))
+                {
                     paragraph = null;
-                BlockContentInfo pi = new BlockContentInfo()
+                }
+
+                var pi = new BlockContentInfo()
                 {
                     PreviousBlockContentElement = prev,
                     ThisBlockContentElement = paragraph
@@ -2872,21 +3112,27 @@ namespace OpenXmlPowerTools
 
         public static BlockContentInfo GetParagraphInfo(this XElement contentElement)
         {
-            BlockContentInfo paragraphInfo = contentElement.Annotation<BlockContentInfo>();
+            var paragraphInfo = contentElement.Annotation<BlockContentInfo>();
             if (paragraphInfo != null)
+            {
                 return paragraphInfo;
+            }
+
             InitializeParagraphInfo(contentElement.Parent);
             return contentElement.Annotation<BlockContentInfo>();
         }
 
         public static IEnumerable<XElement> ContentElementsBeforeSelf(this XElement element)
         {
-            XElement current = element;
+            var current = element;
             while (true)
             {
-                BlockContentInfo pi = current.GetParagraphInfo();
+                var pi = current.GetParagraphInfo();
                 if (pi.PreviousBlockContentElement == null)
+                {
                     yield break;
+                }
+
                 yield return pi.PreviousBlockContentElement;
                 current = pi.PreviousBlockContentElement;
             }
@@ -2894,344 +3140,343 @@ namespace OpenXmlPowerTools
     }
 }
 
-/// Markup that this code processes:
-/// 
-/// delText
-///   Method: AcceptAllOtherRevisionsTransform
-///   Sample document: MovedText.docx
-///   Reviewed: zeyad ***************************
-///   Semantics:
-///     Remove these elements.
-///   Reject:
-///     Transform to w:t element
-/// 
-/// del (deleted run content)
-///   Method: AcceptAllOtherRevisionsTransform
-///   Reviewed: zeyad ***************************
-///   Semantics:
-///     Remove these elements and descendant elements.
-///   Reject:
-///     Transform to w:ins element
-///     Then Accept
-///   
-/// ins (inserted run content)
-///   Method: AcceptAllOtherRevisionsTransform
-///   Sample document: InsertedParagraphsAndRuns.docx
-///   Reviewed: zeyad ***************************
-///   Semantics:
-///     Collapse these elements.
-///   Reject:
-///     Transform to w:del element, and child w:t transform to w:delText element
-///     Then Accept
-/// 
-/// ins (inserted paragraph)
-///   Method: AcceptAllOtherRevisionsTransform
-///   Sample document: InsertedParagraphsAndRuns.docx
-///   Reviewed: zeyad ***************************
-///   Semantics:
-///     Remove these elements.
-///   Reject:
-///     Transform to w:del element
-///     Then Accept
-///   
-/// del (deleted paragraph mark)
-///   Method: AcceptDeletedAndMoveFromParagraphMarksTransform
-///   Sample document: VariousTableRevisions.docx (deleted paragraph mark in paragraph in
-///     content control)
-///   Reviewed: tristan and zeyad ****************************************
-///   Semantics:
-///     Find all adjacent paragraps that have this element.
-///     Group adjacent paragraphs plus the paragraph following paragraph that has this element.
-///     Replace grouped paragraphs with a new paragraph containing the content from all grouped
-///       paragraphs.  Use the paragraph properties from the first paragraph in the group.
-///   Reject:
-///     Transform to w:ins element
-///     Then Accept
-/// 
-/// del (deleted table row)
-///   Method: AcceptAllOtherRevisionsTransform
-///   Sample document: VariousTableRevisions.docx 
-///   Reviewed: zeyad ***************************
-///   Semantics:
-///     Match w:tr/w:trPr/w:del, remove w:tr.
-///   Reject:
-///     Transform to w:ins
-///     Then Accept
-/// 
-/// ins (inserted table row)
-///   Method: AcceptAllOtherRevisionsTransform
-///   Sample document: VariousTableRevisions.docx
-///   Reviewed: zeyad ***************************
-///   Semantics:
-///     Remove these elements.
-///   Reject:
-///     Transform to w:del
-///     Then Accept
-/// 
-/// del (deleted math control character)
-///   Method: AcceptAllOtherRevisionsTransform
-///   Sample document: DeletedMathControlCharacter.docx
-///   Reviewed: zeyad ***************************
-///   Semantics:
-///     Match m:f/m:fPr/m:ctrlPr/w:del, remove m:f.
-///   Reject:
-///     Transform to w:ins
-///     Then Accept
-/// 
-/// ins (inserted math control character)
-///   Method: AcceptAllOtherRevisionsTransform
-///   Sample document: InsertedMathControlCharacter.docx
-///   Reviewed: zeyad ***************************
-///   Semantics:
-///     Remove these elements.
-///   Reject:
-///     Transform to w:del
-///     Then Accept
-///   
-/// moveTo (move destination paragraph mark)
-///   Method: AcceptMoveFromMoveToTransform
-///   Sample document: MovedText.docx
-///   Reviewed: zeyad ***************************
-///   Semantics:
-///     Remove these elements.
-///   Reject:
-///     Transform to moveFrom
-///     Then Accept
-///   
-/// moveTo (move destination run content)
-///   Method: AcceptMoveFromMoveToTransform
-///   Sample document: MovedText.docx
-///   Reviewed: zeyad ***************************
-///   Semantics:
-///     Collapse these elements.
-///   Reject:
-///     Transform to moveFrom
-///     Then Accept
-/// 
-/// moveFrom (move source paragraph mark)
-///   Methods: AcceptDeletedAndMoveFromParagraphMarksTransform, AcceptParagraphEndTagsInMoveFromTransform
-///   Sample document: MovedText.docx
-///   Reviewed: tristan and zeyad ****************************************
-///   Semantics:
-///     Find all adjacent paragraps that have this element or deleted paragraph mark.
-///     Group adjacent paragraphs plus the paragraph following paragraph that has this element.
-///     Replace grouped paragraphs with a new paragraph containing the content from all grouped
-///       paragraphs.
-///     This is handled in the same code that handles del (deleted paragraph mark).
-///   Reject:
-///     Transform to moveTo
-///     Then Accept
-/// 
-/// moveFrom (move source run content)
-///   Method: AcceptMoveFromMoveToTransform
-///   Sample document: MovedText.docx
-///   Reviewed: zeyad ***************************
-///   Semantics:
-///     Remove these elements.
-///   Reject:
-///     Transform to moveTo
-///     Then Accept
-/// 
-/// moveFromRangeStart
-/// moveFromRangeEnd
-///   Method: AcceptMoveFromRanges
-///   Sample document: MovedText.docx
-///   Semantics:
-///     Find pairs of elements.  Remove all elements that have both start and end tags in a
-///       range.
-///   Reject:
-///     Transform to moveToRangeStart, moveToRangeEnd
-///     Then Accept
-/// 
-/// moveToRangeStart
-/// moveToRangeEnd
-///   Method: AcceptAllOtherRevisionsTransform
-///   Sample document: MovedText.docx
-///   Reviewed: zeyad ***************************
-///   Semantics:
-///     Remove these elements.
-///   Reject:
-///     Transform to moveFromRangeStart, moveFromRangeEnd
-///     Then Accept
-/// 
-/// customXmlDelRangeStart
-/// customXmlDelRangeEnd
-/// customXmlMoveFromRangeStart
-/// customXmlMoveFromRangeEnd
-///   Method: AcceptDeletedAndMovedFromContentControls
-///   Reviewed: tristan and zeyad ****************************************
-///   Semantics:
-///     Find pairs of start/end elements, matching id attributes.  Collapse sdt
-///       elements that have both start and end tags in a range.
-///   Reject:
-///     Transform to customXmlInsRangeStart, customXmlInsRangeEnd, customXmlMoveToRangeStart, customXmlMoveToRangeEnd
-///     Then Accept
-///   
-/// customXmlInsRangeStart
-/// customXmlInsRangeEnd
-/// customXmlMoveToRangeStart
-/// customXmlMoveToRangeEnd
-///   Method: AcceptAllOtherRevisionsTransform
-///   Reviewed: tristan and zeyad ****************************************
-///   Semantics:
-///     Remove these elements.
-///   Reject:
-///     Transform to customXmlDelRangeStart, customXmlDelRangeEnd, customXmlMoveFromRangeStart, customXmlMoveFromRangeEnd
-///     Then Accept
-///   
-/// delInstrText (deleted field code)
-///   Method: AcceptAllOtherRevisionsTransform
-///   Sample document: NumberingParagraphPropertiesChange.docx
-///   Reviewed: zeyad ***************************
-///   Semantics:
-///     Remove these elements.
-///   Reject:
-///     Transform to instrText
-///     Then Accept
-///     Note that instrText must be transformed to delInstrText when in a w:ins, in the same fashion that w:t must be transformed to w:delText when in w:ins
-/// 
-/// ins (inserted numbering properties)
-///   Method: AcceptAllOtherRevisionsTransform
-///   Sample document: InsertedNumberingProperties.docx
-///   Reviewed: zeyad ***************************
-///   Semantics:
-///     Remove these elements.
-///   Reject
-///     Remove the containing w:numPr
-///     
-/// pPrChange (revision information for paragraph properties)
-///   Method: AcceptAllOtherRevisionsTransform
-///   Sample document: ParagraphAndRunPropertyRevisions.docx 
-///   Reviewed: zeyad ***************************
-///   Semantics:
-///     Remove these elements.
-///   Reject:
-///     Replace pPr with the pPr in pPrChange
-/// 
-/// rPrChange (revision information for run properties)
-///   Method: AcceptAllOtherRevisionsTransform
-///   Sample document: ParagraphAndRunPropertyRevisions.docx
-///   Sample document: VariousTableRevisions.docx
-///   Reviewed: zeyad ***************************
-///   Semantics:
-///     Remove these elements.
-///   Reject:
-///     Replace rPr with the rPr in rPrChange
-///   
-/// rPrChange (revision information for run properties on the paragraph mark)
-///   Method: AcceptAllOtherRevisionsTransform
-///   Sample document: ParagraphAndRunPropertyRevisions.docx 
-///   Reviewed: zeyad ***************************
-///   Semantics:
-///     Remove these elements.
-///   Reject:
-///     Replace rPr with the rPr in rPrChange.
-/// 
-/// numberingChange (previous numbering field properties)
-///   Method: AcceptAllOtherRevisionsTransform
-///   Sample document: NumberingFieldPropertiesChange.docx 
-///   Semantics:
-///     Remove these elements.
-///   Reject:
-///     Remove these elements.
-///     These are there for numbering created via fields, and are not important.
-/// 
-/// numberingChange (previous paragraph numbering properties)
-///   Method: AcceptAllOtherRevisionsTransform
-///   Sample document: NumberingFieldPropertiesChange.docx 
-///   Semantics:
-///     Remove these elements.
-///   Reject:
-///     Remove these elements.
-/// 
-/// sectPrChange
-///   Method: AcceptAllOtherRevisionsTransform
-///   Sample document: SectionPropertiesChange.docx
-///   Reviewed: zeyad ***************************
-///   Semantics:
-///     Remove these elements.
-///   Reject:
-///     Replace sectPr with the sectPr in sectPrChange
-///   
-/// tblGridChange
-///   Method: AcceptAllOtherRevisionsTransform
-///   Sample document: TableGridChange.docx
-///   Sample document: VariousTableRevisions.docx
-///   Reviewed: zeyad ***************************
-///   Semantics:
-///     Remove these elements.
-///   Reject:
-///     Replace tblGrid with the tblGrid in tblGridChange
-/// 
-/// tblPrChange
-///   Method: AcceptAllOtherRevisionsTransform
-///   Sample document: TableGridChange.docx
-///   Sample document: VariousTableRevisions.docx
-///   Reviewed: zeyad ***************************
-///   Semantics:
-///     Remove these elements.
-///   Reject:
-///     Replace tblPr with the tblPr in tblPrChange
-///   
-/// tblPrExChange
-///   Method: AcceptAllOtherRevisionsTransform
-///   Sample document: VariousTableRevisions.docx
-///   Reviewed: zeyad ***************************
-///   Semantics:
-///     Remove these elements.
-///   Reject:
-///     Replace tblPrEx with the tblPrEx in tblPrExChange
-///   
-/// tcPrChange
-///   Method: AcceptAllOtherRevisionsTransform
-///   Sample document: TableGridChange.docx
-///   Sample document: VariousTableRevisions.docx
-///   Reviewed: zeyad ***************************
-///   Semantics:
-///     Remove these elements.
-///   Reject:
-///     Replace tcPr with the tcPr in tcPrChange
-///   
-/// trPrChange
-///   Method: AcceptAllOtherRevisionsTransform
-///   Sample document: VariousTableRevisions.docx
-///   Reviewed: zeyad ***************************
-///   Semantics:
-///     Remove these elements.
-///   Reject:
-///     Replace trPr with the trPr in trPrChange
-/// 
-/// celDel
-///   Method: AcceptDeletedCellsTransform
-///   Sample document: HorizontallyMergedCells.docx
-///   Semantics:
-///     Group consecutive deleted cells, and remove them.
-///     Adjust the cell before deleted cells:
-///       Increase gridSpan by the number of deleted cells that are removed.
-///   Reject:
-///     Remove this element
-/// 
-/// celIns
-///   Method: AcceptAllOtherRevisionsTransform
-///   Sample document: HorizontallyMergedCells11.docx
-///   Semantics:
-///     Remove these elements.
-///   Reject:
-///     If a w:tc contains w:tcPr/w:cellIns, then remove the cell
-///   
-/// cellMerge
-///   Method: AcceptAllOtherRevisionsTransform
-///   Sample document: MergedCell.docx
-///   Semantics:
-///     Transform cellMerge with a parent of tcPr, with attribute w:vMerge="rest"
-///       to <w:vMerge w:val="restart"/>.
-///     Transform cellMerge with a parent of tcPr, with attribute w:vMerge="cont"
-///       to <w:vMerge w:val="continue"/>
-/// 
-/// The following items need to be addressed in a future release:
-/// - inserted run inside deleted paragraph - moveTo is same as insert
-/// - must increase w:val attribute of the w:gridSpan element of the
-///   cell immediately preceding the group of deleted cells by the
-///   ***sum*** of the values of the w:val attributes of w:gridSpan
-///   elements of each of the deleted cells.
-
+// Markup that this code processes:
+//
+// delText
+//   Method: AcceptAllOtherRevisionsTransform
+//   Sample document: MovedText.docx
+//   Reviewed: zeyad ***************************
+//   Semantics:
+//     Remove these elements.
+//   Reject:
+//     Transform to w:t element
+//
+// del (deleted run content)
+//   Method: AcceptAllOtherRevisionsTransform
+//   Reviewed: zeyad ***************************
+//   Semantics:
+//     Remove these elements and descendant elements.
+//   Reject:
+//     Transform to w:ins element
+//     Then Accept
+//
+// ins (inserted run content)
+//   Method: AcceptAllOtherRevisionsTransform
+//   Sample document: InsertedParagraphsAndRuns.docx
+//   Reviewed: zeyad ***************************
+//   Semantics:
+//     Collapse these elements.
+//   Reject:
+//     Transform to w:del element, and child w:t transform to w:delText element
+//     Then Accept
+//
+// ins (inserted paragraph)
+//   Method: AcceptAllOtherRevisionsTransform
+//   Sample document: InsertedParagraphsAndRuns.docx
+//   Reviewed: zeyad ***************************
+//   Semantics:
+//     Remove these elements.
+//   Reject:
+//     Transform to w:del element
+//     Then Accept
+//
+// del (deleted paragraph mark)
+//   Method: AcceptDeletedAndMoveFromParagraphMarksTransform
+//   Sample document: VariousTableRevisions.docx (deleted paragraph mark in paragraph in
+//     content control)
+//   Reviewed: tristan and zeyad ****************************************
+//   Semantics:
+//     Find all adjacent paragraps that have this element.
+//     Group adjacent paragraphs plus the paragraph following paragraph that has this element.
+//     Replace grouped paragraphs with a new paragraph containing the content from all grouped
+//       paragraphs.  Use the paragraph properties from the first paragraph in the group.
+//   Reject:
+//     Transform to w:ins element
+//     Then Accept
+//
+// del (deleted table row)
+//   Method: AcceptAllOtherRevisionsTransform
+//   Sample document: VariousTableRevisions.docx
+//   Reviewed: zeyad ***************************
+//   Semantics:
+//     Match w:tr/w:trPr/w:del, remove w:tr.
+//   Reject:
+//     Transform to w:ins
+//     Then Accept
+//
+// ins (inserted table row)
+//   Method: AcceptAllOtherRevisionsTransform
+//   Sample document: VariousTableRevisions.docx
+//   Reviewed: zeyad ***************************
+//   Semantics:
+//     Remove these elements.
+//   Reject:
+//     Transform to w:del
+//     Then Accept
+//
+// del (deleted math control character)
+//   Method: AcceptAllOtherRevisionsTransform
+//   Sample document: DeletedMathControlCharacter.docx
+//   Reviewed: zeyad ***************************
+//   Semantics:
+//     Match m:f/m:fPr/m:ctrlPr/w:del, remove m:f.
+//   Reject:
+//     Transform to w:ins
+//     Then Accept
+//
+// ins (inserted math control character)
+//   Method: AcceptAllOtherRevisionsTransform
+//   Sample document: InsertedMathControlCharacter.docx
+//   Reviewed: zeyad ***************************
+//   Semantics:
+//     Remove these elements.
+//   Reject:
+//     Transform to w:del
+//     Then Accept
+//
+// moveTo (move destination paragraph mark)
+//   Method: AcceptMoveFromMoveToTransform
+//   Sample document: MovedText.docx
+//   Reviewed: zeyad ***************************
+//   Semantics:
+//     Remove these elements.
+//   Reject:
+//     Transform to moveFrom
+//     Then Accept
+//
+// moveTo (move destination run content)
+//   Method: AcceptMoveFromMoveToTransform
+//   Sample document: MovedText.docx
+//   Reviewed: zeyad ***************************
+//   Semantics:
+//     Collapse these elements.
+//   Reject:
+//     Transform to moveFrom
+//     Then Accept
+//
+// moveFrom (move source paragraph mark)
+//   Methods: AcceptDeletedAndMoveFromParagraphMarksTransform, AcceptParagraphEndTagsInMoveFromTransform
+//   Sample document: MovedText.docx
+//   Reviewed: tristan and zeyad ****************************************
+//   Semantics:
+//     Find all adjacent paragraps that have this element or deleted paragraph mark.
+//     Group adjacent paragraphs plus the paragraph following paragraph that has this element.
+//     Replace grouped paragraphs with a new paragraph containing the content from all grouped
+//       paragraphs.
+//     This is handled in the same code that handles del (deleted paragraph mark).
+//   Reject:
+//     Transform to moveTo
+//     Then Accept
+//
+// moveFrom (move source run content)
+//   Method: AcceptMoveFromMoveToTransform
+//   Sample document: MovedText.docx
+//   Reviewed: zeyad ***************************
+//   Semantics:
+//     Remove these elements.
+//   Reject:
+//     Transform to moveTo
+//     Then Accept
+//
+// moveFromRangeStart
+// moveFromRangeEnd
+//   Method: AcceptMoveFromRanges
+//   Sample document: MovedText.docx
+//   Semantics:
+//     Find pairs of elements.  Remove all elements that have both start and end tags in a
+//       range.
+//   Reject:
+//     Transform to moveToRangeStart, moveToRangeEnd
+//     Then Accept
+//
+// moveToRangeStart
+// moveToRangeEnd
+//   Method: AcceptAllOtherRevisionsTransform
+//   Sample document: MovedText.docx
+//   Reviewed: zeyad ***************************
+//   Semantics:
+//     Remove these elements.
+//   Reject:
+//     Transform to moveFromRangeStart, moveFromRangeEnd
+//     Then Accept
+//
+// customXmlDelRangeStart
+// customXmlDelRangeEnd
+// customXmlMoveFromRangeStart
+// customXmlMoveFromRangeEnd
+//   Method: AcceptDeletedAndMovedFromContentControls
+//   Reviewed: tristan and zeyad ****************************************
+//   Semantics:
+//     Find pairs of start/end elements, matching id attributes.  Collapse sdt
+//       elements that have both start and end tags in a range.
+//   Reject:
+//     Transform to customXmlInsRangeStart, customXmlInsRangeEnd, customXmlMoveToRangeStart, customXmlMoveToRangeEnd
+//     Then Accept
+//
+// customXmlInsRangeStart
+// customXmlInsRangeEnd
+// customXmlMoveToRangeStart
+// customXmlMoveToRangeEnd
+//   Method: AcceptAllOtherRevisionsTransform
+//   Reviewed: tristan and zeyad ****************************************
+//   Semantics:
+//     Remove these elements.
+//   Reject:
+//     Transform to customXmlDelRangeStart, customXmlDelRangeEnd, customXmlMoveFromRangeStart, customXmlMoveFromRangeEnd
+//     Then Accept
+//
+// delInstrText (deleted field code)
+//   Method: AcceptAllOtherRevisionsTransform
+//   Sample document: NumberingParagraphPropertiesChange.docx
+//   Reviewed: zeyad ***************************
+//   Semantics:
+//     Remove these elements.
+//   Reject:
+//     Transform to instrText
+//     Then Accept
+//     Note that instrText must be transformed to delInstrText when in a w:ins, in the same fashion that w:t must be transformed to w:delText when in w:ins
+//
+// ins (inserted numbering properties)
+//   Method: AcceptAllOtherRevisionsTransform
+//   Sample document: InsertedNumberingProperties.docx
+//   Reviewed: zeyad ***************************
+//   Semantics:
+//     Remove these elements.
+//   Reject
+//     Remove the containing w:numPr
+//
+// pPrChange (revision information for paragraph properties)
+//   Method: AcceptAllOtherRevisionsTransform
+//   Sample document: ParagraphAndRunPropertyRevisions.docx
+//   Reviewed: zeyad ***************************
+//   Semantics:
+//     Remove these elements.
+//   Reject:
+//     Replace pPr with the pPr in pPrChange
+//
+// rPrChange (revision information for run properties)
+//   Method: AcceptAllOtherRevisionsTransform
+//   Sample document: ParagraphAndRunPropertyRevisions.docx
+//   Sample document: VariousTableRevisions.docx
+//   Reviewed: zeyad ***************************
+//   Semantics:
+//     Remove these elements.
+//   Reject:
+//     Replace rPr with the rPr in rPrChange
+//
+// rPrChange (revision information for run properties on the paragraph mark)
+//   Method: AcceptAllOtherRevisionsTransform
+//   Sample document: ParagraphAndRunPropertyRevisions.docx
+//   Reviewed: zeyad ***************************
+//   Semantics:
+//     Remove these elements.
+//   Reject:
+//     Replace rPr with the rPr in rPrChange.
+//
+// numberingChange (previous numbering field properties)
+//   Method: AcceptAllOtherRevisionsTransform
+//   Sample document: NumberingFieldPropertiesChange.docx
+//   Semantics:
+//     Remove these elements.
+//   Reject:
+//     Remove these elements.
+//     These are there for numbering created via fields, and are not important.
+//
+// numberingChange (previous paragraph numbering properties)
+//   Method: AcceptAllOtherRevisionsTransform
+//   Sample document: NumberingFieldPropertiesChange.docx
+//   Semantics:
+//     Remove these elements.
+//   Reject:
+//     Remove these elements.
+//
+// sectPrChange
+//   Method: AcceptAllOtherRevisionsTransform
+//   Sample document: SectionPropertiesChange.docx
+//   Reviewed: zeyad ***************************
+//   Semantics:
+//     Remove these elements.
+//   Reject:
+//     Replace sectPr with the sectPr in sectPrChange
+//
+// tblGridChange
+//   Method: AcceptAllOtherRevisionsTransform
+//   Sample document: TableGridChange.docx
+//   Sample document: VariousTableRevisions.docx
+//   Reviewed: zeyad ***************************
+//   Semantics:
+//     Remove these elements.
+//   Reject:
+//     Replace tblGrid with the tblGrid in tblGridChange
+//
+// tblPrChange
+//   Method: AcceptAllOtherRevisionsTransform
+//   Sample document: TableGridChange.docx
+//   Sample document: VariousTableRevisions.docx
+//   Reviewed: zeyad ***************************
+//   Semantics:
+//     Remove these elements.
+//   Reject:
+//     Replace tblPr with the tblPr in tblPrChange
+//
+// tblPrExChange
+//   Method: AcceptAllOtherRevisionsTransform
+//   Sample document: VariousTableRevisions.docx
+//   Reviewed: zeyad ***************************
+//   Semantics:
+//     Remove these elements.
+//   Reject:
+//     Replace tblPrEx with the tblPrEx in tblPrExChange
+//
+// tcPrChange
+//   Method: AcceptAllOtherRevisionsTransform
+//   Sample document: TableGridChange.docx
+//   Sample document: VariousTableRevisions.docx
+//   Reviewed: zeyad ***************************
+//   Semantics:
+//     Remove these elements.
+//   Reject:
+//     Replace tcPr with the tcPr in tcPrChange
+//
+// trPrChange
+//   Method: AcceptAllOtherRevisionsTransform
+//   Sample document: VariousTableRevisions.docx
+//   Reviewed: zeyad ***************************
+//   Semantics:
+//     Remove these elements.
+//   Reject:
+//     Replace trPr with the trPr in trPrChange
+//
+// celDel
+//   Method: AcceptDeletedCellsTransform
+//   Sample document: HorizontallyMergedCells.docx
+//   Semantics:
+//     Group consecutive deleted cells, and remove them.
+//     Adjust the cell before deleted cells:
+//       Increase gridSpan by the number of deleted cells that are removed.
+//   Reject:
+//     Remove this element
+//
+// celIns
+//   Method: AcceptAllOtherRevisionsTransform
+//   Sample document: HorizontallyMergedCells11.docx
+//   Semantics:
+//     Remove these elements.
+//   Reject:
+//     If a w:tc contains w:tcPr/w:cellIns, then remove the cell
+//
+// cellMerge
+//   Method: AcceptAllOtherRevisionsTransform
+//   Sample document: MergedCell.docx
+//   Semantics:
+//     Transform cellMerge with a parent of tcPr, with attribute w:vMerge="rest"
+//       to <w:vMerge w:val="restart"/>.
+//     Transform cellMerge with a parent of tcPr, with attribute w:vMerge="cont"
+//       to <w:vMerge w:val="continue"/>
+//
+// The following items need to be addressed in a future release:
+// - inserted run inside deleted paragraph - moveTo is same as insert
+// - must increase w:val attribute of the w:gridSpan element of the
+//   cell immediately preceding the group of deleted cells by the
+//   ***sum*** of the values of the w:val attributes of w:gridSpan
+//   elements of each of the deleted cells.

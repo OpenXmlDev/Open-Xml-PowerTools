@@ -1,13 +1,12 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using DocumentFormat.OpenXml.Packaging;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Xml.Linq;
-using System.Text;
-using DocumentFormat.OpenXml.Packaging;
 
 namespace OpenXmlPowerTools
 {
@@ -22,7 +21,7 @@ namespace OpenXmlPowerTools
         {
             PmlDocument = source;
             Start = 0;
-            Count = Int32.MaxValue;
+            Count = int.MaxValue;
             KeepMaster = keepMaster;
         }
 
@@ -30,7 +29,7 @@ namespace OpenXmlPowerTools
         {
             PmlDocument = new PmlDocument(fileName);
             Start = 0;
-            Count = Int32.MaxValue;
+            Count = int.MaxValue;
             KeepMaster = keepMaster;
         }
 
@@ -38,7 +37,7 @@ namespace OpenXmlPowerTools
         {
             PmlDocument = source;
             Start = start;
-            Count = Int32.MaxValue;
+            Count = int.MaxValue;
             KeepMaster = keepMaster;
         }
 
@@ -46,7 +45,7 @@ namespace OpenXmlPowerTools
         {
             PmlDocument = new PmlDocument(fileName);
             Start = start;
-            Count = Int32.MaxValue;
+            Count = int.MaxValue;
             KeepMaster = keepMaster;
         }
 
@@ -71,9 +70,9 @@ namespace OpenXmlPowerTools
     {
         public static void BuildPresentation(List<SlideSource> sources, string fileName)
         {
-            using (OpenXmlMemoryStreamDocument streamDoc = OpenXmlMemoryStreamDocument.CreatePresentationDocument())
+            using (var streamDoc = OpenXmlMemoryStreamDocument.CreatePresentationDocument())
             {
-                using (PresentationDocument output = streamDoc.GetPresentationDocument())
+                using (var output = streamDoc.GetPresentationDocument())
                 {
                     BuildPresentation(sources, output);
                     output.Close();
@@ -84,9 +83,9 @@ namespace OpenXmlPowerTools
 
         public static PmlDocument BuildPresentation(List<SlideSource> sources)
         {
-            using (OpenXmlMemoryStreamDocument streamDoc = OpenXmlMemoryStreamDocument.CreatePresentationDocument())
+            using (var streamDoc = OpenXmlMemoryStreamDocument.CreatePresentationDocument())
             {
-                using (PresentationDocument output = streamDoc.GetPresentationDocument())
+                using (var output = streamDoc.GetPresentationDocument())
                 {
                     BuildPresentation(sources, output);
                     output.Close();
@@ -98,6 +97,7 @@ namespace OpenXmlPowerTools
         private static void BuildPresentation(List<SlideSource> sources, PresentationDocument output)
         {
             if (RelationshipMarkup == null)
+            {
                 RelationshipMarkup = new Dictionary<XName, XName[]>()
                 {
                     { A.audioFile,        new [] { R.link }},
@@ -128,39 +128,47 @@ namespace OpenXmlPowerTools
                     { WNE.toolbarData,    new [] { R.id }},
                     { Plegacy.textdata,   new [] { XName.Get("id") }},
                 };
+            }
 
-            List<ImageData> images = new List<ImageData>();
-            List<MediaData> mediaList = new List<MediaData>();
-            XDocument mainPart = output.PresentationPart.GetXDocument();
+            var images = new List<ImageData>();
+            var mediaList = new List<MediaData>();
+            var mainPart = output.PresentationPart.GetXDocument();
             mainPart.Declaration.Standalone = "yes";
             mainPart.Declaration.Encoding = "UTF-8";
             output.PresentationPart.PutXDocument();
 
-            using (OpenXmlMemoryStreamDocument streamDoc = new OpenXmlMemoryStreamDocument(sources[0].PmlDocument))
-            using (PresentationDocument doc = streamDoc.GetPresentationDocument())
+            using (var streamDoc = new OpenXmlMemoryStreamDocument(sources[0].PmlDocument))
+            using (var doc = streamDoc.GetPresentationDocument())
             {
                 CopyStartingParts(doc, output);
             }
 
-            int sourceNum = 0;
+            var sourceNum = 0;
             SlideMasterPart currentMasterPart = null;
-            foreach (SlideSource source in sources)
+            foreach (var source in sources)
             {
-                using (OpenXmlMemoryStreamDocument streamDoc = new OpenXmlMemoryStreamDocument(source.PmlDocument))
-                using (PresentationDocument doc = streamDoc.GetPresentationDocument())
+                using (var streamDoc = new OpenXmlMemoryStreamDocument(source.PmlDocument))
+                using (var doc = streamDoc.GetPresentationDocument())
                 {
                     try
                     {
                         if (sourceNum == 0)
+                        {
                             CopyPresentationParts(doc, output, images, mediaList);
+                        }
+
                         currentMasterPart = AppendSlides(doc, output, source.Start, source.Count, source.KeepMaster, images, currentMasterPart, mediaList);
                     }
                     catch (PresentationBuilderInternalException dbie)
                     {
                         if (dbie.Message.Contains("{0}"))
+                        {
                             throw new PresentationBuilderException(string.Format(dbie.Message, sourceNum));
+                        }
                         else
+                        {
                             throw dbie;
+                        }
                     }
                 }
                 sourceNum++;
@@ -179,46 +187,48 @@ namespace OpenXmlPowerTools
                     part.ContentType == "application/vnd.openxmlformats-officedocument.drawingml.chartshapes+xml" ||
                     part.ContentType == "application/vnd.ms-office.drawingml.diagramDrawing+xml")
                 {
-                    XDocument xd = part.GetXDocument();
+                    var xd = part.GetXDocument();
                     xd.Descendants().Attributes("smtClean").Remove();
                     part.PutXDocument();
                 }
                 else if (part.Annotation<XDocument>() != null)
+                {
                     part.PutXDocument();
+                }
             }
         }
 
         private static void CopyStartingParts(PresentationDocument sourceDocument, PresentationDocument newDocument)
         {
             // A Core File Properties part does not have implicit or explicit relationships to other parts.
-            CoreFilePropertiesPart corePart = sourceDocument.CoreFilePropertiesPart;
+            var corePart = sourceDocument.CoreFilePropertiesPart;
             if (corePart != null && corePart.GetXDocument().Root != null)
             {
                 newDocument.AddCoreFilePropertiesPart();
-                XDocument newXDoc = newDocument.CoreFilePropertiesPart.GetXDocument();
+                var newXDoc = newDocument.CoreFilePropertiesPart.GetXDocument();
                 newXDoc.Declaration.Standalone = "yes";
                 newXDoc.Declaration.Encoding = "UTF-8";
-                XDocument sourceXDoc = corePart.GetXDocument();
+                var sourceXDoc = corePart.GetXDocument();
                 newXDoc.Add(sourceXDoc.Root);
             }
 
             // An application attributes part does not have implicit or explicit relationships to other parts.
-            ExtendedFilePropertiesPart extPart = sourceDocument.ExtendedFilePropertiesPart;
+            var extPart = sourceDocument.ExtendedFilePropertiesPart;
             if (extPart != null)
             {
                 OpenXmlPart newPart = newDocument.AddExtendedFilePropertiesPart();
-                XDocument newXDoc = newDocument.ExtendedFilePropertiesPart.GetXDocument();
+                var newXDoc = newDocument.ExtendedFilePropertiesPart.GetXDocument();
                 newXDoc.Declaration.Standalone = "yes";
                 newXDoc.Declaration.Encoding = "UTF-8";
                 newXDoc.Add(extPart.GetXDocument().Root);
             }
 
             // An custom file properties part does not have implicit or explicit relationships to other parts.
-            CustomFilePropertiesPart customPart = sourceDocument.CustomFilePropertiesPart;
+            var customPart = sourceDocument.CustomFilePropertiesPart;
             if (customPart != null)
             {
                 newDocument.AddCustomFilePropertiesPart();
-                XDocument newXDoc = newDocument.CustomFilePropertiesPart.GetXDocument();
+                var newXDoc = newDocument.CustomFilePropertiesPart.GetXDocument();
                 newXDoc.Declaration.Standalone = "yes";
                 newXDoc.Declaration.Encoding = "UTF-8";
                 newXDoc.Add(customPart.GetXDocument().Root);
@@ -238,37 +248,53 @@ namespace OpenXmlPowerTools
         // Copy handout master, notes master, presentation properties and view properties, if they exist
         private static void CopyPresentationParts(PresentationDocument sourceDocument, PresentationDocument newDocument, List<ImageData> images, List<MediaData> mediaList)
         {
-            XDocument newPresentation = newDocument.PresentationPart.GetXDocument();
+            var newPresentation = newDocument.PresentationPart.GetXDocument();
 
             // Copy slide and note slide sizes
-            XDocument oldPresentationDoc = sourceDocument.PresentationPart.GetXDocument();
+            var oldPresentationDoc = sourceDocument.PresentationPart.GetXDocument();
 
             foreach (var att in oldPresentationDoc.Root.Attributes())
             {
                 if (!att.IsNamespaceDeclaration && newPresentation.Root.Attribute(att.Name) == null)
+                {
                     newPresentation.Root.Add(oldPresentationDoc.Root.Attribute(att.Name));
+                }
             }
 
-            XElement oldElement = oldPresentationDoc.Root.Elements(P.sldSz).FirstOrDefault();
+            var oldElement = oldPresentationDoc.Root.Elements(P.sldSz).FirstOrDefault();
             if (oldElement != null)
+            {
                 newPresentation.Root.Add(oldElement);
+            }
 
             // Copy Font Parts
             if (oldPresentationDoc.Root.Element(P.embeddedFontLst) != null)
             {
-                XElement newFontLst = new XElement(P.embeddedFontLst);
+                var newFontLst = new XElement(P.embeddedFontLst);
                 foreach (var font in oldPresentationDoc.Root.Element(P.embeddedFontLst).Elements(P.embeddedFont))
                 {
                     XElement newRegular = null, newBold = null, newItalic = null, newBoldItalic = null;
                     if (font.Element(P.regular) != null)
+                    {
                         newRegular = CreatedEmbeddedFontPart(sourceDocument, newDocument, font, P.regular);
+                    }
+
                     if (font.Element(P.bold) != null)
+                    {
                         newBold = CreatedEmbeddedFontPart(sourceDocument, newDocument, font, P.bold);
+                    }
+
                     if (font.Element(P.italic) != null)
+                    {
                         newItalic = CreatedEmbeddedFontPart(sourceDocument, newDocument, font, P.italic);
+                    }
+
                     if (font.Element(P.boldItalic) != null)
+                    {
                         newBoldItalic = CreatedEmbeddedFontPart(sourceDocument, newDocument, font, P.boldItalic);
-                    XElement newEmbeddedFont = new XElement(P.embeddedFont,
+                    }
+
+                    var newEmbeddedFont = new XElement(P.embeddedFont,
                         font.Elements(P.font),
                         newRegular,
                         newBold,
@@ -294,11 +320,11 @@ namespace OpenXmlPowerTools
             // Copy Handout Master
             if (sourceDocument.PresentationPart.HandoutMasterPart != null)
             {
-                HandoutMasterPart oldMaster = sourceDocument.PresentationPart.HandoutMasterPart;
-                HandoutMasterPart newMaster = newDocument.PresentationPart.AddNewPart<HandoutMasterPart>();
+                var oldMaster = sourceDocument.PresentationPart.HandoutMasterPart;
+                var newMaster = newDocument.PresentationPart.AddNewPart<HandoutMasterPart>();
 
                 // Copy theme for master
-                ThemePart newThemePart = newMaster.AddNewPart<ThemePart>();
+                var newThemePart = newMaster.AddNewPart<ThemePart>();
                 newThemePart.PutXDocument(oldMaster.ThemePart.GetXDocument());
                 CopyRelatedPartsForContentParts(newDocument, oldMaster.ThemePart, newThemePart, new[] { newThemePart.GetXDocument().Root }, images, mediaList);
 
@@ -318,8 +344,8 @@ namespace OpenXmlPowerTools
             // Copy Presentation Properties
             if (sourceDocument.PresentationPart.PresentationPropertiesPart != null)
             {
-                PresentationPropertiesPart newPart = newDocument.PresentationPart.AddNewPart<PresentationPropertiesPart>();
-                XDocument xd1 = sourceDocument.PresentationPart.PresentationPropertiesPart.GetXDocument();
+                var newPart = newDocument.PresentationPart.AddNewPart<PresentationPropertiesPart>();
+                var xd1 = sourceDocument.PresentationPart.PresentationPropertiesPart.GetXDocument();
                 xd1.Descendants(P.custShow).Remove();
                 newPart.PutXDocument(xd1);
             }
@@ -327,31 +353,37 @@ namespace OpenXmlPowerTools
             // Copy View Properties
             if (sourceDocument.PresentationPart.ViewPropertiesPart != null)
             {
-                ViewPropertiesPart newPart = newDocument.PresentationPart.AddNewPart<ViewPropertiesPart>();
-                XDocument xd = sourceDocument.PresentationPart.ViewPropertiesPart.GetXDocument();
+                var newPart = newDocument.PresentationPart.AddNewPart<ViewPropertiesPart>();
+                var xd = sourceDocument.PresentationPart.ViewPropertiesPart.GetXDocument();
                 xd.Descendants(P.outlineViewPr).Elements(P.sldLst).Remove();
                 newPart.PutXDocument(xd);
             }
 
             foreach (var legacyDocTextInfo in sourceDocument.PresentationPart.Parts.Where(p => p.OpenXmlPart.RelationshipType == "http://schemas.microsoft.com/office/2006/relationships/legacyDocTextInfo"))
             {
-                LegacyDiagramTextInfoPart newPart = newDocument.PresentationPart.AddNewPart<LegacyDiagramTextInfoPart>();
+                var newPart = newDocument.PresentationPart.AddNewPart<LegacyDiagramTextInfoPart>();
                 newPart.FeedData(legacyDocTextInfo.OpenXmlPart.GetStream());
             }
 
             var listOfRootChildren = newPresentation.Root.Elements().ToList();
             foreach (var rc in listOfRootChildren)
+            {
                 rc.Remove();
+            }
+
             newPresentation.Root.Add(
                 listOfRootChildren.OrderBy(e =>
                 {
                     if (Order_presentation.ContainsKey(e.Name))
+                    {
                         return Order_presentation[e.Name];
+                    }
+
                     return 999;
                 }));
         }
 
-        private static Dictionary<XName, int> Order_presentation = new Dictionary<XName, int>
+        private static readonly Dictionary<XName, int> Order_presentation = new Dictionary<XName, int>
         {
             { P.sldMasterIdLst, 10 },
             { P.notesMasterIdLst, 20 },
@@ -373,14 +405,21 @@ namespace OpenXmlPowerTools
         private static XElement CreatedEmbeddedFontPart(PresentationDocument sourceDocument, PresentationDocument newDocument, XElement font, XName fontXName)
         {
             XElement newRegular;
-            FontPart oldFontPart = (FontPart)sourceDocument.PresentationPart.GetPartById((string)font.Element(fontXName).Attributes(R.id).FirstOrDefault());
+            var oldFontPart = (FontPart)sourceDocument.PresentationPart.GetPartById((string)font.Element(fontXName).Attributes(R.id).FirstOrDefault());
             FontPartType fpt;
             if (oldFontPart.ContentType == "application/x-fontdata")
+            {
                 fpt = FontPartType.FontData;
+            }
             else if (oldFontPart.ContentType == "application/x-font-ttf")
+            {
                 fpt = FontPartType.FontTtf;
+            }
             else
+            {
                 fpt = FontPartType.FontOdttf;
+            }
+
             var newId = "R" + Guid.NewGuid().ToString().Replace("-", "").Substring(0, 16);
             var newFontPart = newDocument.PresentationPart.AddFontPart(fpt, newId);
             newFontPart.FeedData(oldFontPart.GetStream());
@@ -392,27 +431,39 @@ namespace OpenXmlPowerTools
         private static SlideMasterPart AppendSlides(PresentationDocument sourceDocument, PresentationDocument newDocument,
             int start, int count, bool keepMaster, List<ImageData> images, SlideMasterPart currentMasterPart, List<MediaData> mediaList)
         {
-            XDocument newPresentation = newDocument.PresentationPart.GetXDocument();
+            var newPresentation = newDocument.PresentationPart.GetXDocument();
             if (newPresentation.Root.Element(P.sldIdLst) == null)
+            {
                 newPresentation.Root.Add(new XElement(P.sldIdLst));
+            }
+
             uint newID = 256;
             var ids = newPresentation.Root.Descendants(P.sldId).Select(f => (uint)f.Attribute(NoNamespace.id));
             if (ids.Any())
+            {
                 newID = ids.Max() + 1;
+            }
+
             var slideList = sourceDocument.PresentationPart.GetXDocument().Root.Descendants(P.sldId);
             if (slideList.Count() == 0 && (currentMasterPart == null || keepMaster))
             {
                 var slideMasterPart = sourceDocument.PresentationPart.SlideMasterParts.FirstOrDefault();
                 if (slideMasterPart != null)
+                {
                     currentMasterPart = CopyMasterSlide(sourceDocument, slideMasterPart, newDocument, newPresentation, images, mediaList);
+                }
+
                 return currentMasterPart;
             }
             while (count > 0 && start < slideList.Count())
             {
-                SlidePart slide = (SlidePart)sourceDocument.PresentationPart.GetPartById(slideList.ElementAt(start).Attribute(R.id).Value);
+                var slide = (SlidePart)sourceDocument.PresentationPart.GetPartById(slideList.ElementAt(start).Attribute(R.id).Value);
                 if (currentMasterPart == null || keepMaster)
+                {
                     currentMasterPart = CopyMasterSlide(sourceDocument, slide.SlideLayoutPart.SlideMasterPart, newDocument, newPresentation, images, mediaList);
-                SlidePart newSlide = newDocument.PresentationPart.AddNewPart<SlidePart>();
+                }
+
+                var newSlide = newDocument.PresentationPart.AddNewPart<SlidePart>();
                 newSlide.PutXDocument(slide.GetXDocument());
                 AddRelationships(slide, newSlide, new[] { newSlide.GetXDocument().Root });
                 CopyRelatedPartsForContentParts(newDocument, slide, newSlide, new[] { newSlide.GetXDocument().Root }, images, mediaList);
@@ -420,8 +471,11 @@ namespace OpenXmlPowerTools
                 if (slide.NotesSlidePart != null)
                 {
                     if (newDocument.PresentationPart.NotesMasterPart == null)
+                    {
                         CopyNotesMaster(sourceDocument, newDocument, images, mediaList);
-                    NotesSlidePart newPart = newSlide.AddNewPart<NotesSlidePart>();
+                    }
+
+                    var newPart = newSlide.AddNewPart<NotesSlidePart>();
                     newPart.PutXDocument(slide.NotesSlidePart.GetXDocument());
                     newPart.AddPart(newSlide);
                     newPart.AddPart(newDocument.PresentationPart.NotesMasterPart);
@@ -429,18 +483,25 @@ namespace OpenXmlPowerTools
                     CopyRelatedPartsForContentParts(newDocument, slide.NotesSlidePart, newPart, new[] { newPart.GetXDocument().Root }, images, mediaList);
                 }
 
-                string layoutName = slide.SlideLayoutPart.GetXDocument().Root.Element(P.cSld).Attribute(NoNamespace.name).Value;
-                foreach (SlideLayoutPart layoutPart in currentMasterPart.SlideLayoutParts)
+                var layoutName = slide.SlideLayoutPart.GetXDocument().Root.Element(P.cSld).Attribute(NoNamespace.name).Value;
+                foreach (var layoutPart in currentMasterPart.SlideLayoutParts)
+                {
                     if (layoutPart.GetXDocument().Root.Element(P.cSld).Attribute(NoNamespace.name).Value == layoutName)
                     {
                         newSlide.AddPart(layoutPart);
                         break;
                     }
+                }
+
                 if (newSlide.SlideLayoutPart == null)
+                {
                     newSlide.AddPart(currentMasterPart.SlideLayoutParts.First());  // Cannot find matching layout part
+                }
 
                 if (slide.SlideCommentsPart != null)
+                {
                     CopyComments(sourceDocument, newDocument, slide, newSlide);
+                }
 
                 newPresentation.Root.Element(P.sldIdLst).Add(new XElement(P.sldId,
                     new XAttribute(NoNamespace.id, newID.ToString()),
@@ -456,26 +517,28 @@ namespace OpenXmlPowerTools
             PresentationDocument newDocument, XDocument newPresentation, List<ImageData> images, List<MediaData> mediaList)
         {
             // Search for existing master slide with same theme name
-            XDocument oldTheme = sourceMasterPart.ThemePart.GetXDocument();
-            String themeName = oldTheme.Root.Attribute(NoNamespace.name).Value;
-            foreach (SlideMasterPart master in newDocument.PresentationPart.GetPartsOfType<SlideMasterPart>())
+            var oldTheme = sourceMasterPart.ThemePart.GetXDocument();
+            var themeName = oldTheme.Root.Attribute(NoNamespace.name).Value;
+            foreach (var master in newDocument.PresentationPart.GetPartsOfType<SlideMasterPart>())
             {
-                XDocument themeDoc = master.ThemePart.GetXDocument();
+                var themeDoc = master.ThemePart.GetXDocument();
                 if (themeDoc.Root.Attribute(NoNamespace.name).Value == themeName)
+                {
                     return master;
+                }
             }
 
-            SlideMasterPart newMaster = newDocument.PresentationPart.AddNewPart<SlideMasterPart>();
-            XDocument sourceMaster = sourceMasterPart.GetXDocument();
+            var newMaster = newDocument.PresentationPart.AddNewPart<SlideMasterPart>();
+            var sourceMaster = sourceMasterPart.GetXDocument();
 
             // Add to presentation slide master list, need newID for layout IDs also
-            uint newID = 2147483648;
+            var newID = 2147483648;
             var ids = newPresentation.Root.Descendants(P.sldMasterId).Select(f => (uint)f.Attribute(NoNamespace.id));
             if (ids.Any())
             {
                 newID = ids.Max();
-                XElement maxMaster = newPresentation.Root.Descendants(P.sldMasterId).Where(f => (uint)f.Attribute(NoNamespace.id) == newID).FirstOrDefault();
-                SlideMasterPart maxMasterPart = (SlideMasterPart)newDocument.PresentationPart.GetPartById(maxMaster.Attribute(R.id).Value);
+                var maxMaster = newPresentation.Root.Descendants(P.sldMasterId).Where(f => (uint)f.Attribute(NoNamespace.id) == newID).FirstOrDefault();
+                var maxMasterPart = (SlideMasterPart)newDocument.PresentationPart.GetPartById(maxMaster.Attribute(R.id).Value);
                 newID += (uint)maxMasterPart.GetXDocument().Root.Descendants(P.sldLayoutId).Count() + 1;
             }
             newPresentation.Root.Element(P.sldMasterIdLst).Add(new XElement(P.sldMasterId,
@@ -483,20 +546,23 @@ namespace OpenXmlPowerTools
                 new XAttribute(R.id, newDocument.PresentationPart.GetIdOfPart(newMaster))));
             newID++;
 
-            ThemePart newThemePart = newMaster.AddNewPart<ThemePart>();
+            var newThemePart = newMaster.AddNewPart<ThemePart>();
             if (newDocument.PresentationPart.ThemePart == null)
+            {
                 newThemePart = newDocument.PresentationPart.AddPart(newThemePart);
+            }
+
             newThemePart.PutXDocument(oldTheme);
             CopyRelatedPartsForContentParts(newDocument, sourceMasterPart.ThemePart, newThemePart, new[] { newThemePart.GetXDocument().Root }, images, mediaList);
-            foreach (SlideLayoutPart layoutPart in sourceMasterPart.SlideLayoutParts)
+            foreach (var layoutPart in sourceMasterPart.SlideLayoutParts)
             {
-                SlideLayoutPart newLayout = newMaster.AddNewPart<SlideLayoutPart>();
+                var newLayout = newMaster.AddNewPart<SlideLayoutPart>();
                 newLayout.PutXDocument(layoutPart.GetXDocument());
                 AddRelationships(layoutPart, newLayout, new[] { newLayout.GetXDocument().Root });
                 CopyRelatedPartsForContentParts(newDocument, layoutPart, newLayout, new[] { newLayout.GetXDocument().Root }, images, mediaList);
                 newLayout.AddPart(newMaster);
-                string resID = sourceMasterPart.GetIdOfPart(layoutPart);
-                XElement entry = sourceMaster.Root.Descendants(P.sldLayoutId).Where(f => f.Attribute(R.id).Value == resID).FirstOrDefault();
+                var resID = sourceMasterPart.GetIdOfPart(layoutPart);
+                var entry = sourceMaster.Root.Descendants(P.sldLayoutId).Where(f => f.Attribute(R.id).Value == resID).FirstOrDefault();
                 entry.Attribute(R.id).SetValue(newMaster.GetIdOfPart(newLayout));
                 entry.SetAttributeValue(NoNamespace.id, newID.ToString());
                 newID++;
@@ -512,21 +578,21 @@ namespace OpenXmlPowerTools
         private static void CopyNotesMaster(PresentationDocument sourceDocument, PresentationDocument newDocument, List<ImageData> images, List<MediaData> mediaList)
         {
             // Copy notesSz element from presentation
-            XDocument newPresentation = newDocument.PresentationPart.GetXDocument();
-            XDocument oldPresentationDoc = sourceDocument.PresentationPart.GetXDocument();
-            XElement oldElement = oldPresentationDoc.Root.Element(P.notesSz);
+            var newPresentation = newDocument.PresentationPart.GetXDocument();
+            var oldPresentationDoc = sourceDocument.PresentationPart.GetXDocument();
+            var oldElement = oldPresentationDoc.Root.Element(P.notesSz);
             newPresentation.Root.Element(P.notesSz).ReplaceWith(oldElement);
 
             // Copy Notes Master
             if (sourceDocument.PresentationPart.NotesMasterPart != null)
             {
-                NotesMasterPart oldMaster = sourceDocument.PresentationPart.NotesMasterPart;
-                NotesMasterPart newMaster = newDocument.PresentationPart.AddNewPart<NotesMasterPart>();
+                var oldMaster = sourceDocument.PresentationPart.NotesMasterPart;
+                var newMaster = newDocument.PresentationPart.AddNewPart<NotesMasterPart>();
 
                 // Copy theme for master
                 if (oldMaster.ThemePart != null)
                 {
-                    ThemePart newThemePart = newMaster.AddNewPart<ThemePart>();
+                    var newThemePart = newMaster.AddNewPart<ThemePart>();
                     newThemePart.PutXDocument(oldMaster.ThemePart.GetXDocument());
                     CopyRelatedPartsForContentParts(newDocument, oldMaster.ThemePart, newThemePart, new[] { newThemePart.GetXDocument().Root }, images, mediaList);
                 }
@@ -546,14 +612,14 @@ namespace OpenXmlPowerTools
         {
             newSlide.AddNewPart<SlideCommentsPart>();
             newSlide.SlideCommentsPart.PutXDocument(oldSlide.SlideCommentsPart.GetXDocument());
-            XDocument newSlideComments = newSlide.SlideCommentsPart.GetXDocument();
-            XDocument oldAuthors = oldDocument.PresentationPart.CommentAuthorsPart.GetXDocument();
-            foreach (XElement comment in newSlideComments.Root.Elements(P.cm))
+            var newSlideComments = newSlide.SlideCommentsPart.GetXDocument();
+            var oldAuthors = oldDocument.PresentationPart.CommentAuthorsPart.GetXDocument();
+            foreach (var comment in newSlideComments.Root.Elements(P.cm))
             {
-                XElement newAuthor = FindCommentsAuthor(newDocument, comment, oldAuthors);
+                var newAuthor = FindCommentsAuthor(newDocument, comment, oldAuthors);
                 // Update last index value for new comment
                 comment.Attribute(NoNamespace.authorId).SetValue(newAuthor.Attribute(NoNamespace.id).Value);
-                uint lastIndex = Convert.ToUInt32(newAuthor.Attribute(NoNamespace.lastIdx).Value);
+                var lastIndex = Convert.ToUInt32(newAuthor.Attribute(NoNamespace.lastIdx).Value);
                 comment.Attribute(NoNamespace.idx).SetValue(lastIndex.ToString());
                 newAuthor.Attribute(NoNamespace.lastIdx).SetValue(Convert.ToString(lastIndex + 1));
             }
@@ -561,7 +627,7 @@ namespace OpenXmlPowerTools
 
         private static XElement FindCommentsAuthor(PresentationDocument newDocument, XElement comment, XDocument oldAuthors)
         {
-            XElement oldAuthor = oldAuthors.Root.Elements(P.cmAuthor).Where(
+            var oldAuthor = oldAuthors.Root.Elements(P.cmAuthor).Where(
                 f => f.Attribute(NoNamespace.id).Value == comment.Attribute(NoNamespace.authorId).Value).FirstOrDefault();
             XElement newAuthor = null;
             if (newDocument.PresentationPart.CommentAuthorsPart == null)
@@ -572,7 +638,7 @@ namespace OpenXmlPowerTools
                     new XAttribute(XNamespace.Xmlns + "r", R.r),
                     new XAttribute(XNamespace.Xmlns + "p", P.p))));
             }
-            XDocument authors = newDocument.PresentationPart.CommentAuthorsPart.GetXDocument();
+            var authors = newDocument.PresentationPart.CommentAuthorsPart.GetXDocument();
             newAuthor = authors.Root.Elements(P.cmAuthor).Where(
                 f => f.Attribute(NoNamespace.initials).Value == oldAuthor.Attribute(NoNamespace.initials).Value).FirstOrDefault();
             if (newAuthor == null)
@@ -580,7 +646,9 @@ namespace OpenXmlPowerTools
                 uint newID = 0;
                 var ids = authors.Root.Descendants(P.cmAuthor).Select(f => (uint)f.Attribute(NoNamespace.id));
                 if (ids.Any())
+                {
                     newID = ids.Max() + 1;
+                }
 
                 newAuthor = new XElement(P.cmAuthor, new XAttribute(NoNamespace.id, newID.ToString()),
                     new XAttribute(NoNamespace.name, oldAuthor.Attribute(NoNamespace.name).Value),
@@ -594,36 +662,47 @@ namespace OpenXmlPowerTools
 
         private static void CopyTableStyles(PresentationDocument oldDocument, PresentationDocument newDocument, OpenXmlPart oldContentPart, OpenXmlPart newContentPart)
         {
-            foreach (XElement table in newContentPart.GetXDocument().Descendants(A.tableStyleId))
+            foreach (var table in newContentPart.GetXDocument().Descendants(A.tableStyleId))
             {
-                string styleId = table.Value;
+                var styleId = table.Value;
                 if (string.IsNullOrEmpty(styleId))
+                {
                     continue;
+                }
 
                 // Find old style
                 if (oldDocument.PresentationPart.TableStylesPart == null)
+                {
                     continue;
-                XDocument oldTableStyles = oldDocument.PresentationPart.TableStylesPart.GetXDocument();
-                XElement oldStyle = oldTableStyles.Root.Elements(A.tblStyle).Where(f => f.Attribute(NoNamespace.styleId).Value == styleId).FirstOrDefault();
+                }
+
+                var oldTableStyles = oldDocument.PresentationPart.TableStylesPart.GetXDocument();
+                var oldStyle = oldTableStyles.Root.Elements(A.tblStyle).Where(f => f.Attribute(NoNamespace.styleId).Value == styleId).FirstOrDefault();
                 if (oldStyle == null)
+                {
                     continue;
+                }
 
                 // Create new TableStylesPart, if needed
                 XDocument tableStyles = null;
                 if (newDocument.PresentationPart.TableStylesPart == null)
                 {
-                    TableStylesPart newStylesPart = newDocument.PresentationPart.AddNewPart<TableStylesPart>();
+                    var newStylesPart = newDocument.PresentationPart.AddNewPart<TableStylesPart>();
                     tableStyles = new XDocument(new XElement(A.tblStyleLst,
                         new XAttribute(XNamespace.Xmlns + "a", A.a),
                         new XAttribute(NoNamespace.def, styleId)));
                     newStylesPart.PutXDocument(tableStyles);
                 }
                 else
+                {
                     tableStyles = newDocument.PresentationPart.TableStylesPart.GetXDocument();
+                }
 
                 // Search new TableStylesPart to see if it contains the ID
                 if (tableStyles.Root.Elements(A.tblStyle).Where(f => f.Attribute(NoNamespace.styleId).Value == styleId).FirstOrDefault() != null)
+                {
                     continue;
+                }
 
                 // Copy style to new part
                 tableStyles.Root.Add(oldStyle);
@@ -637,7 +716,7 @@ namespace OpenXmlPowerTools
             var relevantElements = newContent.DescendantsAndSelf()
                 .Where(d => d.Name == VML.imagedata || d.Name == VML.fill || d.Name == VML.stroke || d.Name == A.blip || d.Name == SVG.svgBlip)
                 .ToList();
-            foreach (XElement imageReference in relevantElements)
+            foreach (var imageReference in relevantElements)
             {
                 CopyRelatedImage(oldContentPart, newContentPart, imageReference, R.embed, images);
                 CopyRelatedImage(oldContentPart, newContentPart, imageReference, R.pict, images);
@@ -648,7 +727,7 @@ namespace OpenXmlPowerTools
             relevantElements = newContent.DescendantsAndSelf()
                 .Where(d => d.Name == A.videoFile || d.Name == A.quickTimeFile)
                 .ToList();
-            foreach (XElement imageReference in relevantElements)
+            foreach (var imageReference in relevantElements)
             {
                 CopyRelatedMedia(oldContentPart, newContentPart, imageReference, R.link, mediaList, "video");
             }
@@ -656,45 +735,49 @@ namespace OpenXmlPowerTools
             relevantElements = newContent.DescendantsAndSelf()
                 .Where(d => d.Name == P14.media || d.Name == PAV.srcMedia)
                 .ToList();
-            foreach (XElement imageReference in relevantElements)
+            foreach (var imageReference in relevantElements)
             {
                 CopyRelatedMedia(oldContentPart, newContentPart, imageReference, R.embed, mediaList, "media");
                 CopyRelatedMediaExternalRelationship(oldContentPart, newContentPart, imageReference, R.link, "media");
             }
 
-            foreach (XElement extendedReference in newContent.DescendantsAndSelf(A14.imgLayer))
+            foreach (var extendedReference in newContent.DescendantsAndSelf(A14.imgLayer))
             {
                 CopyExtendedPart(oldContentPart, newContentPart, extendedReference, R.embed);
             }
 
-            foreach (XElement contentPartReference in newContent.DescendantsAndSelf(P.contentPart))
+            foreach (var contentPartReference in newContent.DescendantsAndSelf(P.contentPart))
             {
                 CopyInkPart(oldContentPart, newContentPart, contentPartReference, R.id);
             }
 
-            foreach (XElement contentPartReference in newContent.DescendantsAndSelf(P.control))
+            foreach (var contentPartReference in newContent.DescendantsAndSelf(P.control))
             {
                 CopyActiveXPart(oldContentPart, newContentPart, contentPartReference, R.id);
             }
 
-            foreach (XElement contentPartReference in newContent.DescendantsAndSelf(Plegacy.textdata))
+            foreach (var contentPartReference in newContent.DescendantsAndSelf(Plegacy.textdata))
             {
                 CopyLegacyDiagramText(oldContentPart, newContentPart, contentPartReference, "id");
             }
 
-            foreach (XElement diagramReference in newContent.DescendantsAndSelf().Where(d => d.Name == DGM.relIds || d.Name == A.relIds))
+            foreach (var diagramReference in newContent.DescendantsAndSelf().Where(d => d.Name == DGM.relIds || d.Name == A.relIds))
             {
                 // dm attribute
-                string relId = diagramReference.Attribute(R.dm).Value;
+                var relId = diagramReference.Attribute(R.dm).Value;
                 var tempPartIdPair = newContentPart.Parts.FirstOrDefault(p => p.RelationshipId == relId);
                 if (tempPartIdPair != null)
+                {
                     continue;
+                }
 
-                ExternalRelationship tempEr = newContentPart.ExternalRelationships.FirstOrDefault(er => er.Id == relId);
+                var tempEr = newContentPart.ExternalRelationships.FirstOrDefault(er => er.Id == relId);
                 if (tempEr != null)
+                {
                     continue;
+                }
 
-                OpenXmlPart oldPart = oldContentPart.GetPartById(relId);
+                var oldPart = oldContentPart.GetPartById(relId);
                 OpenXmlPart newPart = newContentPart.AddNewPart<DiagramDataPart>();
                 newPart.GetXDocument().Add(oldPart.GetXDocument().Root);
                 diagramReference.Attribute(R.dm).Value = newContentPart.GetIdOfPart(newPart);
@@ -705,12 +788,16 @@ namespace OpenXmlPowerTools
                 relId = diagramReference.Attribute(R.lo).Value;
                 var tempPartIdPair2 = newContentPart.Parts.FirstOrDefault(p => p.RelationshipId == relId);
                 if (tempPartIdPair2 != null)
+                {
                     continue;
+                }
 
-                ExternalRelationship tempEr2 = newContentPart.ExternalRelationships.FirstOrDefault(er => er.Id == relId);
+                var tempEr2 = newContentPart.ExternalRelationships.FirstOrDefault(er => er.Id == relId);
                 if (tempEr2 != null)
+                {
                     continue;
-                
+                }
+
                 oldPart = oldContentPart.GetPartById(relId);
                 newPart = newContentPart.AddNewPart<DiagramLayoutDefinitionPart>();
                 newPart.GetXDocument().Add(oldPart.GetXDocument().Root);
@@ -722,11 +809,15 @@ namespace OpenXmlPowerTools
                 relId = diagramReference.Attribute(R.qs).Value;
                 var tempPartIdPair3 = newContentPart.Parts.FirstOrDefault(p => p.RelationshipId == relId);
                 if (tempPartIdPair3 != null)
+                {
                     continue;
+                }
 
-                ExternalRelationship tempEr3 = newContentPart.ExternalRelationships.FirstOrDefault(er => er.Id == relId);
+                var tempEr3 = newContentPart.ExternalRelationships.FirstOrDefault(er => er.Id == relId);
                 if (tempEr3 != null)
+                {
                     continue;
+                }
 
                 oldPart = oldContentPart.GetPartById(relId);
                 newPart = newContentPart.AddNewPart<DiagramStylePart>();
@@ -739,11 +830,15 @@ namespace OpenXmlPowerTools
                 relId = diagramReference.Attribute(R.cs).Value;
                 var tempPartIdPair4 = newContentPart.Parts.FirstOrDefault(p => p.RelationshipId == relId);
                 if (tempPartIdPair4 != null)
+                {
                     continue;
+                }
 
-                ExternalRelationship tempEr4 = newContentPart.ExternalRelationships.FirstOrDefault(er => er.Id == relId);
+                var tempEr4 = newContentPart.ExternalRelationships.FirstOrDefault(er => er.Id == relId);
                 if (tempEr4 != null)
+                {
                     continue;
+                }
 
                 oldPart = oldContentPart.GetPartById(relId);
                 newPart = newContentPart.AddNewPart<DiagramColorsPart>();
@@ -753,9 +848,9 @@ namespace OpenXmlPowerTools
                 CopyRelatedPartsForContentParts(newDocument, oldPart, newPart, new[] { newPart.GetXDocument().Root }, images, mediaList);
             }
 
-            foreach (XElement oleReference in newContent.DescendantsAndSelf().Where(d => d.Name == P.oleObj || d.Name == P.externalData))
+            foreach (var oleReference in newContent.DescendantsAndSelf().Where(d => d.Name == P.oleObj || d.Name == P.externalData))
             {
-                string relId = oleReference.Attribute(R.id).Value;
+                var relId = oleReference.Attribute(R.id).Value;
 
                 // First look to see if this relId has already been added to the new document.
                 // This is necessary for those parts that get processed with both old and new ids, such as the comments
@@ -763,92 +858,132 @@ namespace OpenXmlPowerTools
                 // in that case.
                 var tempPartIdPair5 = newContentPart.Parts.FirstOrDefault(p => p.RelationshipId == relId);
                 if (tempPartIdPair5 != null)
+                {
                     continue;
+                }
 
-                ExternalRelationship tempEr5 = newContentPart.ExternalRelationships.FirstOrDefault(er => er.Id == relId);
+                var tempEr5 = newContentPart.ExternalRelationships.FirstOrDefault(er => er.Id == relId);
                 if (tempEr5 != null)
+                {
                     continue;
+                }
 
                 var oldPartIdPair = oldContentPart.Parts.FirstOrDefault(p => p.RelationshipId == relId);
                 if (oldPartIdPair != null)
                 {
-                    OpenXmlPart oldPart = oldPartIdPair.OpenXmlPart;
+                    var oldPart = oldPartIdPair.OpenXmlPart;
                     OpenXmlPart newPart = null;
                     if (oldPart is EmbeddedObjectPart)
                     {
                         if (newContentPart is DialogsheetPart)
+                        {
                             newPart = ((DialogsheetPart)newContentPart).AddEmbeddedObjectPart(oldPart.ContentType);
+                        }
                         else if (newContentPart is HandoutMasterPart)
+                        {
                             newPart = ((HandoutMasterPart)newContentPart).AddEmbeddedObjectPart(oldPart.ContentType);
+                        }
                         else if (newContentPart is NotesMasterPart)
+                        {
                             newPart = ((NotesMasterPart)newContentPart).AddEmbeddedObjectPart(oldPart.ContentType);
+                        }
                         else if (newContentPart is NotesSlidePart)
+                        {
                             newPart = ((NotesSlidePart)newContentPart).AddEmbeddedObjectPart(oldPart.ContentType);
+                        }
                         else if (newContentPart is SlideLayoutPart)
+                        {
                             newPart = ((SlideLayoutPart)newContentPart).AddEmbeddedObjectPart(oldPart.ContentType);
+                        }
                         else if (newContentPart is SlideMasterPart)
+                        {
                             newPart = ((SlideMasterPart)newContentPart).AddEmbeddedObjectPart(oldPart.ContentType);
+                        }
                         else if (newContentPart is SlidePart)
+                        {
                             newPart = ((SlidePart)newContentPart).AddEmbeddedObjectPart(oldPart.ContentType);
+                        }
                     }
                     else if (oldPart is EmbeddedPackagePart)
                     {
                         if (newContentPart is ChartPart)
+                        {
                             newPart = ((ChartPart)newContentPart).AddEmbeddedPackagePart(oldPart.ContentType);
+                        }
                         else if (newContentPart is HandoutMasterPart)
+                        {
                             newPart = ((HandoutMasterPart)newContentPart).AddEmbeddedPackagePart(oldPart.ContentType);
+                        }
                         else if (newContentPart is NotesMasterPart)
+                        {
                             newPart = ((NotesMasterPart)newContentPart).AddEmbeddedPackagePart(oldPart.ContentType);
+                        }
                         else if (newContentPart is NotesSlidePart)
+                        {
                             newPart = ((NotesSlidePart)newContentPart).AddEmbeddedPackagePart(oldPart.ContentType);
+                        }
                         else if (newContentPart is SlideLayoutPart)
+                        {
                             newPart = ((SlideLayoutPart)newContentPart).AddEmbeddedPackagePart(oldPart.ContentType);
+                        }
                         else if (newContentPart is SlideMasterPart)
+                        {
                             newPart = ((SlideMasterPart)newContentPart).AddEmbeddedPackagePart(oldPart.ContentType);
+                        }
                         else if (newContentPart is SlidePart)
+                        {
                             newPart = ((SlidePart)newContentPart).AddEmbeddedPackagePart(oldPart.ContentType);
+                        }
                     }
-                    using (Stream oldObject = oldPart.GetStream(FileMode.Open, FileAccess.Read))
-                    using (Stream newObject = newPart.GetStream(FileMode.Create, FileAccess.ReadWrite))
+                    using (var oldObject = oldPart.GetStream(FileMode.Open, FileAccess.Read))
+                    using (var newObject = newPart.GetStream(FileMode.Create, FileAccess.ReadWrite))
                     {
                         int byteCount;
-                        byte[] buffer = new byte[65536];
+                        var buffer = new byte[65536];
                         while ((byteCount = oldObject.Read(buffer, 0, 65536)) != 0)
+                        {
                             newObject.Write(buffer, 0, byteCount);
+                        }
                     }
                     oleReference.Attribute(R.id).Value = newContentPart.GetIdOfPart(newPart);
                 }
                 else
                 {
-                    ExternalRelationship er = oldContentPart.GetExternalRelationship(relId);
-                    ExternalRelationship newEr = newContentPart.AddExternalRelationship(er.RelationshipType, er.Uri);
+                    var er = oldContentPart.GetExternalRelationship(relId);
+                    var newEr = newContentPart.AddExternalRelationship(er.RelationshipType, er.Uri);
                     oleReference.Attribute(R.id).Value = newEr.Id;
                 }
             }
 
-            foreach (XElement chartReference in newContent.DescendantsAndSelf(C.chart))
+            foreach (var chartReference in newContent.DescendantsAndSelf(C.chart))
             {
-                string relId = (string)chartReference.Attribute(R.id);
+                var relId = (string)chartReference.Attribute(R.id);
                 if (string.IsNullOrEmpty(relId))
+                {
                     continue;
+                }
 
                 var tempPartIdPair6 = newContentPart.Parts.FirstOrDefault(p => p.RelationshipId == relId);
                 if (tempPartIdPair6 != null)
+                {
                     continue;
+                }
 
-                ExternalRelationship tempEr6 = newContentPart.ExternalRelationships.FirstOrDefault(er => er.Id == relId);
+                var tempEr6 = newContentPart.ExternalRelationships.FirstOrDefault(er => er.Id == relId);
                 if (tempEr6 != null)
+                {
                     continue;
+                }
 
                 var oldPartIdPair2 = oldContentPart.Parts.FirstOrDefault(p => p.RelationshipId == relId);
                 if (oldPartIdPair2 != null)
                 {
-                    ChartPart oldPart = oldPartIdPair2.OpenXmlPart as ChartPart;
+                    var oldPart = oldPartIdPair2.OpenXmlPart as ChartPart;
                     if (oldPart != null)
                     {
-                        XDocument oldChart = oldPart.GetXDocument();
-                        ChartPart newPart = newContentPart.AddNewPart<ChartPart>();
-                        XDocument newChart = newPart.GetXDocument();
+                        var oldChart = oldPart.GetXDocument();
+                        var newPart = newContentPart.AddNewPart<ChartPart>();
+                        var newChart = newPart.GetXDocument();
                         newChart.Add(oldChart.Root);
                         chartReference.Attribute(R.id).Value = newContentPart.GetIdOfPart(newPart);
                         CopyChartObjects(oldPart, newPart);
@@ -857,29 +992,35 @@ namespace OpenXmlPowerTools
                 }
             }
 
-            foreach (XElement userShape in newContent.DescendantsAndSelf(C.userShapes))
+            foreach (var userShape in newContent.DescendantsAndSelf(C.userShapes))
             {
-                string relId = (string)userShape.Attribute(R.id);
+                var relId = (string)userShape.Attribute(R.id);
                 if (string.IsNullOrEmpty(relId))
+                {
                     continue;
+                }
 
                 var tempPartIdPair7 = newContentPart.Parts.FirstOrDefault(p => p.RelationshipId == relId);
                 if (tempPartIdPair7 != null)
+                {
                     continue;
+                }
 
-                ExternalRelationship tempEr7 = newContentPart.ExternalRelationships.FirstOrDefault(er => er.Id == relId);
+                var tempEr7 = newContentPart.ExternalRelationships.FirstOrDefault(er => er.Id == relId);
                 if (tempEr7 != null)
+                {
                     continue;
+                }
 
                 var oldPartIdPair3 = oldContentPart.Parts.FirstOrDefault(p => p.RelationshipId == relId);
                 if (oldPartIdPair3 != null)
                 {
-                    ChartDrawingPart oldPart = oldPartIdPair3.OpenXmlPart as ChartDrawingPart;
+                    var oldPart = oldPartIdPair3.OpenXmlPart as ChartDrawingPart;
                     if (oldPart != null)
                     {
-                        XDocument oldXDoc = oldPart.GetXDocument();
-                        ChartDrawingPart newPart = newContentPart.AddNewPart<ChartDrawingPart>();
-                        XDocument newXDoc = newPart.GetXDocument();
+                        var oldXDoc = oldPart.GetXDocument();
+                        var newPart = newContentPart.AddNewPart<ChartDrawingPart>();
+                        var newXDoc = newPart.GetXDocument();
                         newXDoc.Add(oldXDoc.Root);
                         userShape.Attribute(R.id).Value = newContentPart.GetIdOfPart(newPart);
                         AddRelationships(oldPart, newPart, newContent);
@@ -888,54 +1029,64 @@ namespace OpenXmlPowerTools
                 }
             }
 
-            foreach (XElement tags in newContent.DescendantsAndSelf(P.tags))
+            foreach (var tags in newContent.DescendantsAndSelf(P.tags))
             {
-                string relId = (string)tags.Attribute(R.id);
+                var relId = (string)tags.Attribute(R.id);
                 if (string.IsNullOrEmpty(relId))
+                {
                     continue;
+                }
 
                 var tempPartIdPair8 = newContentPart.Parts.FirstOrDefault(p => p.RelationshipId == relId);
                 if (tempPartIdPair8 != null)
+                {
                     continue;
+                }
 
-                ExternalRelationship tempEr8 = newContentPart.ExternalRelationships.FirstOrDefault(er => er.Id == relId);
+                var tempEr8 = newContentPart.ExternalRelationships.FirstOrDefault(er => er.Id == relId);
                 if (tempEr8 != null)
+                {
                     continue;
+                }
 
                 var oldPartIdPair4 = oldContentPart.Parts.FirstOrDefault(p => p.RelationshipId == relId);
                 if (oldPartIdPair4 != null)
                 {
-                    UserDefinedTagsPart oldPart = oldPartIdPair4.OpenXmlPart as UserDefinedTagsPart;
+                    var oldPart = oldPartIdPair4.OpenXmlPart as UserDefinedTagsPart;
                     if (oldPart != null)
                     {
-                        XDocument oldXDoc = oldPart.GetXDocument();
-                        UserDefinedTagsPart newPart = newContentPart.AddNewPart<UserDefinedTagsPart>();
-                        XDocument newXDoc = newPart.GetXDocument();
+                        var oldXDoc = oldPart.GetXDocument();
+                        var newPart = newContentPart.AddNewPart<UserDefinedTagsPart>();
+                        var newXDoc = newPart.GetXDocument();
                         newXDoc.Add(oldXDoc.Root);
                         tags.Attribute(R.id).Value = newContentPart.GetIdOfPart(newPart);
                     }
                 }
             }
 
-            foreach (XElement custData in newContent.DescendantsAndSelf(P.custData))
+            foreach (var custData in newContent.DescendantsAndSelf(P.custData))
             {
-                string relId = (string)custData.Attribute(R.id);
+                var relId = (string)custData.Attribute(R.id);
                 if (string.IsNullOrEmpty(relId))
+                {
                     continue;
+                }
 
                 var tempPartIdPair9 = newContentPart.Parts.FirstOrDefault(p => p.RelationshipId == relId);
                 if (tempPartIdPair9 != null)
+                {
                     continue;
+                }
 
                 var oldPartIdPair9 = oldContentPart.Parts.FirstOrDefault(p => p.RelationshipId == relId);
                 if (oldPartIdPair9 != null)
                 {
-                    CustomXmlPart newPart = newDocument.PresentationPart.AddCustomXmlPart(CustomXmlPartType.CustomXml);
+                    var newPart = newDocument.PresentationPart.AddCustomXmlPart(CustomXmlPartType.CustomXml);
                     newPart.FeedData(oldPartIdPair9.OpenXmlPart.GetStream());
                     foreach (var itemProps in oldPartIdPair9.OpenXmlPart.Parts.Where(p => p.OpenXmlPart.ContentType == "application/vnd.openxmlformats-officedocument.customXmlProperties+xml"))
                     {
                         var newId2 = "R" + Guid.NewGuid().ToString().Replace("-", "").Substring(0, 16);
-                        CustomXmlPropertiesPart cxpp = newPart.AddNewPart<CustomXmlPropertiesPart>("application/vnd.openxmlformats-officedocument.customXmlProperties+xml", newId2);
+                        var cxpp = newPart.AddNewPart<CustomXmlPropertiesPart>("application/vnd.openxmlformats-officedocument.customXmlProperties+xml", newId2);
                         cxpp.FeedData(itemProps.OpenXmlPart.GetStream());
                     }
                     var newId = "R" + Guid.NewGuid().ToString().Replace("-", "").Substring(0, 16);
@@ -944,8 +1095,10 @@ namespace OpenXmlPowerTools
                 }
             }
 
-            foreach (XElement soundReference in newContent.DescendantsAndSelf().Where(d => d.Name == A.audioFile))
+            foreach (var soundReference in newContent.DescendantsAndSelf().Where(d => d.Name == A.audioFile))
+            {
                 CopyRelatedSound(newDocument, oldContentPart, newContentPart, soundReference, R.link);
+            }
 
             if ((oldContentPart is ChartsheetPart && newContentPart is ChartsheetPart) ||
                 (oldContentPart is DialogsheetPart && newContentPart is DialogsheetPart) ||
@@ -959,63 +1112,129 @@ namespace OpenXmlPowerTools
                 (oldContentPart is SlidePart && newContentPart is SlidePart) ||
                 (oldContentPart is WorksheetPart && newContentPart is WorksheetPart))
             {
-                foreach (XElement soundReference in newContent.DescendantsAndSelf().Where(d => d.Name == P.snd || d.Name == P.sndTgt || d.Name == A.wavAudioFile || d.Name == A.snd || d.Name == PAV.srcMedia))
+                foreach (var soundReference in newContent.DescendantsAndSelf().Where(d => d.Name == P.snd || d.Name == P.sndTgt || d.Name == A.wavAudioFile || d.Name == A.snd || d.Name == PAV.srcMedia))
+                {
                     CopyRelatedSound(newDocument, oldContentPart, newContentPart, soundReference, R.embed);
+                }
 
                 IEnumerable<VmlDrawingPart> vmlDrawingParts = null;
                 if (oldContentPart is ChartsheetPart)
+                {
                     vmlDrawingParts = ((ChartsheetPart)oldContentPart).VmlDrawingParts;
+                }
+
                 if (oldContentPart is DialogsheetPart)
+                {
                     vmlDrawingParts = ((DialogsheetPart)oldContentPart).VmlDrawingParts;
+                }
+
                 if (oldContentPart is HandoutMasterPart)
+                {
                     vmlDrawingParts = ((HandoutMasterPart)oldContentPart).VmlDrawingParts;
+                }
+
                 if (oldContentPart is InternationalMacroSheetPart)
+                {
                     vmlDrawingParts = ((InternationalMacroSheetPart)oldContentPart).VmlDrawingParts;
+                }
+
                 if (oldContentPart is MacroSheetPart)
+                {
                     vmlDrawingParts = ((MacroSheetPart)oldContentPart).VmlDrawingParts;
+                }
+
                 if (oldContentPart is NotesMasterPart)
+                {
                     vmlDrawingParts = ((NotesMasterPart)oldContentPart).VmlDrawingParts;
+                }
+
                 if (oldContentPart is NotesSlidePart)
+                {
                     vmlDrawingParts = ((NotesSlidePart)oldContentPart).VmlDrawingParts;
+                }
+
                 if (oldContentPart is SlideLayoutPart)
+                {
                     vmlDrawingParts = ((SlideLayoutPart)oldContentPart).VmlDrawingParts;
+                }
+
                 if (oldContentPart is SlideMasterPart)
+                {
                     vmlDrawingParts = ((SlideMasterPart)oldContentPart).VmlDrawingParts;
+                }
+
                 if (oldContentPart is SlidePart)
+                {
                     vmlDrawingParts = ((SlidePart)oldContentPart).VmlDrawingParts;
+                }
+
                 if (oldContentPart is WorksheetPart)
+                {
                     vmlDrawingParts = ((WorksheetPart)oldContentPart).VmlDrawingParts;
+                }
 
                 if (vmlDrawingParts != null)
                 {
                     // Transitional: Copy VML Drawing parts, implicit relationship
-                    foreach (VmlDrawingPart vmlPart in vmlDrawingParts)
+                    foreach (var vmlPart in vmlDrawingParts)
                     {
                         VmlDrawingPart newVmlPart = null;
                         if (newContentPart is ChartsheetPart)
+                        {
                             newVmlPart = ((ChartsheetPart)newContentPart).AddNewPart<VmlDrawingPart>();
-                        if (newContentPart is DialogsheetPart)
-                            newVmlPart = ((DialogsheetPart)newContentPart).AddNewPart<VmlDrawingPart>();
-                        if (newContentPart is HandoutMasterPart)
-                            newVmlPart = ((HandoutMasterPart)newContentPart).AddNewPart<VmlDrawingPart>();
-                        if (newContentPart is InternationalMacroSheetPart)
-                            newVmlPart = ((InternationalMacroSheetPart)newContentPart).AddNewPart<VmlDrawingPart>();
-                        if (newContentPart is MacroSheetPart)
-                            newVmlPart = ((MacroSheetPart)newContentPart).AddNewPart<VmlDrawingPart>();
-                        if (newContentPart is NotesMasterPart)
-                            newVmlPart = ((NotesMasterPart)newContentPart).AddNewPart<VmlDrawingPart>();
-                        if (newContentPart is NotesSlidePart)
-                            newVmlPart = ((NotesSlidePart)newContentPart).AddNewPart<VmlDrawingPart>();
-                        if (newContentPart is SlideLayoutPart)
-                            newVmlPart = ((SlideLayoutPart)newContentPart).AddNewPart<VmlDrawingPart>();
-                        if (newContentPart is SlideMasterPart)
-                            newVmlPart = ((SlideMasterPart)newContentPart).AddNewPart<VmlDrawingPart>();
-                        if (newContentPart is SlidePart)
-                            newVmlPart = ((SlidePart)newContentPart).AddNewPart<VmlDrawingPart>();
-                        if (newContentPart is WorksheetPart)
-                            newVmlPart = ((WorksheetPart)newContentPart).AddNewPart<VmlDrawingPart>();
+                        }
 
-                        XDocument xd = vmlPart.GetXDocument();
+                        if (newContentPart is DialogsheetPart)
+                        {
+                            newVmlPart = ((DialogsheetPart)newContentPart).AddNewPart<VmlDrawingPart>();
+                        }
+
+                        if (newContentPart is HandoutMasterPart)
+                        {
+                            newVmlPart = ((HandoutMasterPart)newContentPart).AddNewPart<VmlDrawingPart>();
+                        }
+
+                        if (newContentPart is InternationalMacroSheetPart)
+                        {
+                            newVmlPart = ((InternationalMacroSheetPart)newContentPart).AddNewPart<VmlDrawingPart>();
+                        }
+
+                        if (newContentPart is MacroSheetPart)
+                        {
+                            newVmlPart = ((MacroSheetPart)newContentPart).AddNewPart<VmlDrawingPart>();
+                        }
+
+                        if (newContentPart is NotesMasterPart)
+                        {
+                            newVmlPart = ((NotesMasterPart)newContentPart).AddNewPart<VmlDrawingPart>();
+                        }
+
+                        if (newContentPart is NotesSlidePart)
+                        {
+                            newVmlPart = ((NotesSlidePart)newContentPart).AddNewPart<VmlDrawingPart>();
+                        }
+
+                        if (newContentPart is SlideLayoutPart)
+                        {
+                            newVmlPart = ((SlideLayoutPart)newContentPart).AddNewPart<VmlDrawingPart>();
+                        }
+
+                        if (newContentPart is SlideMasterPart)
+                        {
+                            newVmlPart = ((SlideMasterPart)newContentPart).AddNewPart<VmlDrawingPart>();
+                        }
+
+                        if (newContentPart is SlidePart)
+                        {
+                            newVmlPart = ((SlidePart)newContentPart).AddNewPart<VmlDrawingPart>();
+                        }
+
+                        if (newContentPart is WorksheetPart)
+                        {
+                            newVmlPart = ((WorksheetPart)newContentPart).AddNewPart<VmlDrawingPart>();
+                        }
+
+                        var xd = vmlPart.GetXDocument();
                         foreach (var item in xd.Descendants(O.ink))
                         {
                             if (item.Attribute("i") != null)
@@ -1035,39 +1254,43 @@ namespace OpenXmlPowerTools
 
         private static void CopyChartObjects(ChartPart oldChart, ChartPart newChart)
         {
-            foreach (XElement dataReference in newChart.GetXDocument().Descendants(C.externalData))
+            foreach (var dataReference in newChart.GetXDocument().Descendants(C.externalData))
             {
-                string relId = dataReference.Attribute(R.id).Value;
+                var relId = dataReference.Attribute(R.id).Value;
 
                 var oldPartIdPair = oldChart.Parts.FirstOrDefault(p => p.RelationshipId == relId);
                 if (oldPartIdPair != null)
                 {
-                    EmbeddedPackagePart oldPart = oldPartIdPair.OpenXmlPart as EmbeddedPackagePart;
+                    var oldPart = oldPartIdPair.OpenXmlPart as EmbeddedPackagePart;
                     if (oldPart != null)
                     {
-                        EmbeddedPackagePart newPart = newChart.AddEmbeddedPackagePart(oldPart.ContentType);
-                        using (Stream oldObject = oldPart.GetStream(FileMode.Open, FileAccess.Read))
-                        using (Stream newObject = newPart.GetStream(FileMode.Create, FileAccess.ReadWrite))
+                        var newPart = newChart.AddEmbeddedPackagePart(oldPart.ContentType);
+                        using (var oldObject = oldPart.GetStream(FileMode.Open, FileAccess.Read))
+                        using (var newObject = newPart.GetStream(FileMode.Create, FileAccess.ReadWrite))
                         {
                             int byteCount;
-                            byte[] buffer = new byte[65536];
+                            var buffer = new byte[65536];
                             while ((byteCount = oldObject.Read(buffer, 0, 65536)) != 0)
+                            {
                                 newObject.Write(buffer, 0, byteCount);
+                            }
                         }
                         dataReference.Attribute(R.id).Value = newChart.GetIdOfPart(newPart);
                         continue;
                     }
-                    EmbeddedObjectPart oldEmbeddedObjectPart = oldPartIdPair.OpenXmlPart as EmbeddedObjectPart;
+                    var oldEmbeddedObjectPart = oldPartIdPair.OpenXmlPart as EmbeddedObjectPart;
                     if (oldEmbeddedObjectPart != null)
                     {
-                        EmbeddedPackagePart newPart = newChart.AddEmbeddedPackagePart(oldEmbeddedObjectPart.ContentType);
-                        using (Stream oldObject = oldEmbeddedObjectPart.GetStream(FileMode.Open, FileAccess.Read))
-                        using (Stream newObject = newPart.GetStream(FileMode.Create, FileAccess.ReadWrite))
+                        var newPart = newChart.AddEmbeddedPackagePart(oldEmbeddedObjectPart.ContentType);
+                        using (var oldObject = oldEmbeddedObjectPart.GetStream(FileMode.Open, FileAccess.Read))
+                        using (var newObject = newPart.GetStream(FileMode.Create, FileAccess.ReadWrite))
                         {
                             int byteCount;
-                            byte[] buffer = new byte[65536];
+                            var buffer = new byte[65536];
                             while ((byteCount = oldObject.Read(buffer, 0, 65536)) != 0)
+                            {
                                 newObject.Write(buffer, 0, byteCount);
+                            }
                         }
 
                         var rId = newChart.GetIdOfPart(newPart);
@@ -1090,12 +1313,15 @@ namespace OpenXmlPowerTools
                 }
                 else
                 {
-                    ExternalRelationship oldRelationship = oldChart.GetExternalRelationship(relId);
-                    Guid g = Guid.NewGuid();
-                    string newRid = "R" + g.ToString().Replace("-", "");
+                    var oldRelationship = oldChart.GetExternalRelationship(relId);
+                    var g = Guid.NewGuid();
+                    var newRid = "R" + g.ToString().Replace("-", "");
                     var oldRel = oldChart.ExternalRelationships.FirstOrDefault(h => h.Id == relId);
                     if (oldRel == null)
+                    {
                         throw new PresentationBuilderInternalException("Internal Error 0007");
+                    }
+
                     newChart.AddExternalRelationship(oldRel.RelationshipType, oldRel.Uri, newRid);
                     dataReference.Attribute(R.id).Value = newRid;
                 }
@@ -1112,7 +1338,9 @@ namespace OpenXmlPowerTools
                     .Descendants(elementToModify)
                     .Where(e => (string)e.Attribute(attributeName) == oldRid);
                 foreach (var element in elementsToUpdate)
+                {
                     element.Attribute(attributeName).Value = newRid;
+                }
             }
         }
 
@@ -1136,7 +1364,7 @@ namespace OpenXmlPowerTools
             {
                 if (e.Name == A.hlinkClick || e.Name == A.hlinkHover || e.Name == A.hlinkMouseOver)
                 {
-                    string relId = (string)e.Attribute(R.id);
+                    var relId = (string)e.Attribute(R.id);
                     if (string.IsNullOrEmpty(relId))
                     {
                         // handle the following:
@@ -1146,17 +1374,23 @@ namespace OpenXmlPowerTools
                         if (action != null)
                         {
                             if (action.Contains("customshow"))
+                            {
                                 e.Attribute("action").Remove();
+                            }
                         }
                         continue;
                     }
                     var tempHyperlink = newPart.HyperlinkRelationships.FirstOrDefault(h => h.Id == relId);
                     if (tempHyperlink != null)
+                    {
                         continue;
-                    Guid g = Guid.NewGuid();
-                    string newRid = "R" + g.ToString().Replace("-", "");
+                    }
+
+                    var g = Guid.NewGuid();
+                    var newRid = "R" + g.ToString().Replace("-", "");
                     var oldHyperlink = oldPart.HyperlinkRelationships.FirstOrDefault(h => h.Id == relId);
-                    if (oldHyperlink == null) {
+                    if (oldHyperlink == null)
+                    {
                         //TODO Issue with reference to another part: var temp = oldPart.GetPartById(relId);
                         RemoveContent(newContent, e.Name, relId);
                         continue;
@@ -1166,33 +1400,51 @@ namespace OpenXmlPowerTools
                 }
                 if (e.Name == VML.imagedata)
                 {
-                    string relId = (string)e.Attribute(R.href);
+                    var relId = (string)e.Attribute(R.href);
                     if (string.IsNullOrEmpty(relId))
+                    {
                         continue;
+                    }
+
                     var tempExternalRelationship = newPart.ExternalRelationships.FirstOrDefault(h => h.Id == relId);
                     if (tempExternalRelationship != null)
+                    {
                         continue;
-                    Guid g = Guid.NewGuid();
-                    string newRid = "R" + g.ToString().Replace("-", "");
+                    }
+
+                    var g = Guid.NewGuid();
+                    var newRid = "R" + g.ToString().Replace("-", "");
                     var oldRel = oldPart.ExternalRelationships.FirstOrDefault(h => h.Id == relId);
                     if (oldRel == null)
+                    {
                         throw new PresentationBuilderInternalException("Internal Error 0006");
+                    }
+
                     newPart.AddExternalRelationship(oldRel.RelationshipType, oldRel.Uri, newRid);
                     UpdateContent(newContent, e.Name, relId, newRid);
                 }
                 if (e.Name == A.blip || e.Name == A14.imgLayer || e.Name == A.audioFile || e.Name == A.videoFile || e.Name == A.quickTimeFile)
                 {
-                    string relId = (string)e.Attribute(R.link);
+                    var relId = (string)e.Attribute(R.link);
                     if (string.IsNullOrEmpty(relId))
+                    {
                         continue;
+                    }
+
                     var tempExternalRelationship = newPart.ExternalRelationships.FirstOrDefault(h => h.Id == relId);
                     if (tempExternalRelationship != null)
+                    {
                         continue;
-                    Guid g = Guid.NewGuid();
-                    string newRid = "R" + g.ToString().Replace("-", "");
+                    }
+
+                    var g = Guid.NewGuid();
+                    var newRid = "R" + g.ToString().Replace("-", "");
                     var oldRel = oldPart.ExternalRelationships.FirstOrDefault(h => h.Id == relId);
                     if (oldRel == null)
+                    {
                         continue;
+                    }
+
                     newPart.AddExternalRelationship(oldRel.RelationshipType, oldRel.Uri, newRid);
                     UpdateContent(newContent, e.Name, relId, newRid);
                 }
@@ -1202,9 +1454,11 @@ namespace OpenXmlPowerTools
         private static void CopyRelatedImage(OpenXmlPart oldContentPart, OpenXmlPart newContentPart, XElement imageReference, XName attributeName,
             List<ImageData> images)
         {
-            string relId = (string)imageReference.Attribute(attributeName);
+            var relId = (string)imageReference.Attribute(attributeName);
             if (string.IsNullOrEmpty(relId))
+            {
                 return;
+            }
 
             // First look to see if this relId has already been added to the new document.
             // This is necessary for those parts that get processed with both old and new ids, such as the comments
@@ -1212,58 +1466,100 @@ namespace OpenXmlPowerTools
             // in that case.
             var partIdPair = newContentPart.Parts.FirstOrDefault(p => p.RelationshipId == relId);
             if (partIdPair != null)
+            {
                 return;
+            }
 
-            ExternalRelationship extRel = newContentPart.ExternalRelationships.FirstOrDefault(r => r.Id == relId);
+            var extRel = newContentPart.ExternalRelationships.FirstOrDefault(r => r.Id == relId);
             if (extRel != null)
+            {
                 return;
+            }
 
             var oldPartIdPair = oldContentPart.Parts.FirstOrDefault(p => p.RelationshipId == relId);
             if (oldPartIdPair != null)
             {
-                ImagePart oldPart = oldPartIdPair.OpenXmlPart as ImagePart;
-                ImageData temp = ManageImageCopy(oldPart, newContentPart, images);
+                var oldPart = oldPartIdPair.OpenXmlPart as ImagePart;
+                var temp = ManageImageCopy(oldPart, newContentPart, images);
                 if (temp.ImagePart == null)
                 {
                     ImagePart newPart = null;
                     if (newContentPart is ChartDrawingPart)
+                    {
                         newPart = ((ChartDrawingPart)newContentPart).AddImagePart(oldPart.ContentType);
+                    }
                     else if (newContentPart is ChartPart)
+                    {
                         newPart = ((ChartPart)newContentPart).AddImagePart(oldPart.ContentType);
+                    }
                     else if (newContentPart is ChartsheetPart)
+                    {
                         newPart = ((ChartsheetPart)newContentPart).AddImagePart(oldPart.ContentType);
+                    }
                     else if (newContentPart is DiagramDataPart)
+                    {
                         newPart = ((DiagramDataPart)newContentPart).AddImagePart(oldPart.ContentType);
+                    }
                     else if (newContentPart is DiagramLayoutDefinitionPart)
+                    {
                         newPart = ((DiagramLayoutDefinitionPart)newContentPart).AddImagePart(oldPart.ContentType);
+                    }
                     else if (newContentPart is DiagramPersistLayoutPart)
+                    {
                         newPart = ((DiagramPersistLayoutPart)newContentPart).AddImagePart(oldPart.ContentType);
+                    }
                     else if (newContentPart is DrawingsPart)
+                    {
                         newPart = ((DrawingsPart)newContentPart).AddImagePart(oldPart.ContentType);
+                    }
                     else if (newContentPart is HandoutMasterPart)
+                    {
                         newPart = ((HandoutMasterPart)newContentPart).AddImagePart(oldPart.ContentType);
+                    }
                     else if (newContentPart is NotesMasterPart)
+                    {
                         newPart = ((NotesMasterPart)newContentPart).AddImagePart(oldPart.ContentType);
+                    }
                     else if (newContentPart is NotesSlidePart)
+                    {
                         newPart = ((NotesSlidePart)newContentPart).AddImagePart(oldPart.ContentType);
+                    }
                     else if (newContentPart is RibbonAndBackstageCustomizationsPart)
+                    {
                         newPart = ((RibbonAndBackstageCustomizationsPart)newContentPart).AddImagePart(oldPart.ContentType);
+                    }
                     else if (newContentPart is RibbonExtensibilityPart)
+                    {
                         newPart = ((RibbonExtensibilityPart)newContentPart).AddImagePart(oldPart.ContentType);
+                    }
                     else if (newContentPart is SlideLayoutPart)
+                    {
                         newPart = ((SlideLayoutPart)newContentPart).AddImagePart(oldPart.ContentType);
+                    }
                     else if (newContentPart is SlideMasterPart)
+                    {
                         newPart = ((SlideMasterPart)newContentPart).AddImagePart(oldPart.ContentType);
+                    }
                     else if (newContentPart is SlidePart)
+                    {
                         newPart = ((SlidePart)newContentPart).AddImagePart(oldPart.ContentType);
+                    }
                     else if (newContentPart is ThemeOverridePart)
+                    {
                         newPart = ((ThemeOverridePart)newContentPart).AddImagePart(oldPart.ContentType);
+                    }
                     else if (newContentPart is ThemePart)
+                    {
                         newPart = ((ThemePart)newContentPart).AddImagePart(oldPart.ContentType);
+                    }
                     else if (newContentPart is VmlDrawingPart)
+                    {
                         newPart = ((VmlDrawingPart)newContentPart).AddImagePart(oldPart.ContentType);
+                    }
                     else if (newContentPart is WorksheetPart)
+                    {
                         newPart = ((WorksheetPart)newContentPart).AddImagePart(oldPart.ContentType);
+                    }
 
                     temp.ImagePart = newPart;
                     var id = newContentPart.GetIdOfPart(newPart);
@@ -1282,7 +1578,10 @@ namespace OpenXmlPowerTools
                                 return found;
                             });
                             if (rel != null)
+                            {
                                 return true;
+                            }
+
                             return false;
                         });
                     if (refRel != null)
@@ -1302,21 +1601,21 @@ namespace OpenXmlPowerTools
                     }
                     else
                     {
-                        ImagePart imagePart = (ImagePart)temp.ImagePart;
+                        var imagePart = (ImagePart)temp.ImagePart;
                         var existingImagePart = newContentPart.AddPart<ImagePart>(imagePart);
                         var newId = newContentPart.GetIdOfPart(existingImagePart);
                         temp.AddContentPartRelTypeResourceIdTupple(newContentPart, imagePart.RelationshipType, newId);
                         imageReference.Attribute(attributeName).Value = newId;
                     }
-                    
+
                 }
             }
             else
             {
-                ExternalRelationship er = oldContentPart.ExternalRelationships.FirstOrDefault(r => r.Id == relId);
+                var er = oldContentPart.ExternalRelationships.FirstOrDefault(r => r.Id == relId);
                 if (er != null)
                 {
-                    ExternalRelationship newEr = newContentPart.AddExternalRelationship(er.RelationshipType, er.Uri);
+                    var newEr = newContentPart.AddExternalRelationship(er.RelationshipType, er.Uri);
                     imageReference.Attribute(R.id).Value = newEr.Id;
                 }
                 else
@@ -1330,26 +1629,32 @@ namespace OpenXmlPowerTools
         private static void CopyRelatedMedia(OpenXmlPart oldContentPart, OpenXmlPart newContentPart, XElement imageReference, XName attributeName,
             List<MediaData> mediaList, string mediaRelationshipType)
         {
-            string relId = (string)imageReference.Attribute(attributeName);
+            var relId = (string)imageReference.Attribute(attributeName);
             if (string.IsNullOrEmpty(relId))
+            {
                 return;
+            }
 
             // First look to see if this relId has already been added to the new document.
             var existingDataPartRefRel2 = newContentPart.DataPartReferenceRelationships.FirstOrDefault(dpr => dpr.Id == relId);
             if (existingDataPartRefRel2 != null)
+            {
                 return;
+            }
 
             var oldRel = oldContentPart.DataPartReferenceRelationships.FirstOrDefault(dpr => dpr.Id == relId);
             if (oldRel == null)
+            {
                 return;
+            }
 
-            DataPart oldPart = oldRel.DataPart;
-            MediaData temp = ManageMediaCopy(oldPart, mediaList);
+            var oldPart = oldRel.DataPart;
+            var temp = ManageMediaCopy(oldPart, mediaList);
             if (temp.DataPart == null)
             {
                 var ct = oldPart.ContentType;
                 var ext = Path.GetExtension(oldPart.Uri.OriginalString);
-                MediaDataPart newPart = newContentPart.OpenXmlPackage.CreateMediaDataPart(ct, ext);
+                var newPart = newContentPart.OpenXmlPackage.CreateMediaDataPart(ct, ext);
                 newPart.FeedData(oldPart.GetStream());
                 string id = null;
                 string relationshipType = null;
@@ -1359,11 +1664,17 @@ namespace OpenXmlPowerTools
                     MediaReferenceRelationship mrr = null;
 
                     if (newContentPart is SlidePart)
+                    {
                         mrr = ((SlidePart)newContentPart).AddMediaReferenceRelationship(newPart);
+                    }
                     else if (newContentPart is SlideLayoutPart)
+                    {
                         mrr = ((SlideLayoutPart)newContentPart).AddMediaReferenceRelationship(newPart);
+                    }
                     else if (newContentPart is SlideMasterPart)
+                    {
                         mrr = ((SlideMasterPart)newContentPart).AddMediaReferenceRelationship(newPart);
+                    }
 
                     id = mrr.Id;
                     relationshipType = "http://schemas.microsoft.com/office/2007/relationships/media";
@@ -1373,17 +1684,29 @@ namespace OpenXmlPowerTools
                     VideoReferenceRelationship vrr = null;
 
                     if (newContentPart is SlidePart)
+                    {
                         vrr = ((SlidePart)newContentPart).AddVideoReferenceRelationship(newPart);
+                    }
                     else if (newContentPart is HandoutMasterPart)
+                    {
                         vrr = ((HandoutMasterPart)newContentPart).AddVideoReferenceRelationship(newPart);
+                    }
                     else if (newContentPart is NotesMasterPart)
+                    {
                         vrr = ((NotesMasterPart)newContentPart).AddVideoReferenceRelationship(newPart);
+                    }
                     else if (newContentPart is NotesSlidePart)
+                    {
                         vrr = ((NotesSlidePart)newContentPart).AddVideoReferenceRelationship(newPart);
+                    }
                     else if (newContentPart is SlideLayoutPart)
+                    {
                         vrr = ((SlideLayoutPart)newContentPart).AddVideoReferenceRelationship(newPart);
+                    }
                     else if (newContentPart is SlideMasterPart)
+                    {
                         vrr = ((SlideMasterPart)newContentPart).AddVideoReferenceRelationship(newPart);
+                    }
 
                     id = vrr.Id;
                     relationshipType = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/video";
@@ -1396,9 +1719,15 @@ namespace OpenXmlPowerTools
             {
                 string desiredRelType = null;
                 if (mediaRelationshipType == "media")
+                {
                     desiredRelType = "http://schemas.microsoft.com/office/2007/relationships/media";
+                }
+
                 if (mediaRelationshipType == "video")
+                {
                     desiredRelType = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/video";
+                }
+
                 var existingRel = temp.ContentPartRelTypeIdList.FirstOrDefault(cp => cp.ContentPart == newContentPart && cp.RelationshipType == desiredRelType);
                 if (existingRel != null)
                 {
@@ -1406,7 +1735,7 @@ namespace OpenXmlPowerTools
                 }
                 else
                 {
-                    MediaDataPart newPart = (MediaDataPart)temp.DataPart;
+                    var newPart = (MediaDataPart)temp.DataPart;
                     string id = null;
                     string relationshipType = null;
                     if (mediaRelationshipType == "media")
@@ -1414,11 +1743,19 @@ namespace OpenXmlPowerTools
                         MediaReferenceRelationship mrr = null;
 
                         if (newContentPart is SlidePart)
+                        {
                             mrr = ((SlidePart)newContentPart).AddMediaReferenceRelationship(newPart);
+                        }
+
                         if (newContentPart is SlideLayoutPart)
+                        {
                             mrr = ((SlideLayoutPart)newContentPart).AddMediaReferenceRelationship(newPart);
+                        }
+
                         if (newContentPart is SlideMasterPart)
+                        {
                             mrr = ((SlideMasterPart)newContentPart).AddMediaReferenceRelationship(newPart);
+                        }
 
                         id = mrr.Id;
                         relationshipType = mrr.RelationshipType;
@@ -1428,17 +1765,34 @@ namespace OpenXmlPowerTools
                         VideoReferenceRelationship vrr = null;
 
                         if (newContentPart is SlidePart)
+                        {
                             vrr = ((SlidePart)newContentPart).AddVideoReferenceRelationship(newPart);
+                        }
+
                         if (newContentPart is HandoutMasterPart)
+                        {
                             vrr = ((HandoutMasterPart)newContentPart).AddVideoReferenceRelationship(newPart);
+                        }
+
                         if (newContentPart is NotesMasterPart)
+                        {
                             vrr = ((NotesMasterPart)newContentPart).AddVideoReferenceRelationship(newPart);
+                        }
+
                         if (newContentPart is NotesSlidePart)
+                        {
                             vrr = ((NotesSlidePart)newContentPart).AddVideoReferenceRelationship(newPart);
+                        }
+
                         if (newContentPart is SlideLayoutPart)
+                        {
                             vrr = ((SlideLayoutPart)newContentPart).AddVideoReferenceRelationship(newPart);
+                        }
+
                         if (newContentPart is SlideMasterPart)
+                        {
                             vrr = ((SlideMasterPart)newContentPart).AddVideoReferenceRelationship(newPart);
+                        }
 
                         id = vrr.Id;
                         relationshipType = vrr.RelationshipType;
@@ -1452,17 +1806,23 @@ namespace OpenXmlPowerTools
         private static void CopyRelatedMediaExternalRelationship(OpenXmlPart oldContentPart, OpenXmlPart newContentPart, XElement imageReference, XName attributeName,
             string mediaRelationshipType)
         {
-            string relId = (string)imageReference.Attribute(attributeName);
+            var relId = (string)imageReference.Attribute(attributeName);
             if (string.IsNullOrEmpty(relId))
+            {
                 return;
+            }
 
             var existingExternalReference = newContentPart.ExternalRelationships.FirstOrDefault(er => er.Id == relId);
             if (existingExternalReference != null)
+            {
                 return;
+            }
 
             var oldRel = oldContentPart.ExternalRelationships.FirstOrDefault(dpr => dpr.Id == relId);
             if (oldRel == null)
+            {
                 return;
+            }
 
             var newId = "R" + Guid.NewGuid().ToString().Replace("-", "").Substring(0, 16);
             newContentPart.AddExternalRelationship(oldRel.RelationshipType, oldRel.Uri, newId);
@@ -1473,22 +1833,28 @@ namespace OpenXmlPowerTools
 
         private static void CopyInkPart(OpenXmlPart oldContentPart, OpenXmlPart newContentPart, XElement contentPartReference, XName attributeName)
         {
-            string relId = (string)contentPartReference.Attribute(attributeName);
+            var relId = (string)contentPartReference.Attribute(attributeName);
             if (string.IsNullOrEmpty(relId))
+            {
                 return;
+            }
 
             var tempPartIdPair = newContentPart.Parts.FirstOrDefault(p => p.RelationshipId == relId);
             if (tempPartIdPair != null)
+            {
                 return;
+            }
 
             var tempEr = newContentPart.ExternalRelationships.FirstOrDefault(er => er.Id == relId);
             if (tempEr != null)
+            {
                 return;
+            }
 
             var oldPart = oldContentPart.GetPartById(relId);
 
             var newId = "R" + Guid.NewGuid().ToString().Replace("-", "").Substring(0, 16);
-            CustomXmlPart newPart = newContentPart.AddNewPart<CustomXmlPart>("application/inkml+xml", newId);
+            var newPart = newContentPart.AddNewPart<CustomXmlPart>("application/inkml+xml", newId);
 
             newPart.FeedData(oldPart.GetStream());
             contentPartReference.Attribute(attributeName).Value = newId;
@@ -1496,31 +1862,35 @@ namespace OpenXmlPowerTools
 
         private static void CopyActiveXPart(OpenXmlPart oldContentPart, OpenXmlPart newContentPart, XElement activeXPartReference, XName attributeName)
         {
-            string relId = (string)activeXPartReference.Attribute(attributeName);
+            var relId = (string)activeXPartReference.Attribute(attributeName);
             if (string.IsNullOrEmpty(relId))
+            {
                 return;
+            }
 
             var tempPartIdPair = newContentPart.Parts.FirstOrDefault(p => p.RelationshipId == relId);
             if (tempPartIdPair != null)
+            {
                 return;
+            }
 
             var oldPart = oldContentPart.GetPartById(relId);
 
             var newId = "R" + Guid.NewGuid().ToString().Replace("-", "").Substring(0, 16);
-            EmbeddedControlPersistencePart newPart = newContentPart.AddNewPart<EmbeddedControlPersistencePart>("application/vnd.ms-office.activeX+xml", newId);
-            
+            var newPart = newContentPart.AddNewPart<EmbeddedControlPersistencePart>("application/vnd.ms-office.activeX+xml", newId);
+
             newPart.FeedData(oldPart.GetStream());
             activeXPartReference.Attribute(attributeName).Value = newId;
 
             if (newPart.ContentType == "application/vnd.ms-office.activeX+xml")
             {
-                XDocument axc = newPart.GetXDocument();
+                var axc = newPart.GetXDocument();
                 if (axc.Root.Attribute(R.id) != null)
                 {
                     var oldPersistencePart = oldPart.GetPartById((string)axc.Root.Attribute(R.id));
 
                     var newId2 = "R" + Guid.NewGuid().ToString().Replace("-", "").Substring(0, 16);
-                    EmbeddedControlPersistenceBinaryDataPart newPersistencePart = newPart.AddNewPart<EmbeddedControlPersistenceBinaryDataPart>("application/vnd.ms-office.activeX", newId2);
+                    var newPersistencePart = newPart.AddNewPart<EmbeddedControlPersistenceBinaryDataPart>("application/vnd.ms-office.activeX", newId2);
 
                     newPersistencePart.FeedData(oldPersistencePart.GetStream());
                     axc.Root.Attribute(R.id).Value = newId2;
@@ -1531,18 +1901,22 @@ namespace OpenXmlPowerTools
 
         private static void CopyLegacyDiagramText(OpenXmlPart oldContentPart, OpenXmlPart newContentPart, XElement textdataReference, XName attributeName)
         {
-            string relId = (string)textdataReference.Attribute(attributeName);
+            var relId = (string)textdataReference.Attribute(attributeName);
             if (string.IsNullOrEmpty(relId))
+            {
                 return;
+            }
 
             var tempPartIdPair = newContentPart.Parts.FirstOrDefault(p => p.RelationshipId == relId);
             if (tempPartIdPair != null)
+            {
                 return;
+            }
 
             var oldPart = oldContentPart.GetPartById(relId);
 
             var newId = "R" + Guid.NewGuid().ToString().Replace("-", "").Substring(0, 16);
-            LegacyDiagramTextPart newPart = newContentPart.AddNewPart<LegacyDiagramTextPart>(newId);
+            var newPart = newContentPart.AddNewPart<LegacyDiagramTextPart>(newId);
 
             newPart.FeedData(oldPart.GetStream());
             textdataReference.Attribute(attributeName).Value = newId;
@@ -1550,9 +1924,12 @@ namespace OpenXmlPowerTools
 
         private static void CopyExtendedPart(OpenXmlPart oldContentPart, OpenXmlPart newContentPart, XElement extendedReference, XName attributeName)
         {
-            string relId = (string)extendedReference.Attribute(attributeName);
+            var relId = (string)extendedReference.Attribute(attributeName);
             if (string.IsNullOrEmpty(relId))
+            {
                 return;
+            }
+
             try
             {
                 // First look to see if this relId has already been added to the new document.
@@ -1561,157 +1938,295 @@ namespace OpenXmlPowerTools
                 // in that case.
                 var tempPartIdPair = newContentPart.Parts.FirstOrDefault(p => p.RelationshipId == relId);
                 if (tempPartIdPair != null)
+                {
                     return;
+                }
 
                 var tempEr = newContentPart.ExternalRelationships.FirstOrDefault(er => er.Id == relId);
                 if (tempEr != null)
+                {
                     return;
+                }
 
-                ExtendedPart oldPart = (ExtendedPart)oldContentPart.GetPartById(relId);
-                FileInfo fileInfo = new FileInfo(oldPart.Uri.OriginalString);
+                var oldPart = (ExtendedPart)oldContentPart.GetPartById(relId);
+                var fileInfo = new FileInfo(oldPart.Uri.OriginalString);
                 ExtendedPart newPart = null;
 
 #if !NET35
                 if (newContentPart is ChartColorStylePart)
+                {
                     newPart = ((ChartColorStylePart)newContentPart).AddExtendedPart(oldPart.RelationshipType, oldPart.ContentType, fileInfo.Extension);
+                }
                 else
 #endif
                 if (newContentPart is ChartDrawingPart)
+                {
                     newPart = ((ChartDrawingPart)newContentPart).AddExtendedPart(oldPart.RelationshipType, oldPart.ContentType, fileInfo.Extension);
+                }
                 else if (newContentPart is ChartPart)
+                {
                     newPart = ((ChartPart)newContentPart).AddExtendedPart(oldPart.RelationshipType, oldPart.ContentType, fileInfo.Extension);
+                }
                 else if (newContentPart is ChartsheetPart)
+                {
                     newPart = ((ChartsheetPart)newContentPart).AddExtendedPart(oldPart.RelationshipType, oldPart.ContentType, fileInfo.Extension);
+                }
 #if !NET35
                 else if (newContentPart is ChartStylePart)
+                {
                     newPart = ((ChartStylePart)newContentPart).AddExtendedPart(oldPart.RelationshipType, oldPart.ContentType, fileInfo.Extension);
+                }
 #endif
                 else if (newContentPart is CommentAuthorsPart)
+                {
                     newPart = ((CommentAuthorsPart)newContentPart).AddExtendedPart(oldPart.RelationshipType, oldPart.ContentType, fileInfo.Extension);
+                }
                 else if (newContentPart is ConnectionsPart)
+                {
                     newPart = ((ConnectionsPart)newContentPart).AddExtendedPart(oldPart.RelationshipType, oldPart.ContentType, fileInfo.Extension);
+                }
                 else if (newContentPart is ControlPropertiesPart)
+                {
                     newPart = ((ControlPropertiesPart)newContentPart).AddExtendedPart(oldPart.RelationshipType, oldPart.ContentType, fileInfo.Extension);
+                }
                 else if (newContentPart is CoreFilePropertiesPart)
+                {
                     newPart = ((CoreFilePropertiesPart)newContentPart).AddExtendedPart(oldPart.RelationshipType, oldPart.ContentType, fileInfo.Extension);
+                }
                 else if (newContentPart is CustomDataPart)
+                {
                     newPart = ((CustomDataPart)newContentPart).AddExtendedPart(oldPart.RelationshipType, oldPart.ContentType, fileInfo.Extension);
+                }
                 else if (newContentPart is CustomDataPropertiesPart)
+                {
                     newPart = ((CustomDataPropertiesPart)newContentPart).AddExtendedPart(oldPart.RelationshipType, oldPart.ContentType, fileInfo.Extension);
+                }
                 else if (newContentPart is CustomFilePropertiesPart)
+                {
                     newPart = ((CustomFilePropertiesPart)newContentPart).AddExtendedPart(oldPart.RelationshipType, oldPart.ContentType, fileInfo.Extension);
+                }
                 else if (newContentPart is CustomizationPart)
+                {
                     newPart = ((CustomizationPart)newContentPart).AddExtendedPart(oldPart.RelationshipType, oldPart.ContentType, fileInfo.Extension);
+                }
                 else if (newContentPart is CustomPropertyPart)
+                {
                     newPart = ((CustomPropertyPart)newContentPart).AddExtendedPart(oldPart.RelationshipType, oldPart.ContentType, fileInfo.Extension);
+                }
                 else if (newContentPart is CustomUIPart)
+                {
                     newPart = ((CustomUIPart)newContentPart).AddExtendedPart(oldPart.RelationshipType, oldPart.ContentType, fileInfo.Extension);
+                }
                 else if (newContentPart is CustomXmlMappingsPart)
+                {
                     newPart = ((CustomXmlMappingsPart)newContentPart).AddExtendedPart(oldPart.RelationshipType, oldPart.ContentType, fileInfo.Extension);
+                }
                 else if (newContentPart is CustomXmlPart)
+                {
                     newPart = ((CustomXmlPart)newContentPart).AddExtendedPart(oldPart.RelationshipType, oldPart.ContentType, fileInfo.Extension);
+                }
                 else if (newContentPart is CustomXmlPropertiesPart)
+                {
                     newPart = ((CustomXmlPropertiesPart)newContentPart).AddExtendedPart(oldPart.RelationshipType, oldPart.ContentType, fileInfo.Extension);
+                }
                 else if (newContentPart is DiagramColorsPart)
+                {
                     newPart = ((DiagramColorsPart)newContentPart).AddExtendedPart(oldPart.RelationshipType, oldPart.ContentType, fileInfo.Extension);
+                }
                 else if (newContentPart is DiagramDataPart)
+                {
                     newPart = ((DiagramDataPart)newContentPart).AddExtendedPart(oldPart.RelationshipType, oldPart.ContentType, fileInfo.Extension);
+                }
                 else if (newContentPart is DiagramLayoutDefinitionPart)
+                {
                     newPart = ((DiagramLayoutDefinitionPart)newContentPart).AddExtendedPart(oldPart.RelationshipType, oldPart.ContentType, fileInfo.Extension);
+                }
                 else if (newContentPart is DiagramPersistLayoutPart)
+                {
                     newPart = ((DiagramPersistLayoutPart)newContentPart).AddExtendedPart(oldPart.RelationshipType, oldPart.ContentType, fileInfo.Extension);
+                }
                 else if (newContentPart is DiagramStylePart)
+                {
                     newPart = ((DiagramStylePart)newContentPart).AddExtendedPart(oldPart.RelationshipType, oldPart.ContentType, fileInfo.Extension);
+                }
                 else if (newContentPart is DigitalSignatureOriginPart)
+                {
                     newPart = ((DigitalSignatureOriginPart)newContentPart).AddExtendedPart(oldPart.RelationshipType, oldPart.ContentType, fileInfo.Extension);
+                }
                 else if (newContentPart is DrawingsPart)
+                {
                     newPart = ((DrawingsPart)newContentPart).AddExtendedPart(oldPart.RelationshipType, oldPart.ContentType, fileInfo.Extension);
+                }
                 else if (newContentPart is EmbeddedControlPersistenceBinaryDataPart)
+                {
                     newPart = ((EmbeddedControlPersistenceBinaryDataPart)newContentPart).AddExtendedPart(oldPart.RelationshipType, oldPart.ContentType, fileInfo.Extension);
+                }
                 else if (newContentPart is EmbeddedControlPersistencePart)
+                {
                     newPart = ((EmbeddedControlPersistencePart)newContentPart).AddExtendedPart(oldPart.RelationshipType, oldPart.ContentType, fileInfo.Extension);
+                }
                 else if (newContentPart is EmbeddedObjectPart)
+                {
                     newPart = ((EmbeddedObjectPart)newContentPart).AddExtendedPart(oldPart.RelationshipType, oldPart.ContentType, fileInfo.Extension);
+                }
                 else if (newContentPart is EmbeddedPackagePart)
+                {
                     newPart = ((EmbeddedPackagePart)newContentPart).AddExtendedPart(oldPart.RelationshipType, oldPart.ContentType, fileInfo.Extension);
+                }
                 else if (newContentPart is ExtendedFilePropertiesPart)
+                {
                     newPart = ((ExtendedFilePropertiesPart)newContentPart).AddExtendedPart(oldPart.RelationshipType, oldPart.ContentType, fileInfo.Extension);
+                }
                 else if (newContentPart is ExtendedPart)
+                {
                     newPart = ((ExtendedPart)newContentPart).AddExtendedPart(oldPart.RelationshipType, oldPart.ContentType, fileInfo.Extension);
+                }
                 else if (newContentPart is FontPart)
+                {
                     newPart = ((FontPart)newContentPart).AddExtendedPart(oldPart.RelationshipType, oldPart.ContentType, fileInfo.Extension);
+                }
                 else if (newContentPart is FontTablePart)
+                {
                     newPart = ((FontTablePart)newContentPart).AddExtendedPart(oldPart.RelationshipType, oldPart.ContentType, fileInfo.Extension);
+                }
                 else if (newContentPart is HandoutMasterPart)
+                {
                     newPart = ((HandoutMasterPart)newContentPart).AddExtendedPart(oldPart.RelationshipType, oldPart.ContentType, fileInfo.Extension);
+                }
                 else if (newContentPart is InternationalMacroSheetPart)
+                {
                     newPart = ((InternationalMacroSheetPart)newContentPart).AddExtendedPart(oldPart.RelationshipType, oldPart.ContentType, fileInfo.Extension);
+                }
                 else if (newContentPart is LegacyDiagramTextInfoPart)
+                {
                     newPart = ((LegacyDiagramTextInfoPart)newContentPart).AddExtendedPart(oldPart.RelationshipType, oldPart.ContentType, fileInfo.Extension);
+                }
                 else if (newContentPart is LegacyDiagramTextPart)
+                {
                     newPart = ((LegacyDiagramTextPart)newContentPart).AddExtendedPart(oldPart.RelationshipType, oldPart.ContentType, fileInfo.Extension);
+                }
                 else if (newContentPart is MacroSheetPart)
+                {
                     newPart = ((MacroSheetPart)newContentPart).AddExtendedPart(oldPart.RelationshipType, oldPart.ContentType, fileInfo.Extension);
+                }
                 else if (newContentPart is NotesMasterPart)
+                {
                     newPart = ((NotesMasterPart)newContentPart).AddExtendedPart(oldPart.RelationshipType, oldPart.ContentType, fileInfo.Extension);
+                }
                 else if (newContentPart is NotesSlidePart)
+                {
                     newPart = ((NotesSlidePart)newContentPart).AddExtendedPart(oldPart.RelationshipType, oldPart.ContentType, fileInfo.Extension);
+                }
                 else if (newContentPart is PresentationPart)
+                {
                     newPart = ((PresentationPart)newContentPart).AddExtendedPart(oldPart.RelationshipType, oldPart.ContentType, fileInfo.Extension);
+                }
                 else if (newContentPart is PresentationPropertiesPart)
+                {
                     newPart = ((PresentationPropertiesPart)newContentPart).AddExtendedPart(oldPart.RelationshipType, oldPart.ContentType, fileInfo.Extension);
+                }
                 else if (newContentPart is QuickAccessToolbarCustomizationsPart)
+                {
                     newPart = ((QuickAccessToolbarCustomizationsPart)newContentPart).AddExtendedPart(oldPart.RelationshipType, oldPart.ContentType, fileInfo.Extension);
+                }
                 else if (newContentPart is RibbonAndBackstageCustomizationsPart)
+                {
                     newPart = ((RibbonAndBackstageCustomizationsPart)newContentPart).AddExtendedPart(oldPart.RelationshipType, oldPart.ContentType, fileInfo.Extension);
+                }
                 else if (newContentPart is RibbonExtensibilityPart)
+                {
                     newPart = ((RibbonExtensibilityPart)newContentPart).AddExtendedPart(oldPart.RelationshipType, oldPart.ContentType, fileInfo.Extension);
+                }
                 else if (newContentPart is SingleCellTablePart)
+                {
                     newPart = ((SingleCellTablePart)newContentPart).AddExtendedPart(oldPart.RelationshipType, oldPart.ContentType, fileInfo.Extension);
+                }
                 else if (newContentPart is SlideCommentsPart)
+                {
                     newPart = ((SlideCommentsPart)newContentPart).AddExtendedPart(oldPart.RelationshipType, oldPart.ContentType, fileInfo.Extension);
+                }
                 else if (newContentPart is SlideLayoutPart)
+                {
                     newPart = ((SlideLayoutPart)newContentPart).AddExtendedPart(oldPart.RelationshipType, oldPart.ContentType, fileInfo.Extension);
+                }
                 else if (newContentPart is SlideMasterPart)
+                {
                     newPart = ((SlideMasterPart)newContentPart).AddExtendedPart(oldPart.RelationshipType, oldPart.ContentType, fileInfo.Extension);
+                }
                 else if (newContentPart is SlidePart)
+                {
                     newPart = ((SlidePart)newContentPart).AddExtendedPart(oldPart.RelationshipType, oldPart.ContentType, fileInfo.Extension);
+                }
                 else if (newContentPart is SlideSyncDataPart)
+                {
                     newPart = ((SlideSyncDataPart)newContentPart).AddExtendedPart(oldPart.RelationshipType, oldPart.ContentType, fileInfo.Extension);
+                }
                 else if (newContentPart is StyleDefinitionsPart)
+                {
                     newPart = ((StyleDefinitionsPart)newContentPart).AddExtendedPart(oldPart.RelationshipType, oldPart.ContentType, fileInfo.Extension);
+                }
                 else if (newContentPart is StylesPart)
+                {
                     newPart = ((StylesPart)newContentPart).AddExtendedPart(oldPart.RelationshipType, oldPart.ContentType, fileInfo.Extension);
+                }
                 else if (newContentPart is StylesWithEffectsPart)
+                {
                     newPart = ((StylesWithEffectsPart)newContentPart).AddExtendedPart(oldPart.RelationshipType, oldPart.ContentType, fileInfo.Extension);
+                }
                 else if (newContentPart is TableDefinitionPart)
+                {
                     newPart = ((TableDefinitionPart)newContentPart).AddExtendedPart(oldPart.RelationshipType, oldPart.ContentType, fileInfo.Extension);
+                }
                 else if (newContentPart is TableStylesPart)
+                {
                     newPart = ((TableStylesPart)newContentPart).AddExtendedPart(oldPart.RelationshipType, oldPart.ContentType, fileInfo.Extension);
+                }
                 else if (newContentPart is ThemeOverridePart)
+                {
                     newPart = ((ThemeOverridePart)newContentPart).AddExtendedPart(oldPart.RelationshipType, oldPart.ContentType, fileInfo.Extension);
+                }
                 else if (newContentPart is ThemePart)
+                {
                     newPart = ((ThemePart)newContentPart).AddExtendedPart(oldPart.RelationshipType, oldPart.ContentType, fileInfo.Extension);
+                }
                 else if (newContentPart is ThumbnailPart)
+                {
                     newPart = ((ThumbnailPart)newContentPart).AddExtendedPart(oldPart.RelationshipType, oldPart.ContentType, fileInfo.Extension);
+                }
 #if !NET35
                 else if (newContentPart is TimeLineCachePart)
+                {
                     newPart = ((TimeLineCachePart)newContentPart).AddExtendedPart(oldPart.RelationshipType, oldPart.ContentType, fileInfo.Extension);
+                }
                 else if (newContentPart is TimeLinePart)
+                {
                     newPart = ((TimeLinePart)newContentPart).AddExtendedPart(oldPart.RelationshipType, oldPart.ContentType, fileInfo.Extension);
+                }
 #endif
                 else if (newContentPart is UserDefinedTagsPart)
+                {
                     newPart = ((UserDefinedTagsPart)newContentPart).AddExtendedPart(oldPart.RelationshipType, oldPart.ContentType, fileInfo.Extension);
+                }
                 else if (newContentPart is VbaDataPart)
+                {
                     newPart = ((VbaDataPart)newContentPart).AddExtendedPart(oldPart.RelationshipType, oldPart.ContentType, fileInfo.Extension);
+                }
                 else if (newContentPart is VbaProjectPart)
+                {
                     newPart = ((VbaProjectPart)newContentPart).AddExtendedPart(oldPart.RelationshipType, oldPart.ContentType, fileInfo.Extension);
+                }
                 else if (newContentPart is ViewPropertiesPart)
+                {
                     newPart = ((ViewPropertiesPart)newContentPart).AddExtendedPart(oldPart.RelationshipType, oldPart.ContentType, fileInfo.Extension);
+                }
                 else if (newContentPart is VmlDrawingPart)
+                {
                     newPart = ((VmlDrawingPart)newContentPart).AddExtendedPart(oldPart.RelationshipType, oldPart.ContentType, fileInfo.Extension);
+                }
                 else if (newContentPart is XmlSignaturePart)
+                {
                     newPart = ((XmlSignaturePart)newContentPart).AddExtendedPart(oldPart.RelationshipType, oldPart.ContentType, fileInfo.Extension);
+                }
 
                 relId = newContentPart.GetIdOfPart(newPart);
                 newPart.FeedData(oldPart.GetStream());
@@ -1721,8 +2236,8 @@ namespace OpenXmlPowerTools
             {
                 try
                 {
-                    ExternalRelationship er = oldContentPart.GetExternalRelationship(relId);
-                    ExternalRelationship newEr = newContentPart.AddExternalRelationship(er.RelationshipType, er.Uri);
+                    var er = oldContentPart.GetExternalRelationship(relId);
+                    var newEr = newContentPart.AddExternalRelationship(er.RelationshipType, er.Uri);
                     extendedReference.Attribute(R.id).Value = newEr.Id;
                 }
                 catch (KeyNotFoundException)
@@ -1736,11 +2251,13 @@ namespace OpenXmlPowerTools
         // General function for handling images that tries to use an existing image if they are the same
         private static ImageData ManageImageCopy(ImagePart oldImage, OpenXmlPart newContentPart, List<ImageData> images)
         {
-            ImageData oldImageData = new ImageData(oldImage);
-            foreach (ImageData item in images)
+            var oldImageData = new ImageData(oldImage);
+            foreach (var item in images)
             {
                 if (item.Compare(oldImageData))
+                {
                     return item;
+                }
             }
             images.Add(oldImageData);
             return oldImageData;
@@ -1749,11 +2266,13 @@ namespace OpenXmlPowerTools
         // General function for handling media that tries to use an existing media item if they are the same
         private static MediaData ManageMediaCopy(DataPart oldMedia, List<MediaData> mediaList)
         {
-            MediaData oldMediaData = new MediaData(oldMedia);
-            foreach (MediaData item in mediaList)
+            var oldMediaData = new MediaData(oldMedia);
+            foreach (var item in mediaList)
             {
                 if (item.Compare(oldMediaData))
+                {
                     return item;
+                }
             }
             mediaList.Add(oldMediaData);
             return oldMediaData;
@@ -1762,52 +2281,78 @@ namespace OpenXmlPowerTools
         private static void CopyRelatedSound(PresentationDocument newDocument, OpenXmlPart oldContentPart, OpenXmlPart newContentPart,
             XElement soundReference, XName attributeName)
         {
-            string relId = (string)soundReference.Attribute(attributeName);
+            var relId = (string)soundReference.Attribute(attributeName);
             if (string.IsNullOrEmpty(relId))
+            {
                 return;
+            }
 
-            ExternalRelationship alreadyExistingExternalRelationship = newContentPart.ExternalRelationships.FirstOrDefault(er => er.Id == relId);
+            var alreadyExistingExternalRelationship = newContentPart.ExternalRelationships.FirstOrDefault(er => er.Id == relId);
             if (alreadyExistingExternalRelationship != null)
+            {
                 return;
+            }
 
             ReferenceRelationship alreadyExistingReferenceRelationship = newContentPart.DataPartReferenceRelationships.FirstOrDefault(er => er.Id == relId);
             if (alreadyExistingReferenceRelationship != null)
+            {
                 return;
+            }
 
             if (oldContentPart.GetReferenceRelationship(relId) is AudioReferenceRelationship)
             {
-                AudioReferenceRelationship temp = (AudioReferenceRelationship)oldContentPart.GetReferenceRelationship(relId);
-                MediaDataPart newSound = newDocument.CreateMediaDataPart(temp.DataPart.ContentType);
+                var temp = (AudioReferenceRelationship)oldContentPart.GetReferenceRelationship(relId);
+                var newSound = newDocument.CreateMediaDataPart(temp.DataPart.ContentType);
                 newSound.FeedData(temp.DataPart.GetStream());
                 AudioReferenceRelationship newRel = null;
 
                 if (newContentPart is SlidePart)
+                {
                     newRel = ((SlidePart)newContentPart).AddAudioReferenceRelationship(newSound);
+                }
                 else if (newContentPart is SlideLayoutPart)
+                {
                     newRel = ((SlideLayoutPart)newContentPart).AddAudioReferenceRelationship(newSound);
+                }
                 else if (newContentPart is SlideMasterPart)
+                {
                     newRel = ((SlideMasterPart)newContentPart).AddAudioReferenceRelationship(newSound);
+                }
                 else if (newContentPart is HandoutMasterPart)
+                {
                     newRel = ((HandoutMasterPart)newContentPart).AddAudioReferenceRelationship(newSound);
+                }
                 else if (newContentPart is NotesMasterPart)
+                {
                     newRel = ((NotesMasterPart)newContentPart).AddAudioReferenceRelationship(newSound);
+                }
                 else if (newContentPart is NotesSlidePart)
+                {
                     newRel = ((NotesSlidePart)newContentPart).AddAudioReferenceRelationship(newSound);
+                }
+
                 soundReference.Attribute(attributeName).Value = newRel.Id;
             }
             if (oldContentPart.GetReferenceRelationship(relId) is MediaReferenceRelationship)
             {
-                MediaReferenceRelationship temp = (MediaReferenceRelationship)oldContentPart.GetReferenceRelationship(relId);
-                MediaDataPart newSound = newDocument.CreateMediaDataPart(temp.DataPart.ContentType);
+                var temp = (MediaReferenceRelationship)oldContentPart.GetReferenceRelationship(relId);
+                var newSound = newDocument.CreateMediaDataPart(temp.DataPart.ContentType);
                 newSound.FeedData(temp.DataPart.GetStream());
                 MediaReferenceRelationship newRel = null;
 
                 if (newContentPart is SlidePart)
+                {
                     newRel = ((SlidePart)newContentPart).AddMediaReferenceRelationship(newSound);
+                }
                 else if (newContentPart is SlideLayoutPart)
+                {
                     newRel = ((SlideLayoutPart)newContentPart).AddMediaReferenceRelationship(newSound);
+                }
                 else if (newContentPart is SlideMasterPart)
+                {
                     newRel = ((SlideMasterPart)newContentPart).AddMediaReferenceRelationship(newSound);
+                }
+
                 soundReference.Attribute(attributeName).Value = newRel.Id;
             }
         }

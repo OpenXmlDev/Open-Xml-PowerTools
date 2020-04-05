@@ -1750,18 +1750,6 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml
                         continue;
                     }
 
-                    //string name = (string)style.Elements(W.name).Attributes(W.val).FirstOrDefault();
-                    //var namedStyle = toStyles
-                    //    .Root
-                    //    .Elements(W.style)
-                    //    .Where(st => st.Element(W.name) != null)
-                    //    .FirstOrDefault(o => (string)o.Element(W.name).Attribute(W.val) == name);
-                    //if (namedStyle != null)
-                    //{
-                    //    if (! newIds.ContainsKey(fromId))
-                    //        newIds.Add(fromId, namedStyle.Attribute(W.styleId).Value);
-                    //    continue;
-                    //}
 #endif
 
                     var number = 1;
@@ -1967,9 +1955,7 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml
                 }
 
                 foreach (var item in newContent.DescendantsAndSelf()
-                    .Where(d => d.Name == W.pStyle ||
-                                d.Name == W.rStyle ||
-                                d.Name == W.tblStyle))
+                    .Where(d => d.Name == W.pStyle || d.Name == W.rStyle || d.Name == W.tblStyle))
                 {
                     ConvertToNewId(item, newIds);
                 }

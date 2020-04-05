@@ -1,45 +1,40 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using DocumentFormat.OpenXml.Packaging;
 using System;
-using System.Collections.Generic;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
-using DocumentFormat.OpenXml.Packaging;
-using OpenXmlPowerTools;
-using OpenXmlPowerTools.HtmlToWml;
 
 namespace OpenXmlPowerTools
 {
-    class Program
+    internal class Program
     {
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
             var n = DateTime.Now;
             var tempDi = new DirectoryInfo(string.Format("ExampleOutput-{0:00}-{1:00}-{2:00}-{3:00}{4:00}{5:00}", n.Year - 2000, n.Month, n.Day, n.Hour, n.Minute, n.Second));
             tempDi.Create();
 
-            FileInfo templateDoc = new FileInfo("../../TemplateDocument.docx");
-            FileInfo dataFile = new FileInfo(Path.Combine(tempDi.FullName, "Data.xml"));
+            var templateDoc = new FileInfo("../../TemplateDocument.docx");
+            var dataFile = new FileInfo(Path.Combine(tempDi.FullName, "Data.xml"));
 
             // The following method generates a large data file with random data.
             // In a real world scenario, this is where you would query your data source and produce XML that will drive your document generation process.
-            int numberOfDocumentsToGenerate = 100;
-            XElement data = GenerateDataFromDataSource(dataFile, numberOfDocumentsToGenerate);
+            var numberOfDocumentsToGenerate = 100;
+            var data = GenerateDataFromDataSource(dataFile, numberOfDocumentsToGenerate);
 
-            WmlDocument wmlDoc = new WmlDocument(templateDoc.FullName);
-            int count = 1;
+            var wmlDoc = new WmlDocument(templateDoc.FullName);
+            var count = 1;
             foreach (var customer in data.Elements("Customer"))
             {
-                FileInfo assembledDoc = new FileInfo(Path.Combine(tempDi.FullName, string.Format("Letter-{0:0000}.docx", count++)));
+                var assembledDoc = new FileInfo(Path.Combine(tempDi.FullName, string.Format("Letter-{0:0000}.docx", count++)));
                 Console.WriteLine("Generating {0}", assembledDoc.Name);
-                bool templateError;
-                WmlDocument wmlAssembledDoc = DocumentAssembler.AssembleDocument(wmlDoc, customer, out templateError);
+                var wmlAssembledDoc = DocumentAssembler.AssembleDocument(wmlDoc, customer, out var templateError);
                 if (templateError)
                 {
                     Console.WriteLine("Errors in template.");
@@ -55,7 +50,7 @@ namespace OpenXmlPowerTools
             }
         }
 
-        private static string[] s_productNames = new[] {
+        private static readonly string[] s_productNames = new[] {
             "Unicycle",
             "Bicycle",
             "Tricycle",
@@ -67,8 +62,8 @@ namespace OpenXmlPowerTools
         private static XElement GenerateDataFromDataSource(FileInfo dataFi, int numberOfDocumentsToGenerate)
         {
             var customers = new XElement("Customers");
-            Random r = new Random();
-            for (int i = 0; i < numberOfDocumentsToGenerate; ++i)
+            var r = new Random();
+            for (var i = 0; i < numberOfDocumentsToGenerate; ++i)
             {
                 var customer = new XElement("Customer",
                     new XElement("CustomerID", i + 1),
@@ -76,8 +71,8 @@ namespace OpenXmlPowerTools
                     new XElement("HighValueCustomer", r.Next(2) == 0 ? "True" : "False"),
                     new XElement("Orders"));
                 var orders = customer.Element("Orders");
-                int numberOfOrders = r.Next(10) + 1;
-                for (int j = 0; j < numberOfOrders; j++)
+                var numberOfOrders = r.Next(10) + 1;
+                for (var j = 0; j < numberOfOrders; j++)
                 {
                     var order = new XElement("Order",
                         new XAttribute("Number", j + 1),
@@ -95,16 +90,16 @@ namespace OpenXmlPowerTools
         public static FileInfo ConvertToHtml(string file, string outputDirectory)
         {
             var fi = new FileInfo(file);
-            byte[] byteArray = File.ReadAllBytes(fi.FullName);
-            using (MemoryStream memoryStream = new MemoryStream())
+            var byteArray = File.ReadAllBytes(fi.FullName);
+            using (var memoryStream = new MemoryStream())
             {
                 memoryStream.Write(byteArray, 0, byteArray.Length);
-                using (WordprocessingDocument wDoc = WordprocessingDocument.Open(memoryStream, true))
+                using (var wDoc = WordprocessingDocument.Open(memoryStream, true))
                 {
                     var destFileName = new FileInfo(fi.Name.Replace(".docx", ".html"));
                     if (outputDirectory != null && outputDirectory != string.Empty)
                     {
-                        DirectoryInfo di = new DirectoryInfo(outputDirectory);
+                        var di = new DirectoryInfo(outputDirectory);
                         if (!di.Exists)
                         {
                             throw new OpenXmlPowerToolsException("Output directory does not exist");
@@ -112,7 +107,7 @@ namespace OpenXmlPowerTools
                         destFileName = new FileInfo(Path.Combine(di.FullName, destFileName.Name));
                     }
                     var imageDirectoryName = destFileName.FullName.Substring(0, destFileName.FullName.Length - 5) + "_files";
-                    int imageCounter = 0;
+                    var imageCounter = 0;
 
                     var pageTitle = fi.FullName;
                     var part = wDoc.CoreFilePropertiesPart;
@@ -122,7 +117,7 @@ namespace OpenXmlPowerTools
                     }
 
                     // TODO: Determine max-width from size of content area.
-                    WmlToHtmlConverterSettings settings = new WmlToHtmlConverterSettings()
+                    var settings = new WmlToHtmlConverterSettings()
                     {
                         AdditionalCss = "body { margin: 1cm auto; max-width: 20cm; padding: 0; }",
                         PageTitle = pageTitle,
@@ -132,20 +127,31 @@ namespace OpenXmlPowerTools
                         RestrictToSupportedNumberingFormats = false,
                         ImageHandler = imageInfo =>
                         {
-                            DirectoryInfo localDirInfo = new DirectoryInfo(imageDirectoryName);
+                            var localDirInfo = new DirectoryInfo(imageDirectoryName);
                             if (!localDirInfo.Exists)
+                            {
                                 localDirInfo.Create();
+                            }
+
                             ++imageCounter;
-                            string extension = imageInfo.ContentType.Split('/')[1].ToLower();
+                            var extension = imageInfo.ContentType.Split('/')[1].ToLower();
                             ImageFormat imageFormat = null;
                             if (extension == "png")
+                            {
                                 imageFormat = ImageFormat.Png;
+                            }
                             else if (extension == "gif")
+                            {
                                 imageFormat = ImageFormat.Gif;
+                            }
                             else if (extension == "bmp")
+                            {
                                 imageFormat = ImageFormat.Bmp;
+                            }
                             else if (extension == "jpeg")
+                            {
                                 imageFormat = ImageFormat.Jpeg;
+                            }
                             else if (extension == "tiff")
                             {
                                 // Convert tiff to gif.
@@ -161,9 +167,11 @@ namespace OpenXmlPowerTools
                             // If the image format isn't one that we expect, ignore it,
                             // and don't return markup for the link.
                             if (imageFormat == null)
+                            {
                                 return null;
+                            }
 
-                            string imageFileName = imageDirectoryName + "/image" +
+                            var imageFileName = imageDirectoryName + "/image" +
                                 imageCounter.ToString() + "." + extension;
                             try
                             {
@@ -173,10 +181,10 @@ namespace OpenXmlPowerTools
                             {
                                 return null;
                             }
-                            string imageSource = localDirInfo.Name + "/image" +
+                            var imageSource = localDirInfo.Name + "/image" +
                                 imageCounter.ToString() + "." + extension;
 
-                            XElement img = new XElement(Xhtml.img,
+                            var img = new XElement(Xhtml.img,
                                 new XAttribute(NoNamespace.src, imageSource),
                                 imageInfo.ImgStyleAttribute,
                                 imageInfo.AltText != null ?
@@ -184,7 +192,7 @@ namespace OpenXmlPowerTools
                             return img;
                         }
                     };
-                    XElement htmlElement = WmlToHtmlConverter.ConvertToHtml(wDoc, settings);
+                    var htmlElement = WmlToHtmlConverter.ConvertToHtml(wDoc, settings);
 
                     // Produce HTML document with <!DOCTYPE html > declaration to tell the browser
                     // we are using HTML5.
@@ -207,7 +215,7 @@ namespace OpenXmlPowerTools
                 }
             }
         }
-        
+
         private static void ConvertToDocx(string file, string destinationDir)
         {
             var sourceHtmlFi = new FileInfo(file);
@@ -215,16 +223,16 @@ namespace OpenXmlPowerTools
 
             var destDocxFi = new FileInfo(Path.Combine(destinationDir, sourceHtmlFi.Name.Replace(".html", "-ConvertedByHtmlToWml.docx")));
 
-            XElement html = HtmlToWmlReadAsXElement.ReadAsXElement(sourceHtmlFi);
+            var html = HtmlToWmlReadAsXElement.ReadAsXElement(sourceHtmlFi);
 
-            string usedAuthorCss = HtmlToWmlConverter.CleanUpCss((string)html.Descendants().FirstOrDefault(d => d.Name.LocalName.ToLower() == "style"));
+            var usedAuthorCss = HtmlToWmlConverter.CleanUpCss((string)html.Descendants().FirstOrDefault(d => d.Name.LocalName.ToLower() == "style"));
 
-            HtmlToWmlConverterSettings settings = HtmlToWmlConverter.GetDefaultSettings();
+            var settings = HtmlToWmlConverter.GetDefaultSettings();
             // image references in HTML files contain the path to the subdir that contains the images, so base URI is the name of the directory
             // that contains the HTML files
             settings.BaseUriForImages = sourceHtmlFi.DirectoryName;
 
-            WmlDocument doc = HtmlToWmlConverter.ConvertHtmlToWml(defaultCss, usedAuthorCss, userCss, html, settings);
+            var doc = HtmlToWmlConverter.ConvertHtmlToWml(defaultCss, usedAuthorCss, userCss, html, settings);
             doc.SaveAs(destDocxFi.FullName);
         }
 
@@ -232,7 +240,7 @@ namespace OpenXmlPowerTools
         {
             public static XElement ReadAsXElement(FileInfo sourceHtmlFi)
             {
-                string htmlString = File.ReadAllText(sourceHtmlFi.FullName);
+                var htmlString = File.ReadAllText(sourceHtmlFi.FullName);
                 XElement html = null;
                 try
                 {
@@ -272,7 +280,7 @@ namespace OpenXmlPowerTools
 
             private static object ConvertToNoNamespace(XNode node)
             {
-                XElement element = node as XElement;
+                var element = node as XElement;
                 if (element != null)
                 {
                     return new XElement(element.Name.LocalName,
@@ -283,7 +291,7 @@ namespace OpenXmlPowerTools
             }
         }
 
-        static string defaultCss =
+        private static readonly string defaultCss =
             @"html, address,
 blockquote,
 body, dd, div,
@@ -357,6 +365,6 @@ BDO[DIR=""rtl""] { direction: rtl; unicode-bidi: bidi-override }
 
 ";
 
-        static string userCss = @"";
+        private static readonly string userCss = @"";
     }
 }

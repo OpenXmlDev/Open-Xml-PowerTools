@@ -3,6 +3,7 @@
 
 #undef DisplayWorkingSet
 
+using DocumentFormat.OpenXml.Packaging;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -10,15 +11,13 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Xml;
 using System.Xml.Linq;
-using DocumentFormat.OpenXml.Packaging;
-using OpenXmlPowerTools;
 
 namespace OpenXmlPowerTools
 {
     // The classes in SpreadsheetWriter are still a work-in-progress.  While they are useful in their current state, I will be enhancing and
     // changing them in the future.  In particular, I will be augmenting the various definition classes (WorkbookDfn, WorksheetDfn,
     // RowDfn, and CellDfn.
-    
+
     // They are robust enough in their current form to be used in enterprise, mission critical.
 
     public class WorkbookDfn
@@ -107,45 +106,57 @@ namespace OpenXmlPowerTools
         {
             try
             {
-                if (fileName == null) throw new ArgumentNullException("fileName");
-                if (workbook == null) throw new ArgumentNullException("workbook");
+                if (fileName == null)
+                {
+                    throw new ArgumentNullException("fileName");
+                }
 
-                FileInfo fi = new FileInfo(fileName);
+                if (workbook == null)
+                {
+                    throw new ArgumentNullException("workbook");
+                }
+
+                var fi = new FileInfo(fileName);
                 if (fi.Exists)
+                {
                     fi.Delete();
+                }
 
                 // create the blank workbook
-                char[] base64CharArray = _EmptyXlsx
+                var base64CharArray = _EmptyXlsx
                     .Where(c => c != '\r' && c != '\n').ToArray();
-                byte[] byteArray =
+                var byteArray =
                     System.Convert.FromBase64CharArray(base64CharArray,
                     0, base64CharArray.Length);
                 File.WriteAllBytes(fi.FullName, byteArray);
 
                 // open the workbook, and create the TableProperties sheet, populate it
-                using (SpreadsheetDocument sDoc = SpreadsheetDocument.Open(fi.FullName, true))
+                using (var sDoc = SpreadsheetDocument.Open(fi.FullName, true))
                 {
-                    WorkbookPart workbookPart = sDoc.WorkbookPart;
-                    XDocument wXDoc = workbookPart.GetXDocument();
-                    XElement sheetElement = wXDoc
+                    var workbookPart = sDoc.WorkbookPart;
+                    var wXDoc = workbookPart.GetXDocument();
+                    var sheetElement = wXDoc
                         .Root
                         .Elements(S.sheets)
                         .Elements(S.sheet)
                         .Where(s => (string)s.Attribute(SSNoNamespace.name) == "Sheet1")
                         .FirstOrDefault();
                     if (sheetElement == null)
+                    {
                         throw new SpreadsheetWriterInternalException();
-                    string id = (string)sheetElement.Attribute(R.id);
+                    }
+
+                    var id = (string)sheetElement.Attribute(R.id);
                     sheetElement.Remove();
                     workbookPart.PutXDocument();
 
-                    WorksheetPart sPart = (WorksheetPart)workbookPart.GetPartById(id);
+                    var sPart = (WorksheetPart)workbookPart.GetPartById(id);
                     workbookPart.DeletePart(sPart);
 
-                    XDocument appXDoc = sDoc
+                    var appXDoc = sDoc
                         .ExtendedFilePropertiesPart
                         .GetXDocument();
-                    XElement vector = appXDoc
+                    var vector = appXDoc
                         .Root
                         .Elements(EP.TitlesOfParts)
                         .Elements(VT.vector)
@@ -153,24 +164,31 @@ namespace OpenXmlPowerTools
                     if (vector != null)
                     {
                         vector.SetAttributeValue(SSNoNamespace.size, 0);
-                        XElement lpstr = vector.Element(VT.lpstr);
+                        var lpstr = vector.Element(VT.lpstr);
                         lpstr.Remove();
                     }
-                    XElement vector2 = appXDoc
+                    var vector2 = appXDoc
                         .Root
                         .Elements(EP.HeadingPairs)
                         .Elements(VT.vector)
                         .FirstOrDefault();
-                    XElement variant = vector2
+                    var variant = vector2
                         .Descendants(VT.i4)
                         .FirstOrDefault();
                     if (variant != null)
+                    {
                         variant.Value = "1";
+                    }
+
                     sDoc.ExtendedFilePropertiesPart.PutXDocument();
 
                     if (workbook.Worksheets != null)
+                    {
                         foreach (var worksheet in workbook.Worksheets)
+                        {
                             AddWorksheet(sDoc, worksheet);
+                        }
+                    }
 
                     workbookPart.WorkbookStylesPart.PutXDocument();
                 }
@@ -185,13 +203,15 @@ namespace OpenXmlPowerTools
 
         public static void AddWorksheet(SpreadsheetDocument sDoc, WorksheetDfn worksheetData)
         {
-            Regex validSheetName = new Regex(@"^[^'*\[\]/\\:?][^*\[\]/\\:?]{0,30}$");
+            var validSheetName = new Regex(@"^[^'*\[\]/\\:?][^*\[\]/\\:?]{0,30}$");
             if (!validSheetName.IsMatch(worksheetData.Name))
+            {
                 throw new InvalidSheetNameException(worksheetData.Name);
+            }
 
             // throw WorksheetAlreadyExistsException if a sheet with the same name (case-insensitive) already exists in the workbook
-            string UCName = worksheetData.Name.ToUpper();
-            XDocument wXDoc = sDoc.WorkbookPart.GetXDocument();
+            var UCName = worksheetData.Name.ToUpper();
+            var wXDoc = sDoc.WorkbookPart.GetXDocument();
             if (wXDoc
                 .Root
                 .Elements(S.sheets)
@@ -199,28 +219,35 @@ namespace OpenXmlPowerTools
                 .Attributes(SSNoNamespace.name)
                 .Select(a => ((string)a).ToUpper())
                 .Contains(UCName))
+            {
                 throw new WorksheetAlreadyExistsException(worksheetData.Name);
+            }
 
             // create the worksheet with the supplied name
-            XDocument appXDoc = sDoc
+            var appXDoc = sDoc
                 .ExtendedFilePropertiesPart
                 .GetXDocument();
-            XElement vector = appXDoc
+            var vector = appXDoc
                 .Root
                 .Elements(EP.TitlesOfParts)
                 .Elements(VT.vector)
                 .FirstOrDefault();
             if (vector != null)
             {
-                int? size = (int?)vector.Attribute(SSNoNamespace.size);
+                var size = (int?)vector.Attribute(SSNoNamespace.size);
                 if (size == null)
+                {
                     size = 1;
+                }
                 else
+                {
                     size = size + 1;
+                }
+
                 vector.SetAttributeValue(SSNoNamespace.size, size);
                 vector.Add(
                     new XElement(VT.lpstr, worksheetData.Name));
-                XElement i4 = appXDoc
+                var i4 = appXDoc
                     .Root
                     .Elements(EP.HeadingPairs)
                     .Elements(VT.vector)
@@ -228,16 +255,19 @@ namespace OpenXmlPowerTools
                     .Elements(VT.i4)
                     .FirstOrDefault();
                 if (i4 != null)
+                {
                     i4.Value = ((int)i4 + 1).ToString();
+                }
+
                 sDoc.ExtendedFilePropertiesPart.PutXDocument();
             }
 
-            WorkbookPart workbook = sDoc.WorkbookPart;
-            string rId = "R" + Guid.NewGuid().ToString().Replace("-", "");
-            WorksheetPart worksheetPart = workbook.AddNewPart<WorksheetPart>(rId);
+            var workbook = sDoc.WorkbookPart;
+            var rId = "R" + Guid.NewGuid().ToString().Replace("-", "");
+            var worksheetPart = workbook.AddNewPart<WorksheetPart>(rId);
 
-            XDocument wbXDoc = workbook.GetXDocument();
-            XElement sheets = wbXDoc.Descendants(S.sheets).FirstOrDefault();
+            var wbXDoc = workbook.GetXDocument();
+            var sheets = wbXDoc.Descendants(S.sheets).FirstOrDefault();
             sheets.Add(
                 new XElement(S.sheet,
                     new XAttribute(SSNoNamespace.name, worksheetData.Name.ToString()),
@@ -245,37 +275,35 @@ namespace OpenXmlPowerTools
                     new XAttribute(R.id, rId)));
             workbook.PutXDocument();
 
-            string ws = S.s.ToString();
-            string relns = R.r.ToString();
+            var ws = S.s.ToString();
+            var relns = R.r.ToString();
 
-            using (Stream partStream = worksheetPart.GetStream(FileMode.Create, FileAccess.Write))
+            using (var partStream = worksheetPart.GetStream(FileMode.Create, FileAccess.Write))
             {
-                using (XmlWriter partXmlWriter = XmlWriter.Create(partStream))
+                using (var partXmlWriter = XmlWriter.Create(partStream))
                 {
                     partXmlWriter.WriteStartDocument();
                     partXmlWriter.WriteStartElement("worksheet", ws);
                     partXmlWriter.WriteStartElement("sheetData", ws);
 
-                    int numColumnHeadingRows = 0;
-                    int numColumns = 0;
-                    int numColumnsInRows = 0;
-                    int numRows;
+                    var numColumnHeadingRows = 0;
+                    var numColumns = 0;
                     if (worksheetData.ColumnHeadings != null)
                     {
-                        RowDfn row = new RowDfn
+                        var row = new RowDfn
                         {
                             Cells = worksheetData.ColumnHeadings
                         };
                         SerializeRows(sDoc, partXmlWriter, new[] { row }, 1, out numColumns, out numColumnHeadingRows);
                     }
-                    SerializeRows(sDoc, partXmlWriter, worksheetData.Rows, numColumnHeadingRows + 1, out numColumnsInRows,
-                        out numRows);
-                    int totalRows = numColumnHeadingRows + numRows;
-                    int totalColumns = Math.Max(numColumns, numColumnsInRows);
+                    SerializeRows(sDoc, partXmlWriter, worksheetData.Rows, numColumnHeadingRows + 1, out var numColumnsInRows,
+                        out var numRows);
+                    var totalRows = numColumnHeadingRows + numRows;
+                    var totalColumns = Math.Max(numColumns, numColumnsInRows);
                     if (worksheetData.ColumnHeadings != null && worksheetData.TableName != null)
                     {
                         partXmlWriter.WriteEndElement();
-                        string rId2 = "R" + Guid.NewGuid().ToString().Replace("-", "");
+                        var rId2 = "R" + Guid.NewGuid().ToString().Replace("-", "");
                         partXmlWriter.WriteStartElement("tableParts", ws);
                         partXmlWriter.WriteStartAttribute("count");
                         partXmlWriter.WriteValue(1);
@@ -283,9 +311,9 @@ namespace OpenXmlPowerTools
                         partXmlWriter.WriteStartElement("tablePart", ws);
                         partXmlWriter.WriteStartAttribute("id", relns);
                         partXmlWriter.WriteValue(rId2);
-                        TableDefinitionPart tdp = worksheetPart.AddNewPart<TableDefinitionPart>(rId2);
-                        XDocument tXDoc = tdp.GetXDocument();
-                        XElement table = new XElement(S.table,
+                        var tdp = worksheetPart.AddNewPart<TableDefinitionPart>(rId2);
+                        var tXDoc = tdp.GetXDocument();
+                        var table = new XElement(S.table,
                             new XAttribute(SSNoNamespace.id, 1),
                             new XAttribute(SSNoNamespace.name, worksheetData.TableName),
                             new XAttribute(SSNoNamespace.displayName, worksheetData.TableName),
@@ -317,17 +345,16 @@ namespace OpenXmlPowerTools
         private static void SerializeRows(SpreadsheetDocument sDoc, XmlWriter xmlWriter, IEnumerable<RowDfn> rows,
             int startingRowNumber, out int numColumns, out int numRows)
         {
-            int rowCount = 0;
-            int rowNumber = startingRowNumber;
-            int maxColumns = 0;
-            int localNumColumns;
+            var rowCount = 0;
+            var rowNumber = startingRowNumber;
+            var maxColumns = 0;
 #if DisplayWorkingSet
             int workingSetInterval = 10000;
             int workingSetCount = 0;
 #endif
             foreach (var row in rows)
             {
-                SerializeRow(sDoc, xmlWriter, rowNumber, row, out localNumColumns);
+                SerializeRow(sDoc, xmlWriter, rowNumber, row, out var localNumColumns);
                 maxColumns = Math.Max(maxColumns, localNumColumns);
                 rowNumber++;
                 rowCount++;
@@ -345,7 +372,7 @@ namespace OpenXmlPowerTools
 
         private static void SerializeRow(SpreadsheetDocument sDoc, XmlWriter xw, int rowCount, RowDfn row, out int numColumns)
         {
-            string ns = S.s.NamespaceName;
+            var ns = S.s.NamespaceName;
 
             xw.WriteStartElement("row", ns);
             xw.WriteStartAttribute("r");
@@ -354,7 +381,7 @@ namespace OpenXmlPowerTools
             xw.WriteStartAttribute("spans");
             xw.WriteValue("1:" + row.Cells.Count().ToString());
             xw.WriteEndAttribute();
-            int cellCount = 0;
+            var cellCount = 0;
             foreach (var cell in row.Cells)
             {
                 if (cell != null)
@@ -416,7 +443,7 @@ namespace OpenXmlPowerTools
 
         private static int GetCellStyle(SpreadsheetDocument sDoc, CellDfn cell)
         {
-            XDocument sXDoc = sDoc.WorkbookPart.WorkbookStylesPart.GetXDocument();
+            var sXDoc = sDoc.WorkbookPart.WorkbookStylesPart.GetXDocument();
             var match = sXDoc
                 .Root
                 .Element(S.cellXfs)
@@ -428,10 +455,12 @@ namespace OpenXmlPowerTools
                 })
                 .FirstOrDefault(xf => CompareStyles(sXDoc, xf.Element, cell));
             if (match != null)
+            {
                 return match.Index;
+            }
 
             // if no match, then create a style
-            int newId = CreateNewStyle(sXDoc, cell, sDoc);
+            var newId = CreateNewStyle(sXDoc, cell, sDoc);
             return newId;
         }
 
@@ -467,14 +496,14 @@ namespace OpenXmlPowerTools
                     numFmtId = new XAttribute(SSNoNamespace.numFmtId, GetNumFmtId(sXDoc, cell.FormatCode));
                 }
             }
-            XElement newXf = new XElement(S.xf,
+            var newXf = new XElement(S.xf,
                 applyFont,
                 fontId,
                 applyAlignment,
                 alignment,
                 applyNumberFormat,
                 numFmtId);
-            XElement cellXfs = sXDoc
+            var cellXfs = sXDoc
                 .Root
                 .Element(S.cellXfs);
             if (cellXfs == null)
@@ -486,7 +515,7 @@ namespace OpenXmlPowerTools
             }
             else
             {
-                int currentCount = (int)cellXfs.Attribute(SSNoNamespace.count);
+                var currentCount = (int)cellXfs.Attribute(SSNoNamespace.count);
                 cellXfs.SetAttributeValue(SSNoNamespace.count, currentCount + 1);
                 cellXfs.Add(newXf);
                 return currentCount;
@@ -495,7 +524,7 @@ namespace OpenXmlPowerTools
 
         private static int GetFontId(XDocument sXDoc, CellDfn cell)
         {
-            XElement fonts = sXDoc.Root.Element(S.fonts);
+            var fonts = sXDoc.Root.Element(S.fonts);
             if (fonts == null)
             {
                 fonts = new XElement(S.fonts,
@@ -506,18 +535,18 @@ namespace OpenXmlPowerTools
                 sXDoc.Root.Add(fonts);
                 return 0;
             }
-            XElement font = new XElement(S.font,
+            var font = new XElement(S.font,
                 cell.Bold == true ? new XElement(S.b) : null,
                 cell.Italic == true ? new XElement(S.i) : null);
             fonts.Add(font);
-            int count = (int)fonts.Attribute(SSNoNamespace.count);
+            var count = (int)fonts.Attribute(SSNoNamespace.count);
             fonts.SetAttributeValue(SSNoNamespace.count, count + 1);
             return count;
         }
 
         private static int GetNumFmtId(XDocument sXDoc, string formatCode)
         {
-            int xfNumber = 81;
+            var xfNumber = 81;
             while (true)
             {
                 if (!sXDoc
@@ -525,10 +554,13 @@ namespace OpenXmlPowerTools
                     .Elements(S.numFmts)
                     .Elements(S.numFmt)
                     .Any(nf => (int)nf.Attribute(SSNoNamespace.numFmtId) == xfNumber))
+                {
                     break;
+                }
+
                 ++xfNumber;
             }
-            XElement numFmts = sXDoc.Root.Element(S.numFmts);
+            var numFmts = sXDoc.Root.Element(S.numFmts);
             if (numFmts == null)
             {
                 numFmts = new XElement(S.numFmts,
@@ -539,7 +571,7 @@ namespace OpenXmlPowerTools
                 sXDoc.Root.AddFirst(numFmts);
                 return xfNumber;
             }
-            XElement numFmt = new XElement(S.numFmt,
+            var numFmt = new XElement(S.numFmt,
                 new XAttribute(SSNoNamespace.numFmtId, xfNumber),
                 new XAttribute(SSNoNamespace.formatCode, formatCode));
             numFmts.Add(numFmt);
@@ -548,9 +580,9 @@ namespace OpenXmlPowerTools
 
         private static bool CompareStyles(XDocument sXDoc, XElement xf, CellDfn cell)
         {
-            bool matchFont = MatchFont(sXDoc, xf, cell);
-            bool matchAlignment = MatchAlignment(sXDoc, xf, cell);
-            bool matchFormat = MatchFormat(sXDoc, xf, cell);
+            var matchFont = MatchFont(sXDoc, xf, cell);
+            var matchAlignment = MatchAlignment(sXDoc, xf, cell);
+            var matchFormat = MatchFormat(sXDoc, xf, cell);
             return (matchFont && matchAlignment && matchFormat);
         }
 
@@ -560,22 +592,28 @@ namespace OpenXmlPowerTools
                 xf.Attribute(SSNoNamespace.applyFont) == null) &&
                 (cell.Bold == null || cell.Bold == false) &&
                 (cell.Italic == null || cell.Italic == false))
+            {
                 return true;
+            }
+
             if (((int?)xf.Attribute(SSNoNamespace.applyFont) == 0 ||
                 xf.Attribute(SSNoNamespace.applyFont) == null) &&
                 (cell.Bold == true ||
                  cell.Italic == true))
+            {
                 return false;
-            int fontId = (int)xf.Attribute(SSNoNamespace.fontId);
-            XElement font = sXDoc
+            }
+
+            var fontId = (int)xf.Attribute(SSNoNamespace.fontId);
+            var font = sXDoc
                 .Root
                 .Element(S.fonts)
                 .Elements(S.font)
                 .ElementAt(fontId);
-            XElement fabFont = new XElement(S.font,
+            var fabFont = new XElement(S.font,
                 cell.Bold == true ? new XElement(S.b) : null,
                 cell.Italic == true ? new XElement(S.i) : null);
-            bool match = XNode.DeepEquals(font, fabFont);
+            var match = XNode.DeepEquals(font, fabFont);
             return match;
         }
 
@@ -584,12 +622,18 @@ namespace OpenXmlPowerTools
             if ((int?)xf.Attribute(SSNoNamespace.applyAlignment) == 0 ||
                 (xf.Attribute(SSNoNamespace.applyAlignment) == null) &&
                 cell.HorizontalCellAlignment == null)
+            {
                 return true;
+            }
+
             if (xf.Attribute(SSNoNamespace.applyAlignment) == null &&
                 cell.HorizontalCellAlignment != null)
+            {
                 return false;
-            string alignment = (string)xf.Element(S.alignment).Attribute(SSNoNamespace.horizontal);
-            bool match = alignment == cell.HorizontalCellAlignment.ToString().ToLower();
+            }
+
+            var alignment = (string)xf.Element(S.alignment).Attribute(SSNoNamespace.horizontal);
+            var match = alignment == cell.HorizontalCellAlignment.ToString().ToLower();
             return match;
         }
 
@@ -597,36 +641,53 @@ namespace OpenXmlPowerTools
         {
             if ((int?)xf.Attribute(SSNoNamespace.applyNumberFormat) != 1 &&
                 cell.FormatCode == null)
+            {
                 return true;
+            }
+
             if (xf.Attribute(SSNoNamespace.applyNumberFormat) == null &&
                 cell.FormatCode != null)
+            {
                 return false;
-            int numFmtId = (int)xf.Attribute(SSNoNamespace.numFmtId);
+            }
+
+            var numFmtId = (int)xf.Attribute(SSNoNamespace.numFmtId);
             int? nfi = null;
             if (cell.FormatCode != null)
             {
                 if (CellDfn.StandardFormats.ContainsKey(cell.FormatCode))
+                {
                     nfi = CellDfn.StandardFormats[cell.FormatCode];
+                }
+
                 if (nfi == numFmtId)
+                {
                     return true;
+                }
             }
-            XElement numFmts = sXDoc
+            var numFmts = sXDoc
                 .Root
                 .Element(S.numFmts);
             if (numFmts == null)
+            {
                 return false;
-            XElement numFmt = numFmts
+            }
+
+            var numFmt = numFmts
                 .Elements(S.numFmt)
                 .FirstOrDefault(numFmtElement =>
                     (int)numFmtElement.Attribute(SSNoNamespace.numFmtId) == numFmtId);
             if (numFmt == null)
+            {
                 return false;
-            string styleFormatCode = (string)numFmt.Attribute(SSNoNamespace.formatCode);
-            bool match = styleFormatCode == cell.FormatCode;
+            }
+
+            var styleFormatCode = (string)numFmt.Attribute(SSNoNamespace.formatCode);
+            var match = styleFormatCode == cell.FormatCode;
             return match;
         }
 
-        private static string _EmptyXlsx = @"UEsDBBQABgAIAAAAIQBi7p1oYQEAAJAEAAATAAgCW0NvbnRlbnRfVHlwZXNdLnhtbCCiBAIooAAC
+        private static readonly string _EmptyXlsx = @"UEsDBBQABgAIAAAAIQBi7p1oYQEAAJAEAAATAAgCW0NvbnRlbnRfVHlwZXNdLnhtbCCiBAIooAAC
 AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
 AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
 AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
