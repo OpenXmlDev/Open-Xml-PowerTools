@@ -34,34 +34,6 @@ namespace OpenXmlPowerTools
         }
 
         /// <summary>
-        /// Creates a spreadsheet document with a chart from a value table
-        /// </summary>
-        /// <param name="filePath">Path to store the document</param>
-        /// <param name="headerList">Contents of first row (header)</param>
-        /// <param name="valueTable">Contents of data</param>
-        /// <param name="chartType">Chart type</param>
-        /// <param name="categoryColumn">Column to use as category for charting</param>
-        /// <param name="columnsToChart">Columns to use as data series</param>
-        /// <param name="initialRow">Row index to start copying data</param>
-        /// <returns>SpreadsheetDocument</returns>
-        //public static void Create(SpreadsheetDocument document, List<string> headerList, string[][] valueTable, ChartType chartType, string categoryColumn, List<string> columnsToChart, int initialRow)
-        //{
-        //    headerRow = initialRow;
-
-        //    //Creates worksheet with data
-        //    WorksheetPart worksheet = WorksheetAccessor.Create(document, headerList, valueTable, headerRow);
-        //    //Creates chartsheet with given series and category
-        //    string sheetName = GetSheetName(worksheet, document);
-        //    ChartsheetPart chartsheet =
-        //        ChartsheetAccessor.Create(document,
-        //            chartType,
-        //            GetValueReferences(sheetName, categoryColumn, headerList, columnsToChart, valueTable),
-        //            GetHeaderReferences(sheetName, categoryColumn, headerList, columnsToChart, valueTable),
-        //            GetCategoryReference(sheetName, categoryColumn, headerList, valueTable)
-        //        );
-        //}
-
-        /// <summary>
         /// Gets the internal name of a worksheet from a document
         /// </summary>
         private static string GetSheetName(WorksheetPart worksheet, SpreadsheetDocument document)

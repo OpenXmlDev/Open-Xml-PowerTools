@@ -52,18 +52,18 @@ namespace OpenXmlPowerTools
 
     public class MhtParser
     {
-        public string MimeVersion;
-        public string ContentType;
-        public MhtParserPart[] Parts;
+        public string MimeVersion { get; set; }
+        public string ContentType { get; set; }
+        public MhtParserPart[] Parts { get; set; }
 
         public class MhtParserPart
         {
-            public string ContentLocation;
-            public string ContentTransferEncoding;
-            public string ContentType;
-            public string CharSet;
-            public string Text;
-            public byte[] Binary;
+            public string ContentLocation { get; set; }
+            public string ContentTransferEncoding { get; set; }
+            public string ContentType { get; set; }
+            public string CharSet { get; set; }
+            public string Text { get; set; }
+            public byte[] Binary { get; set; }
         }
 
         public static MhtParser Parse(string src)
@@ -1166,10 +1166,10 @@ namespace OpenXmlPowerTools
     {
         public class RunResults
         {
-            public int ExitCode;
-            public Exception RunException;
-            public StringBuilder Output;
-            public StringBuilder Error;
+            public int ExitCode { get; set; }
+            public Exception RunException { get; set; }
+            public StringBuilder Output { get; set; }
+            public StringBuilder Error { get; set; }
         }
 
         public static RunResults RunExecutable(string executablePath, string arguments, string workingDirectory)
@@ -1218,17 +1218,17 @@ namespace OpenXmlPowerTools
 
     public class SiblingsReverseDocumentOrderInfo
     {
-        public XElement PreviousSibling;
+        public XElement PreviousSibling { get; set; }
     }
 
     public class DescendantsReverseDocumentOrderInfo
     {
-        public XElement PreviousElement;
+        public XElement PreviousElement { get; set; }
     }
 
     public class DescendantsTrimmedReverseDocumentOrderInfo
     {
-        public XElement PreviousElement;
+        public XElement PreviousElement { get; set; }
     }
 
     public class GroupOfAdjacent<TSource, TKey> : IGrouping<TKey, TSource>
@@ -1359,9 +1359,8 @@ namespace OpenXmlPowerTools
 
     public static class Xsi
     {
-        public static XNamespace xsi = "http://www.w3.org/2001/XMLSchema-instance";
-
-        public static XName schemaLocation = xsi + "schemaLocation";
-        public static XName noNamespaceSchemaLocation = xsi + "noNamespaceSchemaLocation";
+        public static readonly XNamespace xsi = "http://www.w3.org/2001/XMLSchema-instance";
+        public static readonly XName schemaLocation = xsi + "schemaLocation";
+        public static readonly XName noNamespaceSchemaLocation = xsi + "noNamespaceSchemaLocation";
     }
 }

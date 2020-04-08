@@ -159,8 +159,8 @@ namespace OpenXmlPowerTools
 
     public class DocumentBuilderSettings
     {
-        public HashSet<string> CustomXmlGuidList = null;
-        public bool NormalizeStyleIds = false;
+        public HashSet<string> CustomXmlGuidList { get; set; } = null;
+        public bool NormalizeStyleIds { get; set; } = false;
     }
 
     public static class DocumentBuilder
@@ -1560,12 +1560,6 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml
                     throw new DocumentBuilderException(string.Format("Source {0} contains section changes (w:sectPrChange), not supported", sourceNumber));
                 }
 
-                // note: if ever want to support Open-Xml-PowerTools attributes, need to make sure that all attributes are propagated in all cases
-                //if (d.Name.Namespace == PtOpenXml.ptOpenXml ||
-                //    d.Name.Namespace == PtOpenXml.pt)
-                //    throw new DocumentBuilderException(string.Format("Source {0} contains Open-Xml-PowerTools markup, not supported", sourceNumber));
-                //if (d.Attributes().Any(a => a.Name.Namespace == PtOpenXml.ptOpenXml || a.Name.Namespace == PtOpenXml.pt))
-                //    throw new DocumentBuilderException(string.Format("Source {0} contains Open-Xml-PowerTools markup, not supported", sourceNumber));
             }
 
             TestPartForUnsupportedContent(doc.MainDocumentPart, sourceNumber);
@@ -2292,16 +2286,6 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml
             {
                 bookmarkElement.Attribute(W.id).Value = bookmarkIdMap[(int)bookmarkElement.Attribute(W.id)].ToString();
             }
-
-            // adjust shape unique ids
-            // This doesn't work because OLEObjects refer to shapes by ID.
-            // Punting on this, because sooner or later, this will be a non-issue.
-            //foreach (var item in newContent.DescendantsAndSelf(VML.shape))
-            //{
-            //    Guid g = Guid.NewGuid();
-            //    string s = "R" + g.ToString().Replace("-", "");
-            //    item.Attribute(NoNamespace.id).Value = s;
-            //}
         }
 
         private static void AdjustDocPrIds(WordprocessingDocument newDocument)
@@ -2695,8 +2679,6 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml
                 var newSettingsPart = newDocument.MainDocumentPart.GlossaryDocumentPart.AddNewPart<DocumentSettingsPart>();
                 var settingsXDoc = oldSettingsPart.GetXDocument();
                 AddRelationships(oldSettingsPart, newSettingsPart, new[] { settingsXDoc.Root });
-                //CopyFootnotesPart(sourceDocument, newDocument, settingsXDoc, images);
-                //CopyEndnotesPart(sourceDocument, newDocument, settingsXDoc, images);
                 var newXDoc = newDocument.MainDocumentPart.GlossaryDocumentPart.DocumentSettingsPart.GetXDocument();
                 newXDoc.Declaration.Standalone = Yes;
                 newXDoc.Declaration.Encoding = Utf8;
@@ -2933,10 +2915,7 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml
                 }
                 if (e.Name == A.blip)
                 {
-                    // <a:blip r:embed="rId6" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" />
                     var relId = (string)e.Attribute(R.link);
-                    //if (relId == null)
-                    //    relId = (string)e.Attribute(R.embed);
                     if (string.IsNullOrEmpty(relId))
                     {
                         continue;

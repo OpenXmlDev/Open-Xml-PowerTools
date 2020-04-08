@@ -11,13 +11,13 @@ namespace OpenXmlPowerTools
 {
     public class FormattingAssemblerSettings
     {
-        public bool RemoveStyleNamesFromParagraphAndRunProperties;
-        public bool ClearStyles;
-        public bool OrderElementsPerStandard;
-        public bool CreateHtmlConverterAnnotationAttributes;
-        public bool RestrictToSupportedNumberingFormats;
-        public bool RestrictToSupportedLanguages;
-        public ListItemRetrieverSettings ListItemRetrieverSettings;
+        public bool RemoveStyleNamesFromParagraphAndRunProperties { get; set; }
+        public bool ClearStyles { get; set; }
+        public bool OrderElementsPerStandard { get; set; }
+        public bool CreateHtmlConverterAnnotationAttributes { get; set; }
+        public bool RestrictToSupportedNumberingFormats { get; set; }
+        public bool RestrictToSupportedLanguages { get; set; }
+        public ListItemRetrieverSettings ListItemRetrieverSettings { get; set; }
 
         public FormattingAssemblerSettings()
         {
@@ -3028,19 +3028,19 @@ namespace OpenXmlPowerTools
 
         public class CharStyleAttributes
         {
-            public string AsciiFont;
-            public string HAnsiFont;
-            public string EastAsiaFont;
-            public string CsFont;
-            public string Hint;
-            public bool Rtl;
+            public string AsciiFont { get; set; }
+            public string HAnsiFont { get; set; }
+            public string EastAsiaFont { get; set; }
+            public string CsFont { get; set; }
+            public string Hint { get; set; }
+            public bool Rtl { get; set; }
 
-            public string LatinLang;
-            public string BidiLang;
-            public string EastAsiaLang;
+            public string LatinLang { get; set; }
+            public string BidiLang { get; set; }
+            public string EastAsiaLang { get; set; }
 
-            public Dictionary<XName, bool?> ToggleProperties;
-            public Dictionary<XName, XElement> Properties;
+            public Dictionary<XName, bool?> ToggleProperties { get; set; }
+            public Dictionary<XName, XElement> Properties { get; set; }
 
             public CharStyleAttributes(XElement pPr, XElement rPr)
             {
@@ -3404,33 +3404,6 @@ namespace OpenXmlPowerTools
             // Technically, a run can contain characters from different Unicode code blocks, and hence should be rendered with different fonts.
             // However, Word breaks up runs that use more than one font into multiple runs.  Other producers of WordprocessingML may not, so in
             // that case, this routine may need to be augmented to look at all characters in a run.
-
-            /*
-            old code
-            var fontFamilies = str.select(function (c) {
-                var ft = Pav.DetermineFontTypeFromCharacter(c, csa);
-                switch (ft) {
-                    case Pav.FontType.Ascii:
-                        return cast(rFonts.attribute(W.ascii));
-
-                    case Pav.FontType.HAnsi:
-                        return cast(rFonts.attribute(W.hAnsi));
-
-                    case Pav.FontType.EastAsia:
-                        return cast(rFonts.attribute(W.eastAsia));
-
-                    case Pav.FontType.CS:
-                        return cast(rFonts.attribute(W.cs));
-
-                    default:
-                        return null;
-                }
-            })
-                .where(function (f) { return f != null && f != ""; })
-                .distinct()
-                .select(function (f) { return new Pav.FontFamily(f); })
-                .toArray();
-            */
 
             var charToExamine = str.FirstOrDefault(c => !WeakAndNeutralDirectionalCharacters.Contains(c));
             if (charToExamine == '\0')

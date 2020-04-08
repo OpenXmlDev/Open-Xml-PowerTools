@@ -22,15 +22,15 @@ namespace OpenXmlPowerTools
 
     public class WorkbookDfn
     {
-        public IEnumerable<WorksheetDfn> Worksheets;
+        public IEnumerable<WorksheetDfn> Worksheets { get; set; }
     }
 
     public class WorksheetDfn
     {
-        public string Name;
-        public string TableName;
-        public IEnumerable<CellDfn> ColumnHeadings;
-        public IEnumerable<RowDfn> Rows;
+        public string Name { get; set; }
+        public string TableName { get; set; }
+        public IEnumerable<CellDfn> ColumnHeadings { get; set; }
+        public IEnumerable<RowDfn> Rows { get; set; }
     }
 
     public class RowDfn
@@ -77,12 +77,13 @@ namespace OpenXmlPowerTools
             { "##0.0E+0",                 48  },
             { "@",                        49  },
         };
-        public object Value;
-        public CellDataType? CellDataType;
-        public HorizontalCellAlignment? HorizontalCellAlignment;
-        public bool? Bold;
-        public bool? Italic;
-        public string FormatCode;
+
+        public object Value { get; set; }
+        public CellDataType? CellDataType { get; set; }
+        public HorizontalCellAlignment? HorizontalCellAlignment { get; set; }
+        public bool? Bold { get; set; }
+        public bool? Italic { get; set; }
+        public string FormatCode { get; set; }
     }
 
     public enum HorizontalCellAlignment
@@ -406,21 +407,25 @@ namespace OpenXmlPowerTools
                             xw.WriteValue("b");
                             xw.WriteEndAttribute();
                             break;
+
                         case CellDataType.Date:
                             xw.WriteStartAttribute("t");
                             xw.WriteValue("d");
                             xw.WriteEndAttribute();
                             break;
+
                         case CellDataType.Number:
                             xw.WriteStartAttribute("t");
                             xw.WriteValue("n");
                             xw.WriteEndAttribute();
                             break;
+
                         case CellDataType.String:
                             xw.WriteStartAttribute("t");
                             xw.WriteValue("str");
                             xw.WriteEndAttribute();
                             break;
+
                         default:
                             xw.WriteStartAttribute("t");
                             xw.WriteValue("str");
@@ -821,7 +826,6 @@ CAAAACEA5lWo42gBAACEAgAAGAAAAAAAAAAAAAAAAABZFAAAeGwvd29ya3NoZWV0cy9zaGVldDEu
 eG1sUEsBAi0AFAAGAAgAAAAhAJtkFtU+AQAAUQIAABEAAAAAAAAAAAAAAAAA9xUAAGRvY1Byb3Bz
 L2NvcmUueG1sUEsBAi0AFAAGAAgAAAAhAHREzCiJAQAAEQMAABAAAAAAAAAAAAAAAAAAbBgAAGRv
 Y1Byb3BzL2FwcC54bWxQSwUGAAAAAAoACgCAAgAAKxsAAAAA";
-
     }
 
     public class SpreadsheetWriterInternalException : Exception

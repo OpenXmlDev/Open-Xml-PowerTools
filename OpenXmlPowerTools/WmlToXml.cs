@@ -14,13 +14,13 @@ namespace OpenXmlPowerTools
 {
     public class ContentTypeRule
     {
-        public string ContentType;
-        public string StyleName;
-        public Regex StyleNameRegex;
-        public Regex[] RegexArray;
-        public Func<XElement, ContentTypeRule, WordprocessingDocument, WmlToXmlSettings, bool> MatchLambda;
-        public bool ApplyRunContentTypes = true;
-        public string[] DocumentTypeCollection;
+        public string ContentType { get; set; }
+        public string StyleName { get; set; }
+        public Regex StyleNameRegex { get; set; }
+        public Regex[] RegexArray { get; set; }
+        public Func<XElement, ContentTypeRule, WordprocessingDocument, WmlToXmlSettings, bool> MatchLambda { get; set; }
+        public bool ApplyRunContentTypes { get; set; } = true;
+        public string[] DocumentTypeCollection { get; set; }
     }
 
     public enum ValidationErrorType
@@ -32,84 +32,87 @@ namespace OpenXmlPowerTools
 
     public class ValidationRuleDocumentTypeInfo
     {
-        public string DocumentType;
-        public ValidationErrorType ValidationErrorType;
+        public string DocumentType { get; set; }
+        public ValidationErrorType ValidationErrorType { get; set; }
     }
 
     public class GlobalValidationRule
     {
-        public string[] RuleNames;
-        public string[] RuleDescriptions;
-        public string[] RuleTitles;
-        public Func<GlobalValidationRule, WordprocessingDocument, WordprocessingDocument, XElement, WmlToXmlSettings, List<WmlToXmlValidationError>> GlobalRuleLambda;
+        public string[] RuleNames { get; set; }
+        public string[] RuleDescriptions { get; set; }
+        public string[] RuleTitles { get; set; }
+        public Func<GlobalValidationRule, WordprocessingDocument, WordprocessingDocument, XElement, WmlToXmlSettings, List<WmlToXmlValidationError>> GlobalRuleLambda { get; set; }
 
         // if DocumentTypeInfo == null, then this rule runs for all document types, and with severity level of error
-        public ValidationRuleDocumentTypeInfo[] DocumentTypeInfoCollection;
+        public ValidationRuleDocumentTypeInfo[] DocumentTypeInfoCollection { get; set; }
 
-        public string Message;
+        public string Message { get; set; }
     }
 
     public class BlockLevelContentValidationRule
     {
-        public string[] RuleNames;
-        public string[] RuleDescriptions;
-        public string[] RuleTitles;
-        public Regex StyleNameRegex;
-        public Func<XElement, BlockLevelContentValidationRule, WordprocessingDocument, XElement, WmlToXmlSettings, List<WmlToXmlValidationError>> BlockLevelContentRuleLambda;
-        public ValidationRuleDocumentTypeInfo[] DocumentTypeInfoCollection;
-        public string Message;
+        public string[] RuleNames { get; set; }
+        public string[] RuleDescriptions { get; set; }
+        public string[] RuleTitles { get; set; }
+        public Regex StyleNameRegex { get; set; }
+        public Func<XElement, BlockLevelContentValidationRule, WordprocessingDocument, XElement, WmlToXmlSettings, List<WmlToXmlValidationError>> BlockLevelContentRuleLambda { get; set; }
+        public ValidationRuleDocumentTypeInfo[] DocumentTypeInfoCollection { get; set; }
+        public string Message { get; set; }
     }
 
     public class WmlToXmlValidationError
     {
-        public string RuleName;
-        public ValidationErrorType ErrorType;
-        public string ErrorTitle;
-        public string ErrorMessage;
-        public string BlockLevelContentIdentifier;  // this string is the same as the unid that is in the source document.  This string should be sufficient to identify and find any
-                                                    // invalid paragraph, table, row, cell, or anything else in the source document.
+        public string RuleName { get; set; }
+        public ValidationErrorType ErrorType { get; set; }
+        public string ErrorTitle { get; set; }
+        public string ErrorMessage { get; set; }
+
+        /// <summary>
+        /// this string is the same as the unid that is in the source document.  This string should be sufficient to identify and find any invalid paragraph, table, row, cell, or anything else in the source document.
+        /// </summary>
+        public string BlockLevelContentIdentifier { get; set; }
     }
 
     public class WmlToXmlProgressInfo
     {
-        public int ContentCount;
-        public int ContentTotal;
-        public string InProgressMessage;
+        public int ContentCount { get; set; }
+        public int ContentTotal { get; set; }
+        public string InProgressMessage { get; set; }
     }
 
     public class TransformInfo
     {
-        public string DefaultLangFromStylesPart;
+        public string DefaultLangFromStylesPart { get; set; }
     }
 
     public class WmlToXmlContentTypeMetrics
     {
-        public int Count;
-        public int Tests;
+        public int Count { get; set; }
+        public int Tests { get; set; }
     }
 
     public class WmlToXmlSettings
     {
-        public List<ContentTypeRule> GlobalContentTypeRules;
-        public List<ContentTypeRule> DocumentTypeContentTypeRules;
-        public List<ContentTypeRule> DocumentContentTypeRules;
-        public List<ContentTypeRule> RunContentTypeRules;
-        public List<GlobalValidationRule> GlobalValidationRules;
-        public List<BlockLevelContentValidationRule> BlockLevelContentValidationRules;
-        public ListItemRetrieverSettings ListItemRetrieverSettings;
-        public bool? InjectCommentForContentTypes;
-        public XElement ContentTypeHierarchyDefinition;
-        public Func<XElement, WmlToXmlSettings, bool> ContentTypeHierarchyLambda;
-        public Dictionary<string, Func<string, OpenXmlPart, XElement, WmlToXmlSettings, object>> XmlGenerationLambdas;
-        public DirectoryInfo ImageBase;
-        public bool WriteImageFiles = true;
-        public Action<WmlToXmlProgressInfo> ProgressFunction;
-        public XDocument ContentTypeRegexExtension;
-        public string DefaultLang;
-        public string DocumentType;
-        public Action<XDocument, XDocument, WmlToXmlSettings, OpenXmlPart> ApplyContentTypesCustom;
+        public List<ContentTypeRule> GlobalContentTypeRules { get; set; }
+        public List<ContentTypeRule> DocumentTypeContentTypeRules { get; set; }
+        public List<ContentTypeRule> DocumentContentTypeRules { get; set; }
+        public List<ContentTypeRule> RunContentTypeRules { get; set; }
+        public List<GlobalValidationRule> GlobalValidationRules { get; set; }
+        public List<BlockLevelContentValidationRule> BlockLevelContentValidationRules { get; set; }
+        public ListItemRetrieverSettings ListItemRetrieverSettings { get; set; }
+        public bool? InjectCommentForContentTypes { get; set; }
+        public XElement ContentTypeHierarchyDefinition { get; set; }
+        public Func<XElement, WmlToXmlSettings, bool> ContentTypeHierarchyLambda { get; set; }
+        public Dictionary<string, Func<string, OpenXmlPart, XElement, WmlToXmlSettings, object>> XmlGenerationLambdas { get; set; }
+        public DirectoryInfo ImageBase { get; set; }
+        public bool WriteImageFiles { get; set; } = true;
+        public Action<WmlToXmlProgressInfo> ProgressFunction { get; set; }
+        public XDocument ContentTypeRegexExtension { get; set; }
+        public string DefaultLang { get; set; }
+        public string DocumentType { get; set; }
+        public Action<XDocument, XDocument, WmlToXmlSettings, OpenXmlPart> ApplyContentTypesCustom { get; set; }
         public Dictionary<string, WmlToXmlContentTypeMetrics> ContentTypeCount = new Dictionary<string, WmlToXmlContentTypeMetrics>();
-        public object UserData;
+        public object UserData { get; set; }
 
         public WmlToXmlSettings(
             List<ContentTypeRule> globalContentTypeRules,
@@ -182,16 +185,6 @@ namespace OpenXmlPowerTools
 
         public static void ApplyContentTypes(WordprocessingDocument wDoc, WmlToXmlSettings settings)
         {
-#if false
-<Extensions>
-  <Extension ContentType='Introduction'>
-    <RegexExtension>
-      <Regex>.*Infroduction.*</Regex>
-      <Regex>.*Entroduction.*</Regex>
-    </RegexExtension>
-  </Extension>
-</Extensions>
-#endif
             if (settings.DocumentType == null || settings.DocumentType == "")
             {
                 throw new OpenXmlPowerToolsException("DocumentType must be set");
@@ -340,19 +333,6 @@ namespace OpenXmlPowerTools
             var mainPart = wDoc.MainDocumentPart;
             var mainXDoc = mainPart.GetXDocument();
 
-#if false
-<w:styles xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:w14="http://schemas.microsoft.com/office/word/2010/wordml" xmlns:w15="http://schemas.microsoft.com/office/word/2012/wordml" xmlns:w16se="http://schemas.microsoft.com/office/word/2015/wordml/symex" mc:Ignorable="w14 w15 w16se">
-	<w:docDefaults>
-		<w:rPrDefault>
-			<w:rPr>
-				<w:rFonts w:ascii="Georgia" w:eastAsiaTheme="minorHAnsi" w:hAnsi="Georgia" w:cs="Times New Roman"/>
-				<w:lang w:val="en-US" w:eastAsia="en-US" w:bidi="ar-SA"/>
-			</w:rPr>
-		</w:rPrDefault>
-		<w:pPrDefault/>
-	</w:docDefaults>
-#endif
-
             AssignLevelsToContent(mainXDoc, settings);
 
             // Call RetrieveListItem so that all paragraphs are initialized with ListItemInfo
@@ -364,7 +344,7 @@ namespace OpenXmlPowerTools
                 return new XElement("ContentTypeXml");
             }
 
-            var listItem = ListItemRetriever.RetrieveListItem(wDoc, firstParagraph);
+            ListItemRetriever.RetrieveListItem(wDoc, firstParagraph);
 
             // Annotate runs associated with fields, so that can retrieve hyperlinks that are stored as fields.
             FieldRetriever.AnnotateWithFieldInfo(wDoc.MainDocumentPart);
@@ -416,14 +396,6 @@ namespace OpenXmlPowerTools
 
         private static XElement HierarchyPerSettings(XElement contentTypeXml, WmlToXmlSettings settings)
         {
-#if false
-<Root>
-  <DocumentType DocumentType="AuthoritativeText">
-    <ContentTypeXml IsRoot="true">
-      <VolumeContainer />
-    </ContentTypeXml>
-#endif
-
             var hierarchyDefinition = settings
                 .ContentTypeHierarchyDefinition
                 .Elements("DocumentType")
@@ -552,7 +524,7 @@ namespace OpenXmlPowerTools
                             currentlyLookingAt = FindCurrentlyLookingAt(hierarchyDefinition, item);
                             break;
                         }
-                        if (stack.Count() == 0)
+                        if (stack.Count == 0)
                         {
                             throw new OpenXmlPowerToolsException("Internal error = reached top of hierarchy - prob not an internal error - some other error");
                         }

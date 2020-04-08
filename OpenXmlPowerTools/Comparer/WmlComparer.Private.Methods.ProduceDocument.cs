@@ -270,15 +270,9 @@ namespace OpenXmlPowerTools
                 var sha1Hash = WmlComparerUtil.SHA1HashStringForUTF8String(shaString);
                 blockLevelContent.Add(new XAttribute(PtOpenXml.SHA1Hash, sha1Hash));
 
-                if (blockLevelContent.Name == W.tbl ||
-                    blockLevelContent.Name == W.tr)
+                if (blockLevelContent.Name == W.tbl ||                    blockLevelContent.Name == W.tr)
                 {
                     var clonedForStructureHash = (XElement)CloneForStructureHash(cloneBlockLevelContentForHashing);
-
-                    // this is a convenient place to look at why tables are being compared as different.
-
-                    //if (blockLevelContent.Name == W.tbl)
-                    //    Console.WriteLine();
 
                     var shaString2 = clonedForStructureHash.ToString(SaveOptions.DisableFormatting)
                         .Replace(" xmlns=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"", "");
@@ -435,9 +429,7 @@ namespace OpenXmlPowerTools
             var listOfComparisonUnitAtoms = correlatedSequence
                 .Select(cs =>
                 {
-                    // need to write some code here to find out if we are assembling a paragraph (or anything) that contains the following unid.
-                    // why do are we dropping content???????
-                    //string searchFor = "0ecb9184";
+
 
                     if (cs.CorrelationStatus == CorrelationStatus.Equal)
                     {
@@ -737,14 +729,7 @@ namespace OpenXmlPowerTools
 
                 if (cua.ContentElement.Name == W.pPr)
                 {
-                    //if (s_True)
-                    //{
-                    //    var sb = new StringBuilder();
-                    //    foreach (var item in comparisonUnitAtomList)
-                    //        sb.Append(item.ToString()).Append(Environment.NewLine);
-                    //    var sbs = sb.ToString();
-                    //    TestUtil.NotePad(sbs);
-                    //}
+                  
 
                     var pPr_inTextBox = cua
                         .AncestorElements
@@ -2454,8 +2439,6 @@ namespace OpenXmlPowerTools
                 var firstOfCommonEndSeq = commonEndSeq.First();
                 if (firstOfCommonEndSeq is ComparisonUnitWord)
                 {
-                    // are there any paragraph marks in the common seq at end?
-                    //if (commonEndSeq.Any(cu => cu.Contents.OfType<ComparisonUnitAtom>().First().ContentElement.Name == W.pPr))
                     if (commonEndSeq.Any(cu =>
                     {
                         var firstComparisonUnitAtom = cu.Contents.OfType<ComparisonUnitAtom>().FirstOrDefault();

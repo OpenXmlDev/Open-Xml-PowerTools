@@ -41,15 +41,15 @@ namespace ExcelFormula
 
     internal class ExcelFormula : PegCharParser
     {
-        private static readonly OptimizedCharset optimizedCharset0 = new OptimizedCharset(new OptimizedCharset.Range[] { new OptimizedCharset.Range('A', 'Z'), new OptimizedCharset.Range('a', 'z'), new OptimizedCharset.Range('0', '9'), new OptimizedCharset.Range(',', '.'), }, new char[] { '!', '"', '#', '$', '%', '&', '(', ')', '+', ';', '<', '=', '>', '@', '^', '_', '`', '{', '|', '}', '~', ' ' });
+        private static readonly OptimizedCharset optimizedCharset0 = new OptimizedCharset(new[] { new OptimizedCharset.Range('A', 'Z'), new OptimizedCharset.Range('a', 'z'), new OptimizedCharset.Range('0', '9'), new OptimizedCharset.Range(',', '.'), }, new char[] { '!', '"', '#', '$', '%', '&', '(', ')', '+', ';', '<', '=', '>', '@', '^', '_', '`', '{', '|', '}', '~', ' ' });
 
-        private static readonly OptimizedCharset optimizedCharset1 = new OptimizedCharset(new OptimizedCharset.Range[] { new OptimizedCharset.Range('A', 'Z'), new OptimizedCharset.Range('a', 'z'), new OptimizedCharset.Range('0', '9'), new OptimizedCharset.Range(',', '.'), }, new char[] { '!', '"', '#', '$', '%', '&', '(', ')', '*', '+', '/', ':', ';', '<', '=', '>', '?', '@', '\\', '^', '_', '`', '{', '|', '}', '~' });
+        private static readonly OptimizedCharset optimizedCharset1 = new OptimizedCharset(new[] { new OptimizedCharset.Range('A', 'Z'), new OptimizedCharset.Range('a', 'z'), new OptimizedCharset.Range('0', '9'), new OptimizedCharset.Range(',', '.'), }, new char[] { '!', '"', '#', '$', '%', '&', '(', ')', '*', '+', '/', ':', ';', '<', '=', '>', '?', '@', '\\', '^', '_', '`', '{', '|', '}', '~' });
 
         private static readonly OptimizedLiterals optimizedLiterals0 = new OptimizedLiterals(new[] { "<>", ">=", "<=", "^", "*", "/", "+", "-", "&", "=", "<", ">" });
         private static readonly EncodingClass encodingClass = EncodingClass.ascii;
         private static readonly UnicodeDetection unicodeDetection = UnicodeDetection.notApplicable;
 
-        public ExcelFormula() : base()
+        public ExcelFormula()
         {
         }
 

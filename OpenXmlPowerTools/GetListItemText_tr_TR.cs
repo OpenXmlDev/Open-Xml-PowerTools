@@ -94,7 +94,6 @@ namespace OpenXmlPowerTools
             if (numFmt == "upperLetter")
             {
                 var a = "ABCÇDEFGĞHIİJKLMNOÖPRSŞTUÜVYZ";
-                //string a = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
                 var c = (levelNumber - 1) / 29;
                 var n = (levelNumber - 1) % 29;
                 var x = a[n];

@@ -5,12 +5,12 @@ namespace OpenXmlPowerTools
 {
     public class ChartData
     {
-        public string[] SeriesNames;
+        public string[] SeriesNames { get; set; }
 
-        public ChartDataType CategoryDataType;
-        public int CategoryFormatCode;
-        public string[] CategoryNames;
+        public ChartDataType CategoryDataType { get; set; }
+        public int CategoryFormatCode { get; set; }
+        public string[] CategoryNames { get; set; }
 
-        public double[][] Values;
+        public double[][] Values { get; set; }
     }
 }

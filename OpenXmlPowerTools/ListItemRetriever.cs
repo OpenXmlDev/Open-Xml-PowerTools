@@ -33,10 +33,25 @@ namespace OpenXmlPowerTools
     {
         public class ListItemSourceSet
         {
-            public int NumId;                          // numId from the paragraph or style
-            public XElement Num;                       // num element from the numbering part
-            public int AbstractNumId;                  // abstract numId
-            public XElement AbstractNum;               // abstractNum element
+            /// <summary>
+            /// numId from the paragraph or style
+            /// </summary>
+            public int NumId { get; set; }
+
+            /// <summary>
+            /// num element from the numbering part
+            /// </summary>
+            public XElement Num { get; set; }
+
+            /// <summary>
+            /// abstract numId
+            /// </summary>
+            public int AbstractNumId { get; set; }
+
+            /// <summary>
+            /// abstractNum element
+            /// </summary>
+            public XElement AbstractNum { get; set; }
 
             public ListItemSourceSet(XDocument numXDoc, XDocument styleXDoc, int numId)
             {
@@ -109,10 +124,10 @@ namespace OpenXmlPowerTools
 
         public class ListItemSource
         {
-            public ListItemSourceSet Main;
-            public string NumStyleLinkName;
-            public ListItemSourceSet NumStyleLink;
-            public int Style_ilvl;
+            public ListItemSourceSet Main { get; set; }
+            public string NumStyleLinkName { get; set; }
+            public ListItemSourceSet NumStyleLink { get; set; }
+            public int Style_ilvl { get; set; }
 
             // for list item sources that use numStyleLink, there are two abstractId values.
             // The abstractId that is use is in num->abstractNum->numStyleLink->style->num->abstractNum
@@ -209,13 +224,13 @@ namespace OpenXmlPowerTools
 
         public class ListItemInfo
         {
-            public bool IsListItem;
-            public bool IsZeroNumId;
+            public bool IsListItem { get; set; }
+            public bool IsZeroNumId { get; set; }
 
-            public ListItemSource FromStyle;
-            public ListItemSource FromParagraph;
+            public ListItemSource FromStyle { get; set; }
+            public ListItemSource FromParagraph { get; set; }
 
-            private int? mAbstractNumId = null;
+            private int? mAbstractNumId { get; set; } = null;
 
             public int? AbstractNumId
             {
@@ -798,22 +813,22 @@ namespace OpenXmlPowerTools
 
         public class LevelNumbers
         {
-            public int[] LevelNumbersArray;
+            public int[] LevelNumbersArray { get; set; }
         }
 
         private class StylesInfo
         {
-            public string DefaultParagraphStyleName;
+            public string DefaultParagraphStyleName { get; set; }
         }
 
         private class ParagraphInfo
         {
-            public int Ilvl;
+            public int Ilvl { get; set; }
         }
 
         private class ReverseAxis
         {
-            public XElement PreviousParagraph;
+            public XElement PreviousParagraph { get; set; }
         }
 
         public static string RetrieveListItem(WordprocessingDocument wordDoc, XElement paragraph)

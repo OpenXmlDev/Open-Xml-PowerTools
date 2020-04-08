@@ -1,51 +1,6 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-/*
-Here is modification of a WmlDocument:
-    public static WmlDocument SimplifyMarkup(WmlDocument doc, SimplifyMarkupSettings settings)
-    {
-        using (OpenXmlMemoryStreamDocument streamDoc = new OpenXmlMemoryStreamDocument(doc))
-        {
-            using (WordprocessingDocument document = streamDoc.GetWordprocessingDocument())
-            {
-                SimplifyMarkup(document, settings);
-            }
-            return streamDoc.GetModifiedWmlDocument();
-        }
-    }
-
-Here is read-only of a WmlDocument:
-
-    public static string GetBackgroundColor(WmlDocument doc)
-    {
-        using (OpenXmlMemoryStreamDocument streamDoc = new OpenXmlMemoryStreamDocument(doc))
-        using (WordprocessingDocument document = streamDoc.GetWordprocessingDocument())
-        {
-            XDocument mainDocument = document.MainDocumentPart.GetXDocument();
-            XElement backgroundElement = mainDocument.Descendants(W.background).FirstOrDefault();
-            return (backgroundElement == null) ? string.Empty : backgroundElement.Attribute(W.color).Value;
-        }
-    }
-
-Here is creating a new WmlDocument:
-
-    private OpenXmlPowerToolsDocument CreateSplitDocument(WordprocessingDocument source, List<XElement> contents, string newFileName)
-    {
-        using (OpenXmlMemoryStreamDocument streamDoc = OpenXmlMemoryStreamDocument.CreateWordprocessingDocument())
-        {
-            using (WordprocessingDocument document = streamDoc.GetWordprocessingDocument())
-            {
-                DocumentBuilder.FixRanges(source.MainDocumentPart.GetXDocument(), contents);
-                PowerToolsExtensions.SetContent(document, contents);
-            }
-            OpenXmlPowerToolsDocument newDoc = streamDoc.GetModifiedDocument();
-            newDoc.FileName = newFileName;
-            return newDoc;
-        }
-    }
-*/
-
 using DocumentFormat.OpenXml.Packaging;
 using System;
 using System.IO;
@@ -57,11 +12,16 @@ namespace OpenXmlPowerTools
 {
     public class PowerToolsDocumentException : Exception
     {
-        public PowerToolsDocumentException(string message) : base(message) { }
+        public PowerToolsDocumentException(string message) : base(message)
+        {
+        }
     }
+
     public class PowerToolsInvalidDataException : Exception
     {
-        public PowerToolsInvalidDataException(string message) : base(message) { }
+        public PowerToolsInvalidDataException(string message) : base(message)
+        {
+        }
     }
 
     public class OpenXmlPowerToolsDocument
@@ -346,11 +306,13 @@ namespace OpenXmlPowerTools
                             case "application/vnd.ms-word.template.macroEnabledTemplate.main+xml":
                             case "application/vnd.openxmlformats-officedocument.wordprocessingml.template.main+xml":
                                 return typeof(WordprocessingDocument);
+
                             case "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml":
                             case "application/vnd.ms-excel.sheet.macroEnabled.main+xml":
                             case "application/vnd.ms-excel.template.macroEnabled.main+xml":
                             case "application/vnd.openxmlformats-officedocument.spreadsheetml.template.main+xml":
                                 return typeof(SpreadsheetDocument);
+
                             case "application/vnd.openxmlformats-officedocument.presentationml.template.main+xml":
                             case "application/vnd.openxmlformats-officedocument.presentationml.presentation.main+xml":
                             case "application/vnd.ms-powerpoint.template.macroEnabled.main+xml":
@@ -632,6 +594,7 @@ namespace OpenXmlPowerTools
                 return new OpenXmlMemoryStreamDocument(stream);
             }
         }
+
         public static OpenXmlMemoryStreamDocument CreateSpreadsheetDocument()
         {
             var stream = new MemoryStream();
@@ -649,6 +612,7 @@ namespace OpenXmlPowerTools
                 return new OpenXmlMemoryStreamDocument(stream);
             }
         }
+
         public static OpenXmlMemoryStreamDocument CreatePresentationDocument()
         {
             var stream = new MemoryStream();
@@ -700,6 +664,7 @@ namespace OpenXmlPowerTools
                 throw new PowerToolsDocumentException(e.Message);
             }
         }
+
         public SpreadsheetDocument GetSpreadsheetDocument()
         {
             try
@@ -755,11 +720,13 @@ namespace OpenXmlPowerTools
                 case "application/vnd.ms-word.template.macroEnabledTemplate.main+xml":
                 case "application/vnd.openxmlformats-officedocument.wordprocessingml.template.main+xml":
                     return typeof(WordprocessingDocument);
+
                 case "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml":
                 case "application/vnd.ms-excel.sheet.macroEnabled.main+xml":
                 case "application/vnd.ms-excel.template.macroEnabled.main+xml":
                 case "application/vnd.openxmlformats-officedocument.spreadsheetml.template.main+xml":
                     return typeof(SpreadsheetDocument);
+
                 case "application/vnd.openxmlformats-officedocument.presentationml.template.main+xml":
                 case "application/vnd.openxmlformats-officedocument.presentationml.presentation.main+xml":
                 case "application/vnd.ms-powerpoint.template.macroEnabled.main+xml":

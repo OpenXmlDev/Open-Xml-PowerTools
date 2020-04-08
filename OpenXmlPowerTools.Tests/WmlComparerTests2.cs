@@ -162,7 +162,7 @@ namespace OxPt
             }
         }
 
-        public static string[] ExpectedErrors = new string[] {
+        public static readonly string[] ExpectedErrors = new string[] {
             "The 'http://schemas.openxmlformats.org/wordprocessingml/2006/main:firstRow' attribute is not declared.",
             "The 'http://schemas.openxmlformats.org/wordprocessingml/2006/main:lastRow' attribute is not declared.",
             "The 'http://schemas.openxmlformats.org/wordprocessingml/2006/main:firstColumn' attribute is not declared.",

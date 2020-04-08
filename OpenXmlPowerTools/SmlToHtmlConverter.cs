@@ -27,11 +27,11 @@ namespace OpenXmlPowerTools
 
     public class SmlToHtmlConverterSettings
     {
-        public string PageTitle;
-        public string CssClassPrefix;
-        public bool FabricateCssClasses;
-        public string GeneralCss;
-        public string AdditionalCss;
+        public string PageTitle { get; set; }
+        public string CssClassPrefix { get; set; }
+        public bool FabricateCssClasses { get; set; }
+        public string GeneralCss { get; set; }
+        public string AdditionalCss { get; set; }
 
         public SmlToHtmlConverterSettings()
         {

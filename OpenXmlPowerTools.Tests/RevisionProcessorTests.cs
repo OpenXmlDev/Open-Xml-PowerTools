@@ -14,9 +14,9 @@ namespace OxPt
     public class RpTests
     {
         // perf settings
-        public static bool m_CopySourceFilesToTempDir = true;
+        private static readonly bool m_CopySourceFilesToTempDir = true;
 
-        public static bool m_OpenTempDirInExplorer = false;
+        private static readonly bool m_OpenTempDirInExplorer = false;
 
         [Theory]
         [InlineData("RP/RP002-Deleted-Text.docx")]

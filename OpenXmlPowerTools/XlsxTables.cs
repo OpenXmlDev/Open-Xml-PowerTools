@@ -511,7 +511,6 @@ namespace OpenXmlPowerTools
 
         public static IEnumerable<Row> Rows(this WorksheetPart worksheetPart)
         {
-            XNamespace s = "http://schemas.openxmlformats.org/spreadsheetml/2006/main";
             var rows = worksheetPart
                 .GetXDocument()
                 .Root

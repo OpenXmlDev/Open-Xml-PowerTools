@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -1575,14 +1574,14 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
         private const bool x = false;
         private const int minErrDist = 2;
 
-        public Scanner m_scanner;
-        public Errors m_errors;
+        public Scanner Scanner { get; set; }
+        public Errors Errors { get; set; }
 
-        public CssToken m_lastRecognizedToken;
-        public CssToken m_lookaheadToken;
+        public CssToken LastRecognizedToken { get; set; }
+        public CssToken LookaheadToken { get; set; }
         private int errDist = minErrDist;
 
-        public CssDocument CssDoc;
+        public CssDocument CssDoc { get; set; }
 
         private bool IsInHex(string value)
         {
@@ -1590,7 +1589,7 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
             {
                 return false;
             }
-            if (value.Length + m_lookaheadToken.m_tokenValue.Length > 7)
+            if (value.Length + LookaheadToken.TokenValue.Length > 7)
             {
                 return false;
             }
@@ -1598,7 +1597,7 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
             {
                 "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F", "a", "b", "c", "d", "e", "f"
             };
-            foreach (var c in m_lookaheadToken.m_tokenValue)
+            foreach (var c in LookaheadToken.TokenValue)
             {
                 if (!hexes.Contains(c.ToString()))
                 {
@@ -1610,7 +1609,7 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
 
         private bool IsUnitOfLength()
         {
-            if (m_lookaheadToken.m_tokenKind != 1)
+            if (LookaheadToken.TokenKind != 1)
             {
                 return false;
             }
@@ -1619,29 +1618,29 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
                 {
                     "em", "ex", "px", "gd", "rem", "vw", "vh", "vm", "ch", "mm", "cm", "in", "pt", "pc", "deg", "grad", "rad", "turn", "ms", "s", "hz", "khz"
                 });
-            return units.Contains(m_lookaheadToken.m_tokenValue.ToLower());
+            return units.Contains(LookaheadToken.TokenValue.ToLower());
         }
 
         private bool IsNumber()
         {
-            if (m_lookaheadToken.m_tokenValue.Length > 0)
+            if (LookaheadToken.TokenValue.Length > 0)
             {
-                return char.IsDigit(m_lookaheadToken.m_tokenValue[0]);
+                return char.IsDigit(LookaheadToken.TokenValue[0]);
             }
             return false;
         }
 
         public Parser(Scanner scanner)
         {
-            m_scanner = scanner;
-            m_errors = new Errors();
+            Scanner = scanner;
+            Errors = new Errors();
         }
 
         private void SyntaxErr(int n)
         {
             if (errDist >= minErrDist)
             {
-                m_errors.SyntaxError(m_lookaheadToken.m_tokenLine, m_lookaheadToken.m_tokenColumn, n);
+                Errors.SyntaxError(LookaheadToken.TokenLine, LookaheadToken.TokenColumn, n);
             }
 
             errDist = 0;
@@ -1651,7 +1650,7 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
         {
             if (errDist >= minErrDist)
             {
-                m_errors.SemanticError(m_lastRecognizedToken.m_tokenLine, m_lastRecognizedToken.m_tokenColumn, msg);
+                Errors.SemanticError(LastRecognizedToken.TokenLine, LastRecognizedToken.TokenColumn, msg);
             }
 
             errDist = 0;
@@ -1661,21 +1660,21 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
         {
             for (; ; )
             {
-                m_lastRecognizedToken = m_lookaheadToken;
-                m_lookaheadToken = m_scanner.Scan();
-                if (m_lookaheadToken.m_tokenKind <= c_maxT)
+                LastRecognizedToken = LookaheadToken;
+                LookaheadToken = Scanner.Scan();
+                if (LookaheadToken.TokenKind <= c_maxT)
                 {
                     ++errDist;
                     break;
                 }
 
-                m_lookaheadToken = m_lastRecognizedToken;
+                LookaheadToken = LastRecognizedToken;
             }
         }
 
         private void Expect(int n)
         {
-            if (m_lookaheadToken.m_tokenKind == n)
+            if (LookaheadToken.TokenKind == n)
             {
                 Get();
             }
@@ -1687,7 +1686,7 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
 
         private bool StartOf(int s)
         {
-            return set[s, m_lookaheadToken.m_tokenKind];
+            return set[s, LookaheadToken.TokenKind];
         }
 
         private void Css3()
@@ -1696,13 +1695,13 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
             CssRuleSet rset = null;
             CssDirective dir = null;
 
-            while (m_lookaheadToken.m_tokenKind == 4)
+            while (LookaheadToken.TokenKind == 4)
             {
                 Get();
             }
-            while (m_lookaheadToken.m_tokenKind == 5 || m_lookaheadToken.m_tokenKind == 6)
+            while (LookaheadToken.TokenKind == 5 || LookaheadToken.TokenKind == 6)
             {
-                if (m_lookaheadToken.m_tokenKind == 5)
+                if (LookaheadToken.TokenKind == 5)
                 {
                     Get();
                 }
@@ -1723,9 +1722,9 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
                     Directive(out dir);
                     CssDoc.Directives.Add(dir);
                 }
-                while (m_lookaheadToken.m_tokenKind == 5 || m_lookaheadToken.m_tokenKind == 6)
+                while (LookaheadToken.TokenKind == 5 || LookaheadToken.TokenKind == 6)
                 {
-                    if (m_lookaheadToken.m_tokenKind == 5)
+                    if (LookaheadToken.TokenKind == 5)
                     {
                         Get();
                     }
@@ -1734,7 +1733,7 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
                         Get();
                     }
                 }
-                while (m_lookaheadToken.m_tokenKind == 4)
+                while (LookaheadToken.TokenKind == 4)
                 {
                     Get();
                 }
@@ -1748,26 +1747,26 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
 
             Selector(out var sel);
             rset.Selectors.Add(sel);
-            while (m_lookaheadToken.m_tokenKind == 4)
+            while (LookaheadToken.TokenKind == 4)
             {
                 Get();
             }
-            while (m_lookaheadToken.m_tokenKind == 25)
+            while (LookaheadToken.TokenKind == 25)
             {
                 Get();
-                while (m_lookaheadToken.m_tokenKind == 4)
+                while (LookaheadToken.TokenKind == 4)
                 {
                     Get();
                 }
                 Selector(out sel);
                 rset.Selectors.Add(sel);
-                while (m_lookaheadToken.m_tokenKind == 4)
+                while (LookaheadToken.TokenKind == 4)
                 {
                     Get();
                 }
             }
             Expect(26);
-            while (m_lookaheadToken.m_tokenKind == 4)
+            while (LookaheadToken.TokenKind == 4)
             {
                 Get();
             }
@@ -1775,18 +1774,18 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
             {
                 Declaration(out dec);
                 rset.Declarations.Add(dec);
-                while (m_lookaheadToken.m_tokenKind == 4)
+                while (LookaheadToken.TokenKind == 4)
                 {
                     Get();
                 }
-                while (m_lookaheadToken.m_tokenKind == 27)
+                while (LookaheadToken.TokenKind == 27)
                 {
                     Get();
-                    while (m_lookaheadToken.m_tokenKind == 4)
+                    while (LookaheadToken.TokenKind == 4)
                     {
                         Get();
                     }
-                    if (m_lookaheadToken.m_tokenValue.Equals("}"))
+                    if (LookaheadToken.TokenValue.Equals("}"))
                     {
                         Get();
                         return;
@@ -1794,22 +1793,22 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
 
                     Declaration(out dec);
                     rset.Declarations.Add(dec);
-                    while (m_lookaheadToken.m_tokenKind == 4)
+                    while (LookaheadToken.TokenKind == 4)
                     {
                         Get();
                     }
                 }
-                if (m_lookaheadToken.m_tokenKind == 27)
+                if (LookaheadToken.TokenKind == 27)
                 {
                     Get();
-                    while (m_lookaheadToken.m_tokenKind == 4)
+                    while (LookaheadToken.TokenKind == 4)
                     {
                         Get();
                     }
                 }
             }
             Expect(28);
-            while (m_lookaheadToken.m_tokenKind == 4)
+            while (LookaheadToken.TokenKind == 4)
             {
                 Get();
             }
@@ -1825,7 +1824,7 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
 
             Expect(23);
             dir.Name = "@";
-            if (m_lookaheadToken.m_tokenKind == 24)
+            if (LookaheadToken.TokenKind == 24)
             {
                 Get();
                 dir.Name += "-";
@@ -1863,7 +1862,7 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
                     break;
             }
 
-            while (m_lookaheadToken.m_tokenKind == 4)
+            while (LookaheadToken.TokenKind == 4)
             {
                 Get();
             }
@@ -1873,20 +1872,20 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
                 {
                     Medium(out var m);
                     dir.Mediums.Add(m);
-                    while (m_lookaheadToken.m_tokenKind == 4)
+                    while (LookaheadToken.TokenKind == 4)
                     {
                         Get();
                     }
-                    while (m_lookaheadToken.m_tokenKind == 25)
+                    while (LookaheadToken.TokenKind == 25)
                     {
                         Get();
-                        while (m_lookaheadToken.m_tokenKind == 4)
+                        while (LookaheadToken.TokenKind == 4)
                         {
                             Get();
                         }
                         Medium(out m);
                         dir.Mediums.Add(m);
-                        while (m_lookaheadToken.m_tokenKind == 4)
+                        while (LookaheadToken.TokenKind == 4)
                         {
                             Get();
                         }
@@ -1896,16 +1895,16 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
                 {
                     Exprsn(out exp);
                     dir.Expression = exp;
-                    while (m_lookaheadToken.m_tokenKind == 4)
+                    while (LookaheadToken.TokenKind == 4)
                     {
                         Get();
                     }
                 }
             }
-            if (m_lookaheadToken.m_tokenKind == 26)
+            if (LookaheadToken.TokenKind == 26)
             {
                 Get();
-                while (m_lookaheadToken.m_tokenKind == 4)
+                while (LookaheadToken.TokenKind == 4)
                 {
                     Get();
                 }
@@ -1917,33 +1916,33 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
                         {
                             Declaration(out dec);
                             dir.Declarations.Add(dec);
-                            while (m_lookaheadToken.m_tokenKind == 4)
+                            while (LookaheadToken.TokenKind == 4)
                             {
                                 Get();
                             }
-                            while (m_lookaheadToken.m_tokenKind == 27)
+                            while (LookaheadToken.TokenKind == 27)
                             {
                                 Get();
-                                while (m_lookaheadToken.m_tokenKind == 4)
+                                while (LookaheadToken.TokenKind == 4)
                                 {
                                     Get();
                                 }
-                                if (m_lookaheadToken.m_tokenValue.Equals("}"))
+                                if (LookaheadToken.TokenValue.Equals("}"))
                                 {
                                     Get();
                                     return;
                                 }
                                 Declaration(out dec);
                                 dir.Declarations.Add(dec);
-                                while (m_lookaheadToken.m_tokenKind == 4)
+                                while (LookaheadToken.TokenKind == 4)
                                 {
                                     Get();
                                 }
                             }
-                            if (m_lookaheadToken.m_tokenKind == 27)
+                            if (LookaheadToken.TokenKind == 27)
                             {
                                 Get();
-                                while (m_lookaheadToken.m_tokenKind == 4)
+                                while (LookaheadToken.TokenKind == 4)
                                 {
                                     Get();
                                 }
@@ -1953,7 +1952,7 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
                         {
                             RuleSet(out rset);
                             dir.RuleSets.Add(rset);
-                            while (m_lookaheadToken.m_tokenKind == 4)
+                            while (LookaheadToken.TokenKind == 4)
                             {
                                 Get();
                             }
@@ -1962,7 +1961,7 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
                         {
                             Directive(out dr);
                             dir.Directives.Add(dr);
-                            while (m_lookaheadToken.m_tokenKind == 4)
+                            while (LookaheadToken.TokenKind == 4)
                             {
                                 Get();
                             }
@@ -1970,15 +1969,15 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
                     }
                 }
                 Expect(28);
-                while (m_lookaheadToken.m_tokenKind == 4)
+                while (LookaheadToken.TokenKind == 4)
                 {
                     Get();
                 }
             }
-            else if (m_lookaheadToken.m_tokenKind == 27)
+            else if (LookaheadToken.TokenKind == 27)
             {
                 Get();
-                while (m_lookaheadToken.m_tokenKind == 4)
+                while (LookaheadToken.TokenKind == 4)
                 {
                     Get();
                 }
@@ -1992,28 +1991,28 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
         private void QuotedString(out string qs)
         {
             qs = "";
-            if (m_lookaheadToken.m_tokenKind == 7)
+            if (LookaheadToken.TokenKind == 7)
             {
                 Get();
                 while (StartOf(7))
                 {
                     Get();
-                    qs += m_lastRecognizedToken.m_tokenValue;
-                    if (m_lookaheadToken.m_tokenValue.Equals("'") && !m_lastRecognizedToken.m_tokenValue.Equals("\\"))
+                    qs += LastRecognizedToken.TokenValue;
+                    if (LookaheadToken.TokenValue.Equals("'") && !LastRecognizedToken.TokenValue.Equals("\\"))
                     {
                         break;
                     }
                 }
                 Expect(7);
             }
-            else if (m_lookaheadToken.m_tokenKind == 8)
+            else if (LookaheadToken.TokenKind == 8)
             {
                 Get();
                 while (StartOf(8))
                 {
                     Get();
-                    qs += m_lastRecognizedToken.m_tokenValue;
-                    if (m_lookaheadToken.m_tokenValue.Equals("\"") && !m_lastRecognizedToken.m_tokenValue.Equals("\\"))
+                    qs += LastRecognizedToken.TokenValue;
+                    if (LookaheadToken.TokenValue.Equals("\"") && !LastRecognizedToken.TokenValue.Equals("\\"))
                     {
                         break;
                     }
@@ -2030,19 +2029,19 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
         {
             url = "";
             Expect(9);
-            while (m_lookaheadToken.m_tokenKind == 4)
+            while (LookaheadToken.TokenKind == 4)
             {
                 Get();
             }
-            if (m_lookaheadToken.m_tokenKind == 10)
+            if (LookaheadToken.TokenKind == 10)
             {
                 Get();
             }
-            while (m_lookaheadToken.m_tokenKind == 4)
+            while (LookaheadToken.TokenKind == 4)
             {
                 Get();
             }
-            if (m_lookaheadToken.m_tokenKind == 7 || m_lookaheadToken.m_tokenKind == 8)
+            if (LookaheadToken.TokenKind == 7 || LookaheadToken.TokenKind == 8)
             {
                 QuotedString(out url);
             }
@@ -2051,8 +2050,8 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
                 while (StartOf(10))
                 {
                     Get();
-                    url += m_lastRecognizedToken.m_tokenValue;
-                    if (m_lookaheadToken.m_tokenValue.Equals(")"))
+                    url += LastRecognizedToken.TokenValue;
+                    if (LookaheadToken.TokenValue.Equals(")"))
                     {
                         break;
                     }
@@ -2063,11 +2062,11 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
                 SyntaxErr(52);
             }
 
-            while (m_lookaheadToken.m_tokenKind == 4)
+            while (LookaheadToken.TokenKind == 4)
             {
                 Get();
             }
-            if (m_lookaheadToken.m_tokenKind == 11)
+            if (LookaheadToken.TokenKind == 11)
             {
                 Get();
             }
@@ -2076,7 +2075,7 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
         private void Medium(out CssMedium m)
         {
             m = CssMedium.all;
-            switch (m_lookaheadToken.m_tokenKind)
+            switch (LookaheadToken.TokenKind)
             {
                 case 12:
                     {
@@ -2145,7 +2144,7 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
         private void Identity(out string ident)
         {
             ident = "";
-            switch (m_lookaheadToken.m_tokenKind)
+            switch (LookaheadToken.TokenKind)
             {
                 case 1:
                     {
@@ -2214,7 +2213,7 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
                     }
                 default: SyntaxErr(54); break;
             }
-            ident += m_lastRecognizedToken.m_tokenValue;
+            ident += LastRecognizedToken.TokenValue;
         }
 
         private void Exprsn(out CssExpression exp)
@@ -2224,15 +2223,15 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
 
             Term(out var trm);
             exp.Terms.Add(trm);
-            while (m_lookaheadToken.m_tokenKind == 4)
+            while (LookaheadToken.TokenKind == 4)
             {
                 Get();
             }
             while (StartOf(11))
             {
-                if (m_lookaheadToken.m_tokenKind == 25 || m_lookaheadToken.m_tokenKind == 46)
+                if (LookaheadToken.TokenKind == 25 || LookaheadToken.TokenKind == 46)
                 {
-                    if (m_lookaheadToken.m_tokenKind == 46)
+                    if (LookaheadToken.TokenKind == 46)
                     {
                         Get();
                         sep = '/';
@@ -2242,7 +2241,7 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
                         Get();
                         sep = ',';
                     }
-                    while (m_lookaheadToken.m_tokenKind == 4)
+                    while (LookaheadToken.TokenKind == 4)
                     {
                         Get();
                     }
@@ -2255,7 +2254,7 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
                 exp.Terms.Add(trm);
                 sep = null;
 
-                while (m_lookaheadToken.m_tokenKind == 4)
+                while (LookaheadToken.TokenKind == 4)
                 {
                     Get();
                 }
@@ -2266,38 +2265,38 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
         {
             dec = new CssDeclaration();
 
-            if (m_lookaheadToken.m_tokenKind == 24)
+            if (LookaheadToken.TokenKind == 24)
             {
                 Get();
                 dec.Name += "-";
             }
             Identity(out var ident);
             dec.Name += ident;
-            while (m_lookaheadToken.m_tokenKind == 4)
+            while (LookaheadToken.TokenKind == 4)
             {
                 Get();
             }
             Expect(43);
-            while (m_lookaheadToken.m_tokenKind == 4)
+            while (LookaheadToken.TokenKind == 4)
             {
                 Get();
             }
             Exprsn(out var exp);
             dec.Expression = exp;
-            while (m_lookaheadToken.m_tokenKind == 4)
+            while (LookaheadToken.TokenKind == 4)
             {
                 Get();
             }
-            if (m_lookaheadToken.m_tokenKind == 44)
+            if (LookaheadToken.TokenKind == 44)
             {
                 Get();
-                while (m_lookaheadToken.m_tokenKind == 4)
+                while (LookaheadToken.TokenKind == 4)
                 {
                     Get();
                 }
                 Expect(45);
                 dec.Important = true;
-                while (m_lookaheadToken.m_tokenKind == 4)
+                while (LookaheadToken.TokenKind == 4)
                 {
                     Get();
                 }
@@ -2311,20 +2310,20 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
 
             SimpleSelector(out var ss);
             sel.SimpleSelectors.Add(ss);
-            while (m_lookaheadToken.m_tokenKind == 4)
+            while (LookaheadToken.TokenKind == 4)
             {
                 Get();
             }
             while (StartOf(12))
             {
-                if (m_lookaheadToken.m_tokenKind == 29 || m_lookaheadToken.m_tokenKind == 30 || m_lookaheadToken.m_tokenKind == 31)
+                if (LookaheadToken.TokenKind == 29 || LookaheadToken.TokenKind == 30 || LookaheadToken.TokenKind == 31)
                 {
-                    if (m_lookaheadToken.m_tokenKind == 29)
+                    if (LookaheadToken.TokenKind == 29)
                     {
                         Get();
                         cb = CssCombinator.PrecededImmediatelyBy;
                     }
-                    else if (m_lookaheadToken.m_tokenKind == 30)
+                    else if (LookaheadToken.TokenKind == 30)
                     {
                         Get();
                         cb = CssCombinator.ChildOf;
@@ -2335,7 +2334,7 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
                         cb = CssCombinator.PrecededBy;
                     }
                 }
-                while (m_lookaheadToken.m_tokenKind == 4)
+                while (LookaheadToken.TokenKind == 4)
                 {
                     Get();
                 }
@@ -2347,7 +2346,7 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
                 sel.SimpleSelectors.Add(ss);
 
                 cb = null;
-                while (m_lookaheadToken.m_tokenKind == 4)
+                while (LookaheadToken.TokenKind == 4)
                 {
                     Get();
                 }
@@ -2367,7 +2366,7 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
 
             if (StartOf(3))
             {
-                if (m_lookaheadToken.m_tokenKind == 24)
+                if (LookaheadToken.TokenKind == 24)
                 {
                     Get();
                     ss.ElementName += "-";
@@ -2375,17 +2374,17 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
                 Identity(out ident);
                 ss.ElementName += ident;
             }
-            else if (m_lookaheadToken.m_tokenKind == 32)
+            else if (LookaheadToken.TokenKind == 32)
             {
                 Get();
                 ss.ElementName = "*";
             }
             else if (StartOf(13))
             {
-                if (m_lookaheadToken.m_tokenKind == 33)
+                if (LookaheadToken.TokenKind == 33)
                 {
                     Get();
-                    if (m_lookaheadToken.m_tokenKind == 24)
+                    if (LookaheadToken.TokenKind == 24)
                     {
                         Get();
                         ss.ID = "-";
@@ -2400,11 +2399,11 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
                         ss.ID += ident;
                     }
                 }
-                else if (m_lookaheadToken.m_tokenKind == 34)
+                else if (LookaheadToken.TokenKind == 34)
                 {
                     Get();
                     ss.Class = "";
-                    if (m_lookaheadToken.m_tokenKind == 24)
+                    if (LookaheadToken.TokenKind == 24)
                     {
                         Get();
                         ss.Class += "-";
@@ -2412,7 +2411,7 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
                     Identity(out ident);
                     ss.Class += ident;
                 }
-                else if (m_lookaheadToken.m_tokenKind == 35)
+                else if (LookaheadToken.TokenKind == 35)
                 {
                     Attrib(out atb);
                     ss.Attribute = atb;
@@ -2431,10 +2430,10 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
             while (StartOf(13))
             {
                 var child = new CssSimpleSelector();
-                if (m_lookaheadToken.m_tokenKind == 33)
+                if (LookaheadToken.TokenKind == 33)
                 {
                     Get();
-                    if (m_lookaheadToken.m_tokenKind == 24)
+                    if (LookaheadToken.TokenKind == 24)
                     {
                         Get();
                         child.ID = "-";
@@ -2449,11 +2448,11 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
                         child.ID += "-";
                     }
                 }
-                else if (m_lookaheadToken.m_tokenKind == 34)
+                else if (LookaheadToken.TokenKind == 34)
                 {
                     Get();
                     child.Class = "";
-                    if (m_lookaheadToken.m_tokenKind == 24)
+                    if (LookaheadToken.TokenKind == 24)
                     {
                         Get();
                         child.Class += "-";
@@ -2461,7 +2460,7 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
                     Identity(out ident);
                     child.Class += ident;
                 }
-                else if (m_lookaheadToken.m_tokenKind == 35)
+                else if (LookaheadToken.TokenKind == 35)
                 {
                     Attrib(out atb);
                     child.Attribute = atb;
@@ -2485,19 +2484,19 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
             string quote = null;
 
             Expect(35);
-            while (m_lookaheadToken.m_tokenKind == 4)
+            while (LookaheadToken.TokenKind == 4)
             {
                 Get();
             }
             Identity(out var ident);
             atb.Operand = ident;
-            while (m_lookaheadToken.m_tokenKind == 4)
+            while (LookaheadToken.TokenKind == 4)
             {
                 Get();
             }
             if (StartOf(14))
             {
-                switch (m_lookaheadToken.m_tokenKind)
+                switch (LookaheadToken.TokenKind)
                 {
                     case 36:
                         {
@@ -2536,13 +2535,13 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
                             break;
                         }
                 }
-                while (m_lookaheadToken.m_tokenKind == 4)
+                while (LookaheadToken.TokenKind == 4)
                 {
                     Get();
                 }
                 if (StartOf(3))
                 {
-                    if (m_lookaheadToken.m_tokenKind == 24)
+                    if (LookaheadToken.TokenKind == 24)
                     {
                         Get();
                         atb.Value += "-";
@@ -2550,7 +2549,7 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
                     Identity(out ident);
                     atb.Value += ident;
                 }
-                else if (m_lookaheadToken.m_tokenKind == 7 || m_lookaheadToken.m_tokenKind == 8)
+                else if (LookaheadToken.TokenKind == 7 || LookaheadToken.TokenKind == 8)
                 {
                     QuotedString(out quote);
                     atb.Value = quote;
@@ -2560,7 +2559,7 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
                     SyntaxErr(56);
                 }
 
-                while (m_lookaheadToken.m_tokenKind == 4)
+                while (LookaheadToken.TokenKind == 4)
                 {
                     Get();
                 }
@@ -2574,37 +2573,37 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
             CssExpression exp = null;
 
             Expect(43);
-            if (m_lookaheadToken.m_tokenKind == 43)
+            if (LookaheadToken.TokenKind == 43)
             {
                 Get();
             }
-            while (m_lookaheadToken.m_tokenKind == 4)
+            while (LookaheadToken.TokenKind == 4)
             {
                 Get();
             }
-            if (m_lookaheadToken.m_tokenKind == 24)
+            if (LookaheadToken.TokenKind == 24)
             {
                 Get();
                 pseudo += "-";
             }
             Identity(out var ident);
             pseudo += ident;
-            if (m_lookaheadToken.m_tokenKind == 10)
+            if (LookaheadToken.TokenKind == 10)
             {
                 Get();
-                pseudo += m_lastRecognizedToken.m_tokenValue;
-                while (m_lookaheadToken.m_tokenKind == 4)
+                pseudo += LastRecognizedToken.TokenValue;
+                while (LookaheadToken.TokenKind == 4)
                 {
                     Get();
                 }
                 Exprsn(out exp);
                 pseudo += exp.ToString();
-                while (m_lookaheadToken.m_tokenKind == 4)
+                while (LookaheadToken.TokenKind == 4)
                 {
                     Get();
                 }
                 Expect(11);
-                pseudo += m_lastRecognizedToken.m_tokenValue;
+                pseudo += LastRecognizedToken.TokenValue;
             }
         }
 
@@ -2615,25 +2614,25 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
             CssExpression exp = null;
             string ident = null;
 
-            if (m_lookaheadToken.m_tokenKind == 7 || m_lookaheadToken.m_tokenKind == 8)
+            if (LookaheadToken.TokenKind == 7 || LookaheadToken.TokenKind == 8)
             {
                 QuotedString(out val);
                 trm.Value = val; trm.Type = CssTermType.String;
             }
-            else if (m_lookaheadToken.m_tokenKind == 9)
+            else if (LookaheadToken.TokenKind == 9)
             {
                 URI(out val);
                 trm.Value = val;
                 trm.Type = CssTermType.Url;
             }
-            else if (m_lookaheadToken.m_tokenKind == 47)
+            else if (LookaheadToken.TokenKind == 47)
             {
                 Get();
                 Identity(out ident);
                 trm.Value = "U\\" + ident;
                 trm.Type = CssTermType.Unicode;
             }
-            else if (m_lookaheadToken.m_tokenKind == 33)
+            else if (LookaheadToken.TokenKind == 33)
             {
                 HexValue(out val);
                 trm.Value = val;
@@ -2642,7 +2641,7 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
             else if (StartOf(15))
             {
                 var minus = false;
-                if (m_lookaheadToken.m_tokenKind == 24)
+                if (LookaheadToken.TokenKind == 24)
                 {
                     Get();
                     minus = true;
@@ -2658,47 +2657,47 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
                     }
                     if (StartOf(17))
                     {
-                        while (m_lookaheadToken.m_tokenKind == 34 || m_lookaheadToken.m_tokenKind == 36 || m_lookaheadToken.m_tokenKind == 43)
+                        while (LookaheadToken.TokenKind == 34 || LookaheadToken.TokenKind == 36 || LookaheadToken.TokenKind == 43)
                         {
-                            if (m_lookaheadToken.m_tokenKind == 43)
+                            if (LookaheadToken.TokenKind == 43)
                             {
                                 Get();
-                                trm.Value += m_lastRecognizedToken.m_tokenValue;
+                                trm.Value += LastRecognizedToken.TokenValue;
                                 if (StartOf(18))
                                 {
-                                    if (m_lookaheadToken.m_tokenKind == 43)
+                                    if (LookaheadToken.TokenKind == 43)
                                     {
                                         Get();
-                                        trm.Value += m_lastRecognizedToken.m_tokenValue;
+                                        trm.Value += LastRecognizedToken.TokenValue;
                                     }
-                                    if (m_lookaheadToken.m_tokenKind == 24)
+                                    if (LookaheadToken.TokenKind == 24)
                                     {
                                         Get();
-                                        trm.Value += m_lastRecognizedToken.m_tokenValue;
+                                        trm.Value += LastRecognizedToken.TokenValue;
                                     }
                                     Identity(out ident);
                                     trm.Value += ident;
                                 }
-                                else if (m_lookaheadToken.m_tokenKind == 33)
+                                else if (LookaheadToken.TokenKind == 33)
                                 {
                                     HexValue(out val);
                                     trm.Value += val;
                                 }
                                 else if (StartOf(19))
                                 {
-                                    while (m_lookaheadToken.m_tokenKind == 3)
+                                    while (LookaheadToken.TokenKind == 3)
                                     {
                                         Get();
-                                        trm.Value += m_lastRecognizedToken.m_tokenValue;
+                                        trm.Value += LastRecognizedToken.TokenValue;
                                     }
-                                    if (m_lookaheadToken.m_tokenKind == 34)
+                                    if (LookaheadToken.TokenKind == 34)
                                     {
                                         Get();
                                         trm.Value += ".";
-                                        while (m_lookaheadToken.m_tokenKind == 3)
+                                        while (LookaheadToken.TokenKind == 3)
                                         {
                                             Get();
-                                            trm.Value += m_lastRecognizedToken.m_tokenValue;
+                                            trm.Value += LastRecognizedToken.TokenValue;
                                         }
                                     }
                                 }
@@ -2707,14 +2706,14 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
                                     SyntaxErr(57);
                                 }
                             }
-                            else if (m_lookaheadToken.m_tokenKind == 34)
+                            else if (LookaheadToken.TokenKind == 34)
                             {
                                 Get();
-                                trm.Value += m_lastRecognizedToken.m_tokenValue;
-                                if (m_lookaheadToken.m_tokenKind == 24)
+                                trm.Value += LastRecognizedToken.TokenValue;
+                                if (LookaheadToken.TokenKind == 24)
                                 {
                                     Get();
-                                    trm.Value += m_lastRecognizedToken.m_tokenValue;
+                                    trm.Value += LastRecognizedToken.TokenValue;
                                 }
                                 Identity(out ident);
                                 trm.Value += ident;
@@ -2722,11 +2721,11 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
                             else
                             {
                                 Get();
-                                trm.Value += m_lastRecognizedToken.m_tokenValue;
-                                if (m_lookaheadToken.m_tokenKind == 24)
+                                trm.Value += LastRecognizedToken.TokenValue;
+                                if (LookaheadToken.TokenKind == 24)
                                 {
                                     Get();
-                                    trm.Value += m_lastRecognizedToken.m_tokenValue;
+                                    trm.Value += LastRecognizedToken.TokenValue;
                                 }
                                 if (StartOf(16))
                                 {
@@ -2735,10 +2734,10 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
                                 }
                                 else if (StartOf(19))
                                 {
-                                    while (m_lookaheadToken.m_tokenKind == 3)
+                                    while (LookaheadToken.TokenKind == 3)
                                     {
                                         Get();
-                                        trm.Value += m_lastRecognizedToken.m_tokenValue;
+                                        trm.Value += LastRecognizedToken.TokenValue;
                                     }
                                 }
                                 else
@@ -2748,10 +2747,10 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
                             }
                         }
                     }
-                    if (m_lookaheadToken.m_tokenKind == 10)
+                    if (LookaheadToken.TokenKind == 10)
                     {
                         Get();
-                        while (m_lookaheadToken.m_tokenKind == 4)
+                        while (LookaheadToken.TokenKind == 4)
                         {
                             Get();
                         }
@@ -2765,7 +2764,7 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
                         trm.Function = func;
                         trm.Type = CssTermType.Function;
 
-                        while (m_lookaheadToken.m_tokenKind == 4)
+                        while (LookaheadToken.TokenKind == 4)
                         {
                             Get();
                         }
@@ -2774,48 +2773,48 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
                 }
                 else if (StartOf(15))
                 {
-                    if (m_lookaheadToken.m_tokenKind == 29)
+                    if (LookaheadToken.TokenKind == 29)
                     {
                         Get();
                         trm.Sign = '+';
                     }
                     if (minus) { trm.Sign = '-'; }
-                    while (m_lookaheadToken.m_tokenKind == 3)
+                    while (LookaheadToken.TokenKind == 3)
                     {
                         Get();
-                        val += m_lastRecognizedToken.m_tokenValue;
+                        val += LastRecognizedToken.TokenValue;
                     }
-                    if (m_lookaheadToken.m_tokenKind == 34)
+                    if (LookaheadToken.TokenKind == 34)
                     {
                         Get();
-                        val += m_lastRecognizedToken.m_tokenValue;
-                        while (m_lookaheadToken.m_tokenKind == 3)
+                        val += LastRecognizedToken.TokenValue;
+                        while (LookaheadToken.TokenKind == 3)
                         {
                             Get();
-                            val += m_lastRecognizedToken.m_tokenValue;
+                            val += LastRecognizedToken.TokenValue;
                         }
                     }
                     if (StartOf(20))
                     {
-                        if (m_lookaheadToken.m_tokenValue.ToLower().Equals("n"))
+                        if (LookaheadToken.TokenValue.ToLower().Equals("n"))
                         {
                             Expect(22);
-                            val += m_lastRecognizedToken.m_tokenValue;
-                            if (m_lookaheadToken.m_tokenKind == 24 || m_lookaheadToken.m_tokenKind == 29)
+                            val += LastRecognizedToken.TokenValue;
+                            if (LookaheadToken.TokenKind == 24 || LookaheadToken.TokenKind == 29)
                             {
                                 Get();
-                                val += m_lastRecognizedToken.m_tokenValue;
+                                val += LastRecognizedToken.TokenValue;
 
                                 Expect(3);
-                                val += m_lastRecognizedToken.m_tokenValue;
-                                while (m_lookaheadToken.m_tokenKind == 3)
+                                val += LastRecognizedToken.TokenValue;
+                                while (LookaheadToken.TokenKind == 3)
                                 {
                                     Get();
-                                    val += m_lastRecognizedToken.m_tokenValue;
+                                    val += LastRecognizedToken.TokenValue;
                                 }
                             }
                         }
-                        else if (m_lookaheadToken.m_tokenKind == 48)
+                        else if (LookaheadToken.TokenKind == 48)
                         {
                             Get();
                             trm.Unit = CssUnit.Percent;
@@ -2831,7 +2830,7 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
                                 }
                                 catch
                                 {
-                                    m_errors.SemanticError(m_lastRecognizedToken.m_tokenLine, m_lastRecognizedToken.m_tokenColumn, string.Format("Unrecognized unit '{0}'", ident));
+                                    Errors.SemanticError(LastRecognizedToken.TokenLine, LastRecognizedToken.TokenColumn, string.Format("Unrecognized unit '{0}'", ident));
                                 }
                             }
                         }
@@ -2855,19 +2854,19 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
             var found = false;
 
             Expect(33);
-            val += m_lastRecognizedToken.m_tokenValue;
+            val += LastRecognizedToken.TokenValue;
             if (StartOf(19))
             {
-                while (m_lookaheadToken.m_tokenKind == 3)
+                while (LookaheadToken.TokenKind == 3)
                 {
                     Get();
-                    val += m_lastRecognizedToken.m_tokenValue;
+                    val += LastRecognizedToken.TokenValue;
                 }
             }
             else if (IsInHex(val))
             {
                 Expect(1);
-                val += m_lastRecognizedToken.m_tokenValue; found = true;
+                val += LastRecognizedToken.TokenValue; found = true;
             }
             else
             {
@@ -2877,15 +2876,15 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
             if (!found && IsInHex(val))
             {
                 Expect(1);
-                val += m_lastRecognizedToken.m_tokenValue;
+                val += LastRecognizedToken.TokenValue;
             }
         }
 
         public void Parse()
         {
-            m_lookaheadToken = new CssToken
+            LookaheadToken = new CssToken
             {
-                m_tokenValue = ""
+                TokenValue = ""
             };
             Get();
             Css3();
@@ -2919,8 +2918,8 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
 
     public class Errors
     {
-        public int numberOfErrorsDetected = 0;
-        public string errMsgFormat = "CssParser error: line {0} col {1}: {2}";
+        public int numberOfErrorsDetected { get; set; } = 0;
+        public string errMsgFormat { get; set; } = "CssParser error: line {0} col {1}: {2}";
 
         public virtual void SyntaxError(int line, int col, int n)
         {
@@ -3215,13 +3214,13 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
 
     public class CssToken
     {
-        public int m_tokenKind;
-        public int m_tokenPositionInBytes;
-        public int m_tokenPositionInCharacters;
-        public int m_tokenColumn;
-        public int m_tokenLine;
-        public string m_tokenValue;
-        public CssToken m_nextToken;
+        public int TokenKind { get; set; }
+        public int TokenPositionInBytes { get; set; }
+        public int TokenPositionInCharacters { get; set; }
+        public int TokenColumn { get; set; }
+        public int TokenLine { get; set; }
+        public string TokenValue { get; set; }
+        public CssToken NextToken { get; set; }
     }
 
     public class CssBuffer
@@ -3449,7 +3448,7 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
         private const int c_noSym = 49;
         private const int c_maxTokenLength = 128;
 
-        public CssBuffer m_scannerBuffer;
+        public CssBuffer m_scannerBuffer { get; set; }
 
         private CssToken m_currentToken;
         private int m_currentInputCharacter;
@@ -3683,58 +3682,58 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
 
         private void CheckLiteral()
         {
-            switch (m_currentToken.m_tokenValue)
+            switch (m_currentToken.TokenValue)
             {
                 case "url":
-                    m_currentToken.m_tokenKind = 9;
+                    m_currentToken.TokenKind = 9;
                     break;
 
                 case "all":
-                    m_currentToken.m_tokenKind = 12;
+                    m_currentToken.TokenKind = 12;
                     break;
 
                 case "aural":
-                    m_currentToken.m_tokenKind = 13;
+                    m_currentToken.TokenKind = 13;
                     break;
 
                 case "braille":
-                    m_currentToken.m_tokenKind = 14;
+                    m_currentToken.TokenKind = 14;
                     break;
 
                 case "embossed":
-                    m_currentToken.m_tokenKind = 15;
+                    m_currentToken.TokenKind = 15;
                     break;
 
                 case "handheld":
-                    m_currentToken.m_tokenKind = 16;
+                    m_currentToken.TokenKind = 16;
                     break;
 
                 case "print":
-                    m_currentToken.m_tokenKind = 17;
+                    m_currentToken.TokenKind = 17;
                     break;
 
                 case "projection":
-                    m_currentToken.m_tokenKind = 18;
+                    m_currentToken.TokenKind = 18;
                     break;
 
                 case "screen":
-                    m_currentToken.m_tokenKind = 19;
+                    m_currentToken.TokenKind = 19;
                     break;
 
                 case "tty":
-                    m_currentToken.m_tokenKind = 20;
+                    m_currentToken.TokenKind = 20;
                     break;
 
                 case "tv":
-                    m_currentToken.m_tokenKind = 21;
+                    m_currentToken.TokenKind = 21;
                     break;
 
                 case "n":
-                    m_currentToken.m_tokenKind = 22;
+                    m_currentToken.TokenKind = 22;
                     break;
 
                 case "important":
-                    m_currentToken.m_tokenKind = 45;
+                    m_currentToken.TokenKind = 45;
                     break;
 
                 default:
@@ -3758,10 +3757,10 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
             var recEnd = m_currentCharacterBytePosition;
             m_currentToken = new CssToken
             {
-                m_tokenPositionInBytes = m_currentCharacterBytePosition,
-                m_tokenColumn = m_columnNumberOfCurrentCharacter,
-                m_tokenLine = m_lineNumberOfCurrentCharacter,
-                m_tokenPositionInCharacters = m_unicodeCharacterPosition
+                TokenPositionInBytes = m_currentCharacterBytePosition,
+                TokenColumn = m_columnNumberOfCurrentCharacter,
+                TokenLine = m_lineNumberOfCurrentCharacter,
+                TokenPositionInCharacters = m_unicodeCharacterPosition
             };
             int state;
             if (s_start.ContainsKey(m_currentInputCharacter))
@@ -3779,17 +3778,17 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
             {
                 case -1:
                     {
-                        m_currentToken.m_tokenKind = c_eof;
+                        m_currentToken.TokenKind = c_eof;
                         break;
                     }
                 case 0:
                     {
                         if (recKind != c_noSym)
                         {
-                            m_lengthOfCurrentToken = recEnd - m_currentToken.m_tokenPositionInBytes;
+                            m_lengthOfCurrentToken = recEnd - m_currentToken.TokenPositionInBytes;
                             SetScannerBehindT();
                         }
-                        m_currentToken.m_tokenKind = recKind;
+                        m_currentToken.TokenKind = recKind;
                         break;
                     }
                 case 1:
@@ -3801,23 +3800,23 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
                     }
                     else
                     {
-                        m_currentToken.m_tokenKind = 1; m_currentToken.m_tokenValue = new string(m_textOfCurrentToken, 0, m_lengthOfCurrentToken);
+                        m_currentToken.TokenKind = 1; m_currentToken.TokenValue = new string(m_textOfCurrentToken, 0, m_lengthOfCurrentToken);
                         CheckLiteral();
                         return m_currentToken;
                     }
                 case 2:
                     {
-                        m_currentToken.m_tokenKind = 2;
+                        m_currentToken.TokenKind = 2;
                         break;
                     }
                 case 3:
                     {
-                        m_currentToken.m_tokenKind = 3;
+                        m_currentToken.TokenKind = 3;
                         break;
                     }
                 case 4:
                     {
-                        m_currentToken.m_tokenKind = 4;
+                        m_currentToken.TokenKind = 4;
                         break;
                     }
                 case 5:
@@ -3852,7 +3851,7 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
                     }
                 case 8:
                     {
-                        m_currentToken.m_tokenKind = 5;
+                        m_currentToken.TokenKind = 5;
                         break;
                     }
                 case 9:
@@ -3867,87 +3866,87 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
                     }
                 case 10:
                     {
-                        m_currentToken.m_tokenKind = 6;
+                        m_currentToken.TokenKind = 6;
                         break;
                     }
                 case 11:
                     {
-                        m_currentToken.m_tokenKind = 7;
+                        m_currentToken.TokenKind = 7;
                         break;
                     }
                 case 12:
                     {
-                        m_currentToken.m_tokenKind = 8;
+                        m_currentToken.TokenKind = 8;
                         break;
                     }
                 case 13:
                     {
-                        m_currentToken.m_tokenKind = 10;
+                        m_currentToken.TokenKind = 10;
                         break;
                     }
                 case 14:
                     {
-                        m_currentToken.m_tokenKind = 11;
+                        m_currentToken.TokenKind = 11;
                         break;
                     }
                 case 15:
                     {
-                        m_currentToken.m_tokenKind = 23;
+                        m_currentToken.TokenKind = 23;
                         break;
                     }
                 case 16:
                     {
-                        m_currentToken.m_tokenKind = 25;
+                        m_currentToken.TokenKind = 25;
                         break;
                     }
                 case 17:
                     {
-                        m_currentToken.m_tokenKind = 26;
+                        m_currentToken.TokenKind = 26;
                         break;
                     }
                 case 18:
                     {
-                        m_currentToken.m_tokenKind = 27;
+                        m_currentToken.TokenKind = 27;
                         break;
                     }
                 case 19:
                     {
-                        m_currentToken.m_tokenKind = 28;
+                        m_currentToken.TokenKind = 28;
                         break;
                     }
                 case 20:
                     {
-                        m_currentToken.m_tokenKind = 29;
+                        m_currentToken.TokenKind = 29;
                         break;
                     }
                 case 21:
                     {
-                        m_currentToken.m_tokenKind = 30;
+                        m_currentToken.TokenKind = 30;
                         break;
                     }
                 case 22:
                     {
-                        m_currentToken.m_tokenKind = 33;
+                        m_currentToken.TokenKind = 33;
                         break;
                     }
                 case 23:
                     {
-                        m_currentToken.m_tokenKind = 34;
+                        m_currentToken.TokenKind = 34;
                         break;
                     }
                 case 24:
                     {
-                        m_currentToken.m_tokenKind = 35;
+                        m_currentToken.TokenKind = 35;
                         break;
                     }
                 case 25:
                     {
-                        m_currentToken.m_tokenKind = 36;
+                        m_currentToken.TokenKind = 36;
                         break;
                     }
                 case 26:
                     {
-                        m_currentToken.m_tokenKind = 37;
+                        m_currentToken.TokenKind = 37;
                         break;
                     }
                 case 27:
@@ -3962,7 +3961,7 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
                     }
                 case 28:
                     {
-                        m_currentToken.m_tokenKind = 38;
+                        m_currentToken.TokenKind = 38;
                         break;
                     }
                 case 29:
@@ -3977,7 +3976,7 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
                     }
                 case 30:
                     {
-                        m_currentToken.m_tokenKind = 39;
+                        m_currentToken.TokenKind = 39;
                         break;
                     }
                 case 31:
@@ -3992,42 +3991,42 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
                     }
                 case 32:
                     {
-                        m_currentToken.m_tokenKind = 40;
+                        m_currentToken.TokenKind = 40;
                         break;
                     }
                 case 33:
                     {
-                        m_currentToken.m_tokenKind = 41;
+                        m_currentToken.TokenKind = 41;
                         break;
                     }
                 case 34:
                     {
-                        m_currentToken.m_tokenKind = 42;
+                        m_currentToken.TokenKind = 42;
                         break;
                     }
                 case 35:
                     {
-                        m_currentToken.m_tokenKind = 43;
+                        m_currentToken.TokenKind = 43;
                         break;
                     }
                 case 36:
                     {
-                        m_currentToken.m_tokenKind = 44;
+                        m_currentToken.TokenKind = 44;
                         break;
                     }
                 case 37:
                     {
-                        m_currentToken.m_tokenKind = 46;
+                        m_currentToken.TokenKind = 46;
                         break;
                     }
                 case 38:
                     {
-                        m_currentToken.m_tokenKind = 47;
+                        m_currentToken.TokenKind = 47;
                         break;
                     }
                 case 39:
                     {
-                        m_currentToken.m_tokenKind = 48;
+                        m_currentToken.TokenKind = 48;
                         break;
                     }
                 case 40:
@@ -4040,7 +4039,7 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
                     }
                     else
                     {
-                        m_currentToken.m_tokenKind = 24;
+                        m_currentToken.TokenKind = 24;
                         break;
                     }
                 case 41:
@@ -4053,7 +4052,7 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
                     }
                     else
                     {
-                        m_currentToken.m_tokenKind = 31;
+                        m_currentToken.TokenKind = 31;
                         break;
                     }
                 case 42:
@@ -4066,7 +4065,7 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
                     }
                     else
                     {
-                        m_currentToken.m_tokenKind = 32;
+                        m_currentToken.TokenKind = 32;
                         break;
                     }
                 case 43:
@@ -4083,21 +4082,21 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
                     }
                     else
                     {
-                        m_currentToken.m_tokenKind = 1;
-                        m_currentToken.m_tokenValue = new string(m_textOfCurrentToken, 0, m_lengthOfCurrentToken);
+                        m_currentToken.TokenKind = 1;
+                        m_currentToken.TokenValue = new string(m_textOfCurrentToken, 0, m_lengthOfCurrentToken);
                         CheckLiteral();
                         return m_currentToken;
                     }
             }
-            m_currentToken.m_tokenValue = new string(m_textOfCurrentToken, 0, m_lengthOfCurrentToken);
+            m_currentToken.TokenValue = new string(m_textOfCurrentToken, 0, m_lengthOfCurrentToken);
             return m_currentToken;
         }
 
         private void SetScannerBehindT()
         {
-            m_scannerBuffer.Pos = m_currentToken.m_tokenPositionInBytes;
+            m_scannerBuffer.Pos = m_currentToken.TokenPositionInBytes;
             NextCh();
-            m_lineNumberOfCurrentCharacter = m_currentToken.m_tokenLine; m_columnNumberOfCurrentCharacter = m_currentToken.m_tokenColumn; m_unicodeCharacterPosition = m_currentToken.m_tokenPositionInCharacters;
+            m_lineNumberOfCurrentCharacter = m_currentToken.TokenLine; m_columnNumberOfCurrentCharacter = m_currentToken.TokenColumn; m_unicodeCharacterPosition = m_currentToken.TokenPositionInCharacters;
             for (var i = 0; i < m_lengthOfCurrentToken; i++)
             {
                 NextCh();
@@ -4106,13 +4105,13 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
 
         public CssToken Scan()
         {
-            if (m_tokensAlreadyPeeked.m_nextToken == null)
+            if (m_tokensAlreadyPeeked.NextToken == null)
             {
                 return NextToken();
             }
             else
             {
-                m_currentPeekToken = m_tokensAlreadyPeeked = m_tokensAlreadyPeeked.m_nextToken;
+                m_currentPeekToken = m_tokensAlreadyPeeked = m_tokensAlreadyPeeked.NextToken;
                 return m_tokensAlreadyPeeked;
             }
         }
@@ -4121,12 +4120,12 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
         {
             do
             {
-                if (m_currentPeekToken.m_nextToken == null)
+                if (m_currentPeekToken.NextToken == null)
                 {
-                    m_currentPeekToken.m_nextToken = NextToken();
+                    m_currentPeekToken.NextToken = NextToken();
                 }
-                m_currentPeekToken = m_currentPeekToken.m_nextToken;
-            } while (m_currentPeekToken.m_tokenKind > c_maxT);
+                m_currentPeekToken = m_currentPeekToken.NextToken;
+            } while (m_currentPeekToken.TokenKind > c_maxT);
 
             return m_currentPeekToken;
         }

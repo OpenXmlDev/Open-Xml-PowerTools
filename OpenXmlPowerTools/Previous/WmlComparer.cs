@@ -41,21 +41,21 @@ namespace OpenXmlPowerTools.Previous
 {
     public class WmlComparerSettings
     {
-        public char[] WordSeparators;
-        public string AuthorForRevisions = "Open-Xml-PowerTools";
-        public string DateTimeForRevisions = DateTime.Now.ToString("o");
-        public double DetailThreshold = 0.15;
-        public bool CaseInsensitive = false;
-        public CultureInfo CultureInfo = null;
-        public Action<string> LogCallback = null;
-        public int StartingIdForFootnotesEndnotes = 1;
+        public char[] WordSeparators { get; set; }
+        public string AuthorForRevisions { get; set; } = "Open-Xml-PowerTools";
+        public string DateTimeForRevisions { get; set; } = DateTime.Now.ToString("o");
+        public double DetailThreshold { get; set; } = 0.15;
+        public bool CaseInsensitive { get; set; } = false;
+        public CultureInfo CultureInfo { get; set; } = null;
+        public Action<string> LogCallback { get; set; } = null;
+        public int StartingIdForFootnotesEndnotes { get; set; } = 1;
 
-        public DirectoryInfo DebugTempFileDi;
+        public DirectoryInfo DebugTempFileDi { get; set; }
 
         public WmlComparerSettings()
         {
             // note that , and . are processed explicitly to handle cases where they are in a number or word
-            WordSeparators = new[] { ' ', '-', ')', '(', ';', ',' }; // todo need to fix this for complete list
+            WordSeparators = new[] { ' ', '-', ')', '(', ';', ',' };
         }
     }
 
@@ -66,16 +66,16 @@ namespace OpenXmlPowerTools.Previous
 
     public class WmlRevisedDocumentInfo
     {
-        public WmlDocument RevisedDocument;
-        public string Revisor;
-        public Color Color;
+        public WmlDocument RevisedDocument { get; set; }
+        public string Revisor { get; set; }
+        public Color Color { get; set; }
     }
 
     public static class WmlComparer
     {
-        public static bool s_False = false;
-        public static bool s_True = true;
-        public static bool s_SaveIntermediateFilesForDebugging = false;
+        public static bool s_False { get; set; } = false;
+        public static bool s_True { get; set; } = true;
+        public static bool s_SaveIntermediateFilesForDebugging { get; set; } = false;
 
         public static WmlDocument Compare(WmlDocument source1, WmlDocument source2, WmlComparerSettings settings)
         {
@@ -1487,19 +1487,14 @@ namespace OpenXmlPowerTools.Previous
         private static WmlDocument ProduceDocumentWithTrackedRevisions(WmlComparerSettings settings, WmlDocument wmlResult, WordprocessingDocument wDoc1, WordprocessingDocument wDoc2)
         {
             // save away sectPr so that can set in the newly produced document.
-            var savedSectPr = wDoc1
-                .MainDocumentPart
-                .GetXDocument()
-                .Root
-                .Element(W.body)
-                .Element(W.sectPr);
+            var savedSectPr = wDoc1                .MainDocumentPart                .GetXDocument()                .Root                .Element(W.body)                .Element(W.sectPr);
 
             var contentParent1 = wDoc1.MainDocumentPart.GetXDocument().Root.Element(W.body);
             AddSha1HashToBlockLevelContent(wDoc1.MainDocumentPart, contentParent1, settings);
             var contentParent2 = wDoc2.MainDocumentPart.GetXDocument().Root.Element(W.body);
             AddSha1HashToBlockLevelContent(wDoc2.MainDocumentPart, contentParent2, settings);
 
-            var cal1 = WmlComparer.CreateComparisonUnitAtomList(wDoc1.MainDocumentPart, wDoc1.MainDocumentPart.GetXDocument().Root.Element(W.body), settings);
+            var cal1 = CreateComparisonUnitAtomList(wDoc1.MainDocumentPart, wDoc1.MainDocumentPart.GetXDocument().Root.Element(W.body), settings);
 
             if (s_False)
             {
@@ -3305,14 +3300,14 @@ namespace OpenXmlPowerTools.Previous
 
         public class WmlComparerRevision
         {
-            public WmlComparerRevisionType RevisionType;
-            public string Text;
-            public string Author;
-            public string Date;
-            public XElement ContentXElement;
-            public XElement RevisionXElement;
-            public Uri PartUri;
-            public string PartContentType;
+            public WmlComparerRevisionType RevisionType{ get; set;  }
+            public string Text{ get; set;  }
+            public string Author{ get; set;  }
+            public string Date{ get; set;  }
+            public XElement ContentXElement{ get; set;  }
+            public XElement RevisionXElement{ get; set;  }
+            public Uri PartUri{ get; set;  }
+            public string PartContentType{ get; set;  }
         }
 
         private static readonly XName[] RevElementsWithNoText = new XName[] {
@@ -7442,9 +7437,9 @@ namespace OpenXmlPowerTools.Previous
 
     public abstract class ComparisonUnit
     {
-        public List<ComparisonUnit> Contents;
-        public string SHA1Hash;
-        public CorrelationStatus CorrelationStatus;
+        public List<ComparisonUnit> Contents{ get; set;  }
+        public string SHA1Hash{ get; set;  }
+        public CorrelationStatus CorrelationStatus{ get; set;  }
 
         public IEnumerable<ComparisonUnit> Descendants()
         {
@@ -7600,17 +7595,15 @@ namespace OpenXmlPowerTools.Previous
 
     public class ComparisonUnitAtom : ComparisonUnit
     {
-        // AncestorElements are kept in order from the body to the leaf, because this is the order in which we need to access in order
-        // to reassemble the document.  However, in many places in the code, it is necessary to find the nearest ancestor, i.e. cell
-        // so it is necessary to reverse the order when looking for it, i.e. look from the leaf back to the body element.
+        // AncestorElements are kept in order from the body to the leaf, because this is the order in which we need to access in order to reassemble the document.  However, in many places in the code, it is necessary to find the nearest ancestor, i.e. cell so it is necessary to reverse the order when looking for it, i.e. look from the leaf back to the body element.
 
-        public XElement[] AncestorElements;
-        public string[] AncestorUnids;
-        public XElement ContentElement;
-        public XElement ContentElementBefore;
-        public ComparisonUnitAtom ComparisonUnitAtomBefore;
-        public OpenXmlPart Part;
-        public XElement RevTrackElement;
+        public XElement[] AncestorElements{ get; set;  }
+        public string[] AncestorUnids{ get; set;  }
+        public XElement ContentElement{ get; set;  }
+        public XElement ContentElementBefore{ get; set;  }
+        public ComparisonUnitAtom ComparisonUnitAtomBefore{ get; set;  }
+        public OpenXmlPart Part{ get; set;  }
+        public XElement RevTrackElement{ get; set;  }
 
         public ComparisonUnitAtom(XElement contentElement, XElement[] ancestorElements, OpenXmlPart part, WmlComparerSettings settings)
         {

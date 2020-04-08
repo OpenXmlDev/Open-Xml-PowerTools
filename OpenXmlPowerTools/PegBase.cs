@@ -1867,8 +1867,8 @@ namespace Peg.Base
                     this.low = low; this.high = high;
                 }
 
-                public char low;
-                public char high;
+                public char low { get; set; }
+                public char high { get; set; }
             }
 
             private readonly System.Collections.BitArray charSet_;

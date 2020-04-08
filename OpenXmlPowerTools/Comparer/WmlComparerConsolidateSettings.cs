@@ -5,6 +5,6 @@ namespace OpenXmlPowerTools
 {
     public class WmlComparerConsolidateSettings
     {
-        public bool ConsolidateWithTable = true;
+        public bool ConsolidateWithTable { get; set; } = true;
     }
 }

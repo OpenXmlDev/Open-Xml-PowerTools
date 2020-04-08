@@ -409,9 +409,9 @@ namespace OpenXmlPowerTools
 
         public class FieldInfo
         {
-            public string FieldType;
-            public string[] Switches;
-            public string[] Arguments;
+            public string FieldType { get; set; }
+            public string[] Switches { get; set; }
+            public string[] Arguments { get; set; }
         }
 
         public enum FieldElementTypeEnum
@@ -425,14 +425,14 @@ namespace OpenXmlPowerTools
 
         public class FieldElementTypeInfo
         {
-            public int Id;
-            public FieldElementTypeEnum FieldElementType;
+            public int Id { get; set; }
+            public FieldElementTypeEnum FieldElementType { get; set; }
         }
 
         public class FieldElementTypeStack
         {
-            public int Id;
-            public Stack<FieldElementTypeInfo> FiStack;
+            public int Id { get; set; }
+            public Stack<FieldElementTypeInfo> FiStack { get; set; }
         }
     }
 }

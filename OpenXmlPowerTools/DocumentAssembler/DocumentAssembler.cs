@@ -676,11 +676,6 @@ namespace OpenXmlPowerTools
                         if (optional)
                         {
                             return null;
-                            //XElement para = element.Descendants(W.p).FirstOrDefault();
-                            //if (para != null)
-                            //    return new XElement(W.p, new XElement(W.r));
-                            //else
-                            //    return new XElement(W.r);
                         }
                         return CreateContextErrorMessage(element, "Repeat: Select returned no data", templateError);
                     }

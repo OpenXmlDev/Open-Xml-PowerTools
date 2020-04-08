@@ -10,14 +10,14 @@ namespace OpenXmlPowerTools
     {
         public class WmlComparerRevision
         {
-            public WmlComparerRevisionType RevisionType;
-            public string Text;
-            public string Author;
-            public string Date;
-            public XElement ContentXElement;
-            public XElement RevisionXElement;
-            public Uri PartUri;
-            public string PartContentType;
+            public WmlComparerRevisionType RevisionType { get; set; }
+            public string Text { get; set; }
+            public string Author { get; set; }
+            public string Date { get; set; }
+            public XElement ContentXElement { get; set; }
+            public XElement RevisionXElement { get; set; }
+            public Uri PartUri { get; set; }
+            public string PartContentType { get; set; }
         }
 
         public enum WmlComparerRevisionType

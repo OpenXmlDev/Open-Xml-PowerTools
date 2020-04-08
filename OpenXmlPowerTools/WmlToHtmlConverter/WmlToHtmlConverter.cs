@@ -2325,8 +2325,7 @@ namespace OpenXmlPowerTools
                     //    currentElement);
                     //var widthOfText = CalcWidthOfRunInTwips(dummyRun3);
                     const int widthOfText = 0;
-                    currentElement.Add(new XAttribute(PtOpenXml.TabWidth,
-                        string.Format(NumberFormatInfo.InvariantInfo, "{0:0.000}", widthOfText / 1440m)));
+                    currentElement.Add(new XAttribute(PtOpenXml.TabWidth, string.Format(NumberFormatInfo.InvariantInfo, "{0:0.000}", widthOfText / 1440m)));
                     twipCounter += widthOfText;
 
                     currentElementIdx++;
@@ -2835,30 +2834,30 @@ namespace OpenXmlPowerTools
 
         private static readonly Dictionary<string, BorderMappingInfo> BorderStyleMap = new Dictionary<string, BorderMappingInfo>()
         {
-            { "single", new BorderMappingInfo() { CssName = "solid", CssSize = 1.0m }},
-            { "dotted", new BorderMappingInfo() { CssName = "dotted", CssSize = 1.0m }},
-            { "dashSmallGap", new BorderMappingInfo() { CssName = "dashed", CssSize = 1.0m }},
-            { "dashed", new BorderMappingInfo() { CssName = "dashed", CssSize = 1.0m }},
-            { "dotDash", new BorderMappingInfo() { CssName = "dashed", CssSize = 1.0m }},
-            { "dotDotDash", new BorderMappingInfo() { CssName = "dashed", CssSize = 1.0m }},
-            { "double", new BorderMappingInfo() { CssName = "double", CssSize = 2.5m }},
-            { "triple", new BorderMappingInfo() { CssName = "double", CssSize = 2.5m }},
-            { "thinThickSmallGap", new BorderMappingInfo() { CssName = "double", CssSize = 4.5m }},
-            { "thickThinSmallGap", new BorderMappingInfo() { CssName = "double", CssSize = 4.5m }},
-            { "thinThickThinSmallGap", new BorderMappingInfo() { CssName = "double", CssSize = 6.0m }},
-            { "thickThinMediumGap", new BorderMappingInfo() { CssName = "double", CssSize = 6.0m }},
-            { "thinThickMediumGap", new BorderMappingInfo() { CssName = "double", CssSize = 6.0m }},
-            { "thinThickThinMediumGap", new BorderMappingInfo() { CssName = "double", CssSize = 9.0m }},
-            { "thinThickLargeGap", new BorderMappingInfo() { CssName = "double", CssSize = 5.25m }},
-            { "thickThinLargeGap", new BorderMappingInfo() { CssName = "double", CssSize = 5.25m }},
-            { "thinThickThinLargeGap", new BorderMappingInfo() { CssName = "double", CssSize = 9.0m }},
-            { "wave", new BorderMappingInfo() { CssName = "solid", CssSize = 3.0m }},
-            { "doubleWave", new BorderMappingInfo() { CssName = "double", CssSize = 5.25m }},
-            { "dashDotStroked", new BorderMappingInfo() { CssName = "solid", CssSize = 3.0m }},
-            { "threeDEmboss", new BorderMappingInfo() { CssName = "ridge", CssSize = 6.0m }},
-            { "threeDEngrave", new BorderMappingInfo() { CssName = "groove", CssSize = 6.0m }},
-            { "outset", new BorderMappingInfo() { CssName = "outset", CssSize = 4.5m }},
-            { "inset", new BorderMappingInfo() { CssName = "inset", CssSize = 4.5m }},
+            { "single", new BorderMappingInfo { CssName = "solid", CssSize = 1.0m }},
+            { "dotted", new BorderMappingInfo { CssName = "dotted", CssSize = 1.0m }},
+            { "dashSmallGap", new BorderMappingInfo { CssName = "dashed", CssSize = 1.0m }},
+            { "dashed", new BorderMappingInfo { CssName = "dashed", CssSize = 1.0m }},
+            { "dotDash", new BorderMappingInfo { CssName = "dashed", CssSize = 1.0m }},
+            { "dotDotDash", new BorderMappingInfo { CssName = "dashed", CssSize = 1.0m }},
+            { "double", new BorderMappingInfo { CssName = "double", CssSize = 2.5m }},
+            { "triple", new BorderMappingInfo { CssName = "double", CssSize = 2.5m }},
+            { "thinThickSmallGap", new BorderMappingInfo { CssName = "double", CssSize = 4.5m }},
+            { "thickThinSmallGap", new BorderMappingInfo { CssName = "double", CssSize = 4.5m }},
+            { "thinThickThinSmallGap", new BorderMappingInfo { CssName = "double", CssSize = 6.0m }},
+            { "thickThinMediumGap", new BorderMappingInfo { CssName = "double", CssSize = 6.0m }},
+            { "thinThickMediumGap", new BorderMappingInfo { CssName = "double", CssSize = 6.0m }},
+            { "thinThickThinMediumGap", new BorderMappingInfo { CssName = "double", CssSize = 9.0m }},
+            { "thinThickLargeGap", new BorderMappingInfo { CssName = "double", CssSize = 5.25m }},
+            { "thickThinLargeGap", new BorderMappingInfo { CssName = "double", CssSize = 5.25m }},
+            { "thinThickThinLargeGap", new BorderMappingInfo { CssName = "double", CssSize = 9.0m }},
+            { "wave", new BorderMappingInfo { CssName = "solid", CssSize = 3.0m }},
+            { "doubleWave", new BorderMappingInfo { CssName = "double", CssSize = 5.25m }},
+            { "dashDotStroked", new BorderMappingInfo { CssName = "solid", CssSize = 3.0m }},
+            { "threeDEmboss", new BorderMappingInfo { CssName = "ridge", CssSize = 6.0m }},
+            { "threeDEngrave", new BorderMappingInfo { CssName = "groove", CssSize = 6.0m }},
+            { "outset", new BorderMappingInfo { CssName = "outset", CssSize = 4.5m }},
+            { "inset", new BorderMappingInfo { CssName = "inset", CssSize = 4.5m }},
         };
 
         private static void GenerateBorderStyle(XElement pBdr, XName sideXName, Dictionary<string, string> style, BorderType borderType)
@@ -2910,13 +2909,9 @@ namespace OpenXmlPowerTools
                 style.Add("border-" + whichSide + "-style", "none");
 
                 var space = (decimal?)side.Attribute(W.space) ?? 0;
-                if (borderType == BorderType.Cell &&
-                    (whichSide == "left" || whichSide == "right"))
+                if (borderType == BorderType.Cell && (whichSide == "left" || whichSide == "right") && space < 5.4m)
                 {
-                    if (space < 5.4m)
-                    {
-                        space = 5.4m;
-                    }
+                    space = 5.4m;
                 }
 
                 style.Add("padding-" + whichSide,
@@ -3010,8 +3005,7 @@ namespace OpenXmlPowerTools
                     }
                 }
 
-                style.Add("padding-" + whichSide,
-                    space == 0 ? "0" : string.Format(NumberFormatInfo.InvariantInfo, "{0:0.0}pt", space));
+                style.Add("padding-" + whichSide, space == 0 ? "0" : string.Format(NumberFormatInfo.InvariantInfo, "{0:0.0}pt", space));
             }
         }
 
@@ -3414,7 +3408,7 @@ namespace OpenXmlPowerTools
             {
                 if (extentCx != null && extentCy != null)
                 {
-                    var imageInfo = new ImageInfo()
+                    var imageInfo = new ImageInfo
                     {
                         Bitmap = bitmap,
                         ImgStyleAttribute = new XAttribute("style",
@@ -3436,7 +3430,7 @@ namespace OpenXmlPowerTools
                     return imgElement2;
                 }
 
-                var imageInfo2 = new ImageInfo()
+                var imageInfo2 = new ImageInfo
                 {
                     Bitmap = bitmap,
                     ContentType = contentType,

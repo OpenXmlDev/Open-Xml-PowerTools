@@ -7,20 +7,20 @@ namespace OpenXmlPowerTools
 {
     public partial class DocumentAssembler
     {
-        private class PA
+        private static class PA
         {
-            public static XName Content = "Content";
-            public static XName Table = "Table";
-            public static XName Repeat = "Repeat";
-            public static XName EndRepeat = "EndRepeat";
-            public static XName Conditional = "Conditional";
-            public static XName EndConditional = "EndConditional";
+            public static readonly XName Content = "Content";
+            public static readonly XName Table = "Table";
+            public static readonly XName Repeat = "Repeat";
+            public static readonly XName EndRepeat = "EndRepeat";
+            public static readonly XName Conditional = "Conditional";
+            public static readonly XName EndConditional = "EndConditional";
 
-            public static XName Select = "Select";
-            public static XName Optional = "Optional";
-            public static XName Match = "Match";
-            public static XName NotMatch = "NotMatch";
-            public static XName Depth = "Depth";
+            public static readonly XName Select = "Select";
+            public static readonly XName Optional = "Optional";
+            public static readonly XName Match = "Match";
+            public static readonly XName NotMatch = "NotMatch";
+            public static readonly XName Depth = "Depth";
         }
     }
 }

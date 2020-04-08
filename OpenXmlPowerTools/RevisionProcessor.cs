@@ -2409,9 +2409,9 @@ namespace OpenXmlPowerTools
 
     public class BlockContentInfo
     {
-        public XElement PreviousBlockContentElement;
-        public XElement ThisBlockContentElement;
-        public XElement NextBlockContentElement;
+        public XElement PreviousBlockContentElement { get; set; }
+        public XElement ThisBlockContentElement { get; set; }
+        public XElement NextBlockContentElement { get; set; }
     }
 
     public static class RevisionAccepterExtensions

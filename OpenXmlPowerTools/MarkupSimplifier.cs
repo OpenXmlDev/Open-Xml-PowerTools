@@ -21,24 +21,24 @@ namespace OpenXmlPowerTools
 
     public class SimplifyMarkupSettings
     {
-        public bool AcceptRevisions;
-        public bool NormalizeXml;
-        public bool RemoveBookmarks;
-        public bool RemoveComments;
-        public bool RemoveContentControls;
-        public bool RemoveEndAndFootNotes;
-        public bool RemoveFieldCodes;
-        public bool RemoveGoBackBookmark;
-        public bool RemoveHyperlinks;
-        public bool RemoveLastRenderedPageBreak;
-        public bool RemoveMarkupForDocumentComparison;
-        public bool RemovePermissions;
-        public bool RemoveProof;
-        public bool RemoveRsidInfo;
-        public bool RemoveSmartTags;
-        public bool RemoveSoftHyphens;
-        public bool RemoveWebHidden;
-        public bool ReplaceTabsWithSpaces;
+        public bool AcceptRevisions { get; set; }
+        public bool NormalizeXml { get; set; }
+        public bool RemoveBookmarks { get; set; }
+        public bool RemoveComments { get; set; }
+        public bool RemoveContentControls { get; set; }
+        public bool RemoveEndAndFootNotes { get; set; }
+        public bool RemoveFieldCodes { get; set; }
+        public bool RemoveGoBackBookmark { get; set; }
+        public bool RemoveHyperlinks { get; set; }
+        public bool RemoveLastRenderedPageBreak { get; set; }
+        public bool RemoveMarkupForDocumentComparison { get; set; }
+        public bool RemovePermissions { get; set; }
+        public bool RemoveProof { get; set; }
+        public bool RemoveRsidInfo { get; set; }
+        public bool RemoveSmartTags { get; set; }
+        public bool RemoveSoftHyphens { get; set; }
+        public bool RemoveWebHidden { get; set; }
+        public bool ReplaceTabsWithSpaces { get; set; }
     }
 
     [SuppressMessage("ReSharper", "InconsistentNaming")]
@@ -482,14 +482,6 @@ namespace OpenXmlPowerTools
                     return e != null ? NormalizeElement(e, havePsvi) : n;
                 }));
         }
-
-        // TODO: Check whether this can be removed.
-        //private static bool DeepEqualsWithNormalization(XDocument doc1, XDocument doc2, XmlSchemaSet schemaSet)
-        //{
-        //    XDocument d1 = Normalize(doc1, schemaSet);
-        //    XDocument d2 = Normalize(doc2, schemaSet);
-        //    return XNode.DeepEquals(d1, d2);
-        //}
 
         private static IEnumerable<XAttribute> NormalizeAttributes(XElement element, bool havePsvi)
         {

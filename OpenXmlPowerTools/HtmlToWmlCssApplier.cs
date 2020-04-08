@@ -1690,8 +1690,6 @@ namespace OpenXmlPowerTools.HtmlToWml
             XElement element,
             Property property)
         {
-            //if (property.Name == "direction")
-            //    Console.WriteLine(1);
             var propList = element.Annotation<Dictionary<string, Property>>();
             if (propList == null)
             {
@@ -1904,9 +1902,6 @@ namespace OpenXmlPowerTools.HtmlToWml
                     }
                     else
                     {
-                        //borderColor = GetComputedPropertyValue(null, element, "color", settings);
-                        //borderWidth = new Expression { Terms = new List<Term> { new Term { Value = "medium", Type = TermType.String } } };
-                        //borderStyle = new Expression { Terms = new List<Term> { new Term { Value = "none", Type = TermType.String } } };
                         borderColor = null;
                         borderWidth = null;
                         borderStyle = null;
@@ -1989,9 +1984,6 @@ namespace OpenXmlPowerTools.HtmlToWml
                     }
                     else
                     {
-                        //borderColor = GetComputedPropertyValue(null, element, "color", settings);
-                        //borderWidth = new Expression { Terms = new List<Term> { new Term { Value = "medium", Type = TermType.String } } };
-                        //borderStyle = new Expression { Terms = new List<Term> { new Term { Value = "none", Type = TermType.String } } };
                         borderColor = null;
                         borderWidth = null;
                         borderStyle = null;
@@ -2916,23 +2908,15 @@ namespace OpenXmlPowerTools.HtmlToWml
 
             var text = string.Format(format, o);
             var sb2 = new StringBuilder("".PadRight(indent * 2) + text);
-            //sb2.Replace("&", "&amp;");
-            //sb2.Replace("<", "&lt;");
-            //sb2.Replace(">", "&gt;");
             sb.Append(sb2);
             sb.Append(Environment.NewLine);
-            //Console.WriteLine(sb2);
         }
 
         private static void Pr(StringBuilder sb, int indent, string text)
         {
             var sb2 = new StringBuilder("".PadRight(indent * 2) + text);
-            //sb2.Replace("&", "&amp;");
-            //sb2.Replace("<", "&lt;");
-            //sb2.Replace(">", "&gt;");
             sb.Append(sb2);
             sb.Append(Environment.NewLine);
-            //Console.WriteLine(sb2);
         }
 
         public class Property : IComparable<Property>

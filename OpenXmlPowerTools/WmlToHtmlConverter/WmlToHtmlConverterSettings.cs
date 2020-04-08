@@ -9,15 +9,15 @@ namespace OpenXmlPowerTools
 {
     public class WmlToHtmlConverterSettings
     {
-        public string PageTitle;
-        public string CssClassPrefix;
-        public bool FabricateCssClasses;
-        public string GeneralCss;
-        public string AdditionalCss;
-        public bool RestrictToSupportedLanguages;
-        public bool RestrictToSupportedNumberingFormats;
-        public Dictionary<string, Func<string, int, string, string>> ListItemImplementations;
-        public Func<ImageInfo, XElement> ImageHandler;
+        public string PageTitle { get; set; }
+        public string CssClassPrefix { get; set; }
+        public bool FabricateCssClasses { get; set; }
+        public string GeneralCss { get; set; }
+        public string AdditionalCss { get; set; }
+        public bool RestrictToSupportedLanguages { get; set; }
+        public bool RestrictToSupportedNumberingFormats { get; set; }
+        public Dictionary<string, Func<string, int, string, string>> ListItemImplementations { get; set; }
+        public Func<ImageInfo, XElement> ImageHandler { get; set; }
 
         public WmlToHtmlConverterSettings()
         {
