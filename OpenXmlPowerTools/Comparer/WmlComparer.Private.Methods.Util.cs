@@ -59,7 +59,6 @@ namespace OpenXmlPowerTools
 
                     var newPart = partInNewDocument.Package.CreatePart(uri, relatedPackagePart.ContentType);
 
-                    // ReSharper disable once PossibleNullReferenceException
                     using (var oldPartStream = relatedPackagePart.GetStream())
                     using (var newPartStream = newPart.GetStream())
                     {

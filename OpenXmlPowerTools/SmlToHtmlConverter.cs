@@ -4,7 +4,6 @@
 using DocumentFormat.OpenXml.Packaging;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -14,13 +13,11 @@ namespace OpenXmlPowerTools
 {
     public partial class SmlDocument
     {
-        [SuppressMessage("ReSharper", "UnusedMember.Global")]
         public XElement ConvertToHtml(SmlToHtmlConverterSettings htmlConverterSettings, string tableName)
         {
             return SmlToHtmlConverter.ConvertTableToHtml(this, htmlConverterSettings, tableName);
         }
 
-        [SuppressMessage("ReSharper", "UnusedMember.Global")]
         public XElement ConvertTableToHtml(string tableName)
         {
             var settings = new SmlToHtmlConverterSettings();
@@ -28,7 +25,6 @@ namespace OpenXmlPowerTools
         }
     }
 
-    [SuppressMessage("ReSharper", "FieldCanBeMadeReadOnly.Global")]
     public class SmlToHtmlConverterSettings
     {
         public string PageTitle;

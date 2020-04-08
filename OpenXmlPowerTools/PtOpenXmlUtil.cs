@@ -15,8 +15,6 @@ using System.Xml;
 using System.Xml.Linq;
 using FontFamily = System.Drawing.FontFamily;
 
-// ReSharper disable InconsistentNaming
-
 namespace OpenXmlPowerTools
 {
     public static class PtOpenXmlExtensions
@@ -117,17 +115,11 @@ namespace OpenXmlPowerTools
             var partXDocument = part.GetXDocument();
             if (partXDocument != null)
             {
-#if true
                 using (var partStream = part.GetStream(FileMode.Create, FileAccess.Write))
                 using (var partXmlWriter = XmlWriter.Create(partStream))
                 {
                     partXDocument.Save(partXmlWriter);
                 }
-#else
-                byte[] array = Encoding.UTF8.GetBytes(partXDocument.ToString(SaveOptions.DisableFormatting));
-                using (MemoryStream ms = new MemoryStream(array))
-                    part.FeedData(ms);
-#endif
             }
         }
 
@@ -953,36 +945,6 @@ namespace OpenXmlPowerTools
                             if (ce.Elements(W.del).Any())
                             {
                                 return dontConsolidate;
-#if false
-                                // for w:ins/w:del/w:r/w:delText
-                                if ((ce.Elements(W.del).Elements(W.r).Elements().Count(e => e.Name != W.rPr) != 1) ||
-                                    !ce.Elements().Elements().Elements(W.delText).Any())
-                                    return dontConsolidate;
-
-                                XAttribute dateIns = ce.Attribute(W.date);
-                                XElement del = ce.Element(W.del);
-                                XAttribute dateDel = del.Attribute(W.date);
-
-                                string authorIns = (string) ce.Attribute(W.author) ?? string.Empty;
-                                string dateInsString = dateIns != null
-                                    ? ((DateTime) dateIns).ToString("s")
-                                    : string.Empty;
-                                string authorDel = (string) del.Attribute(W.author) ?? string.Empty;
-                                string dateDelString = dateDel != null
-                                    ? ((DateTime) dateDel).ToString("s")
-                                    : string.Empty;
-
-                                return "Wins" +
-                                       authorIns +
-                                       dateInsString +
-                                       authorDel +
-                                       dateDelString +
-                                       ce.Elements(W.del)
-                                           .Elements(W.r)
-                                           .Elements(W.rPr)
-                                           .Select(rPr => rPr.ToString(SaveOptions.None))
-                                           .StringConcatenate();
-#endif
                             }
 
                             // w:ins/w:r/w:t
@@ -1227,107 +1189,6 @@ namespace OpenXmlPowerTools
             { W.decimalSymbol, 950},
             { W.listSeparator, 960},
         };
-
-#if false
-// from the schema in the standard
-
-writeProtection
-view
-zoom
-removePersonalInformation
-removeDateAndTime
-doNotDisplayPageBoundaries
-displayBackgroundShape
-printPostScriptOverText
-printFractionalCharacterWidth
-printFormsData
-embedTrueTypeFonts
-embedSystemFonts
-saveSubsetFonts
-saveFormsData
-mirrorMargins
-alignBordersAndEdges
-bordersDoNotSurroundHeader
-bordersDoNotSurroundFooter
-gutterAtTop
-hideSpellingErrors
-hideGrammaticalErrors
-activeWritingStyle
-proofState
-formsDesign
-attachedTemplate
-linkStyles
-stylePaneFormatFilter
-stylePaneSortMethod
-documentType
-mailMerge
-revisionView
-trackRevisions
-doNotTrackMoves
-doNotTrackFormatting
-documentProtection
-autoFormatOverride
-styleLockTheme
-styleLockQFSet
-defaultTabStop
-autoHyphenation
-consecutiveHyphenLimit
-hyphenationZone
-doNotHyphenateCaps
-showEnvelope
-summaryLength
-clickAndTypeStyle
-defaultTableStyle
-evenAndOddHeaders
-bookFoldRevPrinting
-bookFoldPrinting
-bookFoldPrintingSheets
-drawingGridHorizontalSpacing
-drawingGridVerticalSpacing
-displayHorizontalDrawingGridEvery
-displayVerticalDrawingGridEvery
-doNotUseMarginsForDrawingGridOrigin
-drawingGridHorizontalOrigin
-drawingGridVerticalOrigin
-doNotShadeFormData
-noPunctuationKerning
-characterSpacingControl
-printTwoOnOne
-strictFirstAndLastChars
-noLineBreaksAfter
-noLineBreaksBefore
-savePreviewPicture
-doNotValidateAgainstSchema
-saveInvalidXml
-ignoreMixedContent
-alwaysShowPlaceholderText
-doNotDemarcateInvalidXml
-saveXmlDataOnly
-useXSLTWhenSaving
-saveThroughXslt
-showXMLTags
-alwaysMergeEmptyNamespace
-updateFields
-footnotePr
-endnotePr
-compat
-docVars
-rsids
-m:mathPr
-attachedSchema
-themeFontLang
-clrSchemeMapping
-doNotIncludeSubdocsInStats
-doNotAutoCompressPictures
-forceUpgrade
-captions
-readModeInkLockDown
-smartTagType
-sl:schemaLibrary
-doNotEmbedSmartTags
-decimalSymbol
-listSeparator
-#endif
 
         private static readonly Dictionary<XName, int> Order_pPr = new Dictionary<XName, int>
         {
@@ -2221,8 +2082,6 @@ listSeparator
         }
     }
 
-#if !NET35
-
     public static class UriFixer
     {
         public static void FixInvalidUri(Stream fs, Func<string, Uri> invalidUriHandler)
@@ -2288,8 +2147,6 @@ listSeparator
             }
         }
     }
-
-#endif
 
     public static class ACTIVEX
     {
@@ -6300,12 +6157,16 @@ listSeparator
 
     public class InvalidOpenXmlDocumentException : Exception
     {
-        public InvalidOpenXmlDocumentException(string message) : base(message) { }
+        public InvalidOpenXmlDocumentException(string message) : base(message)
+        {
+        }
     }
 
     public class OpenXmlPowerToolsException : Exception
     {
-        public OpenXmlPowerToolsException(string message) : base(message) { }
+        public OpenXmlPowerToolsException(string message) : base(message)
+        {
+        }
     }
 
     public class ColumnReferenceOutOfRange : Exception

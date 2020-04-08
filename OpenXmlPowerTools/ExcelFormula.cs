@@ -41,28 +41,21 @@ namespace ExcelFormula
 
     internal class ExcelFormula : PegCharParser
     {
-        #region Input Properties
+        private static readonly OptimizedCharset optimizedCharset0 = new OptimizedCharset(new OptimizedCharset.Range[] { new OptimizedCharset.Range('A', 'Z'), new OptimizedCharset.Range('a', 'z'), new OptimizedCharset.Range('0', '9'), new OptimizedCharset.Range(',', '.'), }, new char[] { '!', '"', '#', '$', '%', '&', '(', ')', '+', ';', '<', '=', '>', '@', '^', '_', '`', '{', '|', '}', '~', ' ' });
 
-        public static EncodingClass encodingClass = EncodingClass.ascii;
-        public static UnicodeDetection unicodeDetection = UnicodeDetection.notApplicable;
+        private static readonly OptimizedCharset optimizedCharset1 = new OptimizedCharset(new OptimizedCharset.Range[] { new OptimizedCharset.Range('A', 'Z'), new OptimizedCharset.Range('a', 'z'), new OptimizedCharset.Range('0', '9'), new OptimizedCharset.Range(',', '.'), }, new char[] { '!', '"', '#', '$', '%', '&', '(', ')', '*', '+', '/', ':', ';', '<', '=', '>', '?', '@', '\\', '^', '_', '`', '{', '|', '}', '~' });
 
-        #endregion Input Properties
+        private static readonly OptimizedLiterals optimizedLiterals0 = new OptimizedLiterals(new[] { "<>", ">=", "<=", "^", "*", "/", "+", "-", "&", "=", "<", ">" });
+        private static readonly EncodingClass encodingClass = EncodingClass.ascii;
+        private static readonly UnicodeDetection unicodeDetection = UnicodeDetection.notApplicable;
 
-        #region Constructors
-
-        public ExcelFormula()
-            : base()
+        public ExcelFormula() : base()
         {
         }
 
-        public ExcelFormula(string src, TextWriter FerrOut)
-            : base(src, FerrOut)
+        public ExcelFormula(string src, TextWriter FerrOut) : base(src, FerrOut)
         {
         }
-
-        #endregion Constructors
-
-        #region Overrides
 
         public override string GetRuleNameFromId(int id)
         {
@@ -91,604 +84,715 @@ namespace ExcelFormula
             detection = unicodeDetection;
         }
 
-        #endregion Overrides
-
-        #region Grammar Rules
-
-        public bool Formula()    /*Formula: Expression (!./FATAL<"end of line expected">);*/
+        /// <summary>
+        /// Formula: Expression (!./FATAL\<"end of line expected">)
+        /// </summary>
+        /// <returns></returns>
+        public bool Formula()
         {
-            return And(() =>
-                      Expression()
-                   && (Not(() => Any()) || Fatal("end of line expected")));
+            return And(() => Expression() && (Not(() => Any()) || Fatal("end of line expected")));
         }
 
-        public bool Expression()    /*Expression: ws InfixTerms;*/
+        /// <summary>
+        /// Expression: ws InfixTerms;
+        /// </summary>
+        /// <returns></returns>
+        public bool Expression()
         {
             return And(() => ws() && InfixTerms());
         }
 
-        public bool InfixTerms()    /*InfixTerms: PreAndPostTerm (InfixOperator ws PreAndPostTerm)*;*/
+        /// <summary>
+        /// InfixTerms: PreAndPostTerm (InfixOperator ws PreAndPostTerm)*;
+        /// </summary>
+        /// <returns></returns>
+        public bool InfixTerms()
         {
-            return And(() =>
-                      PreAndPostTerm()
-                   && OptRepeat(() =>
-                       And(() =>
-                                InfixOperator()
-                             && ws()
-                             && PreAndPostTerm())));
+            return And(() => PreAndPostTerm() && OptRepeat(() => And(() => InfixOperator() && ws() && PreAndPostTerm())));
         }
 
-        public bool PreAndPostTerm()    /*PreAndPostTerm: (PrefixOperator ws)* Term (PostfixOperator ws)*;*/
+        /// <summary>
+        /// PreAndPostTerm: (PrefixOperator ws)* Term (PostfixOperator ws)*;
+        /// </summary>
+        /// <returns></returns>
+        public bool PreAndPostTerm()
         {
-            return And(() =>
-                      OptRepeat(() => And(() => PrefixOperator() && ws()))
-                   && Term()
-                   && OptRepeat(() => And(() => PostfixOperator() && ws())));
+            return And(() => OptRepeat(() => And(() => PrefixOperator() && ws())) && Term() && OptRepeat(() => And(() => PostfixOperator() && ws())));
         }
 
-        public bool Term()    /*Term: (RefInfixTerms / '(' Expression ')' / Constant) ws;*/
+        /// <summary>
+        /// Term: (RefInfixTerms / '(' Expression ')' / Constant) ws;
+        /// </summary>
+        /// <returns></returns>
+        public bool Term()
         {
-            return And(() =>
-                      (
-                          RefInfixTerms()
-                       || And(() => Char('(') && Expression() && Char(')'))
-                       || Constant())
-                   && ws());
+            return And(() => (RefInfixTerms() || And(() => Char('(') && Expression() && Char(')')) || Constant()) && ws());
         }
 
-        public bool RefInfixTerms()    /*RefInfixTerms: RefTerm (RefInfixOperator ws RefTerm)*;*/
+        /// <summary>
+        /// RefInfixTerms: RefTerm (RefInfixOperator ws RefTerm)*;
+        /// </summary>
+        /// <returns></returns>
+        public bool RefInfixTerms()
         {
-            return And(() =>
-                      RefTerm()
-                   && OptRepeat(() =>
-                       And(() => RefInfixOperator() && ws() && RefTerm())));
+            return And(() => RefTerm() && OptRepeat(() => And(() => RefInfixOperator() && ws() && RefTerm())));
         }
 
-        public bool RefTerm()    /*RefTerm: '(' ws RefInfixTerms ')' / RefConstant / CellFunctionCall / CellReference / UserDefinedFunctionCall
-	/ NameReference / StructureReference;*/
+        /// <summary>
+        /// RefTerm: '(' ws RefInfixTerms ')' / RefConstant / CellFunctionCall / CellReference / UserDefinedFunctionCall / NameReference / StructureReference;
+        /// </summary>
+        /// <returns></returns>
+        public bool RefTerm()
         {
-            return
-                      And(() =>
-                          Char('(')
-                       && ws()
-                       && RefInfixTerms()
-                       && Char(')'))
-                   || RefConstant()
-                   || CellFunctionCall()
-                   || CellReference()
-                   || UserDefinedFunctionCall()
-                   || NameReference()
-                   || StructureReference();
+            return And(() => Char('(') && ws() && RefInfixTerms() && Char(')')) || RefConstant() || CellFunctionCall() || CellReference() || UserDefinedFunctionCall() || NameReference() || StructureReference();
         }
 
-        public bool Constant()    /*^^Constant: ErrorConstant / LogicalConstant / NumericalConstant / StringConstant / ArrayConstant;*/
+        /// <summary>
+        /// ^^Constant: ErrorConstant / LogicalConstant / NumericalConstant / StringConstant / ArrayConstant;
+        /// </summary>
+        /// <returns></returns>
+        public bool Constant()
         {
-            return TreeNT((int)EExcelFormula.Constant, () =>
-
-                       ErrorConstant()
-                    || LogicalConstant()
-                    || NumericalConstant()
-                    || StringConstant()
-                    || ArrayConstant());
+            return TreeNT((int)EExcelFormula.Constant, () => ErrorConstant() || LogicalConstant() || NumericalConstant() || StringConstant() || ArrayConstant());
         }
 
-        public bool RefConstant()    /*RefConstant: '#REF!';*/
+        /// <summary>
+        /// RefConstant: '#REF!';
+        /// </summary>
+        /// <returns></returns>
+        public bool RefConstant()
         {
             return Char('#', 'R', 'E', 'F', '!');
         }
 
-        public bool ErrorConstant()    /*ErrorConstant: RefConstant / '#DIV/0!' / '#N/A' / '#NAME?' / '#NULL!' / '#NUM!' / '#VALUE!' / '#GETTING_DATA';*/
+        /// <summary>
+        /// ErrorConstant: RefConstant / '#DIV/0!' / '#N/A' / '#NAME?' / '#NULL!' / '#NUM!' / '#VALUE!' / '#GETTING_DATA';
+        /// </summary>
+        /// <returns></returns>
+        public bool ErrorConstant()
         {
-            return
-                      RefConstant()
-                   || Char('#', 'D', 'I', 'V', '/', '0', '!')
-                   || Char('#', 'N', '/', 'A')
-                   || Char('#', 'N', 'A', 'M', 'E', '?')
-                   || Char('#', 'N', 'U', 'L', 'L', '!')
-                   || Char('#', 'N', 'U', 'M', '!')
-                   || Char('#', 'V', 'A', 'L', 'U', 'E', '!')
-                   || Char("#GETTING_DATA");
+            return RefConstant() || Char('#', 'D', 'I', 'V', '/', '0', '!') || Char('#', 'N', '/', 'A') || Char('#', 'N', 'A', 'M', 'E', '?') || Char('#', 'N', 'U', 'L', 'L', '!') || Char('#', 'N', 'U', 'M', '!') || Char('#', 'V', 'A', 'L', 'U', 'E', '!') || Char("#GETTING_DATA");
         }
 
-        public bool LogicalConstant()    /*LogicalConstant: 'FALSE' / 'TRUE';*/
+        /// <summary>
+        /// LogicalConstant: 'FALSE' / 'TRUE';
+        /// </summary>
+        /// <returns></returns>
+        public bool LogicalConstant()
         {
             return Char('F', 'A', 'L', 'S', 'E') || Char('T', 'R', 'U', 'E');
         }
 
-        public bool NumericalConstant()    /*NumericalConstant: '-'? SignificandPart ExponentPart?;*/
+        /// <summary>
+        /// NumericalConstant: '-'? SignificandPart ExponentPart?;
+        /// </summary>
+        /// <returns></returns>
+        public bool NumericalConstant()
         {
-            return And(() =>
-                      Option(() => Char('-'))
-                   && SignificandPart()
-                   && Option(() => ExponentPart()));
+            return And(() => Option(() => Char('-')) && SignificandPart() && Option(() => ExponentPart()));
         }
 
-        public bool SignificandPart()    /*SignificandPart: WholeNumberPart FractionalPart? / FractionalPart;*/
+        /// <summary>
+        /// SignificandPart: WholeNumberPart FractionalPart? / FractionalPart;
+        /// </summary>
+        /// <returns></returns>
+        public bool SignificandPart()
         {
-            return
-                      And(() =>
-                          WholeNumberPart()
-                       && Option(() => FractionalPart()))
-                   || FractionalPart();
+            return And(() => WholeNumberPart() && Option(() => FractionalPart())) || FractionalPart();
         }
 
-        public bool WholeNumberPart()    /*WholeNumberPart: [0-9]+;*/
+        /// <summary>
+        /// WholeNumberPart: [0-9]+;
+        /// </summary>
+        /// <returns></returns>
+        public bool WholeNumberPart()
         {
             return PlusRepeat(() => In('0', '9'));
         }
 
-        public bool FractionalPart()    /*FractionalPart: '.' [0-9]*;*/
+        /// <summary>
+        /// FractionalPart: '.' [0-9]*;
+        /// </summary>
+        /// <returns></returns>
+        public bool FractionalPart()
         {
             return And(() => Char('.') && OptRepeat(() => In('0', '9')));
         }
 
-        public bool ExponentPart()    /*ExponentPart: 'E' ('+' / '-')? [0-9]*;*/
+        /// <summary>
+        /// ExponentPart: 'E' ('+' / '-')? [0-9]*;
+        /// </summary>
+        /// <returns></returns>
+        public bool ExponentPart()
         {
-            return And(() =>
-                      Char('E')
-                   && Option(() => Char('+') || Char('-'))
-                   && OptRepeat(() => In('0', '9')));
+            return And(() => Char('E') && Option(() => Char('+') || Char('-')) && OptRepeat(() => In('0', '9')));
         }
 
-        public bool StringConstant()    /*StringConstant: '"' ('""'/StringCharacter)* '"';*/
+        /// <summary>
+        /// StringConstant: '"' ('""'/StringCharacter)* '"';
+        /// </summary>
+        /// <returns></returns>
+        public bool StringConstant()
         {
-            return And(() =>
-                      Char('"')
-                   && OptRepeat(() => Char('"', '"') || StringCharacter())
-                   && Char('"'));
+            return And(() => Char('"') && OptRepeat(() => Char('"', '"') || StringCharacter()) && Char('"'));
         }
 
-        public bool StringCharacter()    /*StringCharacter: [#-~] / '!' / ' ' / HighCharacter;*/
+        /// <summary>
+        /// StringCharacter: [#-~] / '!' / ' ' / HighCharacter;
+        /// </summary>
+        /// <returns></returns>
+        public bool StringCharacter()
         {
-            return
-                      In('#', '~')
-                   || Char('!')
-                   || Char(' ')
-                   || HighCharacter();
+            return In('#', '~') || Char('!') || Char(' ') || HighCharacter();
         }
 
-        public bool HighCharacter()    /*HighCharacter: [#x80-#xFFFF];*/
+        /// <summary>
+        /// *HighCharacter: [#x80-#xFFFF];
+        /// </summary>
+        /// <returns></returns>
+        public bool HighCharacter()
         {
             return In('\u0080', '\uffff');
         }
 
-        public bool ArrayConstant()    /*^^ArrayConstant: '{' ConstantListRows '}';*/
+        /// <summary>
+        /// ^^ArrayConstant: '{' ConstantListRows '}';
+        /// </summary>
+        /// <returns></returns>
+        public bool ArrayConstant()
         {
-            return TreeNT((int)EExcelFormula.ArrayConstant, () =>
-                  And(() => Char('{') && ConstantListRows() && Char('}')));
+            return TreeNT((int)EExcelFormula.ArrayConstant, () => And(() => Char('{') && ConstantListRows() && Char('}')));
         }
 
-        public bool ConstantListRows()    /*ConstantListRows: ConstantListRow (';' ConstantListRow)*;*/
+        /// <summary>
+        /// ConstantListRows: ConstantListRow (';' ConstantListRow)*;
+        /// </summary>
+        /// <returns></returns>
+        public bool ConstantListRows()
         {
-            return And(() =>
-                      ConstantListRow()
-                   && OptRepeat(() =>
-                       And(() => Char(';') && ConstantListRow())));
+            return And(() => ConstantListRow() && OptRepeat(() => And(() => Char(';') && ConstantListRow())));
         }
 
-        public bool ConstantListRow()    /*^^ConstantListRow: Constant (',' Constant)*;*/
+        /// <summary>
+        /// ^^ConstantListRow: Constant (',' Constant)*;
+        /// </summary>
+        /// <returns></returns>
+        public bool ConstantListRow()
         {
-            return TreeNT((int)EExcelFormula.ConstantListRow, () =>
-                  And(() =>
-                       Constant()
-                    && OptRepeat(() => And(() => Char(',') && Constant()))));
+            return TreeNT((int)EExcelFormula.ConstantListRow, () => And(() => Constant() && OptRepeat(() => And(() => Char(',') && Constant()))));
         }
 
-        public bool InfixOperator()    /*InfixOperator: RefInfixOperator / ValueInfixOperator;*/
+        /// <summary>
+        /// InfixOperator: RefInfixOperator / ValueInfixOperator;
+        /// </summary>
+        /// <returns></returns>
+        public bool InfixOperator()
         {
             return RefInfixOperator() || ValueInfixOperator();
         }
 
-        public bool ValueInfixOperator()    /*^^ValueInfixOperator: '<>' / '>=' / '<=' / '^' / '*' / '/' / '+' / '-' / '&' / '=' / '<' / '>';*/
+        /// <summary>
+        /// ^^ValueInfixOperator: '<>' / '>=' / '<=' / '^' / '*' / '/' / '+' / '-' / '&' / '=' / '<' / '>';
+        /// </summary>
+        /// <returns></returns>
+        public bool ValueInfixOperator()
         {
-            return TreeNT((int)EExcelFormula.ValueInfixOperator, () =>
-                  OneOfLiterals(optimizedLiterals0));
+            return TreeNT((int)EExcelFormula.ValueInfixOperator, () => OneOfLiterals(optimizedLiterals0));
         }
 
-        public bool RefInfixOperator()    /*RefInfixOperator: RangeOperator / UnionOperator / IntersectionOperator;*/
+        /// <summary>
+        /// RefInfixOperator: RangeOperator / UnionOperator / IntersectionOperator;
+        /// </summary>
+        /// <returns></returns>
+        public bool RefInfixOperator()
         {
-            return
-                      RangeOperator()
-                   || UnionOperator()
-                   || IntersectionOperator();
+            return RangeOperator() || UnionOperator() || IntersectionOperator();
         }
 
-        public bool UnionOperator()    /*^^UnionOperator: ',';*/
+        /// <summary>
+        /// ^^UnionOperator: ',';
+        /// </summary>
+        /// <returns></returns>
+        public bool UnionOperator()
         {
-            return TreeNT((int)EExcelFormula.UnionOperator, () =>
-                  Char(','));
+            return TreeNT((int)EExcelFormula.UnionOperator, () => Char(','));
         }
 
-        public bool IntersectionOperator()    /*^^IntersectionOperator: ' ';*/
+        /// <summary>
+        /// ^^IntersectionOperator: ' ';
+        /// </summary>
+        /// <returns></returns>
+        public bool IntersectionOperator()
         {
-            return TreeNT((int)EExcelFormula.IntersectionOperator, () =>
-                  Char(' '));
+            return TreeNT((int)EExcelFormula.IntersectionOperator, () => Char(' '));
         }
 
-        public bool RangeOperator()    /*^^RangeOperator: ':';*/
+        /// <summary>
+        /// ^^RangeOperator: ':';
+        /// </summary>
+        /// <returns></returns>
+        public bool RangeOperator()
         {
-            return TreeNT((int)EExcelFormula.RangeOperator, () =>
-                  Char(':'));
+            return TreeNT((int)EExcelFormula.RangeOperator, () => Char(':'));
         }
 
-        public bool PostfixOperator()    /*^^PostfixOperator: '%';*/
+        /// <summary>
+        /// ^^PostfixOperator: '%';
+        /// </summary>
+        /// <returns></returns>
+        public bool PostfixOperator()
         {
-            return TreeNT((int)EExcelFormula.PostfixOperator, () =>
-                  Char('%'));
+            return TreeNT((int)EExcelFormula.PostfixOperator, () => Char('%'));
         }
 
-        public bool PrefixOperator()    /*^^PrefixOperator: '+' / '-';*/
+        /// <summary>
+        /// ^^PrefixOperator: '+' / '-';
+        /// </summary>
+        /// <returns></returns>
+        public bool PrefixOperator()
         {
-            return TreeNT((int)EExcelFormula.PrefixOperator, () =>
-                      Char('+') || Char('-'));
+            return TreeNT((int)EExcelFormula.PrefixOperator, () => Char('+') || Char('-'));
         }
 
-        public bool CellReference()    /*CellReference: ExternalCellReference / LocalCellReference;*/
+        /// <summary>
+        /// CellReference: ExternalCellReference / LocalCellReference;
+        /// </summary>
+        /// <returns></returns>
+        public bool CellReference()
         {
             return ExternalCellReference() || LocalCellReference();
         }
 
-        public bool LocalCellReference()    /*LocalCellReference: A1Reference;*/
+        /// <summary>
+        /// LocalCellReference: A1Reference;
+        /// </summary>
+        /// <returns></returns>
+        public bool LocalCellReference()
         {
             return A1Reference();
         }
 
-        public bool ExternalCellReference()    /*ExternalCellReference: BangReference / SheetRangeReference / SingleSheetReference;*/
+        /// <summary>
+        /// ExternalCellReference: BangReference / SheetRangeReference / SingleSheetReference;
+        /// </summary>
+        /// <returns></returns>
+        public bool ExternalCellReference()
         {
-            return
-                      BangReference()
-                   || SheetRangeReference()
-                   || SingleSheetReference();
+            return BangReference() || SheetRangeReference() || SingleSheetReference();
         }
 
-        public bool BookPrefix()    /*BookPrefix: WorkbookIndex '!';*/
+        /// <summary>
+        /// BookPrefix: WorkbookIndex '!';
+        /// </summary>
+        /// <returns></returns>
+        public bool BookPrefix()
         {
             return And(() => WorkbookIndex() && Char('!'));
         }
 
-        public bool BangReference()    /*BangReference: '!' (A1Reference / '#REF!');*/
+        /// <summary>
+        /// BangReference: '!' (A1Reference / '#REF!');
+        /// </summary>
+        /// <returns></returns>
+        public bool BangReference()
         {
-            return And(() =>
-                      Char('!')
-                   && (A1Reference() || Char('#', 'R', 'E', 'F', '!')));
+            return And(() => Char('!') && (A1Reference() || Char('#', 'R', 'E', 'F', '!')));
         }
 
-        public bool SheetRangeReference()    /*SheetRangeReference: SheetRange '!' A1Reference;*/
+        /// <summary>
+        /// SheetRangeReference: SheetRange '!' A1Reference;
+        /// </summary>
+        /// <returns></returns>
+        public bool SheetRangeReference()
         {
             return And(() => SheetRange() && Char('!') && A1Reference());
         }
 
-        public bool SingleSheetPrefix()    /*SingleSheetPrefix: SingleSheet '!';*/
+        /// <summary>
+        /// SingleSheetPrefix: SingleSheet '!';
+        /// </summary>
+        /// <returns></returns>
+        public bool SingleSheetPrefix()
         {
             return And(() => SingleSheet() && Char('!'));
         }
 
-        public bool SingleSheetReference()    /*SingleSheetReference: SingleSheetPrefix (A1Reference / '#REF!');*/
+        /// <summary>
+        /// SingleSheetReference: SingleSheetPrefix (A1Reference / '#REF!');
+        /// </summary>
+        /// <returns></returns>
+        public bool SingleSheetReference()
         {
-            return And(() =>
-                      SingleSheetPrefix()
-                   && (A1Reference() || Char('#', 'R', 'E', 'F', '!')));
+            return And(() => SingleSheetPrefix() && (A1Reference() || Char('#', 'R', 'E', 'F', '!')));
         }
 
-        public bool SingleSheetArea()    /*SingleSheetArea: SingleSheetPrefix A1Area;*/
+        /// <summary>
+        /// SingleSheetArea: SingleSheetPrefix A1Area;
+        /// </summary>
+        /// <returns></returns>
+        public bool SingleSheetArea()
         {
             return And(() => SingleSheetPrefix() && A1Area());
         }
 
-        public bool SingleSheet()    /*SingleSheet: WorkbookIndex? SheetName / '\'' WorkbookIndex? SheetNameSpecial '\'';*/
+        /// <summary>
+        /// SingleSheet: WorkbookIndex? SheetName / '\'' WorkbookIndex? SheetNameSpecial '\'';
+        /// </summary>
+        /// <returns></returns>
+        public bool SingleSheet()
         {
             return
-                      And(() =>
-                          Option(() => WorkbookIndex())
-                       && SheetName())
-                   || And(() =>
-                          Char('\'')
-                       && Option(() => WorkbookIndex())
-                       && SheetNameSpecial()
-                       && Char('\''));
+                      And(() => Option(() => WorkbookIndex()) && SheetName()) || And(() => Char('\'') && Option(() => WorkbookIndex()) && SheetNameSpecial() && Char('\''));
         }
 
-        public bool SheetRange()    /*SheetRange: WorkbookIndex? SheetName ':' SheetName / '\'' WorkbookIndex? SheetNameSpecial ':' SheetNameSpecial '\'';*/
+        /// <summary>
+        /// SheetRange: WorkbookIndex? SheetName ':' SheetName / '\'' WorkbookIndex? SheetNameSpecial ':' SheetNameSpecial '\'';
+        /// </summary>
+        /// <returns></returns>
+        public bool SheetRange()
         {
-            return
-                      And(() =>
-                          Option(() => WorkbookIndex())
-                       && SheetName()
-                       && Char(':')
-                       && SheetName())
-                   || And(() =>
-                          Char('\'')
-                       && Option(() => WorkbookIndex())
-                       && SheetNameSpecial()
-                       && Char(':')
-                       && SheetNameSpecial()
-                       && Char('\''));
+            return And(() => Option(() => WorkbookIndex()) && SheetName() && Char(':') && SheetName()) || And(() => Char('\'') && Option(() => WorkbookIndex()) && SheetNameSpecial() && Char(':') && SheetNameSpecial() && Char('\''));
         }
 
-        public bool WorkbookIndex()    /*^^WorkbookIndex: '[' WholeNumberPart ']';*/
+        /// <summary>
+        /// ^^WorkbookIndex: '[' WholeNumberPart ']';
+        /// </summary>
+        /// <returns></returns>
+        public bool WorkbookIndex()
         {
-            return TreeNT((int)EExcelFormula.WorkbookIndex, () =>
-                  And(() => Char('[') && WholeNumberPart() && Char(']')));
+            return TreeNT((int)EExcelFormula.WorkbookIndex, () => And(() => Char('[') && WholeNumberPart() && Char(']')));
         }
 
-        public bool SheetName()    /*^^SheetName: SheetNameCharacter+;*/
+        /// <summary>
+        /// ^^SheetName: SheetNameCharacter+;
+        /// </summary>
+        /// <returns></returns>
+        public bool SheetName()
         {
-            return TreeNT((int)EExcelFormula.SheetName, () =>
-                  PlusRepeat(() => SheetNameCharacter()));
+            return TreeNT((int)EExcelFormula.SheetName, () => PlusRepeat(() => SheetNameCharacter()));
         }
 
-        public bool SheetNameCharacter()    /*SheetNameCharacter: [A-Za-z0-9._] / HighCharacter;*/
+        /// <summary>
+        /// SheetNameCharacter: [A-Za-z0-9._] / HighCharacter;
+        /// </summary>
+        /// <returns></returns>
+        public bool SheetNameCharacter()
         {
-            return
-                      (In('A', 'Z', 'a', 'z', '0', '9') || OneOf("._"))
-                   || HighCharacter();
+            return (In('A', 'Z', 'a', 'z', '0', '9') || OneOf("._")) || HighCharacter();
         }
 
-        public bool SheetNameSpecial()    /*^^SheetNameSpecial: SheetNameBaseCharacter ('\'\''* SheetNameBaseCharacter)*;*/
+        /// <summary>
+        /// ^^SheetNameSpecial: SheetNameBaseCharacter ('\'\''* SheetNameBaseCharacter)*;
+        /// </summary>
+        /// <returns></returns>
+        public bool SheetNameSpecial()
         {
-            return TreeNT((int)EExcelFormula.SheetNameSpecial, () =>
-                  And(() =>
-                       SheetNameBaseCharacter()
-                    && OptRepeat(() =>
-                        And(() =>
-                                 OptRepeat(() => Char('\'', '\''))
-                              && SheetNameBaseCharacter()))));
+            return TreeNT((int)EExcelFormula.SheetNameSpecial, () => And(() => SheetNameBaseCharacter() && OptRepeat(() => And(() => OptRepeat(() => Char('\'', '\'')) && SheetNameBaseCharacter()))));
         }
 
-        public bool SheetNameBaseCharacter()    /*SheetNameBaseCharacter: [A-Za-z0-9!"#$%&()+,-.;<=>@^_`{|}~ ] / HighCharacter;*/
+        /// <summary>
+        /// SheetNameBaseCharacter: [A-Za-z0-9!"#$%&()+,-.;<=>@^_`{|}~ ] / HighCharacter;
+        /// </summary>
+        /// <returns></returns>
+        public bool SheetNameBaseCharacter()
         {
             return OneOf(optimizedCharset0) || HighCharacter();
         }
 
-        public bool A1Reference()    /*^^A1Reference: (A1Column ':' A1Column) / (A1Row ':' A1Row) / A1Area / A1Cell;*/
+        /// <summary>
+        /// ^^A1Reference: (A1Column ':' A1Column) / (A1Row ':' A1Row) / A1Area / A1Cell;
+        /// </summary>
+        /// <returns></returns>
+        public bool A1Reference()
         {
-            return TreeNT((int)EExcelFormula.A1Reference, () =>
-
-                       And(() => A1Column() && Char(':') && A1Column())
-                    || And(() => A1Row() && Char(':') && A1Row())
-                    || A1Area()
-                    || A1Cell());
+            return TreeNT((int)EExcelFormula.A1Reference, () => And(() => A1Column() && Char(':') && A1Column()) || And(() => A1Row() && Char(':') && A1Row()) || A1Area() || A1Cell());
         }
 
-        public bool A1Cell()    /*A1Cell: A1Column A1Row !NameCharacter;*/
+        /// <summary>
+        /// A1Cell: A1Column A1Row !NameCharacter;
+        /// </summary>
+        /// <returns></returns>
+        public bool A1Cell()
         {
-            return And(() =>
-                      A1Column()
-                   && A1Row()
-                   && Not(() => NameCharacter()));
+            return And(() => A1Column() && A1Row() && Not(() => NameCharacter()));
         }
 
-        public bool A1Area()    /*A1Area: A1Cell ':' A1Cell;*/
+        /// <summary>
+        /// A1Area: A1Cell ':' A1Cell;
+        /// </summary>
+        /// <returns></returns>
+        public bool A1Area()
         {
             return And(() => A1Cell() && Char(':') && A1Cell());
         }
 
-        public bool A1Column()    /*^^A1Column: A1AbsoluteColumn / A1RelativeColumn;*/
+        /// <summary>
+        /// ^^A1Column: A1AbsoluteColumn / A1RelativeColumn;
+        /// </summary>
+        /// <returns></returns>
+        public bool A1Column()
         {
-            return TreeNT((int)EExcelFormula.A1Column, () =>
-                      A1AbsoluteColumn() || A1RelativeColumn());
+            return TreeNT((int)EExcelFormula.A1Column, () => A1AbsoluteColumn() || A1RelativeColumn());
         }
 
-        public bool A1AbsoluteColumn()    /*A1AbsoluteColumn: '$' A1RelativeColumn;*/
+        /// <summary>
+        /// A1AbsoluteColumn: '$' A1RelativeColumn;
+        /// </summary>
+        /// <returns></returns>
+        public bool A1AbsoluteColumn()
         {
             return And(() => Char('$') && A1RelativeColumn());
         }
 
-        public bool A1RelativeColumn()    /*A1RelativeColumn: 'XF' [A-D] / 'X' [A-E] [A-Z] / [A-W][A-Z][A-Z] / [A-Z][A-Z] / [A-Z];*/
+        /// <summary>
+        /// A1RelativeColumn: 'XF' [A-D] / 'X' [A-E] [A-Z] / [A-W][A-Z][A-Z] / [A-Z][A-Z] / [A-Z];
+        /// </summary>
+        /// <returns></returns>
+        public bool A1RelativeColumn()
         {
             return
-                      And(() => Char('X', 'F') && In('A', 'D'))
-                   || And(() => Char('X') && In('A', 'E') && In('A', 'Z'))
-                   || And(() => In('A', 'W') && In('A', 'Z') && In('A', 'Z'))
-                   || And(() => In('A', 'Z') && In('A', 'Z'))
-                   || In('A', 'Z');
+                      And(() => Char('X', 'F') && In('A', 'D')) || And(() => Char('X') && In('A', 'E') && In('A', 'Z')) || And(() => In('A', 'W') && In('A', 'Z') && In('A', 'Z')) || And(() => In('A', 'Z') && In('A', 'Z')) || In('A', 'Z');
         }
 
-        public bool A1Row()    /*^^A1Row: A1AbsoluteRow / A1RelativeRow;*/
+        /// <summary>
+        /// ^^A1Row: A1AbsoluteRow / A1RelativeRow;
+        /// </summary>
+        /// <returns></returns>
+        public bool A1Row()
         {
-            return TreeNT((int)EExcelFormula.A1Row, () =>
-                      A1AbsoluteRow() || A1RelativeRow());
+            return TreeNT((int)EExcelFormula.A1Row, () => A1AbsoluteRow() || A1RelativeRow());
         }
 
-        public bool A1AbsoluteRow()    /*A1AbsoluteRow: '$' A1RelativeRow;*/
+        /// <summary>
+        /// A1AbsoluteRow: '$' A1RelativeRow;
+        /// </summary>
+        /// <returns></returns>
+        public bool A1AbsoluteRow()
         {
             return And(() => Char('$') && A1RelativeRow());
         }
 
-        public bool A1RelativeRow()    /*A1RelativeRow: [1-9][0-9]*;*/
+        /// <summary>
+        /// A1RelativeRow: [1-9][0-9]*;
+        /// </summary>
+        /// <returns></returns>
+        public bool A1RelativeRow()
         {
             return And(() => In('1', '9') && OptRepeat(() => In('0', '9')));
         }
 
-        public bool CellFunctionCall()    /*^^CellFunctionCall: A1Cell '(' ArgumentList ')';*/
+        /// <summary>
+        /// ^^CellFunctionCall: A1Cell '(' ArgumentList ')';
+        /// </summary>
+        /// <returns></returns>
+        public bool CellFunctionCall()
         {
-            return TreeNT((int)EExcelFormula.CellFunctionCall, () =>
-                  And(() =>
-                       A1Cell()
-                    && Char('(')
-                    && ArgumentList()
-                    && Char(')')));
+            return TreeNT((int)EExcelFormula.CellFunctionCall, () => And(() => A1Cell() && Char('(') && ArgumentList() && Char(')')));
         }
 
-        public bool UserDefinedFunctionCall()    /*^^UserDefinedFunctionCall: UserDefinedFunctionName '(' ArgumentList ')';*/
+        /// <summary>
+        /// ^^UserDefinedFunctionCall: UserDefinedFunctionName '(' ArgumentList ')';
+        /// </summary>
+        /// <returns></returns>
+        public bool UserDefinedFunctionCall()
         {
-            return TreeNT((int)EExcelFormula.UserDefinedFunctionCall, () =>
-                  And(() =>
-                       UserDefinedFunctionName()
-                    && Char('(')
-                    && ArgumentList()
-                    && Char(')')));
+            return TreeNT((int)EExcelFormula.UserDefinedFunctionCall, () => And(() => UserDefinedFunctionName() && Char('(') && ArgumentList() && Char(')')));
         }
 
-        public bool UserDefinedFunctionName()    /*UserDefinedFunctionName: NameReference;*/
+        /// <summary>
+        /// UserDefinedFunctionName: NameReference;
+        /// </summary>
+        /// <returns></returns>
+        public bool UserDefinedFunctionName()
         {
             return NameReference();
         }
 
-        public bool ArgumentList()    /*ArgumentList: Argument (',' Argument)*;*/
+        /// <summary>
+        /// ArgumentList: Argument (',' Argument)*;
+        /// </summary>
+        /// <returns></returns>
+        public bool ArgumentList()
         {
-            return And(() =>
-                      Argument()
-                   && OptRepeat(() => And(() => Char(',') && Argument())));
+            return And(() => Argument() && OptRepeat(() => And(() => Char(',') && Argument())));
         }
 
-        public bool Argument()    /*Argument: ArgumentExpression / ws;*/
+        /// <summary>
+        /// Argument: ArgumentExpression / ws;
+        /// </summary>
+        /// <returns></returns>
+        public bool Argument()
         {
             return ArgumentExpression() || ws();
         }
 
-        public bool ArgumentExpression()    /*^^ArgumentExpression: ws ArgumentInfixTerms;*/
+        /// <summary>
+        /// ^^ArgumentExpression: ws ArgumentInfixTerms;
+        /// </summary>
+        /// <returns></returns>
+        public bool ArgumentExpression()
         {
-            return TreeNT((int)EExcelFormula.ArgumentExpression, () =>
-                  And(() => ws() && ArgumentInfixTerms()));
+            return TreeNT((int)EExcelFormula.ArgumentExpression, () => And(() => ws() && ArgumentInfixTerms()));
         }
 
-        public bool ArgumentInfixTerms()    /*ArgumentInfixTerms: ArgumentPreAndPostTerm (ArgumentInfixOperator ws ArgumentPreAndPostTerm)*;*/
+        /// <summary>
+        /// ArgumentInfixTerms: ArgumentPreAndPostTerm (ArgumentInfixOperator ws ArgumentPreAndPostTerm)*;
+        /// </summary>
+        /// <returns></returns>
+        public bool ArgumentInfixTerms()
         {
-            return And(() =>
-                      ArgumentPreAndPostTerm()
-                   && OptRepeat(() =>
-                       And(() =>
-                                ArgumentInfixOperator()
-                             && ws()
-                             && ArgumentPreAndPostTerm())));
+            return And(() => ArgumentPreAndPostTerm() && OptRepeat(() => And(() => ArgumentInfixOperator() && ws() && ArgumentPreAndPostTerm())));
         }
 
-        public bool ArgumentPreAndPostTerm()    /*ArgumentPreAndPostTerm: (PrefixOperator ws)* ArgumentTerm (PostfixOperator ws)*;*/
+        /// <summary>
+        /// ArgumentPreAndPostTerm: (PrefixOperator ws)* ArgumentTerm (PostfixOperator ws)*;
+        /// </summary>
+        /// <returns></returns>
+        public bool ArgumentPreAndPostTerm()
         {
-            return And(() =>
-                      OptRepeat(() => And(() => PrefixOperator() && ws()))
-                   && ArgumentTerm()
-                   && OptRepeat(() => And(() => PostfixOperator() && ws())));
+            return And(() => OptRepeat(() => And(() => PrefixOperator() && ws())) && ArgumentTerm() && OptRepeat(() => And(() => PostfixOperator() && ws())));
         }
 
-        public bool ArgumentTerm()    /*ArgumentTerm: (ArgumentRefInfixTerms / '(' Expression ')' / Constant) ws;*/
+        /// <summary>
+        /// ArgumentTerm: (ArgumentRefInfixTerms / '(' Expression ')' / Constant) ws;
+        /// </summary>
+        /// <returns></returns>
+        public bool ArgumentTerm()
         {
-            return And(() =>
-                      (
-                          ArgumentRefInfixTerms()
-                       || And(() => Char('(') && Expression() && Char(')'))
-                       || Constant())
-                   && ws());
+            return And(() => (ArgumentRefInfixTerms() || And(() => Char('(') && Expression() && Char(')')) || Constant()) && ws());
         }
 
-        public bool ArgumentRefInfixTerms()    /*ArgumentRefInfixTerms: ArgumentRefTerm (RefArgumentInfixOperator ws ArgumentRefTerm)*;*/
+        /// <summary>
+        /// ArgumentRefInfixTerms: ArgumentRefTerm (RefArgumentInfixOperator ws ArgumentRefTerm)*;
+        /// </summary>
+        /// <returns></returns>
+        public bool ArgumentRefInfixTerms()
         {
-            return And(() =>
-                      ArgumentRefTerm()
-                   && OptRepeat(() =>
-                       And(() =>
-                                RefArgumentInfixOperator()
-                             && ws()
-                             && ArgumentRefTerm())));
+            return And(() => ArgumentRefTerm() && OptRepeat(() => And(() => RefArgumentInfixOperator() && ws() && ArgumentRefTerm())));
         }
 
-        public bool ArgumentRefTerm()    /*ArgumentRefTerm: '(' ws RefInfixTerms ')' / RefConstant / CellFunctionCall / CellReference / UserDefinedFunctionCall
-	/ NameReference / StructureReference;*/
+        /// <summary>
+        /// ArgumentRefTerm: '(' ws RefInfixTerms ')' / RefConstant / CellFunctionCall / CellReference / UserDefinedFunctionCall / NameReference / StructureReference;
+        /// </summary>
+        /// <returns></returns>
+        public bool ArgumentRefTerm()
         {
-            return
-                      And(() =>
-                          Char('(')
-                       && ws()
-                       && RefInfixTerms()
-                       && Char(')'))
-                   || RefConstant()
-                   || CellFunctionCall()
-                   || CellReference()
-                   || UserDefinedFunctionCall()
-                   || NameReference()
-                   || StructureReference();
+            return And(() => Char('(') && ws() && RefInfixTerms() && Char(')')) || RefConstant() || CellFunctionCall() || CellReference() || UserDefinedFunctionCall() || NameReference() || StructureReference();
         }
 
-        public bool ArgumentInfixOperator()    /*ArgumentInfixOperator: RefArgumentInfixOperator / ValueInfixOperator;*/
+        /// <summary>
+        /// ArgumentInfixOperator: RefArgumentInfixOperator / ValueInfixOperator;
+        /// </summary>
+        /// <returns></returns>
+        public bool ArgumentInfixOperator()
         {
             return RefArgumentInfixOperator() || ValueInfixOperator();
         }
 
-        public bool RefArgumentInfixOperator()    /*RefArgumentInfixOperator: RangeOperator / IntersectionOperator;*/
+        /// <summary>
+        /// RefArgumentInfixOperator: RangeOperator / IntersectionOperator;
+        /// </summary>
+        /// <returns></returns>
+        public bool RefArgumentInfixOperator()
         {
             return RangeOperator() || IntersectionOperator();
         }
 
-        public bool NameReference()    /*^^NameReference: (ExternalName / Name) !'[';*/
+        /// <summary>
+        /// ^^NameReference: (ExternalName / Name) !'[';
+        /// </summary>
+        /// <returns></returns>
+        public bool NameReference()
         {
-            return TreeNT((int)EExcelFormula.NameReference, () =>
-                  And(() =>
-                       (ExternalName() || Name())
-                    && Not(() => Char('['))));
+            return TreeNT((int)EExcelFormula.NameReference, () => And(() => (ExternalName() || Name()) && Not(() => Char('['))));
         }
 
-        public bool ExternalName()    /*ExternalName: BangName / (SingleSheetPrefix / BookPrefix) Name;*/
+        /// <summary>
+        /// ExternalName: BangName / (SingleSheetPrefix / BookPrefix) Name;
+        /// </summary>
+        /// <returns></returns>
+        public bool ExternalName()
         {
-            return
-                      BangName()
-                   || And(() =>
-                          (SingleSheetPrefix() || BookPrefix())
-                       && Name());
+            return BangName() || And(() => (SingleSheetPrefix() || BookPrefix()) && Name());
         }
 
-        public bool BangName()    /*BangName: '!' Name;*/
+        /// <summary>
+        /// BangName: '!' Name;
+        /// </summary>
+        /// <returns></returns>
+        public bool BangName()
         {
             return And(() => Char('!') && Name());
         }
 
-        public bool Name()    /*Name: NameStartCharacter NameCharacter*;*/
+        /// <summary>
+        /// Name: NameStartCharacter NameCharacter*;
+        /// </summary>
+        /// <returns></returns>
+        public bool Name()
         {
-            return And(() =>
-                      NameStartCharacter()
-                   && OptRepeat(() => NameCharacter()));
+            return And(() => NameStartCharacter() && OptRepeat(() => NameCharacter()));
         }
 
-        public bool NameStartCharacter()    /*NameStartCharacter: [_\\A-Za-z] / HighCharacter;*/
+        /// <summary>
+        /// NameStartCharacter: [_\\A-Za-z] / HighCharacter;
+        /// </summary>
+        /// <returns></returns>
+        public bool NameStartCharacter()
         {
-            return
-                      (In('A', 'Z', 'a', 'z') || OneOf("_\\"))
-                   || HighCharacter();
+            return (In('A', 'Z', 'a', 'z') || OneOf("_\\")) || HighCharacter();
         }
 
-        public bool NameCharacter()    /*NameCharacter: NameStartCharacter / [0-9] / '.' / '?' / HighCharacter;*/
+        /// <summary>
+        /// NameCharacter: NameStartCharacter / [0-9] / '.' / '?' / HighCharacter;
+        /// </summary>
+        /// <returns></returns>
+        public bool NameCharacter()
         {
-            return
-                      NameStartCharacter()
-                   || In('0', '9')
-                   || Char('.')
-                   || Char('?')
-                   || HighCharacter();
+            return NameStartCharacter() || In('0', '9') || Char('.') || Char('?') || HighCharacter();
         }
 
-        public bool StructureReference()    /*^^StructureReference: TableIdentifier? IntraTableReference;*/
+        /// <summary>
+        /// ^^StructureReference: TableIdentifier? IntraTableReference;
+        /// </summary>
+        /// <returns></returns>
+        public bool StructureReference()
         {
-            return TreeNT((int)EExcelFormula.StructureReference, () =>
-                  And(() =>
-                       Option(() => TableIdentifier())
-                    && IntraTableReference()));
+            return TreeNT((int)EExcelFormula.StructureReference, () => And(() => Option(() => TableIdentifier()) && IntraTableReference()));
         }
 
-        public bool TableIdentifier()    /*TableIdentifier: BookPrefix? TableName;*/
+        /// <summary>
+        /// TableIdentifier: BookPrefix? TableName;
+        /// </summary>
+        /// <returns></returns>
+        public bool TableIdentifier()
         {
             return And(() => Option(() => BookPrefix()) && TableName());
         }
 
-        public bool TableName()    /*TableName: Name;*/
+        /// <summary>
+        /// TableName: Name;
+        /// </summary>
+        /// <returns></returns>
+        public bool TableName()
         {
             return Name();
         }
 
-        public bool IntraTableReference()    /*IntraTableReference: SpacedLBracket InnerReference SpacedRBracket / Keyword / '[' SimpleColumnName ']';*/
+        /// <summary>
+        /// IntraTableReference: SpacedLBracket InnerReference SpacedRBracket / Keyword / '[' SimpleColumnName ']';
+        /// </summary>
+        /// <returns></returns>
+        public bool IntraTableReference()
         {
-            return
-                      And(() =>
-                          SpacedLBracket()
-                       && InnerReference()
-                       && SpacedRBracket())
-                   || Keyword()
-                   || And(() =>
-                          Char('[')
-                       && SimpleColumnName()
-                       && Char(']'));
+            return And(() => SpacedLBracket() && InnerReference() && SpacedRBracket()) || Keyword() || And(() => Char('[') && SimpleColumnName() && Char(']'));
         }
 
-        public bool InnerReference()    /*InnerReference: (KeywordList SpacedComma)? ColumnRange / KeywordList;*/
+        /// <summary>
+        /// InnerReference: (KeywordList SpacedComma)? ColumnRange / KeywordList;
+        /// </summary>
+        /// <returns></returns>
+        public bool InnerReference()
         {
             return
                       And(() =>
@@ -698,149 +802,112 @@ namespace ExcelFormula
                    || KeywordList();
         }
 
-        public bool Keyword()    /*Keyword: '[#All]' / '[#Data]' / '[#Headers]' / '[#Totals]' / '[#This Row]';*/
+        /// <summary>
+        /// Keyword: '[#All]' / '[#Data]' / '[#Headers]' / '[#Totals]' / '[#This Row]';
+        /// </summary>
+        /// <returns></returns>
+        public bool Keyword()
         {
-            return
-                      Char('[', '#', 'A', 'l', 'l', ']')
-                   || Char('[', '#', 'D', 'a', 't', 'a', ']')
-                   || Char("[#Headers]")
-                   || Char("[#Totals]")
-                   || Char("[#This Row]");
+            return Char('[', '#', 'A', 'l', 'l', ']') || Char('[', '#', 'D', 'a', 't', 'a', ']') || Char("[#Headers]") || Char("[#Totals]") || Char("[#This Row]");
         }
 
-        public bool KeywordList()    /*KeywordList: '[#Headers]' SpacedComma '[#Data]' / '[#Data]' SpacedComma '[#Totals]' / Keyword;*/
+        /// <summary>
+        /// KeywordList: '[#Headers]' SpacedComma '[#Data]' / '[#Data]' SpacedComma '[#Totals]' / Keyword;
+        /// </summary>
+        /// <returns></returns>
+        public bool KeywordList()
         {
-            return
-                      And(() =>
-                          Char("[#Headers]")
-                       && SpacedComma()
-                       && Char('[', '#', 'D', 'a', 't', 'a', ']'))
-                   || And(() =>
-                          Char('[', '#', 'D', 'a', 't', 'a', ']')
-                       && SpacedComma()
-                       && Char("[#Totals]"))
-                   || Keyword();
+            return And(() => Char("[#Headers]") && SpacedComma() && Char('[', '#', 'D', 'a', 't', 'a', ']')) || And(() => Char('[', '#', 'D', 'a', 't', 'a', ']') && SpacedComma() && Char("[#Totals]")) || Keyword();
         }
 
-        public bool ColumnRange()    /*ColumnRange: Column (':' Column)?;*/
+        /// <summary>
+        /// ColumnRange: Column (':' Column)?;
+        /// </summary>
+        /// <returns></returns>
+        public bool ColumnRange()
         {
-            return And(() =>
-                      Column()
-                   && Option(() => And(() => Char(':') && Column())));
+            return And(() => Column() && Option(() => And(() => Char(':') && Column())));
         }
 
-        public bool Column()    /*Column: '[' ws SimpleColumnName ws ']' / SimpleColumnName;*/
+        /// <summary>
+        /// Column: '[' ws SimpleColumnName ws ']' / SimpleColumnName;
+        /// </summary>
+        /// <returns></returns>
+        public bool Column()
         {
-            return
-                      And(() =>
-                          Char('[')
-                       && ws()
-                       && SimpleColumnName()
-                       && ws()
-                       && Char(']'))
-                   || SimpleColumnName();
+            return And(() => Char('[') && ws() && SimpleColumnName() && ws() && Char(']')) || SimpleColumnName();
         }
 
-        public bool SimpleColumnName()    /*SimpleColumnName: AnyNoSpaceColumnCharacter+ (ws AnyNoSpaceColumnCharacter+)*;*/
+        /// <summary>
+        /// SimpleColumnName: AnyNoSpaceColumnCharacter+ (ws AnyNoSpaceColumnCharacter+)*;
+        /// </summary>
+        /// <returns></returns>
+        public bool SimpleColumnName()
         {
-            return And(() =>
-                      PlusRepeat(() => AnyNoSpaceColumnCharacter())
-                   && OptRepeat(() =>
-                       And(() =>
-                                ws()
-                             && PlusRepeat(() => AnyNoSpaceColumnCharacter()))));
+            return And(() => PlusRepeat(() => AnyNoSpaceColumnCharacter()) && OptRepeat(() => And(() => ws() && PlusRepeat(() => AnyNoSpaceColumnCharacter()))));
         }
 
-        public bool EscapeColumnCharacter()    /*EscapeColumnCharacter: '\'' / '#' / '[' / ']';*/
+        /// <summary>
+        /// EscapeColumnCharacter: '\'' / '#' / '[' / ']';
+        /// </summary>
+        /// <returns></returns>
+        public bool EscapeColumnCharacter()
         {
             return Char('\'') || Char('#') || Char('[') || Char(']');
         }
 
-        public bool UnescapedColumnCharacter()    /*UnescapedColumnCharacter: [A-Za-z0-9!"#$%&()*+,-./:;<=>?@\\^_`{|}~] / HighCharacter;*/
+        /// <summary>
+        /// UnescapedColumnCharacter: [A-Za-z0-9!"#$%&()*+,-./:;<=>?@\\^_`{|}~] / HighCharacter;
+        /// </summary>
+        /// <returns></returns>
+        public bool UnescapedColumnCharacter()
         {
             return OneOf(optimizedCharset1) || HighCharacter();
         }
 
-        public bool AnyNoSpaceColumnCharacter()    /*AnyNoSpaceColumnCharacter: ('\'' EscapeColumnCharacter) / UnescapedColumnCharacter;*/
+        /// <summary>
+        /// AnyNoSpaceColumnCharacter: ('\'' EscapeColumnCharacter) / UnescapedColumnCharacter;
+        /// </summary>
+        /// <returns></returns>
+        public bool AnyNoSpaceColumnCharacter()
         {
-            return
-                      And(() => Char('\'') && EscapeColumnCharacter())
-                   || UnescapedColumnCharacter();
+            return And(() => Char('\'') && EscapeColumnCharacter()) || UnescapedColumnCharacter();
         }
 
-        public bool SpacedComma()    /*SpacedComma: ' '? ',' ' '?;*/
+        /// <summary>
+        /// SpacedComma: ' '? ',' ' '?;
+        /// </summary>
+        /// <returns></returns>
+        public bool SpacedComma()
         {
-            return And(() =>
-                      Option(() => Char(' '))
-                   && Char(',')
-                   && Option(() => Char(' ')));
+            return And(() => Option(() => Char(' ')) && Char(',') && Option(() => Char(' ')));
         }
 
-        public bool SpacedLBracket()    /*SpacedLBracket: '[' ' '?;*/
+        /// <summary>
+        /// SpacedLBracket: '[' ' '?;
+        /// </summary>
+        /// <returns></returns>
+        public bool SpacedLBracket()
         {
             return And(() => Char('[') && Option(() => Char(' ')));
         }
 
-        public bool SpacedRBracket()    /*SpacedRBracket: ' '? ']';*/
+        /// <summary>
+        /// SpacedRBracket: ' '? ']';
+        /// </summary>
+        /// <returns></returns>
+        public bool SpacedRBracket()
         {
             return And(() => Option(() => Char(' ')) && Char(']'));
         }
 
-        public bool ws()    /*ws: ' '*;*/
+        /// <summary>
+        /// ws: ' '*;
+        /// </summary>
+        /// <returns></returns>
+        public bool ws()
         {
             return OptRepeat(() => Char(' '));
         }
-
-        #endregion Grammar Rules
-
-        #region Optimization Data
-
-        internal static OptimizedCharset optimizedCharset0;
-        internal static OptimizedCharset optimizedCharset1;
-
-        internal static OptimizedLiterals optimizedLiterals0;
-
-        static ExcelFormula()
-        {
-            {
-                var ranges = new OptimizedCharset.Range[]
-                   {new OptimizedCharset.Range('A','Z'),
-                   new OptimizedCharset.Range('a','z'),
-                   new OptimizedCharset.Range('0','9'),
-                   new OptimizedCharset.Range(',','.'),
-                    };
-                var oneOfChars = new char[]    {'!','"','#','$','%'
-                                                  ,'&','(',')','+',';'
-                                                  ,'<','=','>','@','^'
-                                                  ,'_','`','{','|','}'
-                                                  ,'~',' '};
-                optimizedCharset0 = new OptimizedCharset(ranges, oneOfChars);
-            }
-
-            {
-                var ranges = new OptimizedCharset.Range[]
-                   {new OptimizedCharset.Range('A','Z'),
-                   new OptimizedCharset.Range('a','z'),
-                   new OptimizedCharset.Range('0','9'),
-                   new OptimizedCharset.Range(',','.'),
-                    };
-                var oneOfChars = new char[]    {'!','"','#','$','%'
-                                                  ,'&','(',')','*','+'
-                                                  ,'/',':',';','<','='
-                                                  ,'>','?','@','\\','^'
-                                                  ,'_','`','{','|','}'
-                                                  ,'~'};
-                optimizedCharset1 = new OptimizedCharset(ranges, oneOfChars);
-            }
-
-            {
-                string[] literals =
-                { "<>",">=","<=","^","*","/","+","-",
-                  "&","=","<",">" };
-                optimizedLiterals0 = new OptimizedLiterals(literals);
-            }
-        }
-
-        #endregion Optimization Data
     }
 }

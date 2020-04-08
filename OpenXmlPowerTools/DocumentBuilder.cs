@@ -2486,7 +2486,6 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml
             }
         }
 
-        /// ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         /// New method to support new functionality
         private static void AppendDocument(WordprocessingDocument sourceDocument, WordprocessingDocument newDocument, OpenXmlPart part,
             List<XElement> newContent, bool keepSection, string insertId, List<ImageData> images)
@@ -2526,8 +2525,6 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml
 
             partXDoc.Elements().First().ReplaceWith((XElement)InsertTransform(partXDoc.Root, newContent));
         }
-
-        /// ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
         public static WmlDocument ExtractGlossaryDocument(WmlDocument wmlGlossaryDocument)
         {

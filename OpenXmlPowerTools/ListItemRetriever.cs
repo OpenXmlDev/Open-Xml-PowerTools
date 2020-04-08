@@ -970,19 +970,6 @@ namespace OpenXmlPowerTools
             {
                 InitializeListItemRetrieverForPart(wordDoc, part, settings);
             }
-
-#if false
-            foreach (var part in wordDoc.ContentParts())
-	        {
-                var xDoc = part.GetXDocument();
-                var paras = xDoc
-                    .Descendants(W.p)
-                    .Where(p =>
-                        p.Annotation<ListItemInfo>() == null);
-                if (paras.Any())
-                    Console.WriteLine("Error");
-	        }
-#endif
         }
 
         private static void InitializeListItemRetrieverForPart(WordprocessingDocument wordDoc, OpenXmlPart part, ListItemRetrieverSettings settings)

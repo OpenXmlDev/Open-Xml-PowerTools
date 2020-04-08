@@ -15,7 +15,7 @@ using System.Xml.XPath;
 
 namespace OpenXmlPowerTools
 {
-    public class DocumentAssembler
+    public partial class DocumentAssembler
     {
         public static WmlDocument AssembleDocument(WmlDocument templateDoc, XmlDocument data, out bool templateError)
         {
@@ -88,8 +88,7 @@ namespace OpenXmlPowerTools
 
         private static object ForceBlockLevelAsAppropriate(XNode node, TemplateError te)
         {
-            var element = node as XElement;
-            if (element != null)
+            if (node is XElement element)
             {
                 if (element.Name == W.p)
                 {
@@ -179,8 +178,7 @@ namespace OpenXmlPowerTools
         // the content control, which contains the paragraph content of the cell.
         private static object NormalizeContentControlsInCells(XNode node)
         {
-            var element = node as XElement;
-            if (element != null)
+            if (node is XElement element)
             {
                 if (element.Name == W.sdt && element.Parent.Name == W.tr)
                 {
@@ -607,34 +605,7 @@ namespace OpenXmlPowerTools
             return null;
         }
 
-        private class PA
-        {
-            public static XName Content = "Content";
-            public static XName Table = "Table";
-            public static XName Repeat = "Repeat";
-            public static XName EndRepeat = "EndRepeat";
-            public static XName Conditional = "Conditional";
-            public static XName EndConditional = "EndConditional";
-
-            public static XName Select = "Select";
-            public static XName Optional = "Optional";
-            public static XName Match = "Match";
-            public static XName NotMatch = "NotMatch";
-            public static XName Depth = "Depth";
-        }
-
-        private class PASchemaSet
-        {
-            public string XsdMarkup;
-            public XmlSchemaSet SchemaSet;
-        }
-
         private static Dictionary<XName, PASchemaSet> s_PASchemaSets = null;
-
-        private class TemplateError
-        {
-            public bool HasError = false;
-        }
 
         private static object ContentReplacementTransform(XNode node, XElement data, TemplateError templateError)
         {
@@ -840,7 +811,6 @@ namespace OpenXmlPowerTools
         private static object CreateContextErrorMessage(XElement element, string errorMessage, TemplateError templateError)
         {
             var para = element.Descendants(W.p).FirstOrDefault();
-            var run = element.Descendants(W.r).FirstOrDefault();
             var errorRun = CreateRunErrorMessage(errorMessage, templateError);
             if (para != null)
             {

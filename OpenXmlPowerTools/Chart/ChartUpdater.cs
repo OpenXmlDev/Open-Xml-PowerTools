@@ -9,54 +9,6 @@ using System.Xml.Linq;
 
 namespace OpenXmlPowerTools
 {
-    public enum ChartDataType
-    {
-        Number,
-        String,
-        DateTime,
-    }
-
-    // Format Codes
-    // 0 - general
-    // 1 - 0
-    // 2 - 0.00
-    // 3 - #,##0
-    // 4 - #,##0.00
-    // 9 - 0%
-    // 10 - 0.00%
-    // 11 - 0.00E+00
-    // 12 - # ?/?
-    // 13 - # ??/??
-    // 14 - mm-dd-yy
-    // 15 - d-mmm-yy
-    // 16 - d-mmm
-    // 17 - mmm-yy
-    // 18 - h:mm AM/PM
-    // 19 - h:mm:ss AM/PM
-    // 20 - h:mm
-    // 21 - h:mm:ss
-    // 22 - m/d/yy h:mm
-    // 37 - #,##0 ;(#,##0)
-    // 38 - #,##0 ;[Red](#,##0)
-    // 39 - #,##0.00;(#,##0.00)
-    // 40 - #,##0.00;[Red](#,##0.00)
-    // 45 - mm:ss
-    // 46 - [h]:mm:ss
-    // 47 - mmss.0
-    // 48 - ##0.0E+0
-    // 49 - @
-
-    public class ChartData
-    {
-        public string[] SeriesNames;
-
-        public ChartDataType CategoryDataType;
-        public int CategoryFormatCode;
-        public string[] CategoryNames;
-
-        public double[][] Values;
-    }
-
     public class ChartUpdater
     {
         public static bool UpdateChart(WordprocessingDocument wDoc, string contentControlTag, ChartData chartData)
@@ -77,6 +29,28 @@ namespace OpenXmlPowerTools
                     mainDocumentPart.PutXDocument();
                     return true;
                 }
+            }
+            return false;
+        }
+
+        public static bool UpdateChart(PresentationDocument pDoc, int slideNumber, ChartData chartData)
+        {
+            var presentationPart = pDoc.PresentationPart;
+            var pXDoc = presentationPart.GetXDocument();
+            var sldIdElement = pXDoc.Root.Elements(P.sldIdLst).Elements(P.sldId).Skip(slideNumber - 1).FirstOrDefault();
+            if (sldIdElement != null)
+            {
+                var rId = (string)sldIdElement.Attribute(R.id);
+                var slidePart = presentationPart.GetPartById(rId);
+                var sXDoc = slidePart.GetXDocument();
+                var chartRid = (string)sXDoc.Descendants(C.chart).Attributes(R.id).FirstOrDefault();
+                if (chartRid != null)
+                {
+                    var chartPart = (ChartPart)slidePart.GetPartById(chartRid);
+                    UpdateChart(chartPart, chartData);
+                    return true;
+                }
+                return true;
             }
             return false;
         }
@@ -608,28 +582,6 @@ namespace OpenXmlPowerTools
                     element.Nodes().Select(n => UpdateAccentTransform(n, accentNumber)));
             }
             return node;
-        }
-
-        public static bool UpdateChart(PresentationDocument pDoc, int slideNumber, ChartData chartData)
-        {
-            var presentationPart = pDoc.PresentationPart;
-            var pXDoc = presentationPart.GetXDocument();
-            var sldIdElement = pXDoc.Root.Elements(P.sldIdLst).Elements(P.sldId).Skip(slideNumber - 1).FirstOrDefault();
-            if (sldIdElement != null)
-            {
-                var rId = (string)sldIdElement.Attribute(R.id);
-                var slidePart = presentationPart.GetPartById(rId);
-                var sXDoc = slidePart.GetXDocument();
-                var chartRid = (string)sXDoc.Descendants(C.chart).Attributes(R.id).FirstOrDefault();
-                if (chartRid != null)
-                {
-                    var chartPart = (ChartPart)slidePart.GetPartById(chartRid);
-                    UpdateChart(chartPart, chartData);
-                    return true;
-                }
-                return true;
-            }
-            return false;
         }
     }
 }

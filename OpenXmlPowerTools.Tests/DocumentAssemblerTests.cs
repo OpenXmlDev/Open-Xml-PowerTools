@@ -4,9 +4,11 @@
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Validation;
 using OpenXmlPowerTools;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Xml;
 using System.Xml.Linq;
 using Xunit;
@@ -129,15 +131,13 @@ namespace OxPt
                     var v = new OpenXmlValidator();
                     var valErrors = v.Validate(wDoc).Where(ve => !s_ExpectedErrors.Contains(ve.Description));
 
-#if false
-                    StringBuilder sb = new StringBuilder();
+                    var sb = new StringBuilder();
                     foreach (var item in valErrors.Select(r => r.Description).OrderBy(t => t).Distinct())
-	                {
-		                sb.Append(item).Append(Environment.NewLine);
-	                }
-                    string z = sb.ToString();
+                    {
+                        sb.Append(item).Append(Environment.NewLine);
+                    }
+                    var z = sb.ToString();
                     Console.WriteLine(z);
-#endif
 
                     Assert.Empty(valErrors);
                 }

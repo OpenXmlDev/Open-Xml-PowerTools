@@ -473,22 +473,14 @@ AAsACwDBAgAAbCwAAAAA";
     {
         public static bool IsValid(string fileName, string officeVersion)
         {
-#if !NET35
             var fileFormatVersion = FileFormatVersions.Office2013;
-#else
-            FileFormatVersions fileFormatVersion = FileFormatVersions.Office2010;
-#endif
             try
             {
                 fileFormatVersion = (FileFormatVersions)Enum.Parse(fileFormatVersion.GetType(), officeVersion);
             }
             catch (Exception)
             {
-#if !NET35
                 fileFormatVersion = FileFormatVersions.Office2013;
-#else
-                fileFormatVersion = FileFormatVersions.Office2010;
-#endif
             }
 
             var fi = new FileInfo(fileName);
@@ -528,22 +520,14 @@ AAsACwDBAgAAbCwAAAAA";
         public static IEnumerable<ValidationErrorInfo> GetOpenXmlValidationErrors(string fileName,
             string officeVersion)
         {
-#if !NET35
             var fileFormatVersion = FileFormatVersions.Office2013;
-#else
-            FileFormatVersions fileFormatVersion = FileFormatVersions.Office2010;
-#endif
             try
             {
                 fileFormatVersion = (FileFormatVersions)Enum.Parse(fileFormatVersion.GetType(), officeVersion);
             }
             catch (Exception)
             {
-#if !NET35
                 fileFormatVersion = FileFormatVersions.Office2013;
-#else
-                fileFormatVersion = FileFormatVersions.Office2010;
-#endif
             }
 
             var fi = new FileInfo(fileName);

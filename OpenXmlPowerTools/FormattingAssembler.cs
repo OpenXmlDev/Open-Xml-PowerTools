@@ -483,30 +483,6 @@ namespace OpenXmlPowerTools
                             }
                         }
 
-#if false
-    <w:p w14:paraId="448CD560"
-         w14:textId="77777777"
-         w:rsidR="003C33D5"
-         w:rsidRDefault="003C33D5"
-         w:rsidP="003C33D5">
-      <w:pPr>
-        <w:pStyle w:val="ListParagraph"/>
-        <w:numPr>
-          <w:ilvl w:val="0"/>
-          <w:numId w:val="1"/>
-        </w:numPr>
-        <w:pPrChange w:id="4"
-                     w:author="e"
-                     w:date="2020-02-07T18:26:00Z">
-          <w:pPr/>
-        </w:pPrChange>
-      </w:pPr>
-      <w:r>
-        <w:t>When you click Online Video, you can paste in the embed code for the video you want to add.</w:t>
-      </w:r>
-    </w:p>
-#endif
-
                         var pPrChange = element
                             .Elements(W.pPr)
                             .Elements(W.pPrChange)

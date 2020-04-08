@@ -44,13 +44,11 @@ namespace OxPt
         [InlineData("FA001-00240", "FA/RevTracking/024-RowPropertiesChange.docx")]
         public void FA001_DocumentsWithRevTracking(string testId, string src)
         {
-            ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // Load the source document
             var sourceDir = new DirectoryInfo("../../../../TestFiles/");
             var sourceDocxFi = new FileInfo(Path.Combine(sourceDir.FullName, src));
             var wmlSourceDocument = new WmlDocument(sourceDocxFi.FullName);
 
-            ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // Create the dir for the test
             var rootTempDir = TestUtil.TempDir;
             var thisTestTempDir = new DirectoryInfo(Path.Combine(rootTempDir.FullName, testId));
@@ -65,7 +63,6 @@ namespace OxPt
 
             var tempDirFullName = thisTestTempDir.FullName;
 
-            ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // Copy src DOCX to temp directory, for ease of review
 
             var sourceDocxCopiedToDestFileName = new FileInfo(Path.Combine(tempDirFullName, sourceDocxFi.Name));

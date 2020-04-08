@@ -98,63 +98,15 @@ namespace OpenXmlPowerTools
             var element = node as XElement;
             if (element != null)
             {
-                ////////////////////////////////////////////////////////////////////////////////////////
                 // Inserted Numbering Properties
-#if false
-    <w:p>
-      <w:pPr>
-        <w:pStyle w:val="ListParagraph"/>
-        <w:numPr>
-          <w:ilvl w:val="0"/>
-          <w:numId w:val="1"/>
-          <w:ins w:id="0" w:author="Eric White" w:date="2017-03-26T03:50:00Z" />
-        </w:numPr>
-        <w:rPr>
-          <w:lang w:val="en-US"/>
-        </w:rPr>
-      </w:pPr>
-      <w:r w:rsidRPr="009D59B3">
-        <w:rPr>
-          <w:lang w:val="en-US"/>
-        </w:rPr>
-        <w:t>This is a test.</w:t>
-      </w:r>
-    </w:p>
-#endif
+
                 if (element.Name == W.numPr && element.Element(W.ins) != null)
                 {
                     return null;
                 }
 
-                ////////////////////////////////////////////////////////////////////////////////////////
                 // Paragraph properties change
-#if false
-    <w:p>
-      <w:pPr>
-        <w:pStyle w:val="ListParagraph"/>
-        <w:numPr>
-          <w:ilvl w:val="1"/>
-          <w:numId w:val="2"/>
-        </w:numPr>
-        <w:rPr>
-          <w:lang w:val="en-US"/>
-        </w:rPr>
-        <w:pPrChange w:id="0" w:author="Eric White" w:date="2017-03-26T04:55:00Z">
-          <w:pPr>
-            <w:pStyle w:val="ListParagraph"/>
-            <w:numPr>
-              <w:ilvl w:val="1"/>
-              <w:numId w:val="1"/>
-            </w:numPr>
-            <w:ind w:left="1440" w:hanging="360"/>
-          </w:pPr>
-        </w:pPrChange>
-      </w:pPr>
-      <w:r>
-        <w:t>When you click Online Video, you can paste in the embed code for the video you want to add.</w:t>
-      </w:r>
-    </w:p>
-#endif
+
                 if (element.Name == W.pPr &&
                     element.Element(W.pPrChange) != null)
                 {
@@ -169,30 +121,8 @@ namespace OpenXmlPowerTools
                     return RejectRevisionsForPartTransform(new_pPr);
                 }
 
-                ////////////////////////////////////////////////////////////////////////////////////////
                 // Run properties change
-#if false
-        <w:p w:rsidR="00615148" w:rsidRPr="00615148" w:rsidRDefault="00615148">
-          <w:pPr>
-            <w:rPr>
-              <w:b/>
-              <w:lang w:val="en-US"/>
-              <w:rPrChange w:id="0" w:author="Eric White" w:date="2017-03-26T05:02:00Z">
-                <w:rPr>
-                  <w:lang w:val="en-US"/>
-                </w:rPr>
-              </w:rPrChange>
-            </w:rPr>
-          </w:pPr>
-          <w:r>
-            <w:rPr>
-              <w:lang w:val="en-US"/>
-            </w:rPr>
-            <w:t>When you click Online Video, you can paste in the embed code for the video you want to add.</w:t>
-          </w:r>
-          <w:bookmarkStart w:id="1" w:name="_GoBack"/>
-        </w:p>
-#endif
+
                 if (element.Name == W.rPr &&
                     element.Element(W.rPrChange) != null)
                 {
@@ -200,53 +130,15 @@ namespace OpenXmlPowerTools
                     return RejectRevisionsForPartTransform(new_rPr);
                 }
 
-                ////////////////////////////////////////////////////////////////////////////////////////
                 // Field code numbering change
-#if false
-    <w:p w:rsidR="00D46247" w:rsidRDefault="00D46247">
-      <w:r>
-        <w:fldChar w:fldCharType="begin"/>
-      </w:r>
-      <w:r>
-        <w:instrText xml:space="preserve"> LISTNUM </w:instrText>
-      </w:r>
-      <w:r>
-        <w:fldChar w:fldCharType="end">
-          <w:numberingChange w:id="0" w:author="Eric White" w:date="2017-03-26T12:48:00Z" w:original="1)"/>
-        </w:fldChar>
-      </w:r>
-      <w:r>
-        <w:t xml:space="preserve"> Video provides a powerful way to help you prove your point.</w:t>
-      </w:r>
-    </w:p>
-#endif
+
                 if (element.Name == W.numberingChange)
                 {
                     return null;
                 }
 
-                ////////////////////////////////////////////////////////////////////////////////////
                 // Change w:sectPr
-#if false
-    <w:p>
-      <w:pPr>
-        <w:rPr>
-          <w:ins w:id="0" w:author="Eric White" w:date="2017-03-26T15:40:00Z"/>
-        </w:rPr>
-        <w:sectPr>
-          <w:pgSz w:w="12240" w:h="15840"/>
-          <w:pgMar w:top="720" w:right="720" w:bottom="720" w:left="720" w:header="720" w:footer="720" w:gutter="0"/>
-          <w:cols w:space="720"/>
-          <w:docGrid w:linePitch="360"/>
-          <w:sectPrChange w:id="1" w:author="Eric White" w:date="2017-03-26T15:42:00Z">
-            <w:sectPr w:rsidR="00620990" w:rsidSect="004E0757">
-              <w:pgMar w:top="1440" w:right="1440" w:bottom="1440" w:left="1440" w:header="720" w:footer="720" w:gutter="0"/>
-            </w:sectPr>
-          </w:sectPrChange>
-        </w:sectPr>
-      </w:pPr>
-    </w:p>
-#endif
+
                 if (element.Name == W.sectPr &&
                     element.Element(W.sectPrChange) != null)
                 {
@@ -254,22 +146,8 @@ namespace OpenXmlPowerTools
                     return RejectRevisionsForPartTransform(newSectPr);
                 }
 
-                ////////////////////////////////////////////////////////////////////////////////////
                 // tblGridChange
-#if false
-      <w:tblGrid>
-        <w:gridCol w:w="1525"/>
-        <w:gridCol w:w="3005"/>
-        <w:gridCol w:w="3006"/>
-        <w:tblGridChange w:id="1">
-          <w:tblGrid>
-            <w:gridCol w:w="3005"/>
-            <w:gridCol w:w="3005"/>
-            <w:gridCol w:w="3006"/>
-          </w:tblGrid>
-        </w:tblGridChange>
-      </w:tblGrid>
-#endif
+
                 if (element.Name == W.tblGrid &&
                     element.Element(W.tblGridChange) != null)
                 {
@@ -277,25 +155,8 @@ namespace OpenXmlPowerTools
                     return RejectRevisionsForPartTransform(newTblGrid);
                 }
 
-                ////////////////////////////////////////////////////////////////////////////////////
                 // tcPrChange
-#if false
-        <w:tc>
-          <w:tcPr>
-            <w:tcW w:w="1525" w:type="dxa"/>
-            <w:tcPrChange w:id="2" w:author="Eric White" w:date="2017-03-26T18:01:00Z">
-              <w:tcPr>
-                <w:tcW w:w="3005" w:type="dxa"/>
-              </w:tcPr>
-            </w:tcPrChange>
-          </w:tcPr>
-          <w:p>
-            <w:r>
-              <w:t>1</w:t>
-            </w:r>
-          </w:p>
-        </w:tc>
-#endif
+
                 if (element.Name == W.tcPr &&
                     element.Element(W.tcPrChange) != null)
                 {
@@ -303,7 +164,6 @@ namespace OpenXmlPowerTools
                     return RejectRevisionsForPartTransform(newTcPr);
                 }
 
-                ////////////////////////////////////////////////////////////////////////////////////
                 // trPrChange
                 if (element.Name == W.trPr &&
                     element.Element(W.trPrChange) != null)
@@ -312,46 +172,8 @@ namespace OpenXmlPowerTools
                     return RejectRevisionsForPartTransform(newTrPr);
                 }
 
-                ////////////////////////////////////////////////////////////////////////////////////
                 // tblPrExChange
-#if false
-        <w:tblPrEx>
-          <w:tblW w:w="0" w:type="auto"/>
-          <w:tblPrExChange w:id="1" w:author="Eric White" w:date="2017-03-26T18:10:00Z">
-            <w:tblPrEx>
-              <w:tblW w:w="0" w:type="auto"/>
-            </w:tblPrEx>
-          </w:tblPrExChange>
-        </w:tblPrEx>
-#endif
 
-#if false
-      <w:tr w:rsidR="00097582" w:rsidTr="00F843C4">
-        <w:tblPrEx>
-          <w:tblW w:w="0" w:type="auto"/>
-          <w:tblBorders>
-            <w:top w:val="thickThinMediumGap" w:sz="24" w:space="0" w:color="auto"/>
-            <w:left w:val="thickThinMediumGap" w:sz="24" w:space="0" w:color="auto"/>
-            <w:bottom w:val="thickThinMediumGap" w:sz="24" w:space="0" w:color="auto"/>
-            <w:right w:val="thickThinMediumGap" w:sz="24" w:space="0" w:color="auto"/>
-            <w:insideH w:val="thickThinMediumGap" w:sz="24" w:space="0" w:color="auto"/>
-            <w:insideV w:val="thickThinMediumGap" w:sz="24" w:space="0" w:color="auto"/>
-          </w:tblBorders>
-          <w:tblPrExChange w:id="1" w:author="Eric White" w:date="2017-03-26T20:38:00Z">
-            <w:tblPrEx>
-              <w:tblW w:w="0" w:type="auto"/>
-              <w:tblBorders>
-                <w:top w:val="thickThinMediumGap" w:sz="24" w:space="0" w:color="auto"/>
-                <w:left w:val="thickThinMediumGap" w:sz="24" w:space="0" w:color="auto"/>
-                <w:bottom w:val="thickThinMediumGap" w:sz="24" w:space="0" w:color="auto"/>
-                <w:right w:val="thickThinMediumGap" w:sz="24" w:space="0" w:color="auto"/>
-                <w:insideH w:val="thickThinMediumGap" w:sz="24" w:space="0" w:color="auto"/>
-                <w:insideV w:val="thickThinMediumGap" w:sz="24" w:space="0" w:color="auto"/>
-              </w:tblBorders>
-            </w:tblPrEx>
-          </w:tblPrExChange>
-        </w:tblPrEx>
-#endif
                 if (element.Name == W.tblPrEx &&
                     element.Element(W.tblPrExChange) != null)
                 {
@@ -359,23 +181,8 @@ namespace OpenXmlPowerTools
                     return RejectRevisionsForPartTransform(newTblPrEx);
                 }
 
-                ////////////////////////////////////////////////////////////////////////////////////
                 // tblPrChange
-#if false
-    <w:tbl>
-      <w:tblPr>
-        <w:tblStyle w:val="GridTable4-Accent1"/>
-        <w:tblW w:w="0" w:type="auto"/>
-        <w:tblLook w:val="04A0" w:firstRow="1" w:lastRow="0" w:firstColumn="1" w:lastColumn="0" w:noHBand="0" w:noVBand="1"/>
-        <w:tblPrChange w:id="0" w:author="Eric White" w:date="2017-03-26T20:05:00Z">
-          <w:tblPr>
-            <w:tblStyle w:val="TableGrid"/>
-            <w:tblW w:w="0" w:type="auto"/>
-            <w:tblLook w:val="04A0" w:firstRow="1" w:lastRow="0" w:firstColumn="1" w:lastColumn="0" w:noHBand="0" w:noVBand="1"/>
-          </w:tblPr>
-        </w:tblPrChange>
-      </w:tblPr>
-#endif
+
                 if (element.Name == W.tblPr &&
                     element.Element(W.tblPrChange) != null)
                 {
@@ -383,22 +190,7 @@ namespace OpenXmlPowerTools
                     return RejectRevisionsForPartTransform(newTrPr);
                 }
 
-                ////////////////////////////////////////////////////////////////////////////////////
                 // tblPrChange
-#if false
-        <w:tc>
-          <w:tcPr>
-            <w:tcW w:w="3005" w:type="dxa"/>
-            <w:cellDel w:id="8" w:author="Eric White" w:date="2017-03-26T21:12:00Z"/>
-            <w:tcPrChange w:id="9" w:author="Eric White" w:date="2017-03-26T21:12:00Z">
-              <w:tcPr>
-                <w:tcW w:w="3005" w:type="dxa"/>
-                <w:gridSpan w:val="2"/>
-                <w:cellDel w:id="10" w:author="Eric White" w:date="2017-03-26T21:12:00Z"/>
-              </w:tcPr>
-            </w:tcPrChange>
-          </w:tcPr>
-#endif
 
                 if (element.Name == W.cellDel ||
                     element.Name == W.cellMerge)
@@ -683,23 +475,8 @@ namespace OpenXmlPowerTools
                     .Ancestors()
                     .FirstOrDefault(a => a.Name != W.sdtContent && a.Name != W.sdt && a.Name != W.smartTag);
 
-                ////////////////////////////////////////////////////////////////////////////////////
                 // Deleted run
-#if false
-    <w:p>
-      <w:r>
-        <w:t xml:space="preserve">Video </w:t>
-      </w:r>
-      <w:del>
-        <w:r>
-          <w:delText xml:space="preserve">provides </w:delText>
-        </w:r>
-      </w:del>
-      <w:r>
-        <w:t>a powerful way to help you prove your point.</w:t>
-      </w:r>
-    </w:p>
-#endif
+
                 if (element.Name == W.del &&
                     parent.Name == W.p)
                 {
@@ -707,25 +484,8 @@ namespace OpenXmlPowerTools
                         element.Nodes().Select(n => ReverseRevisionsTransform(n, rri)));
                 }
 
-                ////////////////////////////////////////////////////////////////////////////////////
                 // Deleted paragraph mark
-#if false
-    <w:p>
-      <w:pPr>
-        <w:rPr>
-          <w:del w:id="0" w:author="Eric White" w:date="2017-03-24T21:52:00Z"/>
-        </w:rPr>
-      </w:pPr>
-      <w:r>
-        <w:t>Video provides a powerful way to help you prove your point.</w:t>
-      </w:r>
-    </w:p>
-    <w:p>
-      <w:r>
-        <w:t>You can also type a keyword to search online for the video that best fits your document.</w:t>
-      </w:r>
-    </w:p>
-#endif
+
                 if (element.Name == W.del &&
                     parent.Name == W.rPr &&
                     parent.Parent.Name == W.pPr)
@@ -733,28 +493,8 @@ namespace OpenXmlPowerTools
                     return new XElement(W.ins);
                 }
 
-                ////////////////////////////////////////////////////////////////////////////////////
                 // Inserted paragraph mark
-#if false
-    <w:p>
-      <w:pPr>
-        <w:rPr>
-          <w:ins w:id="0" w:author="Eric White" w:date="2017-03-24T21:58:00Z"/>
-        </w:rPr>
-      </w:pPr>
-      <w:r>
-        <w:t xml:space="preserve">Video provides a powerful way to help you prove your point. </w:t>
-      </w:r>
-    </w:p>
-    <w:p>
-      <w:r>
-        <w:rPr>
-          <w:lang w:val="en-US"/>
-        </w:rPr>
-        <w:t>When you click Online Video, you can paste in the embed code for the video you want to add.</w:t>
-      </w:r>
-    </w:p>
-#endif
+
                 if (element.Name == W.ins &&
                     parent.Name == W.rPr &&
                     parent.Parent.Name == W.pPr)
@@ -762,23 +502,8 @@ namespace OpenXmlPowerTools
                     return new XElement(W.del);
                 }
 
-                ////////////////////////////////////////////////////////////////////////////////////
                 // Inserted run
-#if false
-    <w:p>
-      <w:r>
-        <w:t xml:space="preserve">Video </w:t>
-      </w:r>
-      <w:ins>
-        <w:r>
-          <w:t xml:space="preserve">provides </w:t>
-        </w:r>
-      </w:ins>
-      <w:r>
-        <w:t>a powerful way to help you prove your point.</w:t>
-      </w:r>
-    </w:p>
-#endif
+
                 if (element.Name == W.ins &&
                     parent.Name == W.p)
                 {
@@ -786,131 +511,24 @@ namespace OpenXmlPowerTools
                         element.Nodes().Select(n => ReverseRevisionsTransform(n, rri)));
                 }
 
-                ////////////////////////////////////////////////////////////////////////////////////
                 // Deleted table row
-#if false
-    <w:tbl>
-      <w:tr>
-        <w:tc>
-          <w:p>
-            <w:r>
-              <w:t>1</w:t>
-            </w:r>
-          </w:p>
-        </w:tc>
-      </w:tr>
-      <w:tr>
-        <w:trPr>
-          <w:del w:id="0" w:author="Eric White" w:date="2017-03-24T22:15:00Z"/>
-        </w:trPr>
-        <w:tc>
-          <w:p>
-            <w:pPr>
-              <w:rPr>
-                <w:del w:id="1" w:author="Eric White" w:date="2017-03-24T22:15:00Z"/>
-              </w:rPr>
-            </w:pPr>
-            <w:del w:id="2" w:author="Eric White" w:date="2017-03-24T22:15:00Z">
-              <w:r>
-                <w:delText>4</w:delText>
-              </w:r>
-            </w:del>
-          </w:p>
-        </w:tc>
-      </w:tr>
-      <w:tr>
-        <w:tc>
-          <w:p>
-            <w:r>
-              <w:t>7</w:t>
-            </w:r>
-          </w:p>
-        </w:tc>
-      </w:tr>
-    </w:tbl>
-#endif
+
                 if (element.Name == W.del &&
                     parent.Name == W.trPr)
                 {
                     return new XElement(W.ins);
                 }
 
-                ////////////////////////////////////////////////////////////////////////////////////
                 // Inserted table row
-#if false
-    <w:tbl>
-      <w:tr>
-        <w:tc>
-          <w:p>
-            <w:r>
-              <w:t>1</w:t>
-            </w:r>
-          </w:p>
-        </w:tc>
-      </w:tr>
-      <w:tr>
-        <w:trPr>
-          <w:ins w:id="0" w:author="Eric White" w:date="2017-03-24T22:16:00Z"/>
-        </w:trPr>
-        <w:tc>
-          <w:p>
-            <w:pPr>
-              <w:rPr>
-                <w:ins w:id="1" w:author="Eric White" w:date="2017-03-24T22:16:00Z"/>
-              </w:rPr>
-            </w:pPr>
-            <w:ins w:id="2" w:author="Eric White" w:date="2017-03-24T22:16:00Z">
-              <w:r>
-                <w:t>1a</w:t>
-              </w:r>
-            </w:ins>
-          </w:p>
-        </w:tc>
-      </w:tr>
-      <w:tr>
-        <w:tc>
-          <w:p>
-            <w:r>
-              <w:t>4</w:t>
-            </w:r>
-          </w:p>
-        </w:tc>
-      </w:tr>
-    </w:tbl>
-#endif
+
                 if (element.Name == W.ins &&
                     parent.Name == W.trPr)
                 {
                     return new XElement(W.del);
                 }
 
-                ////////////////////////////////////////////////////////////////////////////////////
                 // Deleted math control character
-#if false
-    <w:p w:rsidR="007F4E48" w:rsidRDefault="00C9403B">
-      <m:oMathPara>
-        <m:oMath>
-          <m:r>
-            <w:rPr>
-              <w:rFonts w:ascii="Cambria Math" w:hAnsi="Cambria Math"/>
-            </w:rPr>
-            <m:t>A=</m:t>
-          </m:r>
-          <m:r>
-            <w:del w:id="0" w:author="Eric White" w:date="2017-03-24T22:53:00Z">
-              <w:rPr>
-                <w:rFonts w:ascii="Cambria Math" w:hAnsi="Cambria Math"/>
-              </w:rPr>
-              <m:t>2</m:t>
-            </w:del>
-          </m:r>
-          <m:r>
-            <w:rPr>
-              <w:rFonts w:ascii="Cambria Math" w:hAnsi="Cambria Math"/>
-            </w:rPr>
-            <m:t>π</m:t>
-          </m:r>
-#endif
+
                 if (element.Name == W.del &&
                     parent.Name == M.r)
                 {
@@ -918,33 +536,8 @@ namespace OpenXmlPowerTools
                         element.Nodes().Select(n => ReverseRevisionsTransform(n, rri)));
                 }
 
-                ////////////////////////////////////////////////////////////////////////////////////
                 // Inserted math control character
-#if false
-    <w:p w:rsidR="007F4E48" w:rsidRDefault="00C9403B">
-      <m:oMathPara>
-        <m:oMath>
-          <m:r>
-            <w:rPr>
-              <w:rFonts w:ascii="Cambria Math" w:hAnsi="Cambria Math"/>
-            </w:rPr>
-            <m:t>A=</m:t>
-          </m:r>
-          <m:r>
-            <w:ins w:id="0" w:author="Eric White" w:date="2017-03-24T22:54:00Z">
-              <w:rPr>
-                <w:rFonts w:ascii="Cambria Math" w:hAnsi="Cambria Math"/>
-              </w:rPr>
-              <m:t>2</m:t>
-            </w:ins>
-          </m:r>
-          <m:r>
-            <w:rPr>
-              <w:rFonts w:ascii="Cambria Math" w:hAnsi="Cambria Math"/>
-            </w:rPr>
-            <m:t>π</m:t>
-          </m:r>
-#endif
+
                 if (element.Name == W.ins &&
                     parent.Name == M.r)
                 {
@@ -952,56 +545,8 @@ namespace OpenXmlPowerTools
                         element.Nodes().Select(n => ReverseRevisionsTransform(n, rri)));
                 }
 
-                ////////////////////////////////////////////////////////////////////////////////////
                 // moveFrom / moveTo
-#if false
-    <w:p>
-      <w:r>
-        <w:t>Video provides a powerful way.</w:t>
-      </w:r>
-    </w:p>
-    <w:p>
-      <w:pPr>
-        <w:rPr>
-          <w:moveFrom w:id="0" w:author="Eric White" w:date="2017-03-24T23:18:00Z"/>
-        </w:rPr>
-      </w:pPr>
-      <w:moveFromRangeStart w:id="1" w:author="Eric White" w:date="2017-03-24T23:18:00Z" w:name="move478160808"/>
-      <w:moveFrom w:id="2" w:author="Eric White" w:date="2017-03-24T23:18:00Z">
-        <w:r>
-          <w:t>When you click Online Video.</w:t>
-        </w:r>
-      </w:moveFrom>
-    </w:p>
-    <w:moveFromRangeEnd w:id="1"/>
-    <w:p>
-      <w:r>
-        <w:rPr>
-          <w:lang w:val="en-US"/>
-        </w:rPr>
-        <w:t>You can also type a keyword.</w:t>
-      </w:r>
-    </w:p>
-    <w:p>
-      <w:pPr>
-        <w:rPr>
-          <w:moveTo w:id="3" w:author="Eric White" w:date="2017-03-24T23:18:00Z"/>
-        </w:rPr>
-      </w:pPr>
-      <w:moveToRangeStart w:id="5" w:author="Eric White" w:date="2017-03-24T23:18:00Z" w:name="move478160808"/>
-      <w:moveTo w:id="6" w:author="Eric White" w:date="2017-03-24T23:18:00Z">
-        <w:r>
-          <w:t>When you click Online Video.</w:t>
-        </w:r>
-      </w:moveTo>
-    </w:p>
-    <w:moveToRangeEnd w:id="5"/>
-    <w:p>
-      <w:r>
-        <w:t>Make your document look professionally produced.</w:t>
-      </w:r>
-    </w:p>
-#endif
+
                 if (element.Name == W.moveFrom)
                 {
                     return new XElement(W.moveTo,
@@ -1039,36 +584,8 @@ namespace OpenXmlPowerTools
                         element.Nodes().Select(n => ReverseRevisionsTransform(n, rri)));
                 }
 
-                ////////////////////////////////////////////////////////////////////////////////////
                 // Deleted content control
-#if false
-    <w:p>
-      <w:customXmlDelRangeStart w:id="1" w:author="Eric White" w:date="2017-03-25T22:10:00Z"/>
-      <w:sdt>
-        <w:sdtPr>
-          <w:rPr>
-            <w:lang w:val="en-US"/>
-          </w:rPr>
-          <w:id w:val="990292373"/>
-          <w:placeholder>
-            <w:docPart w:val="DefaultPlaceholder_-1854013440"/>
-          </w:placeholder>
-          <w:text/>
-        </w:sdtPr>
-        <w:sdtContent>
-          <w:customXmlDelRangeEnd w:id="1"/>
-          <w:r>
-            <w:t>Video</w:t>
-          </w:r>
-          <w:customXmlDelRangeStart w:id="2" w:author="Eric White" w:date="2017-03-25T22:10:00Z"/>
-        </w:sdtContent>
-      </w:sdt>
-      <w:customXmlDelRangeEnd w:id="2"/>
-      <w:r>
-        <w:t xml:space="preserve"> provides a powerful way to help you prove your point.</w:t>
-      </w:r>
-    </w:p>
-#endif
+
                 if (element.Name == W.customXmlDelRangeStart)
                 {
                     return new XElement(W.customXmlInsRangeStart,
@@ -1082,36 +599,8 @@ namespace OpenXmlPowerTools
                         element.Nodes().Select(n => ReverseRevisionsTransform(n, rri)));
                 }
 
-                ////////////////////////////////////////////////////////////////////////////////////
                 // Inserted content control
-#if false
-    <w:p>
-      <w:customXmlInsRangeStart w:id="0" w:author="Eric White" w:date="2017-03-25T22:10:00Z"/>
-      <w:sdt>
-        <w:sdtPr>
-          <w:id w:val="-473839966"/>
-          <w:placeholder>
-            <w:docPart w:val="DefaultPlaceholder_-1854013440"/>
-          </w:placeholder>
-          <w:text/>
-        </w:sdtPr>
-        <w:sdtContent>
-          <w:customXmlInsRangeEnd w:id="0"/>
-          <w:r>
-            <w:t>Video</w:t>
-          </w:r>
-          <w:customXmlInsRangeStart w:id="1" w:author="Eric White" w:date="2017-03-25T22:10:00Z"/>
-        </w:sdtContent>
-      </w:sdt>
-      <w:customXmlInsRangeEnd w:id="1"/>
-      <w:r>
-        <w:rPr>
-          <w:lang w:val="en-US"/>
-        </w:rPr>
-        <w:t xml:space="preserve"> provides a powerful way to help you prove your point.</w:t>
-      </w:r>
-    </w:p>
-#endif
+
                 if (element.Name == W.customXmlInsRangeStart)
                 {
                     return new XElement(W.customXmlDelRangeStart,
@@ -1125,101 +614,8 @@ namespace OpenXmlPowerTools
                         element.Nodes().Select(n => ReverseRevisionsTransform(n, rri)));
                 }
 
-                ////////////////////////////////////////////////////////////////////////////////////
                 // Moved content control
-#if false
-    <w:p>
-      <w:r>
-        <w:t>Video provides a powerful way.</w:t>
-      </w:r>
-    </w:p>
-    <w:customXmlMoveFromRangeStart w:id="0" w:author="Eric White" w:date="2017-03-25T22:21:00Z"/>
-    <w:moveFromRangeStart w:id="1" w:author="Eric White" w:date="2017-03-25T22:21:00Z" w:name="move478243824" w:displacedByCustomXml="next"/>
-    <w:sdt>
-      <w:sdtPr>
-        <w:id w:val="-2060007328"/>
-        <w:placeholder>
-          <w:docPart w:val="DefaultPlaceholder_-1854013440"/>
-        </w:placeholder>
-      </w:sdtPr>
-      <w:sdtContent>
-        <w:customXmlMoveFromRangeEnd w:id="0"/>
-        <w:p w:rsidR="00D306FD" w:rsidDel="001037E6" w:rsidRDefault="00D306FD">
-          <w:pPr>
-            <w:rPr>
-              <w:moveFrom w:id="2" w:author="Eric White" w:date="2017-03-25T22:21:00Z"/>
-              <w:lang w:val="en-US"/>
-            </w:rPr>
-          </w:pPr>
-          <w:moveFrom w:id="3" w:author="Eric White" w:date="2017-03-25T22:21:00Z">
-            <w:r w:rsidDel="001037E6">
-              <w:rPr>
-                <w:lang w:val="en-US"/>
-              </w:rPr>
-              <w:t>When you click Online Video.</w:t>
-            </w:r>
-          </w:moveFrom>
-        </w:p>
-        <w:customXmlMoveFromRangeStart w:id="4" w:author="Eric White" w:date="2017-03-25T22:21:00Z"/>
-      </w:sdtContent>
-    </w:sdt>
-    <w:customXmlMoveFromRangeEnd w:id="4"/>
-    <w:moveFromRangeEnd w:id="1"/>
-    <w:p>
-      <w:r>
-        <w:rPr>
-          <w:lang w:val="en-US"/>
-        </w:rPr>
-        <w:t>You can also type a keyword.</w:t>
-      </w:r>
-    </w:p>
-    <w:p>
-      <w:r>
-        <w:rPr>
-          <w:lang w:val="en-US"/>
-        </w:rPr>
-        <w:t>To make your document look.</w:t>
-      </w:r>
-    </w:p>
-    <w:customXmlMoveToRangeStart w:id="5" w:author="Eric White" w:date="2017-03-25T22:21:00Z"/>
-    <w:moveToRangeStart w:id="6" w:author="Eric White" w:date="2017-03-25T22:21:00Z" w:name="move478243824" w:displacedByCustomXml="next"/>
-    <w:sdt>
-      <w:sdtPr>
-        <w:id w:val="-483622649"/>
-        <w:placeholder>
-          <w:docPart w:val="DC46F197491D4EC8B79DB4CE2D22E222"/>
-        </w:placeholder>
-      </w:sdtPr>
-      <w:sdtContent>
-        <w:customXmlMoveToRangeEnd w:id="5"/>
-        <w:p>
-          <w:pPr>
-            <w:rPr>
-              <w:moveTo w:id="8" w:author="Eric White" w:date="2017-03-25T22:21:00Z"/>
-            </w:rPr>
-          </w:pPr>
-          <w:moveTo w:id="9" w:author="Eric White" w:date="2017-03-25T22:21:00Z">
-            <w:r>
-              <w:t>When you click Online Video.</w:t>
-            </w:r>
-          </w:moveTo>
-        </w:p>
-        <w:customXmlMoveToRangeStart w:id="10" w:author="Eric White" w:date="2017-03-25T22:21:00Z"/>
-      </w:sdtContent>
-    </w:sdt>
-    <w:customXmlMoveToRangeEnd w:id="10"/>
-    <w:moveToRangeEnd w:id="6"/>
-    <w:p>
-      <w:ins w:id="11" w:author="Eric White" w:date="2017-03-25T22:21:00Z">
-        <w:r>
-          <w:t xml:space="preserve"> </w:t>
-        </w:r>
-      </w:ins>
-      <w:r>
-        <w:t>For example, you can add.</w:t>
-      </w:r>
-    </w:p>
-#endif
+
                 if (element.Name == W.customXmlMoveFromRangeStart)
                 {
                     return new XElement(W.customXmlMoveToRangeStart,
@@ -1245,43 +641,7 @@ namespace OpenXmlPowerTools
                         element.Nodes().Select(n => ReverseRevisionsTransform(n, rri)));
                 }
 
-                ////////////////////////////////////////////////////////////////////////////////////
                 // Deleted field code
-#if false
-    <w:p>
-      <w:pPr>
-        <w:rPr>
-          <w:del w:id="0" w:author="Eric White" w:date="2017-03-25T22:43:00Z"/>
-        </w:rPr>
-      </w:pPr>
-      <w:del w:id="1" w:author="Eric White" w:date="2017-03-25T22:43:00Z">
-        <w:r>
-          <w:fldChar w:fldCharType="begin"/>
-        </w:r>
-        <w:r>
-          <w:delInstrText xml:space="preserve"> D</w:delInstrText>
-        </w:r>
-        <w:r>
-          <w:rPr>
-            <w:color w:val="FF0000"/>
-          </w:rPr>
-          <w:delInstrText>A</w:delInstrText>
-        </w:r>
-        <w:r>
-          <w:delInstrText xml:space="preserve">TE </w:delInstrText>
-        </w:r>
-        <w:r>
-          <w:fldChar w:fldCharType="separate"/>
-        </w:r>
-        <w:r>
-          <w:delText>25/03/2017</w:delText>
-        </w:r>
-        <w:r>
-          <w:fldChar w:fldCharType="end"/>
-        </w:r>
-      </w:del>
-    </w:p>
-#endif
                 if (element.Name == W.delInstrText)
                 {
                     return new XElement(W.instrText,
@@ -1289,7 +649,6 @@ namespace OpenXmlPowerTools
                         element.Nodes().Select(n => ReverseRevisionsTransform(n, rri)));
                 }
 
-                ////////////////////////////////////////////////////////////////////////////////////
                 // Change inserted instrText element to w:delInstrText
                 if (element.Name == W.instrText && rri.InInsert)
                 {
@@ -1298,7 +657,6 @@ namespace OpenXmlPowerTools
                         element.Nodes().Select(n => ReverseRevisionsTransform(n, rri)));
                 }
 
-                ////////////////////////////////////////////////////////////////////////////////////
                 // Change inserted text element to w:delText
                 if (element.Name == W.t && rri.InInsert)
                 {
@@ -1307,7 +665,6 @@ namespace OpenXmlPowerTools
                         element.Nodes().Select(n => ReverseRevisionsTransform(n, rri)));
                 }
 
-                ////////////////////////////////////////////////////////////////////////////////////
                 // Change w:delText to w:t
                 if (element.Name == W.delText)
                 {
@@ -1316,7 +673,6 @@ namespace OpenXmlPowerTools
                         element.Nodes().Select(n => ReverseRevisionsTransform(n, rri)));
                 }
 
-                ////////////////////////////////////////////////////////////////////////////////////
                 // Identity transform
                 return new XElement(element.Name,
                     element.Attributes(),
@@ -2368,13 +1724,6 @@ namespace OpenXmlPowerTools
                             if (g.First().GroupingInfo.GroupingType == GroupingType.DeletedRange)
                             {
                                 var newParagraph = new XElement(W.p,
-#if false
-                                    // previously, this was set to g.First()
-                                    // however, this caused test [InlineData("RP/RP052-Deleted-Para-Mark.docx")] to lose paragraph numbering for a paragraph that we did not want to loose it for.
-                                    // the question is - when coalescing multiple paragraphs due to deleted paragraph marks, should we be taking the paragraph properties from the first or the last
-                                    // in the sequence of coalesced paragraph.  It is possible that we should take Last when accepting revisions, but First when rejecting revisions.
-                                    g.First().BlockLevelContent.ThisBlockContentElement.Elements(W.pPr),
-#endif
                                     g.Last().BlockLevelContent.ThisBlockContentElement.Elements(W.pPr),
                                     g.Select(z => CollapseParagraphTransform(z.BlockLevelContent.ThisBlockContentElement)));
 
@@ -2918,17 +2267,6 @@ namespace OpenXmlPowerTools
             }
             return node;
         }
-
-#if false
-      <w:tr>
-        <w:tc>
-          <w:tcPr>
-            <w:tcW w:w="5016"
-                   w:type="dxa" />
-          </w:tcPr>
-        </w:tc>
-      </w:tr>
-#endif
 
         private static readonly XName[] BlockLevelElements = new[] {
             W.p,

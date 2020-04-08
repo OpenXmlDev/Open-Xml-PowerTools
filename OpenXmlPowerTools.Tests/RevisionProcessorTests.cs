@@ -13,16 +13,12 @@ namespace OxPt
 {
     public class RpTests
     {
-        ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         // perf settings
         public static bool m_CopySourceFilesToTempDir = true;
 
         public static bool m_OpenTempDirInExplorer = false;
-        ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
         [Theory]
-        //[InlineData("RP/RP001-Tracked-Revisions-01.docx")]
-        //[InlineData("RP/RP001-Tracked-Revisions-02.docx")]
         [InlineData("RP/RP002-Deleted-Text.docx")]
         [InlineData("RP/RP003-Inserted-Text.docx")]
         [InlineData("RP/RP004-Deleted-Text-in-CC.docx")]
@@ -90,7 +86,6 @@ namespace OxPt
             var processedRejectedFi = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, sourceFi.Name.Replace(".docx", "-Rejected.docx")));
             afterRejectingWml.SaveAs(processedRejectedFi.FullName);
 
-            ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // Copy source files to temp dir
             if (m_CopySourceFilesToTempDir)
             {
@@ -98,13 +93,11 @@ namespace OxPt
                 {
                     try
                     {
-                        ////////// CODE TO REPEAT UNTIL SUCCESS //////////
                         var sourceDocxCopiedToDestFi = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, sourceFi.Name));
                         if (!sourceDocxCopiedToDestFi.Exists)
                         {
                             sourceWml.SaveAs(sourceDocxCopiedToDestFi.FullName);
                         }
-                        //////////////////////////////////////////////////
                         break;
                     }
                     catch (IOException)
@@ -114,13 +107,11 @@ namespace OxPt
                 }
             }
 
-            ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // create batch file to copy properly processed documents to the TestFiles directory.
             while (true)
             {
                 try
                 {
-                    ////////// CODE TO REPEAT UNTIL SUCCESS //////////
                     var batchFileName = "Copy-Gen-Files-To-TestFiles.bat";
                     var batchFi = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, batchFileName));
                     var batch = "";
@@ -134,7 +125,6 @@ namespace OxPt
                     {
                         File.WriteAllText(batchFi.FullName, batch);
                     }
-                    //////////////////////////////////////////////////
                     break;
                 }
                 catch (IOException)
@@ -143,7 +133,6 @@ namespace OxPt
                 }
             }
 
-            ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // Open Windows Explorer
             if (m_OpenTempDirInExplorer)
             {
@@ -151,14 +140,12 @@ namespace OxPt
                 {
                     try
                     {
-                        ////////// CODE TO REPEAT UNTIL SUCCESS //////////
                         var semaphorFi = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, "z_ExplorerOpenedSemaphore.txt"));
                         if (!semaphorFi.Exists)
                         {
                             File.WriteAllText(semaphorFi.FullName, "");
                             TestUtil.Explorer(TestUtil.TempDir);
                         }
-                        //////////////////////////////////////////////////
                         break;
                     }
                     catch (IOException)
@@ -168,7 +155,6 @@ namespace OxPt
                 }
             }
 
-            ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // Use WmlComparer to see if accepted baseline is same as processed
             if (baselineAcceptedFi.Exists)
             {
@@ -186,7 +172,6 @@ namespace OxPt
                 Assert.True(false, "No Accepted baseline document");
             }
 
-            ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // Use WmlComparer to see if rejected baseline is same as processed
             if (baselineRejectedFi.Exists)
             {

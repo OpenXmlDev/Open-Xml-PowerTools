@@ -5,7 +5,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -74,7 +73,6 @@ namespace OpenXmlPowerTools
             string boundary = null;
 
             var lines = src.Split(new[] { Environment.NewLine }, StringSplitOptions.None);
-
 
             var priambleKeyWords = new[]
             {
@@ -287,14 +285,19 @@ namespace OpenXmlPowerTools
                                 {
                                     case XmlTypeCode.Boolean:
                                         return new XAttribute(a.Name, (bool)a);
+
                                     case XmlTypeCode.DateTime:
                                         return new XAttribute(a.Name, (DateTime)a);
+
                                     case XmlTypeCode.Decimal:
                                         return new XAttribute(a.Name, (decimal)a);
+
                                     case XmlTypeCode.Double:
                                         return new XAttribute(a.Name, (double)a);
+
                                     case XmlTypeCode.Float:
                                         return new XAttribute(a.Name, (float)a);
+
                                     case XmlTypeCode.HexBinary:
                                     case XmlTypeCode.Language:
                                         return new XAttribute(a.Name,
@@ -334,27 +337,33 @@ namespace OpenXmlPowerTools
                         return new XElement(element.Name,
                             NormalizeAttributes(element, havePSVI),
                             (bool)element);
+
                     case XmlTypeCode.DateTime:
                         return new XElement(element.Name,
                             NormalizeAttributes(element, havePSVI),
                             (DateTime)element);
+
                     case XmlTypeCode.Decimal:
                         return new XElement(element.Name,
                             NormalizeAttributes(element, havePSVI),
                             (decimal)element);
+
                     case XmlTypeCode.Double:
                         return new XElement(element.Name,
                             NormalizeAttributes(element, havePSVI),
                             (double)element);
+
                     case XmlTypeCode.Float:
                         return new XElement(element.Name,
                             NormalizeAttributes(element, havePSVI),
                             (float)element);
+
                     case XmlTypeCode.HexBinary:
                     case XmlTypeCode.Language:
                         return new XElement(element.Name,
                             NormalizeAttributes(element, havePSVI),
                             ((string)element).ToLower());
+
                     default:
                         return new XElement(element.Name,
                             NormalizeAttributes(element, havePSVI),
@@ -458,7 +467,6 @@ namespace OpenXmlPowerTools
             }
         }
 
-#if !NET35
         internal static void ThreadSafeAppendAllLines(FileInfo file, string[] strings)
         {
             while (true)
@@ -474,7 +482,6 @@ namespace OpenXmlPowerTools
                 }
             }
         }
-#endif
 
         public static List<string> GetFilesRecursive(DirectoryInfo dir, string searchPattern)
         {
@@ -657,7 +664,6 @@ namespace OpenXmlPowerTools
             }
         }
 
-        [SuppressMessage("ReSharper", "PossibleNullReferenceException")]
         public static IEnumerable<XElement> SiblingsBeforeSelfReverseDocumentOrder(
             this XElement element)
         {
@@ -693,7 +699,6 @@ namespace OpenXmlPowerTools
             }
         }
 
-        [SuppressMessage("ReSharper", "PossibleNullReferenceException")]
         public static IEnumerable<XElement> DescendantsBeforeSelfReverseDocumentOrder(
             this XElement element)
         {
@@ -729,7 +734,6 @@ namespace OpenXmlPowerTools
             }
         }
 
-        [SuppressMessage("ReSharper", "PossibleNullReferenceException")]
         public static IEnumerable<XElement> DescendantsTrimmedBeforeSelfReverseDocumentOrder(
             this XElement element, XName trimName)
         {
@@ -871,16 +875,22 @@ namespace OpenXmlPowerTools
             {
                 case "1":
                     return true;
+
                 case "0":
                     return false;
+
                 case "true":
                     return true;
+
                 case "false":
                     return false;
+
                 case "on":
                     return true;
+
                 case "off":
                     return false;
+
                 default:
                     return (bool)a;
             }

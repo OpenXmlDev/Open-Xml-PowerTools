@@ -16,11 +16,9 @@ namespace OxPt
 {
     public class WcTests2
     {
-        ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         private static readonly bool m_OpenWord = false;
 
         private static readonly bool m_OpenTempDirInExplorer = false;
-        ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
         [Theory]
         [InlineData("CZ-1000", "CZ/CZ001-Plain.docx", "CZ/CZ001-Plain-Mod.docx", 1)]
@@ -46,8 +44,6 @@ namespace OxPt
             File.Copy(source1Docx.FullName, source1CopiedToDestDocx.FullName);
             File.Copy(source2Docx.FullName, source2CopiedToDestDocx.FullName);
 
-            ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
             if (m_OpenWord)
             {
                 var source1DocxForWord = new FileInfo(Path.Combine(sourceDir.FullName, name1));
@@ -70,8 +66,6 @@ namespace OxPt
                 WordRunner.RunWord(wordExe, source1CopiedToDestDocxForWord);
             }
 
-            ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
             var before = source1CopiedToDestDocx.Name.Replace(".docx", "");
             var after = source2CopiedToDestDocx.Name.Replace(".docx", "");
             var docxWithRevisionsFi = new FileInfo(Path.Combine(thisTestTempDir.FullName, before + "-COMPARE-" + after + ".docx"));
@@ -84,7 +78,6 @@ namespace OxPt
             };
             var comparedWml = WmlComparer.Compare(source1Wml, source2Wml, settings);
 
-            ///////////////////////////
             comparedWml.SaveAs(docxWithRevisionsFi.FullName);
             using (var ms = new MemoryStream())
             {
@@ -112,15 +105,12 @@ namespace OxPt
                 }
             }
 
-            ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
             if (m_OpenWord)
             {
                 var wordExe = new FileInfo(@"C:\Program Files (x86)\Microsoft Office\root\Office16\WINWORD.EXE");
                 WordRunner.RunWord(wordExe, docxWithRevisionsFi);
             }
 
-            ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // Open Windows Explorer
             if (m_OpenTempDirInExplorer)
             {
@@ -128,14 +118,12 @@ namespace OxPt
                 {
                     try
                     {
-                        ////////// CODE TO REPEAT UNTIL SUCCESS //////////
                         var semaphorFi = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, "z_ExplorerOpenedSemaphore.txt"));
                         if (!semaphorFi.Exists)
                         {
                             File.WriteAllText(semaphorFi.FullName, "");
                             TestUtil.Explorer(thisTestTempDir);
                         }
-                        //////////////////////////////////////////////////
                         break;
                     }
                     catch (IOException)

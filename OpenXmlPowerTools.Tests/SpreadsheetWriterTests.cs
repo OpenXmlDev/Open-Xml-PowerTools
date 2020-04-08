@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using Xunit;
 using Sw = OpenXmlPowerTools;
 
@@ -311,13 +312,12 @@ namespace OxPt
                 var v = new OpenXmlValidator();
                 var errors = v.Validate(sDoc).Where(ve => !s_ExpectedErrors.Contains(ve.Description));
 
-#if false
                 // if a test fails validation post-processing, then can use this code to determine the SDK
                 // validation error(s).
 
                 if (errors.Count() != 0)
                 {
-                    StringBuilder sb = new StringBuilder();
+                    var sb = new StringBuilder();
                     foreach (var item in errors)
                     {
                         sb.Append(item.Description).Append(Environment.NewLine);
@@ -325,7 +325,6 @@ namespace OxPt
                     var s = sb.ToString();
                     Console.WriteLine(s);
                 }
-#endif
 
                 Assert.Empty(errors);
             }

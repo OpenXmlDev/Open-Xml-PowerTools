@@ -15,7 +15,6 @@ using System.Xml.Linq;
 
 // It is possible to optimize DescendantContentAtoms
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Currently, the unid is set at the beginning of the algorithm.  It is used by the code that establishes correlation based on first rejecting
 /// tracked revisions, then correlating paragraphs/tables.  It is requred for this algorithm - after finding a correlated sequence in the document with rejected
 /// revisions, it uses the unid to find the same paragraph in the document without rejected revisions, then sets the correlated sha1 hash in that document.
@@ -26,9 +25,7 @@ using System.Xml.Linq;
 ///
 /// But after that it is only used to reconstruct the tree.  It is also used in the debugging code that
 /// prints the various correlated sequences and comparison units - this is display for debugging purposes only.
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// The key idea here is that a given paragraph will always have the same ancestors, and it doesn't matter whether the content was deleted from the old document,
 /// inserted into the new document, or set as equal.  At this point, we identify a paragraph as a sequential list of content atoms, terminated by a paragraph mark.
 /// This entire list will for a single paragraph, regardless of whether the paragraph is a child of the body, or if the paragraph is in a cell in a table, or if
@@ -39,8 +36,6 @@ using System.Xml.Linq;
 /// Iterate through the list of content atoms backwards.  When the loop sees a paragraph mark, it gets the ancestor unids from the paragraph mark to the top of the
 /// tree, and sets this as the same for all content atoms in the paragraph.  For descendants of the paragraph mark, it doesn't really matter if content is put into
 /// separate runs or what not.  We don't need to be concerned about what the unids are for descendants of the paragraph.
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 
 namespace OpenXmlPowerTools.Previous
 {
@@ -518,6 +513,7 @@ namespace OpenXmlPowerTools.Previous
         // from the unmodified content.  The footnote reference in the delta refers to the modified footnote.  This is as it
         // should be.
         /*****************************************************************************************************************/
+
         public static WmlDocument Consolidate(WmlDocument original,
             List<WmlRevisedDocumentInfo> revisedDocumentInfoList,
             WmlComparerSettings settings)
@@ -789,7 +785,6 @@ namespace OpenXmlPowerTools.Previous
 
                         if (lciCount > 1 && lciCount == revisedDocumentInfoListCount)
                         {
-                            /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
                             // This is the code that determines if revisions should be consolidated into one.
 
                             var uniqueRevisions = lci
@@ -804,8 +799,6 @@ namespace OpenXmlPowerTools.Previous
                                 .OrderByDescending(g => g.Count())
                                 .ToList();
                             var uniqueRevisionCount = uniqueRevisions.Count();
-
-                            /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
                             if (uniqueRevisionCount == 1)
                             {
@@ -853,97 +846,6 @@ namespace OpenXmlPowerTools.Previous
                             .Select((groupedCi, idx) => AssembledConjoinedRevisionContent(emptyParagraph, groupedCi, idx, consolidatedWDoc, consolidateSettings));
                         ele.AddAfterSelf(contentToAddAfter);
                     }
-
-#if false
-                    // old code
-                    foreach (var ele in elementsToProcess)
-                    {
-                        var lci = ele.Annotation<List<ConsolidationInfo>>();
-
-                        // if all revisions from all revisors are exactly the same, then instead of adding multiple tables after
-                        // that contains the revisions, then simply replace the paragraph with the one with the revisions.
-                        // RC004 documents contain the test data to exercise this.
-
-                        var lciCount = lci.Count();
-
-                        if (lci.Count() > 1 && lciCount == revisedDocumentInfoListCount)
-                        {
-                            /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-                            // This is the code that determines if revisions should be consolidated into one.
-
-                            var uniqueRevisions = lci
-                                .GroupBy(ci =>
-                                {
-                                    // Get a hash after first accepting revisions and compressing the text.
-                                    var ciz = ci;
-
-                                    var acceptedRevisionElement = RevisionProcessor.AcceptRevisionsForElement(ci.RevisionElement);
-                                    var text = acceptedRevisionElement.Value
-                                        .Replace(" ", "")
-                                        .Replace(" ", "")
-                                        .Replace(" ", "")
-                                        .Replace("\n", "");
-                                    var sha1Hash = WmlComparerUtil.SHA1HashStringForUTF8String(text);
-                                    return ci.InsertBefore.ToString() + sha1Hash;
-                                })
-                                .OrderByDescending(g => g.Count())
-                                .ToList();
-                            var uniqueRevisionCount = uniqueRevisions.Count();
-
-                            /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-                            if (uniqueRevisionCount == 1)
-                            {
-                                MoveFootnotesEndnotesForConsolidatedRevisions(lci.First(), consolidatedWDoc);
-
-                                var dummyElement = new XElement("dummy", lci.First().RevisionElement);
-
-                                foreach(var rev in dummyElement.Descendants().Where(d => d.Attribute(W.author) != null))
-                                {
-                                    var aut = rev.Attribute(W.author);
-                                    aut.Value = "ITU";
-                                }
-
-                                ele.ReplaceWith(dummyElement.Elements());
-                                continue;
-                            }
-
-                            // this is the location where we have determined that there are the same number of revisions for this paragraph as there are revision documents.
-                            // however, the hash for all of them were not the same.
-                            // therefore, they would be added to the consolidated document as separate revisions.
-
-                            // create a log that shows what is different, in detail.
-                            if (settings.LogCallback != null)
-                            {
-                                StringBuilder sb = new StringBuilder();
-                                sb.Append("====================================================================================================" + nl);
-                                sb.Append("Non-Consolidated Revision" + nl);
-                                sb.Append("====================================================================================================" + nl);
-                                foreach (var urList in uniqueRevisions)
-                                {
-                                    var revisorList = urList.Select(ur => ur.Revisor + " : ").StringConcatenate().TrimEnd(' ', ':');
-                                    sb.Append("Revisors: " + revisorList + nl);
-                                    var str = RevisionToLogFormTransform(urList.First().RevisionElement, 0, false);
-                                    sb.Append(str);
-                                    sb.Append("=========================" + nl);
-                                }
-                                sb.Append(nl);
-                                settings.LogCallback(sb.ToString());
-                            }
-                        }
-
-                        var contentToAddBefore = lci
-                            .Where(ci => ci.InsertBefore == true)
-                            .GroupAdjacent(ci => ci.Revisor + ci.Color.ToString())
-                            .Select((groupedCi, idx) => AssembledConjoinedRevisionContent(emptyParagraph, groupedCi, idx, consolidatedWDoc, consolidateSettings));
-                        var contentToAddAfter = lci
-                            .Where(ci => ci.InsertBefore == false)
-                            .GroupAdjacent(ci => ci.Revisor + ci.Color.ToString())
-                            .Select((groupedCi, idx) => AssembledConjoinedRevisionContent(emptyParagraph, groupedCi, idx, consolidatedWDoc, consolidateSettings));
-                        ele.AddBeforeSelf(contentToAddBefore);
-                        ele.AddAfterSelf(contentToAddAfter);
-                    }
-#endif
 
                     consolidatedMainDocPartXDoc
                         .Root
@@ -1813,76 +1715,6 @@ namespace OpenXmlPowerTools.Previous
 
         private static void FixUpFootnotesEndnotesWithCustomMarkers(WordprocessingDocument wDocWithRevisions)
         {
-#if FALSE
-      // this needs to change
-      <w:del w:author="Open-Xml-PowerTools"
-             w:id="7"
-             w:date="2017-06-07T12:23:22.8601285-07:00">
-        <w:r>
-          <w:rPr pt14:Unid="ec75a71361c84562a757eee8b28fc229">
-            <w:rFonts w:cs="Times New Roman Bold"
-                      pt14:Unid="16bb355df5964ba09854f9152c97242b" />
-            <w:b w:val="0"
-                 pt14:Unid="9abcec54ad414791a5627cbb198e8aa9" />
-            <w:bCs pt14:Unid="71ecd2eba85e4bfaa92b3d618e2f8829" />
-            <w:position w:val="6"
-                        pt14:Unid="61793f6a5f494700b7f2a3a753ce9055" />
-            <w:sz w:val="16"
-                  pt14:Unid="60b3cd020c214d0ea07e5a68ae0e4efe" />
-            <w:szCs w:val="16"
-                    pt14:Unid="9ae61a724de44a75868180aac44ea380" />
-          </w:rPr>
-          <w:footnoteReference w:customMarkFollows="1"
-                               w:id="1"
-                               pt14:Status="Deleted" />
-        </w:r>
-      </w:del>
-      <w:del w:author="Open-Xml-PowerTools"
-             w:id="8"
-             w:date="2017-06-07T12:23:22.8601285-07:00">
-        <w:r>
-          <w:rPr pt14:Unid="445caef74a624e588e7adaa6d7775639">
-            <w:rFonts w:cs="Times New Roman Bold"
-                      pt14:Unid="5920885f8ec44c53bcaece2de7eafda2" />
-            <w:b w:val="0"
-                 pt14:Unid="023a29e2e6d44c3b8c5df47317ace4c6" />
-            <w:bCs pt14:Unid="e96e37daf9174b268ef4731df831df7d" />
-            <w:position w:val="6"
-                        pt14:Unid="be3f8ff7ed0745ae9340bb2706b28b1f" />
-            <w:sz w:val="16"
-                  pt14:Unid="6fbbde024e7c46b9b72435ae50065459" />
-            <w:szCs w:val="16"
-                    pt14:Unid="cc82e7bd75f441f2b609eae0672fb285" />
-          </w:rPr>
-          <w:delText>1</w:delText>
-        </w:r>
-      </w:del>
-
-      // to this
-      <w:del w:author="Open-Xml-PowerTools"
-             w:id="7"
-             w:date="2017-06-07T12:23:22.8601285-07:00">
-        <w:r>
-          <w:rPr pt14:Unid="ec75a71361c84562a757eee8b28fc229">
-            <w:rFonts w:cs="Times New Roman Bold"
-                      pt14:Unid="16bb355df5964ba09854f9152c97242b" />
-            <w:b w:val="0"
-                 pt14:Unid="9abcec54ad414791a5627cbb198e8aa9" />
-            <w:bCs pt14:Unid="71ecd2eba85e4bfaa92b3d618e2f8829" />
-            <w:position w:val="6"
-                        pt14:Unid="61793f6a5f494700b7f2a3a753ce9055" />
-            <w:sz w:val="16"
-                  pt14:Unid="60b3cd020c214d0ea07e5a68ae0e4efe" />
-            <w:szCs w:val="16"
-                    pt14:Unid="9ae61a724de44a75868180aac44ea380" />
-          </w:rPr>
-          <w:footnoteReference w:customMarkFollows="1"
-                               w:id="1"
-                               pt14:Status="Deleted" />
-          <w:delText>1</w:delText>
-        </w:r>
-      </w:del>
-#endif
             // this is pretty random - a bug in Word prevents display of a document if the delText element does not immediately follow the footnoteReference element, in the same run.
             var mainXDoc = wDocWithRevisions.MainDocumentPart.GetXDocument();
             var newRoot = (XElement)FootnoteEndnoteReferenceCleanupTransform(mainXDoc.Root);
@@ -3148,7 +2980,6 @@ namespace OpenXmlPowerTools.Previous
 
             /// This also makes the basic assumption that an endnote / footnote can't contain a text box, which I believe is a good assumption.
 
-
             string[] currentAncestorUnids = null;
             foreach (var cua in rComparisonUnitAtomList)
             {
@@ -3319,20 +3150,9 @@ namespace OpenXmlPowerTools.Previous
             var listOfComparisonUnitAtoms = correlatedSequence
                 .Select(cs =>
                 {
-
                     // need to write some code here to find out if we are assembling a paragraph (or anything) that contains the following unid.
                     // why do are we dropping content???????
                     //string searchFor = "0ecb9184";
-
-
-
-
-
-
-
-
-
-
 
                     if (cs.CorrelationStatus == CorrelationStatus.Equal)
                     {
@@ -4495,107 +4315,6 @@ namespace OpenXmlPowerTools.Previous
             }
 
             return null;
-#if false
-            var middleLeft = unknown
-                .ComparisonUnitArray1
-                .Skip(countCommonAtBeginning)
-                .SkipLast(remainingInLeftParagraph)
-                .SkipLast(countCommonAtEnd)
-                .ToArray();
-
-            var middleRight = unknown
-                .ComparisonUnitArray2
-                .Skip(countCommonAtBeginning)
-                .SkipLast(remainingInRightParagraph)
-                .SkipLast(countCommonAtEnd)
-                .ToArray();
-
-            if (middleLeft.Length > 0 && middleRight.Length == 0)
-            {
-                CorrelatedSequence cs = new CorrelatedSequence();
-                cs.CorrelationStatus = CorrelationStatus.Deleted;
-                cs.ComparisonUnitArray1 = middleLeft;
-                cs.ComparisonUnitArray2 = null;
-                newSequence.Add(cs);
-            }
-            else if (middleLeft.Length == 0 && middleRight.Length > 0)
-            {
-                CorrelatedSequence cs = new CorrelatedSequence();
-                cs.CorrelationStatus = CorrelationStatus.Inserted;
-                cs.ComparisonUnitArray1 = null;
-                cs.ComparisonUnitArray2 = middleRight;
-                newSequence.Add(cs);
-            }
-            else if (middleLeft.Length > 0 && middleRight.Length > 0)
-            {
-                CorrelatedSequence cs = new CorrelatedSequence();
-                cs.CorrelationStatus = CorrelationStatus.Unknown;
-                cs.ComparisonUnitArray1 = middleLeft;
-                cs.ComparisonUnitArray2 = middleRight;
-                newSequence.Add(cs);
-            }
-
-            var remainingInParaLeft = unknown
-                .ComparisonUnitArray1
-                .Skip(countCommonAtBeginning)
-                .Skip(middleLeft.Length)
-                .Take(remainingInLeftParagraph)
-                .ToArray();
-
-            var remainingInParaRight = unknown
-                .ComparisonUnitArray2
-                .Skip(countCommonAtBeginning)
-                .Skip(middleRight.Length)
-                .Take(remainingInRightParagraph)
-                .ToArray();
-
-            if (remainingInParaLeft.Length > 0 && remainingInParaRight.Length == 0)
-            {
-                CorrelatedSequence cs = new CorrelatedSequence();
-                cs.CorrelationStatus = CorrelationStatus.Deleted;
-                cs.ComparisonUnitArray1 = remainingInParaLeft;
-                cs.ComparisonUnitArray2 = null;
-                newSequence.Add(cs);
-            }
-            else if (remainingInParaLeft.Length == 0 && remainingInParaRight.Length > 0)
-            {
-                CorrelatedSequence cs = new CorrelatedSequence();
-                cs.CorrelationStatus = CorrelationStatus.Inserted;
-                cs.ComparisonUnitArray1 = null;
-                cs.ComparisonUnitArray2 = remainingInParaRight;
-                newSequence.Add(cs);
-            }
-            else if (remainingInParaLeft.Length > 0 && remainingInParaRight.Length > 0)
-            {
-                CorrelatedSequence cs = new CorrelatedSequence();
-                cs.CorrelationStatus = CorrelationStatus.Unknown;
-                cs.ComparisonUnitArray1 = remainingInParaLeft;
-                cs.ComparisonUnitArray2 = remainingInParaRight;
-                newSequence.Add(cs);
-            }
-
-            if (countCommonAtEnd != 0)
-            {
-                CorrelatedSequence cs = new CorrelatedSequence();
-                cs.CorrelationStatus = CorrelationStatus.Equal;
-
-                cs.ComparisonUnitArray1 = unknown
-                    .ComparisonUnitArray1
-                    .Skip(countCommonAtBeginning + middleLeft.Length + remainingInParaLeft.Length)
-                    .ToArray();
-
-                cs.ComparisonUnitArray2 = unknown
-                    .ComparisonUnitArray2
-                    .Skip(countCommonAtBeginning + middleRight.Length + remainingInParaRight.Length)
-                    .ToArray();
-
-                if (cs.ComparisonUnitArray1.Length != cs.ComparisonUnitArray2.Length)
-                    throw new OpenXmlPowerToolsException("Internal error");
-
-                newSequence.Add(cs);
-            }
-            return newSequence;
-#endif
         }
 
         private static List<ComparisonUnit[]> SplitAtParagraphMark(ComparisonUnit[] cua)
@@ -5356,15 +5075,19 @@ namespace OpenXmlPowerTools.Previous
                         case ComparisonUnitGroupType.Paragraph:
                             takeThruName = W.p;
                             break;
+
                         case ComparisonUnitGroupType.Table:
                             takeThruName = W.tbl;
                             break;
+
                         case ComparisonUnitGroupType.Row:
                             takeThruName = W.tr;
                             break;
+
                         case ComparisonUnitGroupType.Cell:
                             takeThruName = W.tc;
                             break;
+
                         case ComparisonUnitGroupType.Textbox:
                             takeThruName = W.txbxContent;
                             break;
@@ -5996,7 +5719,6 @@ namespace OpenXmlPowerTools.Previous
 
                         // have to decide which of the following two branches to do first based on whether the left contains a paragraph mark
                         // i.e. cant insert a string of deleted text right before a table.
-
                         else if (leftGrouped[iLeft].Key == "Word" &&
                             leftGrouped[iLeft].Select(lg => lg.DescendantContentAtoms()).SelectMany(m => m).Last().ContentElement.Name != W.pPr &&
                             rightGrouped[iRight].Key == "Row")
@@ -6023,7 +5745,6 @@ namespace OpenXmlPowerTools.Previous
                             newListOfCorrelatedSequence.Add(insertedCorrelatedSequence);
                             ++iLeft;
                         }
-
                         else if (leftGrouped[iLeft].Key == "Word" && rightGrouped[iRight].Key != "Word")
                         {
                             var deletedCorrelatedSequence = new CorrelatedSequence
@@ -6035,7 +5756,6 @@ namespace OpenXmlPowerTools.Previous
                             newListOfCorrelatedSequence.Add(deletedCorrelatedSequence);
                             ++iLeft;
                         }
-
                         else if (leftGrouped[iLeft].Key != "Word" && rightGrouped[iRight].Key == "Word")
                         {
                             var insertedCorrelatedSequence = new CorrelatedSequence
@@ -6563,7 +6283,6 @@ namespace OpenXmlPowerTools.Previous
                 return newListOfCorrelatedSequence;
             }
 
-            ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // here we have the longest common subsequence.
             // but it may start in the middle of a paragraph.
             // therefore need to dispose of the content from the beginning of the longest common subsequence to the beginning of the paragraph.
@@ -6748,7 +6467,6 @@ namespace OpenXmlPowerTools.Previous
             };
             newListOfCorrelatedSequence.Add(middleEqual);
 
-
             var endI1 = currentI1 + currentLongestCommonSequenceLength;
             var endI2 = currentI2 + currentLongestCommonSequenceLength;
 
@@ -6822,7 +6540,6 @@ namespace OpenXmlPowerTools.Previous
         {
             var newListOfCorrelatedSequence = new List<CorrelatedSequence>();
 
-            ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // if we have a table with the same number of rows, and all rows have equal CorrelatedSHA1Hash, then we can flatten and compare every corresponding row.
             // This is true regardless of whether there are horizontally or vertically merged cells, since that characteristic is incorporated into the CorrespondingSHA1Hash.
             // This is probably not very common, but it will never do any harm.
@@ -6891,7 +6608,6 @@ namespace OpenXmlPowerTools.Previous
 
             if (leftContainsMerged || rightContainsMerged)
             {
-                ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
                 // If StructureSha1Hash is the same for both tables, then we know that the structure of the tables is identical, so we can break into correlated sequences for rows.
                 if (tblGroup1.StructureSHA1Hash != null &&
                     tblGroup2.StructureSHA1Hash != null &&
@@ -7703,8 +7419,6 @@ namespace OpenXmlPowerTools.Previous
             }
         }
 
-
-
         private static void AssignUnidToAllElements(XElement contentParent)
         {
             var content = contentParent.Descendants();
@@ -8194,6 +7908,7 @@ namespace OpenXmlPowerTools.Previous
         // if ComparisonUnitList2 == null and ComparisonUnitList1 contains sequence, then deleted content.
         // if ComparisonUnitList2 contains sequence and ComparisonUnitList1 contains sequence, then either is Unknown or Equal.
         public ComparisonUnit[] ComparisonUnitArray1;
+
         public ComparisonUnit[] ComparisonUnitArray2;
 #if DEBUG
         public string SourceFile;
@@ -8250,4 +7965,3 @@ namespace OpenXmlPowerTools.Previous
         }
     }
 }
-

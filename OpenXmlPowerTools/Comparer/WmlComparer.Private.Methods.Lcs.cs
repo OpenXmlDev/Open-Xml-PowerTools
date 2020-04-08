@@ -382,7 +382,6 @@ namespace OpenXmlPowerTools
 
                         // have to decide which of the following two branches to do first based on whether the left contains a paragraph mark
                         // i.e. cant insert a string of deleted text right before a table.
-
                         else if (leftGrouped[iLeft].Key == "Word" &&
                                  leftGrouped[iLeft]
                                      .Select(lg => lg.DescendantContentAtoms())
@@ -418,7 +417,6 @@ namespace OpenXmlPowerTools
                             newListOfCorrelatedSequence.Add(insertedCorrelatedSequence);
                             ++iLeft;
                         }
-
                         else if (leftGrouped[iLeft].Key == "Word" && rightGrouped[iRight].Key != "Word")
                         {
                             var deletedCorrelatedSequence = new CorrelatedSequence
@@ -430,7 +428,6 @@ namespace OpenXmlPowerTools
                             newListOfCorrelatedSequence.Add(deletedCorrelatedSequence);
                             ++iLeft;
                         }
-
                         else if (leftGrouped[iLeft].Key != "Word" && rightGrouped[iRight].Key == "Word")
                         {
                             var insertedCorrelatedSequence = new CorrelatedSequence
@@ -954,7 +951,6 @@ namespace OpenXmlPowerTools
                 return newListOfCorrelatedSequence;
             }
 
-            ///////////////////////////////////////////////////////////////////////////////////////////////////////////
             // here we have the longest common subsequence.
             // but it may start in the middle of a paragraph.
             // therefore need to dispose of the content from the beginning of the longest common subsequence to the
@@ -1144,7 +1140,6 @@ namespace OpenXmlPowerTools
             };
             newListOfCorrelatedSequence.Add(middleEqual);
 
-
             var endI1 = currentI1 + currentLongestCommonSequenceLength;
             var endI2 = currentI2 + currentLongestCommonSequenceLength;
 
@@ -1205,7 +1200,6 @@ namespace OpenXmlPowerTools
         {
             var newListOfCorrelatedSequence = new List<CorrelatedSequence>();
 
-            ///////////////////////////////////////////////////////////////////////////////////////////////////////////
             // if we have a table with the same number of rows, and all rows have equal CorrelatedSHA1Hash, then we can
             // flatten and compare every corresponding row.
             // This is true regardless of whether there are horizontally or vertically merged cells, since that

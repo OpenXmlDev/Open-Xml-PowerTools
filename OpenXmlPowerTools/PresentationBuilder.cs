@@ -235,15 +235,13 @@ namespace OpenXmlPowerTools
             }
         }
 
-#if false
-            // TODO need to handle the following
+        // TODO need to handle the following
 
-            { P.custShowLst, 80 },
-            { P.photoAlbum, 90 },
-            { P.custDataLst, 100 },
-            { P.kinsoku, 120 },
-            { P.modifyVerifier, 150 },
-#endif
+        //{ P.custShowLst, 80 },
+        //{ P.photoAlbum, 90 },
+        //{ P.custDataLst, 100 },
+        //{ P.kinsoku, 120 },
+        //{ P.modifyVerifier, 150 },
 
         // Copy handout master, notes master, presentation properties and view properties, if they exist
         private static void CopyPresentationParts(PresentationDocument sourceDocument, PresentationDocument newDocument, List<ImageData> images, List<MediaData> mediaList)
@@ -400,7 +398,6 @@ namespace OpenXmlPowerTools
             { P.modifyVerifier, 150 },
             { P.extLst, 160 },
         };
-
 
         private static XElement CreatedEmbeddedFontPart(PresentationDocument sourceDocument, PresentationDocument newDocument, XElement font, XName fontXName)
         {
@@ -707,7 +704,6 @@ namespace OpenXmlPowerTools
                 // Copy style to new part
                 tableStyles.Root.Add(oldStyle);
             }
-
         }
 
         private static void CopyRelatedPartsForContentParts(PresentationDocument newDocument, OpenXmlPart oldContentPart, OpenXmlPart newContentPart,
@@ -1607,7 +1603,6 @@ namespace OpenXmlPowerTools
                         temp.AddContentPartRelTypeResourceIdTupple(newContentPart, imagePart.RelationshipType, newId);
                         imageReference.Attribute(attributeName).Value = newId;
                     }
-
                 }
             }
             else
@@ -1830,7 +1825,6 @@ namespace OpenXmlPowerTools
             imageReference.Attribute(attributeName).Value = newId;
         }
 
-
         private static void CopyInkPart(OpenXmlPart oldContentPart, OpenXmlPart newContentPart, XElement contentPartReference, XName attributeName)
         {
             var relId = (string)contentPartReference.Attribute(attributeName);
@@ -1952,14 +1946,11 @@ namespace OpenXmlPowerTools
                 var fileInfo = new FileInfo(oldPart.Uri.OriginalString);
                 ExtendedPart newPart = null;
 
-#if !NET35
                 if (newContentPart is ChartColorStylePart)
                 {
                     newPart = ((ChartColorStylePart)newContentPart).AddExtendedPart(oldPart.RelationshipType, oldPart.ContentType, fileInfo.Extension);
                 }
-                else
-#endif
-                if (newContentPart is ChartDrawingPart)
+                else if (newContentPart is ChartDrawingPart)
                 {
                     newPart = ((ChartDrawingPart)newContentPart).AddExtendedPart(oldPart.RelationshipType, oldPart.ContentType, fileInfo.Extension);
                 }
@@ -1971,12 +1962,10 @@ namespace OpenXmlPowerTools
                 {
                     newPart = ((ChartsheetPart)newContentPart).AddExtendedPart(oldPart.RelationshipType, oldPart.ContentType, fileInfo.Extension);
                 }
-#if !NET35
                 else if (newContentPart is ChartStylePart)
                 {
                     newPart = ((ChartStylePart)newContentPart).AddExtendedPart(oldPart.RelationshipType, oldPart.ContentType, fileInfo.Extension);
                 }
-#endif
                 else if (newContentPart is CommentAuthorsPart)
                 {
                     newPart = ((CommentAuthorsPart)newContentPart).AddExtendedPart(oldPart.RelationshipType, oldPart.ContentType, fileInfo.Extension);
@@ -2193,7 +2182,6 @@ namespace OpenXmlPowerTools
                 {
                     newPart = ((ThumbnailPart)newContentPart).AddExtendedPart(oldPart.RelationshipType, oldPart.ContentType, fileInfo.Extension);
                 }
-#if !NET35
                 else if (newContentPart is TimeLineCachePart)
                 {
                     newPart = ((TimeLineCachePart)newContentPart).AddExtendedPart(oldPart.RelationshipType, oldPart.ContentType, fileInfo.Extension);
@@ -2202,7 +2190,6 @@ namespace OpenXmlPowerTools
                 {
                     newPart = ((TimeLinePart)newContentPart).AddExtendedPart(oldPart.RelationshipType, oldPart.ContentType, fileInfo.Extension);
                 }
-#endif
                 else if (newContentPart is UserDefinedTagsPart)
                 {
                     newPart = ((UserDefinedTagsPart)newContentPart).AddExtendedPart(oldPart.RelationshipType, oldPart.ContentType, fileInfo.Extension);
@@ -2360,11 +2347,15 @@ namespace OpenXmlPowerTools
 
     public class PresentationBuilderException : Exception
     {
-        public PresentationBuilderException(string message) : base(message) { }
+        public PresentationBuilderException(string message) : base(message)
+        {
+        }
     }
 
     public class PresentationBuilderInternalException : Exception
     {
-        public PresentationBuilderInternalException(string message) : base(message) { }
+        public PresentationBuilderInternalException(string message) : base(message)
+        {
+        }
     }
 }

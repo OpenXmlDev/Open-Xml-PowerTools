@@ -4,7 +4,6 @@
 using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using System;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Xml.Linq;
@@ -255,7 +254,6 @@ namespace OpenXmlPowerTools
             }
         }
 
-        [SuppressMessage("ReSharper", "CoVariantArrayConversion")]
         private static void AddFootnotesEndnotesParts(WordprocessingDocument wDoc)
         {
             var mdp = wDoc.MainDocumentPart;

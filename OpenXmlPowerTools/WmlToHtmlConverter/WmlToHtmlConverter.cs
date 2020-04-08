@@ -4,15 +4,11 @@
 using DocumentFormat.OpenXml.Packaging;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Xml.Linq;
-
-// 200e lrm - LTR
-// 200f rlm - RTL
 
 // todo need to set the HTTP "Content-Language" header, for instance:
 // Content-Language: en-US
@@ -20,116 +16,6 @@ using System.Xml.Linq;
 
 namespace OpenXmlPowerTools
 {
-    public partial class WmlDocument
-    {
-        [SuppressMessage("ReSharper", "UnusedMember.Global")]
-        public XElement ConvertToHtml(WmlToHtmlConverterSettings htmlConverterSettings)
-        {
-            return WmlToHtmlConverter.ConvertToHtml(this, htmlConverterSettings);
-        }
-
-        [SuppressMessage("ReSharper", "UnusedMember.Global")]
-        public XElement ConvertToHtml(HtmlConverterSettings htmlConverterSettings)
-        {
-            var settings = new WmlToHtmlConverterSettings(htmlConverterSettings);
-            return WmlToHtmlConverter.ConvertToHtml(this, settings);
-        }
-    }
-
-    [SuppressMessage("ReSharper", "FieldCanBeMadeReadOnly.Global")]
-    public class WmlToHtmlConverterSettings
-    {
-        public string PageTitle;
-        public string CssClassPrefix;
-        public bool FabricateCssClasses;
-        public string GeneralCss;
-        public string AdditionalCss;
-        public bool RestrictToSupportedLanguages;
-        public bool RestrictToSupportedNumberingFormats;
-        public Dictionary<string, Func<string, int, string, string>> ListItemImplementations;
-        public Func<ImageInfo, XElement> ImageHandler;
-
-        public WmlToHtmlConverterSettings()
-        {
-            PageTitle = "";
-            CssClassPrefix = "pt-";
-            FabricateCssClasses = true;
-            GeneralCss = "span { white-space: pre-wrap; }";
-            AdditionalCss = "";
-            RestrictToSupportedLanguages = false;
-            RestrictToSupportedNumberingFormats = false;
-            ListItemImplementations = ListItemRetrieverSettings.DefaultListItemTextImplementations;
-        }
-
-        public WmlToHtmlConverterSettings(HtmlConverterSettings htmlConverterSettings)
-        {
-            PageTitle = htmlConverterSettings.PageTitle;
-            CssClassPrefix = htmlConverterSettings.CssClassPrefix;
-            FabricateCssClasses = htmlConverterSettings.FabricateCssClasses;
-            GeneralCss = htmlConverterSettings.GeneralCss;
-            AdditionalCss = htmlConverterSettings.AdditionalCss;
-            RestrictToSupportedLanguages = htmlConverterSettings.RestrictToSupportedLanguages;
-            RestrictToSupportedNumberingFormats = htmlConverterSettings.RestrictToSupportedNumberingFormats;
-            ListItemImplementations = htmlConverterSettings.ListItemImplementations;
-            ImageHandler = htmlConverterSettings.ImageHandler;
-        }
-    }
-
-    [SuppressMessage("ReSharper", "FieldCanBeMadeReadOnly.Global")]
-    public class HtmlConverterSettings
-    {
-        public string PageTitle;
-        public string CssClassPrefix;
-        public bool FabricateCssClasses;
-        public string GeneralCss;
-        public string AdditionalCss;
-        public bool RestrictToSupportedLanguages;
-        public bool RestrictToSupportedNumberingFormats;
-        public Dictionary<string, Func<string, int, string, string>> ListItemImplementations;
-        public Func<ImageInfo, XElement> ImageHandler;
-
-        public HtmlConverterSettings()
-        {
-            PageTitle = "";
-            CssClassPrefix = "pt-";
-            FabricateCssClasses = true;
-            GeneralCss = "span { white-space: pre-wrap; }";
-            AdditionalCss = "";
-            RestrictToSupportedLanguages = false;
-            RestrictToSupportedNumberingFormats = false;
-            ListItemImplementations = ListItemRetrieverSettings.DefaultListItemTextImplementations;
-        }
-    }
-
-    public static class HtmlConverter
-    {
-        public static XElement ConvertToHtml(WmlDocument wmlDoc, HtmlConverterSettings htmlConverterSettings)
-        {
-            var settings = new WmlToHtmlConverterSettings(htmlConverterSettings);
-            return WmlToHtmlConverter.ConvertToHtml(wmlDoc, settings);
-        }
-
-        public static XElement ConvertToHtml(WordprocessingDocument wDoc, HtmlConverterSettings htmlConverterSettings)
-        {
-            var settings = new WmlToHtmlConverterSettings(htmlConverterSettings);
-            return WmlToHtmlConverter.ConvertToHtml(wDoc, settings);
-        }
-    }
-
-    [SuppressMessage("ReSharper", "NotAccessedField.Global")]
-    [SuppressMessage("ReSharper", "UnusedMember.Global")]
-    public class ImageInfo
-    {
-        public Bitmap Bitmap;
-        public XAttribute ImgStyleAttribute;
-        public string ContentType;
-        public XElement DrawingElement;
-        public string AltText;
-
-        public const int EmusPerInch = 914400;
-        public const int EmusPerCm = 360000;
-    }
-
     public static class WmlToHtmlConverter
     {
         public static XElement ConvertToHtml(WmlDocument doc, WmlToHtmlConverterSettings htmlConverterSettings)
@@ -389,10 +275,7 @@ namespace OpenXmlPowerTools
             }
         }
 
-        private static object ConvertToHtmlTransform(WordprocessingDocument wordDoc,
-            WmlToHtmlConverterSettings settings, XNode node,
-            bool suppressTrailingWhiteSpace,
-            decimal currentMarginLeft)
+        private static object ConvertToHtmlTransform(WordprocessingDocument wordDoc, WmlToHtmlConverterSettings settings, XNode node, bool suppressTrailingWhiteSpace, decimal currentMarginLeft)
         {
             var element = node as XElement;
             if (element == null)
@@ -676,22 +559,7 @@ namespace OpenXmlPowerTools
             }
             else
             {
-#if false
-                            var bidi = element
-                                .Ancestors(W.p)
-                                .Take(1)
-                                .Elements(W.pPr)
-                                .Elements(W.bidi)
-                                .Where(b => b.Attribute(W.val) == null || b.Attribute(W.val).ToBoolean() == true)
-                                .FirstOrDefault();
-                            var isBidi = bidi != null;
-                            if (isBidi)
-                                span = new XElement(Xhtml.span, new XEntity("#x200f")); // RLM
-                            else
-                                span = new XElement(Xhtml.span, new XEntity("#x200e")); // LRM
-#else
                 span = new XElement(Xhtml.span, new XEntity("#x00a0"));
-#endif
                 style.Add("margin", string.Format(NumberFormatInfo.InvariantInfo, "0 0 0 {0:0.00}in", tabWidth));
                 style.Add("padding", "0 0 0 0");
             }
@@ -875,7 +743,6 @@ namespace OpenXmlPowerTools
             return tableDiv;
         }
 
-        [SuppressMessage("ReSharper", "PossibleNullReferenceException")]
         private static object ProcessTableCell(WordprocessingDocument wordDoc, WmlToHtmlConverterSettings settings, XElement element)
         {
             var style = new Dictionary<string, string>();
@@ -1539,6 +1406,7 @@ namespace OpenXmlPowerTools
                     case "superscript":
                         newContent = new XElement(Xhtml.sup, content);
                         break;
+
                     case "subscript":
                         newContent = new XElement(Xhtml.sub, content);
                         break;
@@ -1569,7 +1437,6 @@ namespace OpenXmlPowerTools
             return content;
         }
 
-        [SuppressMessage("ReSharper", "FunctionComplexityOverflow")]
         private static Dictionary<string, string> DefineRunStyle(XElement run)
         {
             var style = new Dictionary<string, string>();
@@ -2090,12 +1957,9 @@ namespace OpenXmlPowerTools
             wordDoc.MainDocumentPart.PutXDocument();
         }
 
-        // TODO: Refactor. This method is way too long.
-        [SuppressMessage("ReSharper", "FunctionComplexityOverflow")]
         private static object CalculateSpanWidthTransform(XNode node, int defaultTabStop)
         {
-            var element = node as XElement;
-            if (element == null)
+            if (!(node is XElement element))
             {
                 return node;
             }
@@ -2198,7 +2062,7 @@ namespace OpenXmlPowerTools
                     currentElementIdx++;
                     if (currentElementIdx >= contentToMeasure.Length)
                     {
-                        break; // we're done
+                        break;
                     }
                 }
 
@@ -2266,13 +2130,13 @@ namespace OpenXmlPowerTools
                         var lastElement = textElementsToMeasure.LastOrDefault();
                         if (lastElement == null)
                         {
-                            break; // we're done
+                            break;
                         }
 
                         currentElementIdx = Array.IndexOf(contentToMeasure, lastElement) + 1;
                         if (currentElementIdx >= contentToMeasure.Length)
                         {
-                            break; // we're done
+                            break;
                         }
 
                         continue;
@@ -2328,13 +2192,13 @@ namespace OpenXmlPowerTools
                             var lastElement = textElementsToMeasure.LastOrDefault();
                             if (lastElement == null)
                             {
-                                break; // we're done
+                                break;
                             }
 
                             currentElementIdx = Array.IndexOf(contentToMeasure, lastElement) + 1;
                             if (currentElementIdx >= contentToMeasure.Length)
                             {
-                                break; // we're done
+                                break;
                             }
 
                             continue;
@@ -2362,13 +2226,13 @@ namespace OpenXmlPowerTools
                             var lastElement = textElementsToMeasure.LastOrDefault();
                             if (lastElement == null)
                             {
-                                break; // we're done
+                                break;
                             }
 
                             currentElementIdx = Array.IndexOf(contentToMeasure, lastElement) + 1;
                             if (currentElementIdx >= contentToMeasure.Length)
                             {
-                                break; // we're done
+                                break;
                             }
 
                             continue;
@@ -2413,13 +2277,13 @@ namespace OpenXmlPowerTools
                         var lastElement = textElementsToMeasure.LastOrDefault();
                         if (lastElement == null)
                         {
-                            break; // we're done
+                            break;
                         }
 
                         currentElementIdx = Array.IndexOf(contentToMeasure, lastElement) + 1;
                         if (currentElementIdx >= contentToMeasure.Length)
                         {
-                            break; // we're done
+                            break;
                         }
 
                         continue;
@@ -2436,7 +2300,7 @@ namespace OpenXmlPowerTools
                         currentElementIdx++;
                         if (currentElementIdx >= contentToMeasure.Length)
                         {
-                            break; // we're done
+                            break;
                         }
 
                         continue;
@@ -2468,7 +2332,7 @@ namespace OpenXmlPowerTools
                     currentElementIdx++;
                     if (currentElementIdx >= contentToMeasure.Length)
                     {
-                        break; // we're done
+                        break;
                     }
 
                     continue;
@@ -2477,7 +2341,7 @@ namespace OpenXmlPowerTools
                 currentElementIdx++;
                 if (currentElementIdx >= contentToMeasure.Length)
                 {
-                    break; // we're done
+                    break;
                 }
             }
 
@@ -3033,8 +2897,7 @@ namespace OpenXmlPowerTools
             if (side == null)
             {
                 style.Add("border-" + whichSide, "none");
-                if (borderType == BorderType.Cell &&
-                    (whichSide == "left" || whichSide == "right"))
+                if (borderType == BorderType.Cell && (whichSide == "left" || whichSide == "right"))
                 {
                     style.Add("padding-" + whichSide, "5.4pt");
                 }
@@ -3058,7 +2921,6 @@ namespace OpenXmlPowerTools
 
                 style.Add("padding-" + whichSide,
                     space == 0 ? "0" : string.Format(NumberFormatInfo.InvariantInfo, "{0:0.0}pt", space));
-
             }
             else
             {
@@ -3443,8 +3305,6 @@ namespace OpenXmlPowerTools
             return txformed;
         }
 
-        #region Image Processing
-
         // Don't process wmf files (with contentType == "image/x-wmf") because GDI consumes huge amounts
         // of memory when dealing with wmf perhaps because it loads a DLL to do the rendering?
         // It actually works, but is not recommended.
@@ -3453,8 +3313,7 @@ namespace OpenXmlPowerTools
             "image/png", "image/gif", "image/tiff", "image/jpeg"
         };
 
-
-        public static XElement ProcessImage(WordprocessingDocument wordDoc,
+        internal static XElement ProcessImage(WordprocessingDocument wordDoc,
             XElement element, Func<ImageInfo, XElement> imageHandler)
         {
             if (imageHandler == null)
@@ -3694,31 +3553,11 @@ namespace OpenXmlPowerTools
                 .Select(p => p.Value)
                 .FirstOrDefault();
 
-            if (sizeString != null &&
-                sizeString.Length > 2 &&
-                sizeString.Substring(sizeString.Length - 2) == "pt")
+            if (sizeString != null && sizeString.Length > 2 && sizeString.Substring(sizeString.Length - 2) == "pt" && float.TryParse(sizeString.Substring(0, sizeString.Length - 2), out var size))
             {
-                if (float.TryParse(sizeString.Substring(0, sizeString.Length - 2), out var size))
-                {
-                    return size;
-                }
+                return size;
             }
             return null;
-        }
-
-        #endregion
-    }
-
-    public static class HtmlConverterExtensions
-    {
-        public static void AddIfMissing(this Dictionary<string, string> style, string propName, string value)
-        {
-            if (style.ContainsKey(propName))
-            {
-                return;
-            }
-
-            style.Add(propName, value);
         }
     }
 }

@@ -294,7 +294,6 @@ namespace OpenXmlPowerTools
 
                         if (lciCount > 1 && lciCount == revisedDocumentInfoListCount)
                         {
-                            /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
                             // This is the code that determines if revisions should be consolidated into one.
 
                             var uniqueRevisions = lci
@@ -312,8 +311,6 @@ namespace OpenXmlPowerTools
                                 .OrderByDescending(g => g.Count())
                                 .ToList();
                             var uniqueRevisionCount = uniqueRevisions.Count();
-
-                            /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
                             if (uniqueRevisionCount == 1)
                             {
@@ -368,99 +365,6 @@ namespace OpenXmlPowerTools
                                 consolidatedWDoc, consolidateSettings));
                         ele.AddAfterSelf(contentToAddAfter);
                     }
-
-#if false
-
-// old code
-                    foreach (var ele in elementsToProcess)
-                    {
-                        var lci = ele.Annotation<List<ConsolidationInfo>>();
-
-                        // if all revisions from all revisors are exactly the same, then instead of adding multiple tables after
-                        // that contains the revisions, then simply replace the paragraph with the one with the revisions.
-                        // RC004 documents contain the test data to exercise this.
-
-                        var lciCount = lci.Count();
-
-                        if (lci.Count() > 1 && lciCount == revisedDocumentInfoListCount)
-                        {
-                            /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-                            // This is the code that determines if revisions should be consolidated into one.
-
-                            var uniqueRevisions = lci
-                                .GroupBy(ci =>
-                                {
-                                    // Get a hash after first accepting revisions and compressing the text.
-                                    var ciz = ci;
-
-                                    var acceptedRevisionElement = RevisionProcessor.AcceptRevisionsForElement(ci.RevisionElement);
-                                    var text = acceptedRevisionElement.Value
-                                        .Replace(" ", "")
-                                        .Replace(" ", "")
-                                        .Replace(" ", "")
-                                        .Replace("\n", "");
-                                    var sha1Hash = WmlComparerUtil.SHA1HashStringForUTF8String(text);
-                                    return ci.InsertBefore.ToString() + sha1Hash;
-                                })
-                                .OrderByDescending(g => g.Count())
-                                .ToList();
-                            var uniqueRevisionCount = uniqueRevisions.Count();
-
-                            /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-                            if (uniqueRevisionCount == 1)
-                            {
-                                MoveFootnotesEndnotesForConsolidatedRevisions(lci.First(), consolidatedWDoc);
-
-                                var dummyElement = new XElement("dummy", lci.First().RevisionElement);
-
-                                foreach(var rev in dummyElement.Descendants().Where(d => d.Attribute(W.author) != null))
-                                {
-                                    var aut = rev.Attribute(W.author);
-                                    aut.Value = "ITU";
-                                }
-
-                                ele.ReplaceWith(dummyElement.Elements());
-                                continue;
-                            }
-
-                            // this is the location where we have determined that there are the same number of revisions for this paragraph as there are revision documents.
-                            // however, the hash for all of them were not the same.
-                            // therefore, they would be added to the consolidated document as separate revisions.
-
-                            // create a log that shows what is different, in detail.
-                            if (settings.LogCallback != null)
-                            {
-                                StringBuilder sb = new StringBuilder();
-                                sb.Append("====================================================================================================" + nl);
-                                sb.Append("Non-Consolidated Revision" + nl);
-                                sb.Append("====================================================================================================" + nl);
-                                foreach (var urList in uniqueRevisions)
-                                {
-                                    var revisorList =
- urList.Select(ur => ur.Revisor + " : ").StringConcatenate().TrimEnd(' ', ':');
-                                    sb.Append("Revisors: " + revisorList + nl);
-                                    var str = RevisionToLogFormTransform(urList.First().RevisionElement, 0, false);
-                                    sb.Append(str);
-                                    sb.Append("=========================" + nl);
-                                }
-                                sb.Append(nl);
-                                settings.LogCallback(sb.ToString());
-                            }
-                        }
-
-                        var contentToAddBefore = lci
-                            .Where(ci => ci.InsertBefore == true)
-                            .GroupAdjacent(ci => ci.Revisor + ci.Color.ToString())
-                            .Select((groupedCi, idx) => AssembledConjoinedRevisionContent(emptyParagraph, groupedCi, idx, consolidatedWDoc, consolidateSettings));
-                        var contentToAddAfter = lci
-                            .Where(ci => ci.InsertBefore == false)
-                            .GroupAdjacent(ci => ci.Revisor + ci.Color.ToString())
-                            .Select((groupedCi, idx) => AssembledConjoinedRevisionContent(emptyParagraph, groupedCi, idx, consolidatedWDoc, consolidateSettings));
-                        ele.AddBeforeSelf(contentToAddBefore);
-                        ele.AddAfterSelf(contentToAddAfter);
-                    }
-#endif
 
                     consolidatedMainDocPartXDoc
                         .Root?

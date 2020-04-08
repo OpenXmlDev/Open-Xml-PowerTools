@@ -251,18 +251,15 @@ namespace OxPt
         [InlineData("DB009-00180", "DB/HeadersFooters/Src/Footer.docx", "DB/HeadersFooters/Dest/Letter.docx", "Templafy")]
         public void DB009_ImportIntoHeadersFooters(string testId, string src, string dest, string insertId)
         {
-            ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // Load the source document
             var sourceDir = new DirectoryInfo("../../../../TestFiles/");
             var sourceDocxFi = new FileInfo(Path.Combine(sourceDir.FullName, src));
             var wmlSourceDocument = new WmlDocument(sourceDocxFi.FullName);
 
-            ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // Load the dest document
             var destDocxFi = new FileInfo(Path.Combine(sourceDir.FullName, dest));
             var wmlDestDocument = new WmlDocument(destDocxFi.FullName);
 
-            ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // Create the dir for the test
             var rootTempDir = TestUtil.TempDir;
             var thisTestTempDir = new DirectoryInfo(Path.Combine(rootTempDir.FullName, testId));
@@ -277,20 +274,17 @@ namespace OxPt
 
             var tempDirFullName = thisTestTempDir.FullName;
 
-            ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // Copy src DOCX to temp directory, for ease of review
 
             while (true)
             {
                 try
                 {
-                    ////////// CODE TO REPEAT UNTIL SUCCESS //////////
                     var sourceDocxCopiedToDestFileName = new FileInfo(Path.Combine(tempDirFullName, sourceDocxFi.Name));
                     if (!sourceDocxCopiedToDestFileName.Exists)
                     {
                         wmlSourceDocument.SaveAs(sourceDocxCopiedToDestFileName.FullName);
                     }
-                    //////////////////////////////////////////////////
                     break;
                 }
                 catch (IOException)
@@ -299,20 +293,17 @@ namespace OxPt
                 }
             }
 
-            ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // Copy dest DOCX to temp directory, for ease of review
 
             while (true)
             {
                 try
                 {
-                    ////////// CODE TO REPEAT UNTIL SUCCESS //////////
                     var destDocxCopiedToDestFileName = new FileInfo(Path.Combine(tempDirFullName, destDocxFi.Name));
                     if (!destDocxCopiedToDestFileName.Exists)
                     {
                         wmlDestDocument.SaveAs(destDocxCopiedToDestFileName.FullName);
                     }
-                    //////////////////////////////////////////////////
                     break;
                 }
                 catch (IOException)
@@ -331,136 +322,6 @@ namespace OxPt
             DocumentBuilder.BuildDocument(sources, outFi.FullName);
             Validate(outFi);
         }
-
-#if false
-        [Theory]
-        [InlineData("DB999-00010", "DBTEMP/03DE57384B87AA6C2A3BDE87DDDD7F880DC55E.docx", true)]
-        [InlineData("DB999-00020", "DBTEMP/0D3DEB27ED036116466BED616B2056CDD2783A.docx", false)]
-        [InlineData("DB999-00030", "DBTEMP/421628B3F4B03B123CA8EDDA5009E449F5F47D.docx", false)]
-        [InlineData("DB999-00040", "DBTEMP/58D4E8661C7F44FE33392B89B0A3CB0AF1684F.docx", false)]
-        [InlineData("DB999-00050", "DBTEMP/67EBCA627D6D584CAB3EB1DF2E4C3982023DEE.docx", true)]
-        [InlineData("DB999-00060", "DBTEMP/A529643E2FC3E2C682FA86DEE0A1B3064DCEE0.docx", false)]
-        [InlineData("DB999-00070", "DBTEMP/E794032F0422B440D3C564F0E09E395519127D.docx", false)]
-        [InlineData("DB999-00080", "DBTEMP/1FF1ADF30B24978E9449754459C743D3BC67ED.docx", false)]
-        [InlineData("DB999-00090", "DBTEMP/5E685927DA2FECB88DE9CAF0BECEC88BC118A7.docx", false)]
-        [InlineData("DB999-00100", "DBTEMP/6427BCF5C18B55D627B95F3E14924050628C5B.docx", false)]
-        [InlineData("DB999-00110", "DBTEMP/91691E0D3AB89E9927A2BAC5D385BB6277648F.docx", false)]
-        [InlineData("DB999-00120", "DBTEMP/9533BC5710190EA01DA86D29CD06880395C4AF.docx", false)]
-        [InlineData("DB999-00130", "DBTEMP/E9CD8C556AA52CA7D31DADB51A201EEF580AA8.docx", false)]
-        [InlineData("DB999-00140", "DBTEMP/21D3CE149C30B791F9A8BE092828E1469A9047.docx", false)]
-        [InlineData("DB999-00150", "DBTEMP/AC0CB8CE43A7ECAE995BB542D4FB1060FB835B.docx", false)]
-        [InlineData("DB999-00160", "DBTEMP/C61F69B52EC8B0E2C784C932B26F3C613AE671.docx", false)]
-        [InlineData("DB999-00170", "DBTEMP/1DF04A9130B3EF858ACA6837A706A429904973.dotm", false)]
-        [InlineData("DB999-00180", "DBTEMP/6E9F26B708DE6076B2C731B97AAA5288D839AB.docm", false)]
-        [InlineData("DB999-00190", "DBTEMP/A6649726EA0BD7545932DDD51403D83E4D5917.docx", false)]
-        [InlineData("DB999-00200", "DBTEMP/C8AE8AD0A73F24B7CFCFD11918B337CF2B90C9.docx", false)]
-        [InlineData("DB999-00210", "DBTEMP/BC46A7FBB212EFD10878A39D91AE3ECAADDAB0.docx", false)]
-        [InlineData("DB999-00220", "DBTEMP/B6F0E938B508676B322C47F3E0E29C8D786DB2.docm", false)]
-        [InlineData("DB999-00230", "DBTEMP/D4D8694A51DECA243AF748B3232BE565EEE19D.docx", false)]
-        [InlineData("DB999-00240", "DBTEMP/F20B3CE72BF635462E22BA3CA81CA9D57F6FEB.docx", false)]
-        [InlineData("DB999-00250", "DBTEMP/74ED106FF88C1B195D97C466E00BECCB636A03.docx", false)]
-        [InlineData("DB999-00260", "DBTEMP/4421A4B7B6ECC2813070309AA2D86C4BCA4AEF.docx", false)]
-        [InlineData("DB999-00270", "DBTEMP/BC7D91B993807518F3D430B7C6592AFD6BD91C.docx", false)]
-        [InlineData("DB999-00280", "DBTEMP/3006E76FE65E8A25A91ED204EEBEE6D6D62A44.docx", false)]
-        [InlineData("DB999-00290", "DBTEMP/6254B74778BFFCD1799F4F2B3B01C2025AABB2.docx", false)]
-        [InlineData("DB999-00300", "DBTEMP/5AD0A0BD99676B268D8E7C1F69238FB9B6149E.docx", false)]
-        [InlineData("DB999-00310", "DBTEMP/2D58495ECCF30ED9507B707C689CA9C9D4B049.docx", false)]
-        public void DB999_DocumentBuilder(string testId, string src, bool shouldThrow)
-        {
-            ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            // Load the source document
-            DirectoryInfo sourceDir = new DirectoryInfo("../../../../TestFiles/");
-            FileInfo sourceDocxFi = new FileInfo(Path.Combine(sourceDir.FullName, src));
-            WmlDocument wmlSourceDocument = new WmlDocument(sourceDocxFi.FullName);
-
-            ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            // Create the dir for the test
-            var rootTempDir = TestUtil.TempDir;
-            var thisTestTempDir = new DirectoryInfo(Path.Combine(rootTempDir.FullName, testId));
-            if (thisTestTempDir.Exists)
-                Assert.True(false, "Duplicate test id: " + testId);
-            else
-                thisTestTempDir.Create();
-            var tempDirFullName = thisTestTempDir.FullName;
-
-            ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            // Copy src DOCX to temp directory, for ease of review
-
-            while (true)
-            {
-                try
-                {
-                    ////////// CODE TO REPEAT UNTIL SUCCESS //////////
-                    var sourceDocxCopiedToDestFileName = new FileInfo(Path.Combine(tempDirFullName, sourceDocxFi.Name));
-                    if (!sourceDocxCopiedToDestFileName.Exists)
-                        wmlSourceDocument.SaveAs(sourceDocxCopiedToDestFileName.FullName);
-                    //////////////////////////////////////////////////
-                    break;
-                }
-                catch (IOException)
-                {
-                    System.Threading.Thread.Sleep(50);
-                }
-            }
-
-            List<string> expectedErrors;
-            using (MemoryStream ms = new MemoryStream())
-            {
-                ms.Write(wmlSourceDocument.DocumentByteArray, 0, wmlSourceDocument.DocumentByteArray.Length);
-                using (WordprocessingDocument wDoc = WordprocessingDocument.Open(ms, false))
-                {
-                    OpenXmlValidator validator = new OpenXmlValidator();
-                    expectedErrors = validator.Validate(wDoc)
-                        .Select(e => e.Description)
-                        .Distinct()
-                        .ToList();
-                }
-            }
-            foreach (var item in s_ExpectedErrors)
-                expectedErrors.Add(item);
-
-            List<Source> sources = new List<Source>()
-            {
-                new Source(wmlSourceDocument, true),
-            };
-
-            var outFi = new FileInfo(Path.Combine(tempDirFullName, "Output.docx"));
-
-            if (shouldThrow)
-            {
-                Assert.Throws<DocumentBuilderException>(() => DocumentBuilder.BuildDocument(sources, outFi.FullName));
-            }
-            else
-            {
-                var outWml = DocumentBuilder.BuildDocument(sources);
-                outWml.SaveAs(outFi.FullName);
-
-                using (MemoryStream ms = new MemoryStream())
-                {
-                    ms.Write(outWml.DocumentByteArray, 0, outWml.DocumentByteArray.Length);
-                    using (WordprocessingDocument wDoc = WordprocessingDocument.Open(ms, false))
-                    {
-                        OpenXmlValidator validator = new OpenXmlValidator();
-                        var errors = validator.Validate(wDoc).Where(e =>
-                        {
-                            var str = e.Description;
-                            foreach (var ee in expectedErrors)
-                            {
-                                if (str.Contains(ee))
-                                    return false;
-                            }
-                            return true;
-                        });
-                        if (errors.Count() != 0)
-                        {
-                            var message = errors.Select(e => e.Description + Environment.NewLine).StringConcatenate();
-                            Assert.True(false, message);
-                        }
-                    }
-                }
-            }
-        }
-#endif
 
         private class DocumentInfo
         {
@@ -790,7 +651,6 @@ namespace OxPt
             var rawSources = new string[] { src1, src2, src3, src4, src5, src6, };
             var sourcesStr = rawSources.Where(s => s != null).ToArray();
 
-            ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // Load the source documents
             var sources = sourcesStr.Select(s =>
             {
@@ -820,7 +680,6 @@ namespace OxPt
             })
                 .ToList();
 
-            ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // Create the dir for the test
             var rootTempDir = TestUtil.TempDir;
             var thisTestTempDir = new DirectoryInfo(Path.Combine(rootTempDir.FullName, testId));
@@ -835,7 +694,6 @@ namespace OxPt
 
             var tempDirFullName = thisTestTempDir.FullName;
 
-            ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // Copy sources to temp directory, for ease of review
 
             foreach (var item in sources)
@@ -856,7 +714,6 @@ namespace OxPt
                 File.Copy(baselineFi.FullName, baselineCopiedToDestFileName.FullName);
             }
 
-            ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // Use DocumentBuilder to build the destination document
 
             var outFi = new FileInfo(Path.Combine(tempDirFullName, "Output.docx"));
