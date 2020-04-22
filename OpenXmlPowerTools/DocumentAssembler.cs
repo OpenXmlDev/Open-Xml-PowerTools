@@ -717,10 +717,18 @@ namespace OpenXmlPowerTools
                                         XElement paragraph = tc.Elements(W.p).FirstOrDefault();
                                         XElement cellRun = paragraph.Elements(W.r).FirstOrDefault();
                                         string xPath = paragraph.Value;
+                                        bool cellIsOptional = false;
+
+                                        // There is probably a much better way of doing this,
+                                        // similar to the ContentReplacementTransform used for the footer
+                                        // but it means you probably couldn't use the simple xpath text
+                                        // and you would need to always use <Content/> tag in each cell!
+                                        TableCellContent(paragraph.Value, out xPath, out cellIsOptional);
+
                                         string newValue = null;
                                         try
                                         {
-                                            newValue = EvaluateXPathToString(d, xPath, false);
+                                            newValue = EvaluateXPathToString(d, xPath, cellIsOptional);
                                         }
                                         catch (XPathException e)
                                         {
@@ -779,6 +787,33 @@ namespace OpenXmlPowerTools
                     element.Nodes().Select(n => ContentReplacementTransform(n, data, templateError)));
             }
             return node;
+        }
+
+        /// <summary>
+        /// Convert the cell content to data using 2 different formats
+        /// 1. the text is xpath
+        /// 2. the text has the format <Content Select="xpath" Optional='true' />
+        /// </summary>
+        /// <param name="para">Paragraph text</param>
+        /// <param name="xpath">The resulting xpath of paragraph or Select attribute value</param>
+        /// <param name="optional">Incase 2 the value of the Optional attribute if it exists otherwise false</param>
+        private static void TableCellContent(string para, out string xpath, out bool optional)
+        {
+            XElement element;
+            try
+            {
+                element = XElement.Parse(para);
+                //the next few lines are used a couple of time in the ContentReplacementTransform method
+                xpath = (string)element.Attribute(PA.Select);
+                var optionalString = (string)element.Attribute(PA.Optional);
+                optional = (optionalString != null && optionalString.ToLower() == "true");
+            }
+            catch (Exception)
+            {
+                //can't be processed as Content so just assume xpath
+                xpath = para;
+                optional = false;
+            }
         }
 
         private static object CreateContextErrorMessage(XElement element, string errorMessage, TemplateError templateError)

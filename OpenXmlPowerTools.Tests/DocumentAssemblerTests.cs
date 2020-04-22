@@ -116,7 +116,8 @@ namespace OxPt
         [InlineData("DA264-InvalidRunLevelRepeat.docx", "DA-Data.xml", true)]
         [InlineData("DA265-RunLevelRepeatWithWhiteSpaceBefore.docx", "DA-Data.xml", false)]
         [InlineData("DA266-RunLevelRepeat-NoData.docx", "DA-Data.xml", true)]
-        
+        [InlineData("DA300-TableWithContentInCells.docx", "DA-Data.xml", false)]
+
         public void DA101(string name, string data, bool err)
         {
             DirectoryInfo sourceDir = new DirectoryInfo("../../../../TestFiles/");
