@@ -1729,7 +1729,8 @@ namespace OpenXmlPowerTools
                     newPart = ((XmlSignaturePart)newContentPart).AddExtendedPart(oldPart.RelationshipType, oldPart.ContentType, fileInfo.Extension);
 
                 relId = newContentPart.GetIdOfPart(newPart);
-                newPart.FeedData(oldPart.GetStream());
+                using (Stream sourceStream = oldPart.GetStream())
+                    newPart.FeedData(sourceStream);
                 extendedReference.Attribute(attributeName).Value = relId;
             }
             catch (ArgumentOutOfRangeException)
