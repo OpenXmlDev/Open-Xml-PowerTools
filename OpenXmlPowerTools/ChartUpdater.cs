@@ -400,7 +400,8 @@ namespace OpenXmlPowerTools
             var embeddedSpreadsheet = chartPart.GetPartById(embeddedSpreadsheetRid);
             if (embeddedSpreadsheet != null)
             {
-                using (SpreadsheetDocument sDoc = SpreadsheetDocument.Open(embeddedSpreadsheet.GetStream(), true))
+                using (Stream spreadsheetStream = embeddedSpreadsheet.GetStream())
+                using (SpreadsheetDocument sDoc = SpreadsheetDocument.Open(spreadsheetStream, true))
                 {
                     var workbookPart = sDoc.WorkbookPart;
                     var wbRoot = workbookPart.GetXDocument().Root;
@@ -427,7 +428,7 @@ namespace OpenXmlPowerTools
                         var firstRow = new XElement(S.row,
                             new XAttribute("r", "1"),
                             new XAttribute("spans", string.Format("1:{0}", chartData.SeriesNames.Length + 1)),
-                            new [] { new XElement(S.c,
+                            new[] { new XElement(S.c,
                                 new XAttribute("r", "A1"),
                                 new XAttribute("t", "str"),
                                 new XElement(S.v,

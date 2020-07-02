@@ -336,7 +336,10 @@ namespace OpenXmlPowerTools
             foreach (var legacyDocTextInfo in sourceDocument.PresentationPart.Parts.Where(p => p.OpenXmlPart.RelationshipType == "http://schemas.microsoft.com/office/2006/relationships/legacyDocTextInfo"))
             {
                 LegacyDiagramTextInfoPart newPart = newDocument.PresentationPart.AddNewPart<LegacyDiagramTextInfoPart>();
-                newPart.FeedData(legacyDocTextInfo.OpenXmlPart.GetStream());
+                using (var stream = legacyDocTextInfo.OpenXmlPart.GetStream())
+                {
+                    newPart.FeedData(stream);
+                }
             }
 
             var listOfRootChildren = newPresentation.Root.Elements().ToList();
@@ -934,12 +937,18 @@ namespace OpenXmlPowerTools
                 if (oldPartIdPair9 != null)
                 {
                     CustomXmlPart newPart = newDocument.PresentationPart.AddCustomXmlPart(CustomXmlPartType.CustomXml);
-                    newPart.FeedData(oldPartIdPair9.OpenXmlPart.GetStream());
+                    using (var stream = oldPartIdPair9.OpenXmlPart.GetStream())
+                    {
+                        newPart.FeedData(stream);
+                    }
                     foreach (var itemProps in oldPartIdPair9.OpenXmlPart.Parts.Where(p => p.OpenXmlPart.ContentType == "application/vnd.openxmlformats-officedocument.customXmlProperties+xml"))
                     {
                         var newId2 = "R" + Guid.NewGuid().ToString().Replace("-", "").Substring(0, 16);
                         CustomXmlPropertiesPart cxpp = newPart.AddNewPart<CustomXmlPropertiesPart>("application/vnd.openxmlformats-officedocument.customXmlProperties+xml", newId2);
-                        cxpp.FeedData(itemProps.OpenXmlPart.GetStream());
+                        using (var stream = itemProps.OpenXmlPart.GetStream())
+                        {
+                            cxpp.FeedData(stream);
+                        }
                     }
                     var newId = "R" + Guid.NewGuid().ToString().Replace("-", "").Substring(0, 16);
                     newContentPart.CreateRelationshipToPart(newPart, newId);
@@ -1748,7 +1757,9 @@ namespace OpenXmlPowerTools
 
                 relId = newContentPart.GetIdOfPart(newPart);
                 using (Stream sourceStream = oldPart.GetStream())
+                {
                     newPart.FeedData(sourceStream);
+                }
                 extendedReference.Attribute(attributeName).Value = relId;
             }
             catch (ArgumentOutOfRangeException)
@@ -1812,7 +1823,10 @@ namespace OpenXmlPowerTools
             {
                 AudioReferenceRelationship temp = (AudioReferenceRelationship)oldContentPart.GetReferenceRelationship(relId);
                 MediaDataPart newSound = newDocument.CreateMediaDataPart(temp.DataPart.ContentType);
-                newSound.FeedData(temp.DataPart.GetStream());
+                using (var stream = temp.DataPart.GetStream())
+                {
+                    newSound.FeedData(stream);
+                }
                 AudioReferenceRelationship newRel = null;
 
                 if (newContentPart is SlidePart)
@@ -1833,7 +1847,10 @@ namespace OpenXmlPowerTools
             {
                 MediaReferenceRelationship temp = (MediaReferenceRelationship)oldContentPart.GetReferenceRelationship(relId);
                 MediaDataPart newSound = newDocument.CreateMediaDataPart(temp.DataPart.ContentType);
-                newSound.FeedData(temp.DataPart.GetStream());
+                using (var stream = temp.DataPart.GetStream())
+                {
+                    newSound.FeedData(stream);
+                }
                 MediaReferenceRelationship newRel = null;
 
                 if (newContentPart is SlidePart)
