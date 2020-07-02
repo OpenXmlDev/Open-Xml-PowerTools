@@ -383,7 +383,10 @@ namespace OpenXmlPowerTools
                 fpt = FontPartType.FontOdttf;
             var newId = "R" + Guid.NewGuid().ToString().Replace("-", "").Substring(0, 16);
             var newFontPart = newDocument.PresentationPart.AddFontPart(fpt, newId);
-            newFontPart.FeedData(oldFontPart.GetStream());
+            using (var stream = oldFontPart.GetStream())
+            {
+                newFontPart.FeedData(stream);
+            }
             newRegular = new XElement(fontXName,
                 new XAttribute(R.id, newId));
             return newRegular;
@@ -1365,7 +1368,10 @@ namespace OpenXmlPowerTools
                 var ct = oldPart.ContentType;
                 var ext = Path.GetExtension(oldPart.Uri.OriginalString);
                 MediaDataPart newPart = newContentPart.OpenXmlPackage.CreateMediaDataPart(ct, ext);
-                newPart.FeedData(oldPart.GetStream());
+                using (var stream = oldPart.GetStream())
+                {
+                    newPart.FeedData(stream);
+                }
                 string id = null;
                 string relationshipType = null;
 
@@ -1505,7 +1511,10 @@ namespace OpenXmlPowerTools
             var newId = "R" + Guid.NewGuid().ToString().Replace("-", "").Substring(0, 16);
             CustomXmlPart newPart = newContentPart.AddNewPart<CustomXmlPart>("application/inkml+xml", newId);
 
-            newPart.FeedData(oldPart.GetStream());
+            using (var stream = oldPart.GetStream())
+            {
+                newPart.FeedData(stream);
+            }
             contentPartReference.Attribute(attributeName).Value = newId;
         }
 
@@ -1523,8 +1532,11 @@ namespace OpenXmlPowerTools
 
             var newId = "R" + Guid.NewGuid().ToString().Replace("-", "").Substring(0, 16);
             EmbeddedControlPersistencePart newPart = newContentPart.AddNewPart<EmbeddedControlPersistencePart>("application/vnd.ms-office.activeX+xml", newId);
-            
-            newPart.FeedData(oldPart.GetStream());
+
+            using (var stream = oldPart.GetStream())
+            {
+                newPart.FeedData(stream);
+            }
             activeXPartReference.Attribute(attributeName).Value = newId;
 
             if (newPart.ContentType == "application/vnd.ms-office.activeX+xml")
@@ -1536,8 +1548,11 @@ namespace OpenXmlPowerTools
 
                     var newId2 = "R" + Guid.NewGuid().ToString().Replace("-", "").Substring(0, 16);
                     EmbeddedControlPersistenceBinaryDataPart newPersistencePart = newPart.AddNewPart<EmbeddedControlPersistenceBinaryDataPart>("application/vnd.ms-office.activeX", newId2);
-
-                    newPersistencePart.FeedData(oldPersistencePart.GetStream());
+                    
+                    using (var stream = oldPersistencePart.GetStream())
+                    {
+                        newPersistencePart.FeedData(stream);
+                    }
                     axc.Root.Attribute(R.id).Value = newId2;
                     newPart.PutXDocument();
                 }
@@ -1559,7 +1574,10 @@ namespace OpenXmlPowerTools
             var newId = "R" + Guid.NewGuid().ToString().Replace("-", "").Substring(0, 16);
             LegacyDiagramTextPart newPart = newContentPart.AddNewPart<LegacyDiagramTextPart>(newId);
 
-            newPart.FeedData(oldPart.GetStream());
+            using (var stream = oldPart.GetStream())
+            {
+                newPart.FeedData(stream);
+            }
             textdataReference.Attribute(attributeName).Value = newId;
         }
 
