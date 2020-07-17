@@ -1,6 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFrameworks>net45;net46;netstandard2.0</TargetFrameworks>
+    <Version>4.5.4</Version>
+    <Authors>yitian.chen</Authors>
+    <Company>yitian.chen</Company>
+    <PackageId>OpenXmlPowerTools-HrRd</PackageId>
   </PropertyGroup>
 
   <ItemGroup>
