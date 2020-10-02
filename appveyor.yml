@@ -25,7 +25,7 @@ dotnet_csproj:
   informational_version: "{version}"
 
 artifacts:
-  - path: '**\OpenXmlPowerToolsStandard.*.nupkg'
+  - path: '**\OpenXmlPowerToolsStandard.*.*nupkg'
 
 deploy:
   - provider: NuGet

@@ -36,20 +36,17 @@ It supports scenarios such as:
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>OpenXmlPowerTools.snk</AssemblyOriginatorKeyFile>
     <PackageId>OpenXmlPowerToolsStandard</PackageId>
+    <UserSecretsId>21e414c9-78be-455b-9611-12f18f73d93e</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="DocumentFormat.OpenXml" Version="2.10.1" />
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
     <PackageReference Include="SonarAnalyzer.CSharp" Version="8.13.1.21947">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <!--Causes a hanging build see https://github.com/dotnet/roslyn-analyzers/issues/2790 for details-->
-    <!--<PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="2.9.8">
+    <!--<PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="3.3.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>-->
