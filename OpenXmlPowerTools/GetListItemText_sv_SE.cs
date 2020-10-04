@@ -25,25 +25,25 @@ namespace OpenXmlPowerTools
             "artonde", "nittonde"
         };
 
-        public static string GetListItemText(string languageCultureName, int levelNumber, string numFmt)
+        public static string GetListItemText(int levelNumber, string numFmt)
         {
             switch (numFmt)
             {
                 case "cardinalText":
-                    return NumberAsCardinalText(languageCultureName, levelNumber, numFmt);
+                    return NumberAsCardinalText(levelNumber);
 
                 case "ordinalText":
-                    return NumberAsOrdinalText(languageCultureName, levelNumber, numFmt);
+                    return NumberAsOrdinalText(levelNumber);
 
                 case "ordinal":
-                    return NumberAsOrdinal(languageCultureName, levelNumber, numFmt);
+                    return NumberAsOrdinal(levelNumber);
 
                 default:
                     return null;
             }
         }
 
-        private static string NumberAsCardinalText(string languageCultureName, int levelNumber, string numFmt)
+        private static string NumberAsCardinalText(int levelNumber)
         {
             var result = "";
 
@@ -144,7 +144,7 @@ namespace OpenXmlPowerTools
             }
         }
 
-        private static string NumberAsOrdinalText(string languageCultureName, int levelNumber, string numFmt)
+        private static string NumberAsOrdinalText(int levelNumber)
         {
             var result = "";
 
@@ -237,7 +237,7 @@ namespace OpenXmlPowerTools
             }
         }
 
-        private static string NumberAsOrdinal(string languageCultureName, int levelNumber, string numFmt)
+        private static string NumberAsOrdinal(int levelNumber)
         {
             var levelAsString = levelNumber.ToString();
 

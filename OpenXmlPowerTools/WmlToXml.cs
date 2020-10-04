@@ -464,7 +464,7 @@ namespace OpenXmlPowerTools
                 }
                 if (found)
                 {
-                    item.Add(new XAttribute(PtOpenXml.IndentLevel, stack.Count()));
+                    item.Add(new XAttribute(PtOpenXml.IndentLevel, stack.Count));
                     stack.Push(item);
                     currentlyLookingAt = FindCurrentlyLookingAt(hierarchyDefinition, item);
                     continue;
@@ -473,11 +473,11 @@ namespace OpenXmlPowerTools
                 {
                     while (true)
                     {
-                        if (stack.Count() == 1)
+                        if (stack.Count == 1)
                         {
                             // have encountered an unexpected hierarchy element.  have gone up the stack, and no element up the stack allows for this as a child element.
                             // Therefore, put it at level one, and let the Narrdoc transform generate invalid narrdoc.
-                            item.Add(new XAttribute(PtOpenXml.IndentLevel, stack.Count()));
+                            item.Add(new XAttribute(PtOpenXml.IndentLevel, stack.Count));
                             break;
                         }
                         stack.Pop();
@@ -519,7 +519,7 @@ namespace OpenXmlPowerTools
                         }
                         if (found2)
                         {
-                            item.Add(new XAttribute(PtOpenXml.IndentLevel, stack.Count()));
+                            item.Add(new XAttribute(PtOpenXml.IndentLevel, stack.Count));
                             stack.Push(item);
                             currentlyLookingAt = FindCurrentlyLookingAt(hierarchyDefinition, item);
                             break;
@@ -814,9 +814,9 @@ namespace OpenXmlPowerTools
                             .TakeWhile(ch => ch == '.' || ch == ' ')
                             .ToList();
 
-                        sepCharsString = nextRunText.Substring(0, sepChars.Count());
+                        sepCharsString = nextRunText.Substring(0, sepChars.Count);
 
-                        nextRunText = nextRunText.Substring(sepChars.Count());
+                        nextRunText = nextRunText.Substring(sepChars.Count);
                         nextRunTextElement.Value = nextRunText;
 
                         lastFldCharRunText.Value = lastFldCharRunText.Value + sepCharsString;
@@ -1022,7 +1022,7 @@ namespace OpenXmlPowerTools
         // contents of the endnote or footnote, to be inserted en situ in the ContentTypeXml.
         public static object ProduceContentTypeXmlForBlockLevelContentContainer(WordprocessingDocument wDoc, WmlToXmlSettings settings, OpenXmlPart part, XElement blockLevelContentContainer)
         {
-            AssignLevelsToContentForEndFootNote(blockLevelContentContainer, settings);
+            AssignLevelsToContentForEndFootNote(blockLevelContentContainer);
 
             // Call RetrieveListItem so that all paragraphs are initialized with ListItemInfo
             var firstParagraph = blockLevelContentContainer.Descendants(W.p).FirstOrDefault();
@@ -1230,7 +1230,7 @@ namespace OpenXmlPowerTools
             }
         }
 
-        private static void AssignLevelsToContentForEndFootNote(XElement blockLevelContentContainer, WmlToXmlSettings settings)
+        private static void AssignLevelsToContentForEndFootNote(XElement blockLevelContentContainer)
         {
             var contentWithContentType = blockLevelContentContainer
                 .Descendants()
@@ -1497,14 +1497,14 @@ namespace OpenXmlPowerTools
                         AddContentTypeToBlockContent(settings, part, blc, rule.ContentType);
                         if (rule.ApplyRunContentTypes)
                         {
-                            ApplyRunContentTypes(settings, ctai, wDoc, blc, settings.RunContentTypeRules, part, partXDoc);
+                            ApplyRunContentTypes(settings, ctai, wDoc, blc, settings.RunContentTypeRules, part);
                         }
 
                         break;
                     }
                     else
                     {
-                        ApplyRunContentTypes(settings, ctai, wDoc, blc, settings.RunContentTypeRules, part, partXDoc);
+                        ApplyRunContentTypes(settings, ctai, wDoc, blc, settings.RunContentTypeRules, part);
                     }
                 }
             }
@@ -1571,7 +1571,7 @@ namespace OpenXmlPowerTools
         }
 
         private static void ApplyRunContentTypes(WmlToXmlSettings settings, ContentTypeApplierInfo ctai, WordprocessingDocument wDoc,
-            XElement blockLevelContent, List<ContentTypeRule> runContentTypeRuleList, OpenXmlPart part, XDocument mainXDoc)
+            XElement blockLevelContent, List<ContentTypeRule> runContentTypeRuleList, OpenXmlPart part)
         {
             var runContent = blockLevelContent.Descendants()
                 .Where(d => d.Name == W.r || d.Name == W.hyperlink || d.Name == W.sdt || d.Name == W.bookmarkStart);
@@ -2077,6 +2077,14 @@ namespace OpenXmlPowerTools
         public class ContentApplierException : Exception
         {
             public ContentApplierException(string message) : base(message)
+            {
+            }
+
+            public ContentApplierException(string message, Exception innerException) : base(message, innerException)
+            {
+            }
+
+            public ContentApplierException()
             {
             }
         }

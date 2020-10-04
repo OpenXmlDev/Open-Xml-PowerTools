@@ -7,7 +7,7 @@ namespace OpenXmlPowerTools
     {
         private class TemplateError
         {
-            public bool HasError = false;
+            public bool HasError ;
         }
     }
 }

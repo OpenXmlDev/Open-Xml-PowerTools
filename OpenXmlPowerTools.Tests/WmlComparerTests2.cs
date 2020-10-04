@@ -16,9 +16,9 @@ namespace OxPt
 {
     public class WcTests2
     {
-        private static readonly bool m_OpenWord = false;
+        private static readonly bool m_OpenWord;
 
-        private static readonly bool m_OpenTempDirInExplorer = false;
+        private static readonly bool m_OpenTempDirInExplorer ;
 
         [Theory]
         [InlineData("CZ-1000", "CZ/CZ001-Plain.docx", "CZ/CZ001-Plain-Mod.docx", 1)]

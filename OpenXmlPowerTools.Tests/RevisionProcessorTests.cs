@@ -16,7 +16,7 @@ namespace OxPt
         // perf settings
         private static readonly bool m_CopySourceFilesToTempDir = true;
 
-        private static readonly bool m_OpenTempDirInExplorer = false;
+        private static readonly bool m_OpenTempDirInExplorer;
 
         [Theory]
         [InlineData("RP/RP002-Deleted-Text.docx")]

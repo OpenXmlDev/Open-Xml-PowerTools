@@ -9,10 +9,9 @@ namespace OpenXmlPowerTools
 {
     internal class SmlDataRetriever01
     {
-        private static void Main(string[] args)
+        private static void Main()
         {
-            FileInfo fi = null;
-            fi = new FileInfo("../../SampleSpreadsheet.xlsx");
+            var fi = new FileInfo("../../SampleSpreadsheet.xlsx");
 
             // Retrieve range from Sheet1
             var data = SmlDataRetriever.RetrieveRange(fi.FullName, "Sheet1", "A1:C3");

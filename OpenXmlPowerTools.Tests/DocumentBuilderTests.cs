@@ -24,9 +24,7 @@ namespace OxPt
             var name = "DB001-Sections.docx";
             var sourceDir = new DirectoryInfo("../../../../TestFiles/");
             var sourceDocx = new FileInfo(Path.Combine(sourceDir.FullName, name));
-
-            List<Source> sources = null;
-            sources = new List<Source>()
+            var sources = new List<Source>()
             {
                 new Source(new WmlDocument(sourceDocx.FullName), true),
             };
@@ -40,9 +38,7 @@ namespace OxPt
             var sourceDir = new DirectoryInfo("../../../../TestFiles/");
             var source1Docx = new FileInfo(Path.Combine(sourceDir.FullName, "DB002-Sections-With-Headers.docx"));
             var source2Docx = new FileInfo(Path.Combine(sourceDir.FullName, "DB002-Landscape-Section.docx"));
-
-            List<Source> sources = null;
-            sources = new List<Source>()
+            var sources = new List<Source>()
             {
                 new Source(new WmlDocument(source1Docx.FullName)) { KeepSections = true },
                 new Source(new WmlDocument(source2Docx.FullName)) { KeepSections = true, DiscardHeadersAndFootersInKeptSections = true },
@@ -58,9 +54,7 @@ namespace OxPt
             var sourceDir = new DirectoryInfo("../../../../TestFiles/");
             var source1Docx = new FileInfo(Path.Combine(sourceDir.FullName, "DB003-Only-Default-Header.docx"));
             var source2Docx = new FileInfo(Path.Combine(sourceDir.FullName, "DB002-Landscape-Section.docx"));
-
-            List<Source> sources = null;
-            sources = new List<Source>()
+            var sources = new List<Source>()
             {
                 new Source(new WmlDocument(source1Docx.FullName)) { KeepSections = true },
                 new Source(new WmlDocument(source2Docx.FullName)) { KeepSections = true, DiscardHeadersAndFootersInKeptSections = true },
@@ -76,9 +70,7 @@ namespace OxPt
             var sourceDir = new DirectoryInfo("../../../../TestFiles/");
             var source1Docx = new FileInfo(Path.Combine(sourceDir.FullName, "DB004-No-Headers.docx"));
             var source2Docx = new FileInfo(Path.Combine(sourceDir.FullName, "DB002-Landscape-Section.docx"));
-
-            List<Source> sources = null;
-            sources = new List<Source>()
+            var sources = new List<Source>()
             {
                 new Source(new WmlDocument(source1Docx.FullName)) { KeepSections = true },
                 new Source(new WmlDocument(source2Docx.FullName)) { KeepSections = true, DiscardHeadersAndFootersInKeptSections = true },
@@ -94,9 +86,7 @@ namespace OxPt
             var sourceDir = new DirectoryInfo("../../../../TestFiles/");
             var source1Docx = new FileInfo(Path.Combine(sourceDir.FullName, "DB005-Headers-With-Images.docx"));
             var source2Docx = new FileInfo(Path.Combine(sourceDir.FullName, "DB002-Landscape-Section.docx"));
-
-            List<Source> sources = null;
-            sources = new List<Source>()
+            var sources = new List<Source>()
             {
                 new Source(new WmlDocument(source1Docx.FullName)) { KeepSections = true },
                 new Source(new WmlDocument(source2Docx.FullName)) { KeepSections = true, DiscardHeadersAndFootersInKeptSections = true },
@@ -113,10 +103,9 @@ namespace OxPt
             var source1 = new FileInfo(Path.Combine(sourceDir.FullName, "DB006-Source1.docx"));
             var source2 = new FileInfo(Path.Combine(sourceDir.FullName, "DB006-Source2.docx"));
             var source3 = new FileInfo(Path.Combine(sourceDir.FullName, "DB006-Source3.docx"));
-            List<Source> sources = null;
 
             // Create new document from 10 paragraphs starting at paragraph 5 of Source1.docx
-            sources = new List<Source>()
+            var sources = new List<Source>()
             {
                 new Source(new WmlDocument(source1.FullName), 5, 10, true),
             };
@@ -181,9 +170,7 @@ namespace OxPt
             var whitePaper = new FileInfo(Path.Combine(sourceDir.FullName, "DB007-WhitePaper.docx"));
             var paperAbstract = new FileInfo(Path.Combine(sourceDir.FullName, "DB007-Abstract.docx"));
             var authorBio = new FileInfo(Path.Combine(sourceDir.FullName, "DB007-AuthorBiography.docx"));
-
-            List<Source> sources = null;
-            sources = new List<Source>()
+            var sources = new List<Source>()
             {
                 new Source(new WmlDocument(whitePaper.FullName), 0, 1, true),
                 new Source(new WmlDocument(paperAbstract.FullName), false),
@@ -457,9 +444,7 @@ namespace OxPt
             var sourceDir = new DirectoryInfo("../../../../TestFiles/");
             var source1 = new FileInfo(Path.Combine(sourceDir.FullName, "DB011-Header-With-Shape.docx"));
             var source2 = new FileInfo(Path.Combine(sourceDir.FullName, "DB011-Body-With-Shape.docx"));
-            List<Source> sources = null;
-
-            sources = new List<Source>()
+            var sources = new List<Source>()
             {
                 new Source(new WmlDocument(source1.FullName)),
                 new Source(new WmlDocument(source2.FullName)),
@@ -479,9 +464,7 @@ namespace OxPt
             var name = "DB012-Lists-With-Different-Numberings.docx";
             var sourceDir = new DirectoryInfo("../../../../TestFiles/");
             var sourceDocx = new FileInfo(Path.Combine(sourceDir.FullName, name));
-
-            List<Source> sources = null;
-            sources = new List<Source>()
+            var sources = new List<Source>()
             {
                 new Source(new WmlDocument(sourceDocx.FullName)),
             };
@@ -569,9 +552,7 @@ namespace OxPt
         {
             var sourceDir = new DirectoryInfo("../../../../TestFiles/");
             var source = new FileInfo(Path.Combine(sourceDir.FullName, "DB014-WebExtensions.docx"));
-            List<Source> sources = null;
-
-            sources = new List<Source>()
+            var sources = new List<Source>()
             {
                 new Source(new WmlDocument(source.FullName)),
             };
@@ -592,9 +573,7 @@ namespace OxPt
         {
             var sourceDir = new DirectoryInfo("../../../../TestFiles/");
             var source = new FileInfo(Path.Combine(sourceDir.FullName, "DB015-LatentStyles.docx"));
-            List<Source> sources = null;
-
-            sources = new List<Source>()
+            var sources = new List<Source>()
             {
                 new Source(new WmlDocument(source.FullName)),
             };
@@ -616,9 +595,7 @@ namespace OxPt
             var name = "DB0016-DocDefaultStyles.docx";
             var sourceDir = new DirectoryInfo("../../../../TestFiles/");
             var sourceDocx = new FileInfo(Path.Combine(sourceDir.FullName, name));
-
-            List<Source> sources = null;
-            sources = new List<Source>()
+            var sources = new List<Source>()
             {
                 new Source(new WmlDocument(sourceDocx.FullName), true),
             };

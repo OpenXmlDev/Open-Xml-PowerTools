@@ -16,7 +16,7 @@ namespace OpenXmlPowerTools
         public string AdditionalCss { get; set; }
         public bool RestrictToSupportedLanguages { get; set; }
         public bool RestrictToSupportedNumberingFormats { get; set; }
-        public Dictionary<string, Func<string, int, string, string>> ListItemImplementations { get; set; }
+        public Dictionary<string, Func<int, string, string>> ListItemImplementations { get; set; }
         public Func<ImageInfo, XElement> ImageHandler { get; set; }
 
         public WmlToHtmlConverterSettings()

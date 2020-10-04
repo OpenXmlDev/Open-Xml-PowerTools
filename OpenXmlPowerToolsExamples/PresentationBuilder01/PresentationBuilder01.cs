@@ -10,7 +10,7 @@ namespace ExamplePresentatonBuilder01
 {
     internal class ExamplePresentationBuilder01
     {
-        private static void Main(string[] args)
+        private static void Main()
         {
             var n = DateTime.Now;
             var tempDi = new DirectoryInfo(string.Format("ExampleOutput-{0:00}-{1:00}-{2:00}-{3:00}{4:00}{5:00}", n.Year - 2000, n.Month, n.Day, n.Hour, n.Minute, n.Second));
@@ -25,10 +25,8 @@ namespace ExamplePresentatonBuilder01
             var contoso1 = "../../Contoso One.pptx";
             var contoso2 = "../../Contoso Two.pptx";
             var contoso3 = "../../Contoso Three.pptx";
-            List<SlideSource> sources = null;
-
             var sourceDoc = new PmlDocument(source1);
-            sources = new List<SlideSource>()
+            var sources = new List<SlideSource>()
             {
                 new SlideSource(sourceDoc, 0, 1, false),  // Title
                 new SlideSource(sourceDoc, 1, 1, false),  // First intro (of 3)

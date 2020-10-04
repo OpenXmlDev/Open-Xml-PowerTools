@@ -17,11 +17,11 @@ using System.Xml.Linq;
 /// Currently, the unid is set at the beginning of the algorithm.  It is used by the code that establishes correlation based on first rejecting
 /// tracked revisions, then correlating paragraphs/tables.  It is requred for this algorithm - after finding a correlated sequence in the document with rejected
 /// revisions, it uses the unid to find the same paragraph in the document without rejected revisions, then sets the correlated sha1 hash in that document.
-/// 
+///
 /// But then when accepting tracked revisions, for certain paragraphs (where there are deleted paragraph marks) it is going to lose the unids.  But this isn't a
 /// problem because when paragraph marks are deleted, the correlation is definitely no longer possible.  Any paragraphs that are in a range of paragraphs that
 /// are coalesced can't be correlated to paragraphs in the other document via their hash.  At that point we no longer care what their unids are.
-/// 
+///
 /// But after that it is only used to reconstruct the tree.  It is also used in the debugging code that
 /// prints the various correlated sequences and comparison units - this is display for debugging purposes only.
 
@@ -29,9 +29,9 @@ using System.Xml.Linq;
 /// inserted into the new document, or set as equal.  At this point, we identify a paragraph as a sequential list of content atoms, terminated by a paragraph mark.
 /// This entire list will for a single paragraph, regardless of whether the paragraph is a child of the body, or if the paragraph is in a cell in a table, or if
 /// the paragraph is in a text box.  The list of ancestors, from the paragraph to the root of the XML tree will be the same for all content atoms in the paragraph.
-/// 
+///
 /// Therefore:
-/// 
+///
 /// Iterate through the list of content atoms backwards.  When the loop sees a paragraph mark, it gets the ancestor unids from the paragraph mark to the top of the
 /// tree, and sets this as the same for all content atoms in the paragraph.  For descendants of the paragraph mark, it doesn't really matter if content is put into
 /// separate runs or what not.  We don't need to be concerned about what the unids are for descendants of the paragraph.
@@ -44,10 +44,10 @@ namespace OpenXmlPowerTools
         public string AuthorForRevisions { get; set; } = "Open-Xml-PowerTools";
         public string DateTimeForRevisions { get; set; } = DateTime.Now.ToString("o");
         public double DetailThreshold { get; set; } = 0.15;
-        public bool CaseInsensitive { get; set; } = false;
-        public bool ConflateBreakingAndNonbreakingSpaces = true;
-        public CultureInfo CultureInfo { get; set; } = null;
-        public Action<string> LogCallback { get; set; } = null;
+        public bool CaseInsensitive { get; set; }
+        public bool ConflateBreakingAndNonbreakingSpaces;
+        public CultureInfo CultureInfo { get; set; }
+        public Action<string> LogCallback { get; set; }
         public int StartingIdForFootnotesEndnotes { get; set; } = 1;
 
         public DirectoryInfo DebugTempFileDi { get; set; }
@@ -73,9 +73,9 @@ namespace OpenXmlPowerTools
 
     public static class WmlComparer
     {
-        public static bool s_False { get; set; } = false;
+        public static bool s_False { get; set; }
         public static bool s_True { get; set; } = true;
-        public static bool s_SaveIntermediateFilesForDebugging { get; set; } = false;
+        public static bool s_SaveIntermediateFilesForDebugging { get; set; }
 
         public static WmlDocument Compare(WmlDocument source1, WmlDocument source2, WmlComparerSettings settings)
         {
@@ -280,7 +280,7 @@ namespace OpenXmlPowerTools
 
                     foreach (var blockLevelContent in afterProcMainXDoc.Root.Descendants().Where(d => d.Name == W.p || d.Name == W.tbl || d.Name == W.tr))
                     {
-                        var cloneBlockLevelContentForHashing = (XElement)CloneBlockLevelContentForHashing(wDocAfterProc.MainDocumentPart, blockLevelContent, true, settings);
+                        var cloneBlockLevelContentForHashing = CloneBlockLevelContentForHashing(wDocAfterProc.MainDocumentPart, blockLevelContent, true, settings);
                         var shaString = cloneBlockLevelContentForHashing.ToString(SaveOptions.DisableFormatting)
                             .Replace(" xmlns=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"", "");
                         var sha1Hash = PtUtils.SHA1HashStringForUTF8String(shaString);
@@ -512,7 +512,7 @@ namespace OpenXmlPowerTools
             public string Revisor;
             public Color Color;
             public XElement RevisionElement;
-            public bool InsertBefore = false;
+            public bool InsertBefore;
             public string RevisionHash;
             public XElement[] Footnotes;
             public XElement[] Endnotes;
@@ -595,7 +595,7 @@ namespace OpenXmlPowerTools
                 originalWithUnids.SaveAs(preProcFi1.FullName);
             }
 
-            var revisedDocumentInfoListCount = revisedDocumentInfoList.Count();
+            var revisedDocumentInfoListCount = revisedDocumentInfoList.Count;
 
             using (var consolidatedMs = new MemoryStream())
             {
@@ -843,7 +843,7 @@ namespace OpenXmlPowerTools
                                 })
                                 .OrderByDescending(g => g.Count())
                                 .ToList();
-                            var uniqueRevisionCount = uniqueRevisions.Count();
+                            var uniqueRevisionCount = uniqueRevisions.Count;
 
                             if (uniqueRevisionCount == 1)
                             {
@@ -1055,18 +1055,15 @@ namespace OpenXmlPowerTools
         {
             var footnotesPart = wDoc.MainDocumentPart.FootnotesPart;
             var endnotesPart = wDoc.MainDocumentPart.EndnotesPart;
-
-            XDocument footnotesPartXDoc = null;
             if (footnotesPart != null)
             {
-                footnotesPartXDoc = footnotesPart.GetXDocument();
+                var footnotesPartXDoc = footnotesPart.GetXDocument();
                 WmlComparer.IgnorePt14Namespace(footnotesPartXDoc.Root);
             }
 
-            XDocument endnotesPartXDoc = null;
             if (endnotesPart != null)
             {
-                endnotesPartXDoc = endnotesPart.GetXDocument();
+                var endnotesPartXDoc = endnotesPart.GetXDocument();
                 WmlComparer.IgnorePt14Namespace(endnotesPartXDoc.Root);
             }
 
@@ -1331,7 +1328,7 @@ namespace OpenXmlPowerTools
             var partInNewDocument = packageOfNewContent.GetPart(consolidatedWDoc.MainDocumentPart.Uri);
             consolidationInfo.RevisionElement = MoveRelatedPartsToDestination(partInDeletedDocument, partInNewDocument, consolidationInfo.RevisionElement);
 
-            var clonedForHashing = (XElement)CloneBlockLevelContentForHashing(consolidatedWDoc.MainDocumentPart, consolidationInfo.RevisionElement, false, settings);
+            var clonedForHashing = CloneBlockLevelContentForHashing(consolidatedWDoc.MainDocumentPart, consolidationInfo.RevisionElement, false, settings);
             clonedForHashing.Descendants().Where(d => d.Name == W.ins || d.Name == W.del).Attributes(W.id).Remove();
             var shaString = clonedForHashing.ToString(SaveOptions.DisableFormatting)
                 .Replace(" xmlns=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"", "");
@@ -1623,7 +1620,7 @@ namespace OpenXmlPowerTools
             // if cus1 and cus2 have completely different content, then just return the first document deleted, and the second document inserted.
             List<CorrelatedSequence> correlatedSequence = null;
 
-            correlatedSequence = DetectUnrelatedSources(cus1, cus2, settings);
+            correlatedSequence = DetectUnrelatedSources(cus1, cus2);
 
             if (correlatedSequence == null)
             {
@@ -1711,8 +1708,7 @@ namespace OpenXmlPowerTools
                     ProcessFootnoteEndnote(settings,
                         listOfComparisonUnitAtoms,
                         wDoc1.MainDocumentPart,
-                        wDoc2.MainDocumentPart,
-                        newXDoc);
+                        wDoc2.MainDocumentPart);
 
                     RectifyFootnoteEndnoteIds(
                         wDoc1.MainDocumentPart,
@@ -2081,7 +2077,7 @@ namespace OpenXmlPowerTools
 
         // it is possible, per the algorithm, for the algorithm to find that the paragraph mark for a single paragraph has been
         // inserted and deleted.  If the algorithm sets them to equal, then sometimes it will equate paragraph marks that should
-        // not be equated.  
+        // not be equated.
         private static void ConjoinDeletedInsertedParagraphMarks(MainDocumentPart mainDocumentPart, XDocument newXDoc)
         {
             ConjoinMultipleParagraphMarks(newXDoc);
@@ -2149,12 +2145,12 @@ namespace OpenXmlPowerTools
                         .Select(a => (string)a)
                         .Distinct()
                         .ToList();
-                    if (statusList.Count() > 1)
+                    if (statusList.Count > 1)
                     {
                         throw new OpenXmlPowerToolsException("Internal error - have both deleted and inserted text elements in the same run.");
                     }
 
-                    if (statusList.Count() == 0)
+                    if (statusList.Count == 0)
                     {
                         return new XElement(W.r,
                             element.Attributes(),
@@ -2335,8 +2331,7 @@ namespace OpenXmlPowerTools
             WmlComparerSettings settings,
             List<ComparisonUnitAtom> listOfComparisonUnitAtoms,
             MainDocumentPart mainDocumentPartBefore,
-            MainDocumentPart mainDocumentPartAfter,
-            XDocument mainDocumentXDoc)
+            MainDocumentPart mainDocumentPartAfter)
         {
             var footnotesPartBefore = mainDocumentPartBefore.FootnotesPart;
             var endnotesPartBefore = mainDocumentPartBefore.EndnotesPart;
@@ -2926,32 +2921,32 @@ namespace OpenXmlPowerTools
         /// - For atoms within a text box, the depth will be 3: Paragraph / txbxContent / Paragraph
         /// - For atoms within a table in a text box, the depth will be 5:  Paragraph / txbxContent / Table / Row / Cell / Paragraph
         /// In any case, we figure out the maximum depth.
-        /// 
+        ///
         /// Then we iterate through the list of content atoms backwards.  We do this n times, where n is the maximum depth.
-        /// 
+        ///
         /// At each level, we find a paragraph mark, and working backwards, we set the guids in the hierarchy so that the content will be assembled together correctly.
-        /// 
+        ///
         /// For each iteration, we only set unids at the level that we are working at.
-        /// 
+        ///
         /// So first we will set all unids at level 1.  When we find a paragraph mark, we get the unid for that level, and then working backwards, until we find another
         /// paragraph mark, we set all unids at level 1 to the same unid as level 1 of the paragraph mark.
-        /// 
+        ///
         /// Then we set all unids at level 2.  When we find a paragraph mark, we get the unid for that level, and then working backwards, until we find another paragraph
         /// mark, we set all unids at level 2 to the same unid as level 2 of the paragraph mark.  At some point, we will find a paragraph mark with no level 2.  This is
         /// not a problem.  We stop setting anything until we find another paragraph mark that has a level 2, at which point we resume setting values at level 2.
-        /// 
+        ///
         /// Same process for level 3, and so on, until we have processed to the maximum depth of the hierarchy.
-        /// 
+        ///
         /// At the end of this process, we will be able to do the coalsce recurse algorithm, and the content atom list will be put back together into a beautiful tree,
         /// where every element is correctly positioned in the hierarchy.
-        /// 
+        ///
         /// This should also properly assemble the test where just the paragraph marks have been deleted for a range of paragraphs.
         ///
         /// There is an interesting thought - it is possible that I have set two runs of text that were initially in the same paragraph, but then after
         /// processing, they match up to text in different paragraphs.  Therefore this will not work.  We need to actually keep a list of reconstructed ancestor
         /// Unids, because the same paragraph would get set to two different IDs - two ComparisonUnitAtoms need to be in separate paragraphs in the reconstructed
         /// document, but their ancestors actually point to the same paragraph.
-        /// 
+        ///
         /// Fix this in the algorithm, and also keep the appropriate list in ComparisonUnitAtom class.
 
         private static void AssembleAncestorUnidsInOrderToRebuildXmlTreeProperly(List<ComparisonUnitAtom> comparisonUnitAtomList)
@@ -3665,7 +3660,7 @@ namespace OpenXmlPowerTools
 
             foreach (var blockLevelContent in blockLevelContentToAnnotate)
             {
-                var cloneBlockLevelContentForHashing = (XElement)CloneBlockLevelContentForHashing(part, blockLevelContent, true, settings);
+                var cloneBlockLevelContentForHashing = CloneBlockLevelContentForHashing(part, blockLevelContent, true, settings);
                 var shaString = cloneBlockLevelContentForHashing.ToString(SaveOptions.DisableFormatting)
                     .Replace(" xmlns=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"", "");
                 var sha1Hash = PtUtils.SHA1HashStringForUTF8String(shaString);
@@ -4077,7 +4072,7 @@ namespace OpenXmlPowerTools
                         {
                             var split1 = SplitAtParagraphMark(remainingInLeft);
                             var split2 = SplitAtParagraphMark(remainingInRight);
-                            if (split1.Count() == 1 && split2.Count() == 1)
+                            if (split1.Count == 1 && split2.Count == 1)
                             {
                                 var csUnknown2 = new CorrelatedSequence
                                 {
@@ -4168,7 +4163,7 @@ namespace OpenXmlPowerTools
                 }
 
                 // if the word contains more than one atom, then not a paragraph mark
-                if (firstCommonWord.Contents.Count() != 1)
+                if (firstCommonWord.Contents.Count != 1)
                 {
                     break;
                 }
@@ -4200,7 +4195,7 @@ namespace OpenXmlPowerTools
                 if (firstCommonWord != null)
                 {
                     // if the word contains more than one atom, then not a paragraph mark
-                    if (firstCommonWord.Contents.Count() == 1)
+                    if (firstCommonWord.Contents.Count == 1)
                     {
                         var firstCommonAtom = firstCommonWord.Contents.First() as ComparisonUnitAtom;
                         if (firstCommonAtom != null)
@@ -4232,7 +4227,7 @@ namespace OpenXmlPowerTools
                 if (firstCommonWord != null && secondCommonWord != null)
                 {
                     // if the word contains more than one atom, then not a paragraph mark
-                    if (firstCommonWord.Contents.Count() == 1 && secondCommonWord.Contents.Count() == 1)
+                    if (firstCommonWord.Contents.Count == 1 && secondCommonWord.Contents.Count == 1)
                     {
                         var firstCommonAtom = firstCommonWord.Contents.First() as ComparisonUnitAtom;
                         var secondCommonAtom = secondCommonWord.Contents.First() as ComparisonUnitAtom;
@@ -4467,7 +4462,7 @@ namespace OpenXmlPowerTools
             }
         }
 
-        private static int s_MaxId = 0;
+        private static int s_MaxId;
 
         private static object ProduceNewWmlMarkupFromCorrelatedSequence(OpenXmlPart part,
             IEnumerable<ComparisonUnitAtom> comparisonUnitAtomList,
@@ -5106,7 +5101,7 @@ namespace OpenXmlPowerTools
             return reconstructedElement;
         }
 
-        private static List<CorrelatedSequence> DetectUnrelatedSources(ComparisonUnit[] cu1, ComparisonUnit[] cu2, WmlComparerSettings settings)
+        private static List<CorrelatedSequence> DetectUnrelatedSources(ComparisonUnit[] cu1, ComparisonUnit[] cu2)
         {
             if (cu1.OfType<ComparisonUnitGroup>().Take(4).Count() > 3 &&
                 cu2.OfType<ComparisonUnitGroup>().Take(4).Count() > 3)
@@ -5115,7 +5110,7 @@ namespace OpenXmlPowerTools
                 var list2 = cu2.OfType<ComparisonUnitGroup>().Select(g => g.SHA1Hash).ToList();
                 var intersect = list1.Intersect(list2).ToList();
 
-                if (intersect.Count() == 0)
+                if (intersect.Count == 0)
                 {
                     var newListOfCorrelatedSequence = new List<CorrelatedSequence>();
 
@@ -5192,7 +5187,7 @@ namespace OpenXmlPowerTools
                         DocxComparerUtil.NotePad(sbs);
                     }
 
-                    var newSequence = ProcessCorrelatedHashes(unknown, settings);
+                    var newSequence = ProcessCorrelatedHashes(unknown);
                     if (newSequence == null)
                     {
                         newSequence = FindCommonAtBeginningAndEnd(unknown, settings);
@@ -5313,7 +5308,7 @@ namespace OpenXmlPowerTools
             }
         }
 
-        private static List<CorrelatedSequence> ProcessCorrelatedHashes(CorrelatedSequence unknown, WmlComparerSettings settings)
+        private static List<CorrelatedSequence> ProcessCorrelatedHashes(CorrelatedSequence unknown)
         {
             // never attempt this optimization if there are less than 3 groups
             var maxd = Math.Min(unknown.ComparisonUnitArray1.Length, unknown.ComparisonUnitArray2.Length);
@@ -5553,7 +5548,7 @@ namespace OpenXmlPowerTools
             var cul1 = unknown.ComparisonUnitArray1;
             var cul2 = unknown.ComparisonUnitArray2;
 
-            // first thing to do - if we have an unknown with zero length on left or right side, create appropriate 
+            // first thing to do - if we have an unknown with zero length on left or right side, create appropriate
             // this is a code optimization that enables easier processing of cases elsewhere.
             if (cul1.Length > 0 && cul2.Length == 0)
             {
@@ -5642,7 +5637,7 @@ namespace OpenXmlPowerTools
                 }
 
                 // if the word contains more than one atom, then not a paragraph mark
-                if (firstCommonWord.Contents.Count() != 1)
+                if (firstCommonWord.Contents.Count != 1)
                 {
                     break;
                 }
@@ -5680,7 +5675,7 @@ namespace OpenXmlPowerTools
                 if (firstCommonWord != null)
                 {
                     // if the word contains more than one atom, then not a paragraph mark
-                    if (firstCommonWord.Contents.Count() == 1)
+                    if (firstCommonWord.Contents.Count == 1)
                     {
                         var firstCommonAtom = firstCommonWord.Contents.First() as ComparisonUnitAtom;
                         if (firstCommonAtom != null)
@@ -5733,7 +5728,7 @@ namespace OpenXmlPowerTools
                                 .Any(dca =>
                                 {
                                     var charValue = dca.ContentElement.Value;
-                                    var isWordSplit = ((int)charValue[0] >= 0x4e00 && (int)charValue[0] <= 0x9fff);
+                                    var isWordSplit = (charValue[0] >= 0x4e00 && charValue[0] <= 0x9fff);
                                     if (!isWordSplit)
                                     {
                                         isWordSplit = settings.WordSeparators.Contains(charValue[0]);
@@ -6099,7 +6094,7 @@ namespace OpenXmlPowerTools
                 if (leftTables == 1 && leftLength == 1 &&
                     rightTables == 1 && rightLength == 1)
                 {
-                    var result = DoLcsAlgorithmForTable(unknown, settings);
+                    var result = DoLcsAlgorithmForTable(unknown);
                     if (result != null)
                     {
                         return result;
@@ -6703,7 +6698,7 @@ namespace OpenXmlPowerTools
             return cul.Length;
         }
 
-        private static List<CorrelatedSequence> DoLcsAlgorithmForTable(CorrelatedSequence unknown, WmlComparerSettings settings)
+        private static List<CorrelatedSequence> DoLcsAlgorithmForTable(CorrelatedSequence unknown)
         {
             var newListOfCorrelatedSequence = new List<CorrelatedSequence>();
 
@@ -6712,7 +6707,7 @@ namespace OpenXmlPowerTools
             // This is probably not very common, but it will never do any harm.
             var tblGroup1 = unknown.ComparisonUnitArray1.First() as ComparisonUnitGroup;
             var tblGroup2 = unknown.ComparisonUnitArray2.First() as ComparisonUnitGroup;
-            if (tblGroup1.Contents.Count() == tblGroup2.Contents.Count()) // if there are the same number of rows
+            if (tblGroup1.Contents.Count == tblGroup2.Contents.Count) // if there are the same number of rows
             {
                 var zipped = tblGroup1.Contents.Zip(tblGroup2.Contents, (r1, r2) => new
                 {
@@ -6913,7 +6908,7 @@ namespace OpenXmlPowerTools
                                 nextIndex++;
                             }
                         }
-                        else if (((int)ch >= 0x4e00 && (int)ch <= 0x9fff) || settings.WordSeparators.Contains(ch))
+                        else if ((ch >= 0x4e00 && ch <= 0x9fff) || settings.WordSeparators.Contains(ch))
                         {
                             nextIndex++;
                             key = nextIndex;
@@ -7428,7 +7423,7 @@ namespace OpenXmlPowerTools
         private static void MoveLastSectPrIntoLastParagraph(XElement contentParent)
         {
             var lastSectPrList = contentParent.Elements(W.sectPr).ToList();
-            if (lastSectPrList.Count() > 1)
+            if (lastSectPrList.Count > 1)
             {
                 throw new OpenXmlPowerToolsException("Invalid document");
             }
@@ -7625,7 +7620,7 @@ namespace OpenXmlPowerTools
             return Descendants().OfType<ComparisonUnitAtom>();
         }
 
-        private int? m_DescendantContentAtomsCount = null;
+        private int? m_DescendantContentAtomsCount;
 
         public int DescendantContentAtomsCount
         {

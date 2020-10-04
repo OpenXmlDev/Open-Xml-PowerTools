@@ -93,7 +93,7 @@ namespace OpenXmlPowerTools
                 if (element.Name == W.p)
                 {
                     var childMeta = element.Elements().Where(n => s_MetaToForceToBlock.Contains(n.Name)).ToList();
-                    if (childMeta.Count() == 1)
+                    if (childMeta.Count == 1)
                     {
                         var child = childMeta.First();
                         var otherTextInParagraph = element.Elements(W.r).Elements(W.t).Select(t => (string)t).StringConcatenate().Trim();
@@ -112,7 +112,7 @@ namespace OpenXmlPowerTools
                                 child.Elements()));
                         return meta;
                     }
-                    var count = childMeta.Count();
+                    var count = childMeta.Count;
                     if (count % 2 == 0)
                     {
                         if (childMeta.Where(c => c.Name == PA.Repeat).Count() != childMeta.Where(c => c.Name == PA.EndRepeat).Count())
@@ -605,7 +605,7 @@ namespace OpenXmlPowerTools
             return null;
         }
 
-        private static Dictionary<XName, PASchemaSet> s_PASchemaSets = null;
+        private static Dictionary<XName, PASchemaSet> s_PASchemaSets ;
 
         private static object ContentReplacementTransform(XNode node, XElement data, TemplateError templateError)
         {

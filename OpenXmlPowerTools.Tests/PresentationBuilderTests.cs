@@ -22,9 +22,7 @@ namespace OxPt
             var sourceDir = new DirectoryInfo("../../../../TestFiles/");
             var source1Pptx = new FileInfo(Path.Combine(sourceDir.FullName, name1));
             var source2Pptx = new FileInfo(Path.Combine(sourceDir.FullName, name2));
-
-            List<SlideSource> sources = null;
-            sources = new List<SlideSource>()
+            var sources = new List<SlideSource>()
             {
                 new SlideSource(new PmlDocument(source1Pptx.FullName), 1, true),
                 new SlideSource(new PmlDocument(source2Pptx.FullName), 0, true),
@@ -39,9 +37,7 @@ namespace OxPt
             var name2 = "PB001-Input2.pptx";
             var sourceDir = new DirectoryInfo("../../../../TestFiles/");
             var source2Pptx = new FileInfo(Path.Combine(sourceDir.FullName, name2));
-
-            List<SlideSource> sources = null;
-            sources = new List<SlideSource>()
+            var sources = new List<SlideSource>()
             {
                 new SlideSource(new PmlDocument(source2Pptx.FullName), 0, true),
             };
@@ -57,9 +53,7 @@ namespace OxPt
             var sourceDir = new DirectoryInfo("../../../../TestFiles/");
             var source1Pptx = new FileInfo(Path.Combine(sourceDir.FullName, name1));
             var source2Pptx = new FileInfo(Path.Combine(sourceDir.FullName, name2));
-
-            List<SlideSource> sources = null;
-            sources = new List<SlideSource>()
+            var sources = new List<SlideSource>()
             {
                 new SlideSource(new PmlDocument(source1Pptx.FullName), 1, true),
                 new SlideSource(new PmlDocument(source2Pptx.FullName), 0, true),
@@ -76,9 +70,7 @@ namespace OxPt
             var sourceDir = new DirectoryInfo("../../../../TestFiles/");
             var source1Pptx = new FileInfo(Path.Combine(sourceDir.FullName, name1));
             var source2Pptx = new FileInfo(Path.Combine(sourceDir.FullName, name2));
-
-            List<SlideSource> sources = null;
-            sources = new List<SlideSource>()
+            var sources = new List<SlideSource>()
             {
                 new SlideSource(new PmlDocument(source2Pptx.FullName), 0, true),
                 new SlideSource(new PmlDocument(source1Pptx.FullName), 1, true),
@@ -95,9 +87,7 @@ namespace OxPt
             var sourceDir = new DirectoryInfo("../../../../TestFiles/");
             var source1Pptx = new FileInfo(Path.Combine(sourceDir.FullName, name1));
             var source2Pptx = new FileInfo(Path.Combine(sourceDir.FullName, name2));
-
-            List<SlideSource> sources = null;
-            sources = new List<SlideSource>()
+            var sources = new List<SlideSource>()
             {
                 new SlideSource(new PmlDocument(source2Pptx.FullName), 0, 0, true),
                 new SlideSource(new PmlDocument(source1Pptx.FullName), 1, true),
@@ -124,9 +114,7 @@ namespace OxPt
             var sourcePptx = new FileInfo(Path.Combine(sourceDir.FullName, "PP006-Videos.pptx"));
 
             var oldMediaDataContentTypes = GetMediaDataContentTypes(sourcePptx);
-
-            List<SlideSource> sources = null;
-            sources = new List<SlideSource>()
+            var sources = new List<SlideSource>()
             {
                 new SlideSource(new PmlDocument(sourcePptx.FullName), true),
             };

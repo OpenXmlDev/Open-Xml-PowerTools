@@ -13,154 +13,10 @@ using System.Xml.Linq;
 
 namespace OpenXmlPowerTools
 {
-    public partial class WmlDocument : OpenXmlPowerToolsDocument
-    {
-        public IEnumerable<WmlDocument> SplitOnSections()
-        {
-            return DocumentBuilder.SplitOnSections(this);
-        }
-    }
-
-    public class Source
-    {
-        public WmlDocument WmlDocument { get; set; }
-        public int Start { get; set; }
-        public int Count { get; set; }
-        public bool KeepSections { get; set; }
-        public bool DiscardHeadersAndFootersInKeptSections { get; set; }
-        public string InsertId { get; set; }
-
-        public Source(string fileName)
-        {
-            WmlDocument = new WmlDocument(fileName);
-            Start = 0;
-            Count = int.MaxValue;
-            KeepSections = false;
-            InsertId = null;
-        }
-
-        public Source(WmlDocument source)
-        {
-            WmlDocument = source;
-            Start = 0;
-            Count = int.MaxValue;
-            KeepSections = false;
-            InsertId = null;
-        }
-
-        public Source(string fileName, bool keepSections)
-        {
-            WmlDocument = new WmlDocument(fileName);
-            Start = 0;
-            Count = int.MaxValue;
-            KeepSections = keepSections;
-            InsertId = null;
-        }
-
-        public Source(WmlDocument source, bool keepSections)
-        {
-            WmlDocument = source;
-            Start = 0;
-            Count = int.MaxValue;
-            KeepSections = keepSections;
-            InsertId = null;
-        }
-
-        public Source(string fileName, string insertId)
-        {
-            WmlDocument = new WmlDocument(fileName);
-            Start = 0;
-            Count = int.MaxValue;
-            KeepSections = false;
-            InsertId = insertId;
-        }
-
-        public Source(WmlDocument source, string insertId)
-        {
-            WmlDocument = source;
-            Start = 0;
-            Count = int.MaxValue;
-            KeepSections = false;
-            InsertId = insertId;
-        }
-
-        public Source(string fileName, int start, bool keepSections)
-        {
-            WmlDocument = new WmlDocument(fileName);
-            Start = start;
-            Count = int.MaxValue;
-            KeepSections = keepSections;
-            InsertId = null;
-        }
-
-        public Source(WmlDocument source, int start, bool keepSections)
-        {
-            WmlDocument = source;
-            Start = start;
-            Count = int.MaxValue;
-            KeepSections = keepSections;
-            InsertId = null;
-        }
-
-        public Source(string fileName, int start, string insertId)
-        {
-            WmlDocument = new WmlDocument(fileName);
-            Start = start;
-            Count = int.MaxValue;
-            KeepSections = false;
-            InsertId = insertId;
-        }
-
-        public Source(WmlDocument source, int start, string insertId)
-        {
-            WmlDocument = source;
-            Start = start;
-            Count = int.MaxValue;
-            KeepSections = false;
-            InsertId = insertId;
-        }
-
-        public Source(string fileName, int start, int count, bool keepSections)
-        {
-            WmlDocument = new WmlDocument(fileName);
-            Start = start;
-            Count = count;
-            KeepSections = keepSections;
-            InsertId = null;
-        }
-
-        public Source(WmlDocument source, int start, int count, bool keepSections)
-        {
-            WmlDocument = source;
-            Start = start;
-            Count = count;
-            KeepSections = keepSections;
-            InsertId = null;
-        }
-
-        public Source(string fileName, int start, int count, string insertId)
-        {
-            WmlDocument = new WmlDocument(fileName);
-            Start = start;
-            Count = count;
-            KeepSections = false;
-            InsertId = insertId;
-        }
-
-        public Source(WmlDocument source, int start, int count, string insertId)
-        {
-            WmlDocument = source;
-            Start = start;
-            Count = count;
-            KeepSections = false;
-            InsertId = insertId;
-        }
-    }
-
     public class DocumentBuilderSettings
     {
-        public HashSet<string> CustomXmlGuidList { get; set; } = null;
-        public bool NormalizeStyleIds { get; set; } = false;
+        public HashSet<string> CustomXmlGuidList { get; set; }
+        public bool NormalizeStyleIds { get; set; }
     }
 
     public static class DocumentBuilder
@@ -341,7 +197,7 @@ namespace OpenXmlPowerTools
 
         private static void BuildDocument(List<Source> sources, WordprocessingDocument output, DocumentBuilderSettings settings)
         {
-            var wmlGlossaryDocument = CoalesceGlossaryDocumentParts(sources, settings);
+            var wmlGlossaryDocument = CoalesceGlossaryDocumentParts(sources);
 
             if (RelationshipMarkup == null)
             {
@@ -622,7 +478,7 @@ namespace OpenXmlPowerTools
 
                                         try
                                         {
-                                            AppendDocument(doc, output, part, contents, source.KeepSections, source.InsertId, images);
+                                            AppendDocument(doc, output, part, contents, source.InsertId, images);
                                         }
                                         catch (DocumentBuilderInternalException dbie)
                                         {
@@ -1110,7 +966,7 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml
             }
         }
 
-        private static WmlDocument CoalesceGlossaryDocumentParts(IEnumerable<Source> sources, DocumentBuilderSettings settings)
+        private static WmlDocument CoalesceGlossaryDocumentParts(IEnumerable<Source> sources)
         {
             var allGlossaryDocuments = sources
                 .Select(s => DocumentBuilder.ExtractGlossaryDocument(s.WmlDocument))
@@ -1282,7 +1138,7 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml
                     {
                         if (headerDefault != null)
                         {
-                            AddReferenceToExistingHeaderOrFooter(doc.MainDocumentPart, sect, (string)headerDefault.Attribute(R.id), W.headerReference, "even");
+                            AddReferenceToExistingHeaderOrFooter(sect, (string)headerDefault.Attribute(R.id), W.headerReference, "even");
                         }
                         else
                         {
@@ -1294,7 +1150,7 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml
                     {
                         if (headerDefault != null)
                         {
-                            AddReferenceToExistingHeaderOrFooter(doc.MainDocumentPart, sect, (string)headerDefault.Attribute(R.id), W.headerReference, "first");
+                            AddReferenceToExistingHeaderOrFooter(sect, (string)headerDefault.Attribute(R.id), W.headerReference, "first");
                         }
                         else
                         {
@@ -1306,7 +1162,7 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml
                     {
                         if (footerDefault != null)
                         {
-                            AddReferenceToExistingHeaderOrFooter(doc.MainDocumentPart, sect, (string)footerDefault.Attribute(R.id), W.footerReference, "even");
+                            AddReferenceToExistingHeaderOrFooter(sect, (string)footerDefault.Attribute(R.id), W.footerReference, "even");
                         }
                         else
                         {
@@ -1318,7 +1174,7 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml
                     {
                         if (footerDefault != null)
                         {
-                            AddReferenceToExistingHeaderOrFooter(doc.MainDocumentPart, sect, (string)footerDefault.Attribute(R.id), W.footerReference, "first");
+                            AddReferenceToExistingHeaderOrFooter(sect, (string)footerDefault.Attribute(R.id), W.footerReference, "first");
                         }
                         else
                         {
@@ -1363,7 +1219,7 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml
             if (referenceElement == null)
             {
                 var cachedPartRid = cachedHeaderFooter.FirstOrDefault(z => z.Ref == referenceXName && z.Type == type).CachedPartRid;
-                AddReferenceToExistingHeaderOrFooter(doc.MainDocumentPart, sect, cachedPartRid, referenceXName, type);
+                AddReferenceToExistingHeaderOrFooter(sect, cachedPartRid, referenceXName, type);
             }
             else
             {
@@ -1380,7 +1236,7 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml
                 });
         }
 
-        private static void AddReferenceToExistingHeaderOrFooter(MainDocumentPart mainDocPart, XElement sect, string rId, XName reference, string toType)
+        private static void AddReferenceToExistingHeaderOrFooter(XElement sect, string rId, XName reference, string toType)
         {
             if (reference == W.headerReference)
             {
@@ -1400,7 +1256,7 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml
 
         private static void InitEmptyHeaderOrFooter(MainDocumentPart mainDocPart, XElement sect, XName referenceXName, string toType)
         {
-            XDocument xDoc = null;
+            XDocument xDoc;
             if (referenceXName == W.headerReference)
             {
                 xDoc = XDocument.Parse(
@@ -1559,7 +1415,6 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml
                 {
                     throw new DocumentBuilderException(string.Format("Source {0} contains section changes (w:sectPrChange), not supported", sourceNumber));
                 }
-
             }
 
             TestPartForUnsupportedContent(doc.MainDocumentPart, sourceNumber);
@@ -2256,8 +2111,7 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml
             }
         }
 
-        private static void AdjustUniqueIds(WordprocessingDocument sourceDocument,
-            WordprocessingDocument newDocument, IEnumerable<XElement> newContent)
+        private static void AdjustUniqueIds(WordprocessingDocument newDocument, IEnumerable<XElement> newContent)
         {
             // adjust bookmark unique ids
             var maxId = 0;
@@ -2392,7 +2246,7 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml
             CopyComments(sourceDocument, newDocument, newContent, images);
             CopyFootnotes(sourceDocument, newDocument, newContent, images);
             CopyEndnotes(sourceDocument, newDocument, newContent, images);
-            AdjustUniqueIds(sourceDocument, newDocument, newContent);
+            AdjustUniqueIds(newDocument, newContent);
             RemoveGfxdata(newContent);
             CopyCustomXmlPartsForDataBoundContentControls(sourceDocument, newDocument, newContent);
             CopyWebExtensions(sourceDocument, newDocument);
@@ -2472,7 +2326,7 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml
 
         /// New method to support new functionality
         private static void AppendDocument(WordprocessingDocument sourceDocument, WordprocessingDocument newDocument, OpenXmlPart part,
-            List<XElement> newContent, bool keepSection, string insertId, List<ImageData> images)
+            List<XElement> newContent, string insertId, List<ImageData> images)
         {
             // Append contents
             var partXDoc = part.GetXDocument();
@@ -2491,7 +2345,7 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml
 
             CopyNumbering(sourceDocument, newDocument, newContent, images);
             CopyComments(sourceDocument, newDocument, newContent, images);
-            AdjustUniqueIds(sourceDocument, newDocument, newContent);
+            AdjustUniqueIds(newDocument, newContent);
             RemoveGfxdata(newContent);
 
             if (insertId == null)
@@ -2790,7 +2644,7 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml
             }
         }
 
-        private static Dictionary<XName, XName[]> RelationshipMarkup = null;
+        private static Dictionary<XName, XName[]> RelationshipMarkup;
 
         private static void UpdateContent(IEnumerable<XElement> newContent, XName elementToModify, string oldRid, string newRid)
         {
@@ -4106,8 +3960,8 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml
                 var newSettingsPart = newDocument.MainDocumentPart.AddNewPart<DocumentSettingsPart>();
                 var settingsXDoc = oldSettingsPart.GetXDocument();
                 AddRelationships(oldSettingsPart, newSettingsPart, new[] { settingsXDoc.Root });
-                CopyFootnotesPart(sourceDocument, newDocument, settingsXDoc, images);
-                CopyEndnotesPart(sourceDocument, newDocument, settingsXDoc, images);
+                CopyFootnotesPart(sourceDocument, newDocument, settingsXDoc);
+                CopyEndnotesPart(sourceDocument, newDocument, settingsXDoc);
                 var newXDoc = newDocument.MainDocumentPart.DocumentSettingsPart.GetXDocument();
                 newXDoc.Declaration.Standalone = Yes;
                 newXDoc.Declaration.Encoding = Utf8;
@@ -4180,7 +4034,7 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml
         }
 
         private static void CopyFootnotesPart(WordprocessingDocument sourceDocument, WordprocessingDocument newDocument,
-            XDocument settingsXDoc, List<ImageData> images)
+            XDocument settingsXDoc)
         {
             var number = 0;
             XDocument oldFootnotes = null;
@@ -4243,7 +4097,7 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml
         }
 
         private static void CopyEndnotesPart(WordprocessingDocument sourceDocument, WordprocessingDocument newDocument,
-            XDocument settingsXDoc, List<ImageData> images)
+            XDocument settingsXDoc)
         {
             var number = 0;
             XDocument oldEndnotes = null;
@@ -4338,15 +4192,13 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml
                 W.moveToRangeEnd,
                 W.id,
                 null);
-            DeleteUnmatchedRange(sourceDocument,
-                newContent,
+            DeleteUnmatchedRange(newContent,
                 W.moveFromRangeStart,
                 W.moveFromRangeEnd,
                 W.moveToRangeStart,
                 W.name,
                 W.id);
-            DeleteUnmatchedRange(sourceDocument,
-                newContent,
+            DeleteUnmatchedRange(newContent,
                 W.moveToRangeStart,
                 W.moveToRangeEnd,
                 W.moveFromRangeStart,
@@ -4427,7 +4279,7 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml
             }
         }
 
-        private static void DeleteUnmatchedRange(XDocument sourceDocument, IEnumerable<XElement> newContent,
+        private static void DeleteUnmatchedRange(IEnumerable<XElement> newContent,
             XName startElement, XName endElement, XName matchTo, XName matchAttr, XName idAttr)
         {
             var deleteList = new List<string>();
@@ -4615,16 +4467,17 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml
         };
     }
 
-    public class DocumentBuilderException : Exception
-    {
-        public DocumentBuilderException(string message) : base(message)
-        {
-        }
-    }
-
     public class DocumentBuilderInternalException : Exception
     {
         public DocumentBuilderInternalException(string message) : base(message)
+        {
+        }
+
+        public DocumentBuilderInternalException(string message, Exception innerException) : base(message, innerException)
+        {
+        }
+
+        public DocumentBuilderInternalException()
         {
         }
     }

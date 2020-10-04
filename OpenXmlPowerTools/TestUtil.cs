@@ -9,7 +9,7 @@ namespace OpenXmlPowerTools
 {
     public class TestUtil
     {
-        private static bool? s_DeleteTempFiles = null;
+        private static bool? s_DeleteTempFiles ;
 
         public static bool DeleteTempFiles
         {
@@ -26,7 +26,7 @@ namespace OpenXmlPowerTools
             }
         }
 
-        private static DirectoryInfo s_TempDir = null;
+        private static DirectoryInfo s_TempDir ;
 
         public static DirectoryInfo TempDir
         {

@@ -194,6 +194,14 @@ namespace Peg.Base
             : base("Fatal parsing error ocurred")
         {
         }
+
+        public PegException(string message) : base(message)
+        {
+        }
+
+        public PegException(string message, Exception innerException) : base(message, innerException)
+        {
+        }
     }
 
     public struct PegError
@@ -216,7 +224,7 @@ namespace Peg.Base
 
         public void GetLineAndCol(string s, int pos, out int lineNo, out int colNo)
         {
-            for (var i = lineStarts.Count(); i > 0; --i)
+            for (var i = lineStarts.Count; i > 0; --i)
             {
                 var curLs = lineStarts.ElementAt(i - 1);
                 if (curLs.Key == pos)
@@ -1204,7 +1212,7 @@ namespace Peg.Base
         {
             if (src == null)
             {
-                src = new byte[0];
+                src = Array.Empty<byte>();
             }
 
             src_ = src; srcLen_ = src.Length;
@@ -1369,11 +1377,6 @@ namespace Peg.Base
         }
 
         public bool IntoBits(int lowBitNo, int highBitNo, out int val)
-        {
-            return BitsInto(lowBitNo, highBitNo, out val);
-        }
-
-        public bool IntoBits(int lowBitNo, int highBitNo, BytesetData toMatch, out int val)
         {
             return BitsInto(lowBitNo, highBitNo, out val);
         }

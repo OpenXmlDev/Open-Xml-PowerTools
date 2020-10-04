@@ -11,8 +11,8 @@ namespace OpenXmlPowerTools
 {
     public class ListItemRetrieverSettings
     {
-        public static Dictionary<string, Func<string, int, string, string>> DefaultListItemTextImplementations =
-            new Dictionary<string, Func<string, int, string, string>>()
+        public static Dictionary<string, Func<int, string, string>> DefaultListItemTextImplementations =
+            new Dictionary<string, Func<int, string, string>>()
             {
                 {"fr-FR", ListItemTextGetter_fr_FR.GetListItemText},
                 {"tr-TR", ListItemTextGetter_tr_TR.GetListItemText},
@@ -21,7 +21,7 @@ namespace OpenXmlPowerTools
                 {"zh-CN", ListItemTextGetter_zh_CN.GetListItemText},
             };
 
-        public Dictionary<string, Func<string, int, string, string>> ListItemTextImplementations;
+        public Dictionary<string, Func<int, string, string>> ListItemTextImplementations;
 
         public ListItemRetrieverSettings()
         {
@@ -1294,12 +1294,12 @@ namespace OpenXmlPowerTools
                     if (settings.ListItemTextImplementations.ContainsKey(languageCultureName))
                     {
                         var impl = settings.ListItemTextImplementations[languageCultureName];
-                        levelText = impl(languageCultureName, levelNumber, numFmtForLevel);
+                        levelText = impl(levelNumber, numFmtForLevel);
                     }
                 }
                 if (levelText == null)
                 {
-                    levelText = ListItemTextGetter_Default.GetListItemText(languageCultureName, levelNumber, numFmtForLevel);
+                    levelText = ListItemTextGetter_Default.GetListItemText(levelNumber, numFmtForLevel);
                 }
 
                 return levelText;

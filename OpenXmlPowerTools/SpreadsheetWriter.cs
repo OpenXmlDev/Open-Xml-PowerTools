@@ -465,11 +465,11 @@ namespace OpenXmlPowerTools
             }
 
             // if no match, then create a style
-            var newId = CreateNewStyle(sXDoc, cell, sDoc);
+            var newId = CreateNewStyle(sXDoc, cell);
             return newId;
         }
 
-        private static int CreateNewStyle(XDocument sXDoc, CellDfn cell, SpreadsheetDocument sDoc)
+        private static int CreateNewStyle(XDocument sXDoc, CellDfn cell)
         {
             XAttribute applyFont = null;
             XAttribute fontId = null;
@@ -586,7 +586,7 @@ namespace OpenXmlPowerTools
         private static bool CompareStyles(XDocument sXDoc, XElement xf, CellDfn cell)
         {
             var matchFont = MatchFont(sXDoc, xf, cell);
-            var matchAlignment = MatchAlignment(sXDoc, xf, cell);
+            var matchAlignment = MatchAlignment(xf, cell);
             var matchFormat = MatchFormat(sXDoc, xf, cell);
             return (matchFont && matchAlignment && matchFormat);
         }
@@ -622,7 +622,7 @@ namespace OpenXmlPowerTools
             return match;
         }
 
-        private static bool MatchAlignment(XDocument sXDoc, XElement xf, CellDfn cell)
+        private static bool MatchAlignment(XElement xf, CellDfn cell)
         {
             if ((int?)xf.Attribute(SSNoNamespace.applyAlignment) == 0 ||
                 (xf.Attribute(SSNoNamespace.applyAlignment) == null) &&
@@ -834,12 +834,28 @@ Y1Byb3BzL2FwcC54bWxQSwUGAAAAAAoACgCAAgAAKxsAAAAA";
             : base("Internal error - unexpected content in _EmptyXlsx.")
         {
         }
+
+        public SpreadsheetWriterInternalException(string message) : base(message)
+        {
+        }
+
+        public SpreadsheetWriterInternalException(string message, Exception innerException) : base(message, innerException)
+        {
+        }
     }
 
     public class InvalidSheetNameException : Exception
     {
         public InvalidSheetNameException(string name)
             : base(string.Format("The supplied name ({0}) is not a valid XLSX worksheet name.", name))
+        {
+        }
+
+        public InvalidSheetNameException()
+        {
+        }
+
+        public InvalidSheetNameException(string message, Exception innerException) : base(message, innerException)
         {
         }
     }

@@ -20,9 +20,9 @@ namespace OxPt
 {
     public class WcTests
     {
-        private static bool s_OpenWord = false;
+        private static readonly bool s_OpenWord;
 
-        private static bool m_OpenTempDirInExplorer = false;
+        private static readonly bool m_OpenTempDirInExplorer;
 
         [Theory]
         [InlineData("RC-0010", "RC/RC001-Before.docx",
@@ -638,7 +638,7 @@ namespace OxPt
                 {
                     var validator = new OpenXmlValidator();
                     var errors = validator.Validate(wDoc).Where(e => !ExpectedErrors.Contains(e.Description));
-                    if (errors.Count() > 0)
+                    if (errors.Any())
                     {
                         var ind = "  ";
                         var sb = new StringBuilder();
@@ -683,7 +683,7 @@ namespace OxPt
                 }
             }
 
-            if (validationErrors != "")
+            if (!string.IsNullOrEmpty(validationErrors))
             {
                 Assert.True(false, validationErrors);
             }
@@ -692,7 +692,7 @@ namespace OxPt
 
             var revisionWml = new WmlDocument(docxWithRevisionsFi.FullName);
             var revisions = WmlComparer.GetRevisions(revisionWml, settings);
-            Assert.Equal(revisionCount, revisions.Count());
+            Assert.Equal(revisionCount, revisions.Count);
 
             var afterRejectingWml = RevisionProcessor.RejectRevisions(revisionWml);
 
@@ -730,7 +730,7 @@ namespace OxPt
                 afterAcceptingComparedWml.SaveAs(afterAcceptingComparedFi.FullName);
             }
 
-            if (sanityCheck1.Count() != 0)
+            if (sanityCheck1.Count != 0)
             {
                 Assert.True(false, "Sanity Check #1 failed");
             }
@@ -938,7 +938,7 @@ namespace OxPt
 
             var revisionWml = new WmlDocument(docxWithRevisionsFi.FullName);
             var revisions = WmlComparer.GetRevisions(revisionWml, settings);
-            Assert.Equal(revisionCount, revisions.Count());
+            Assert.Equal(revisionCount, revisions.Count);
         }
 
         private static void ValidateDocument(WmlDocument wmlToValidate)

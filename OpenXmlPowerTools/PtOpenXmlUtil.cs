@@ -700,7 +700,7 @@ namespace OpenXmlPowerTools
             return base64String;
         }
 
-        public static byte[] ConvertFromBase64(string fileName, string b64)
+        public static byte[] ConvertFromBase64(string b64)
         {
             var b64b = b64.Replace("\r\n", "");
             var ba = System.Convert.FromBase64String(b64b);
@@ -1916,8 +1916,8 @@ namespace OpenXmlPowerTools
             var emptyField = new FieldInfo
             {
                 FieldType = "",
-                Arguments = new string[] { },
-                Switches = new string[] { },
+                Arguments = Array.Empty<string>(),
+                Switches = Array.Empty<string>(),
             };
 
             if (field.Length == 0)
@@ -6158,11 +6158,27 @@ namespace OpenXmlPowerTools
         public InvalidOpenXmlDocumentException(string message) : base(message)
         {
         }
+
+        public InvalidOpenXmlDocumentException()
+        {
+        }
+
+        public InvalidOpenXmlDocumentException(string message, Exception innerException) : base(message, innerException)
+        {
+        }
     }
 
     public class OpenXmlPowerToolsException : Exception
     {
         public OpenXmlPowerToolsException(string message) : base(message)
+        {
+        }
+
+        public OpenXmlPowerToolsException(string message, Exception innerException) : base(message, innerException)
+        {
+        }
+
+        public OpenXmlPowerToolsException()
         {
         }
     }
@@ -6173,12 +6189,28 @@ namespace OpenXmlPowerTools
             : base(string.Format("Column reference ({0}) is out of range.", columnReference))
         {
         }
+
+        public ColumnReferenceOutOfRange()
+        {
+        }
+
+        public ColumnReferenceOutOfRange(string message, Exception innerException) : base(message, innerException)
+        {
+        }
     }
 
     public class WorksheetAlreadyExistsException : Exception
     {
         public WorksheetAlreadyExistsException(string sheetName)
             : base(string.Format("The worksheet ({0}) already exists.", sheetName))
+        {
+        }
+
+        public WorksheetAlreadyExistsException(string message, Exception innerException) : base(message, innerException)
+        {
+        }
+
+        public WorksheetAlreadyExistsException()
         {
         }
     }

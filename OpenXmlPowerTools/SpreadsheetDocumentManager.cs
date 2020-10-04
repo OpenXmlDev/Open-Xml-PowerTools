@@ -85,7 +85,7 @@ namespace OpenXmlPowerTools
         /// <param name="valueTable">Data values</param>
         /// <param name="colsToChart">Columns used as data series</param>
         /// <returns></returns>
-        private static List<string> GetHeaderReferences(string sheetName, string headerColumn, List<string> headerList, List<string> colsToChart, string[][] valueTable)
+        private static List<string> GetHeaderReferences(string sheetName, List<string> headerList, List<string> colsToChart)
         {
             var valueReferenceList = new List<string>();
 
@@ -111,7 +111,7 @@ namespace OpenXmlPowerTools
         /// <param name="valueTable">Data values</param>
         /// <param name="colsToChart">Columns used as data series</param>
         /// <returns></returns>
-        private static List<string> GetValueReferences(string sheetName, string headerColumn, List<string> headerList, List<string> colsToChart, string[][] valueTable)
+        private static List<string> GetValueReferences(string sheetName, List<string> headerList, List<string> colsToChart, string[][] valueTable)
         {
             var valueReferenceList = new List<string>();
             var numRows = valueTable.GetLength(0);

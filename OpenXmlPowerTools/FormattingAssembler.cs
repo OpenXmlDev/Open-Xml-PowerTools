@@ -1049,7 +1049,7 @@ namespace OpenXmlPowerTools
                     }
 
                     AddTcPrPtToEveryCell(tbl);
-                    AddOuterBorders(tbl, style);
+                    AddOuterBorders(tbl);
 
                     var tableTcPr = style.Element(W.tcPr);
                     if (tableTcPr != null)
@@ -1450,7 +1450,7 @@ namespace OpenXmlPowerTools
             }
         }
 
-        private static void AddOuterBorders(XElement tbl, XElement style)
+        private static void AddOuterBorders(XElement tbl)
         {
             var tblBorders = tbl.Elements(PtOpenXml.pt + "tblPr").Elements(W.tblBorders).FirstOrDefault();
             if (tblBorders != null)
@@ -4062,11 +4062,27 @@ namespace OpenXmlPowerTools
             public UnsupportedNumberingFormatException(string message) : base(message)
             {
             }
+
+            public UnsupportedNumberingFormatException(string message, Exception innerException) : base(message, innerException)
+            {
+            }
+
+            public UnsupportedNumberingFormatException()
+            {
+            }
         }
 
         public class UnsupportedLanguageException : Exception
         {
             public UnsupportedLanguageException(string message) : base(message)
+            {
+            }
+
+            public UnsupportedLanguageException(string message, Exception innerException) : base(message, innerException)
+            {
+            }
+
+            public UnsupportedLanguageException()
             {
             }
         }
