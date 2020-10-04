@@ -1,13 +1,9 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-
-
 using System.Linq;
 using System.Xml.Linq;
 using Xunit;
-
-#if !ELIDE_XUNIT_TESTS
 
 namespace OpenXmlPowerTools.Tests
 {
@@ -132,5 +128,3 @@ namespace OpenXmlPowerTools.Tests
         }
     }
 }
-
-#endif

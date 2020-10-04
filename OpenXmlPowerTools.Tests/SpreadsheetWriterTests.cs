@@ -11,8 +11,6 @@ using System.Text;
 using Xunit;
 using Sw = OpenXmlPowerTools;
 
-#if !ELIDE_XUNIT_TESTS
-
 namespace OxPt
 {
     public class SwTests
@@ -336,5 +334,3 @@ namespace OxPt
         };
     }
 }
-
-#endif

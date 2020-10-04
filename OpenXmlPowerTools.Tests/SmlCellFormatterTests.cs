@@ -7,8 +7,6 @@ using System.IO;
 using System.Linq;
 using Xunit;
 
-#if !ELIDE_XUNIT_TESTS
-
 namespace OxPt
 {
     public class CfTests
@@ -135,5 +133,3 @@ namespace OxPt
         }
     }
 }
-
-#endif

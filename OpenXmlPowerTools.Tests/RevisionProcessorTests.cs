@@ -7,17 +7,10 @@ using System.IO;
 using System.Linq;
 using Xunit;
 
-#if !ELIDE_XUNIT_TESTS
-
 namespace OxPt
 {
     public class RpTests
     {
-        // perf settings
-        private static readonly bool m_CopySourceFilesToTempDir = true;
-
-        private static readonly bool m_OpenTempDirInExplorer;
-
         [Theory]
         [InlineData("RP/RP002-Deleted-Text.docx")]
         [InlineData("RP/RP003-Inserted-Text.docx")]
@@ -86,27 +79,6 @@ namespace OxPt
             var processedRejectedFi = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, sourceFi.Name.Replace(".docx", "-Rejected.docx")));
             afterRejectingWml.SaveAs(processedRejectedFi.FullName);
 
-            // Copy source files to temp dir
-            if (m_CopySourceFilesToTempDir)
-            {
-                while (true)
-                {
-                    try
-                    {
-                        var sourceDocxCopiedToDestFi = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, sourceFi.Name));
-                        if (!sourceDocxCopiedToDestFi.Exists)
-                        {
-                            sourceWml.SaveAs(sourceDocxCopiedToDestFi.FullName);
-                        }
-                        break;
-                    }
-                    catch (IOException)
-                    {
-                        System.Threading.Thread.Sleep(50);
-                    }
-                }
-            }
-
             // create batch file to copy properly processed documents to the TestFiles directory.
             while (true)
             {
@@ -130,28 +102,6 @@ namespace OxPt
                 catch (IOException)
                 {
                     System.Threading.Thread.Sleep(50);
-                }
-            }
-
-            // Open Windows Explorer
-            if (m_OpenTempDirInExplorer)
-            {
-                while (true)
-                {
-                    try
-                    {
-                        var semaphorFi = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, "z_ExplorerOpenedSemaphore.txt"));
-                        if (!semaphorFi.Exists)
-                        {
-                            File.WriteAllText(semaphorFi.FullName, "");
-                            TestUtil.Explorer(TestUtil.TempDir);
-                        }
-                        break;
-                    }
-                    catch (IOException)
-                    {
-                        System.Threading.Thread.Sleep(50);
-                    }
                 }
             }
 
@@ -191,5 +141,3 @@ namespace OxPt
         }
     }
 }
-
-#endif

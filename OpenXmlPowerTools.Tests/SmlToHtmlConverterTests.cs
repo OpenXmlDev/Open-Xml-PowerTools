@@ -6,8 +6,6 @@ using OpenXmlPowerTools;
 using System.IO;
 using Xunit;
 
-#if !ELIDE_XUNIT_TESTS
-
 namespace OxPt
 {
     public class ShTests
@@ -185,5 +183,3 @@ namespace OxPt
         }
     }
 }
-
-#endif

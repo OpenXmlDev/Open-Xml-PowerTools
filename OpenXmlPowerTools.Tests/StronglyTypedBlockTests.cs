@@ -9,8 +9,6 @@ using System.Linq;
 using System.Xml.Linq;
 using Xunit;
 
-#if !ELIDE_XUNIT_TESTS
-
 namespace OpenXmlPowerTools.Tests
 {
     public class StronglyTypedBlockTests : TestsBase
@@ -63,5 +61,3 @@ namespace OpenXmlPowerTools.Tests
         }
     }
 }
-
-#endif

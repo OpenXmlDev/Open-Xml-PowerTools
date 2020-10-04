@@ -6,7 +6,6 @@ using DocumentFormat.OpenXml.Validation;
 using OpenXmlPowerTools;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -14,16 +13,10 @@ using System.Text;
 using System.Xml.Linq;
 using Xunit;
 
-#if !ELIDE_XUNIT_TESTS
-
 namespace OxPt
 {
     public class WcTests
     {
-        private static readonly bool s_OpenWord;
-
-        private static readonly bool m_OpenTempDirInExplorer;
-
         [Theory]
         [InlineData("RC-0010", "RC/RC001-Before.docx",
             @"<Root>
@@ -181,21 +174,17 @@ namespace OxPt
                 {
                     var validator = new OpenXmlValidator();
                     var errors = validator.Validate(wDoc).Where(e => !ExpectedErrors.Contains(e.Description));
-                    if (errors.Count() > 0)
+                    if (errors.Any())
                     {
                         var ind = "  ";
                         var sb = new StringBuilder();
                         foreach (var err in errors)
                         {
-#if true
                             sb.Append("Error" + Environment.NewLine);
                             sb.Append(ind + "ErrorType: " + err.ErrorType.ToString() + Environment.NewLine);
                             sb.Append(ind + "Description: " + err.Description + Environment.NewLine);
                             sb.Append(ind + "Part: " + err.Part.Uri.ToString() + Environment.NewLine);
                             sb.Append(ind + "XPath: " + err.Path.XPath + Environment.NewLine);
-#else
-                        sb.Append("            \"" + err.Description + "\"," + Environment.NewLine);
-#endif
                         }
                         validationErrors = sb.ToString();
                     }
@@ -203,49 +192,6 @@ namespace OxPt
             }
 
             /************************************************************************************************************************/
-
-            if (s_OpenWord)
-            {
-                var wordExe = new FileInfo(@"C:\Program Files (x86)\Microsoft Office\root\Office16\WINWORD.EXE");
-                WordRunner.RunWord(wordExe, consolidatedDocumentFi);
-                WordRunner.RunWord(wordExe, originalCopiedToDestDocx);
-
-                var revisedList = revisedDocumentsXElement
-                    .Elements()
-                    .Select(z =>
-                    {
-                        var revisedDocx = new FileInfo(Path.Combine(sourceDir.FullName, z.Element("DocName").Value));
-                        var revisedCopiedToDestDocx = new FileInfo(Path.Combine(thisTestTempDir.FullName, revisedDocx.Name));
-                        return revisedCopiedToDestDocx;
-                    })
-                    .ToList();
-                foreach (var item in revisedList)
-                {
-                    WordRunner.RunWord(wordExe, item);
-                }
-            }
-
-            // Open Windows Explorer
-            if (m_OpenTempDirInExplorer)
-            {
-                while (true)
-                {
-                    try
-                    {
-                        var semaphorFi = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, "z_ExplorerOpenedSemaphore.txt"));
-                        if (!semaphorFi.Exists)
-                        {
-                            File.WriteAllText(semaphorFi.FullName, "");
-                            TestUtil.Explorer(thisTestTempDir);
-                        }
-                        break;
-                    }
-                    catch (IOException)
-                    {
-                        System.Threading.Thread.Sleep(50);
-                    }
-                }
-            }
 
             if (validationErrors != "")
             {
@@ -360,29 +306,6 @@ namespace OxPt
                 wml2.SaveAs(source2CopiedToDestDocx.FullName);
             }
 
-            if (s_OpenWord)
-            {
-                var source1DocxForWord = new FileInfo(Path.Combine(sourceDir.FullName, name1));
-                var source2DocxForWord = new FileInfo(Path.Combine(sourceDir.FullName, name2));
-
-                var source1CopiedToDestDocxForWord = new FileInfo(Path.Combine(thisTestTempDir.FullName, source1Docx.Name.Replace(".docx", "-For-Word.docx")));
-                var source2CopiedToDestDocxForWord = new FileInfo(Path.Combine(thisTestTempDir.FullName, source2Docx.Name.Replace(".docx", "-For-Word.docx")));
-                if (!source1CopiedToDestDocxForWord.Exists)
-                {
-                    File.Copy(source1Docx.FullName, source1CopiedToDestDocxForWord.FullName);
-                }
-
-                if (!source2CopiedToDestDocxForWord.Exists)
-                {
-                    File.Copy(source2Docx.FullName, source2CopiedToDestDocxForWord.FullName);
-                }
-
-                var wordExe = new FileInfo(@"C:\Program Files (x86)\Microsoft Office\root\Office16\WINWORD.EXE");
-                var path = new DirectoryInfo(@"C:\Users\Eric\Documents\WindowsPowerShellModules\Open-Xml-PowerTools\TestFiles");
-                WordRunner.RunWord(wordExe, source2CopiedToDestDocxForWord);
-                WordRunner.RunWord(wordExe, source1CopiedToDestDocxForWord);
-            }
-
             var before = source1CopiedToDestDocx.Name.Replace(".docx", "");
             var after = source2CopiedToDestDocx.Name.Replace(".docx", "");
             var docxWithRevisionsFi = new FileInfo(Path.Combine(thisTestTempDir.FullName, before + "-COMPARE-" + after + ".docx"));
@@ -423,50 +346,18 @@ namespace OxPt
                         var sb = new StringBuilder();
                         foreach (var err in errors)
                         {
-#if true
                             sb.Append("Error" + Environment.NewLine);
                             sb.Append(ind + "ErrorType: " + err.ErrorType.ToString() + Environment.NewLine);
                             sb.Append(ind + "Description: " + err.Description + Environment.NewLine);
                             sb.Append(ind + "Part: " + err.Part.Uri.ToString() + Environment.NewLine);
                             sb.Append(ind + "XPath: " + err.Path.XPath + Environment.NewLine);
-#else
-                        sb.Append("            \"" + err.Description + "\"," + Environment.NewLine);
-#endif
                         }
                         validationErrors = sb.ToString();
                     }
                 }
             }
 
-            if (s_OpenWord)
-            {
-                var wordExe = new FileInfo(@"C:\Program Files (x86)\Microsoft Office\root\Office16\WINWORD.EXE");
-                WordRunner.RunWord(wordExe, docxConsolidatedFi);
-            }
-
-            // Open Windows Explorer
-            if (m_OpenTempDirInExplorer)
-            {
-                while (true)
-                {
-                    try
-                    {
-                        var semaphorFi = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, "z_ExplorerOpenedSemaphore.txt"));
-                        if (!semaphorFi.Exists)
-                        {
-                            File.WriteAllText(semaphorFi.FullName, "");
-                            TestUtil.Explorer(thisTestTempDir);
-                        }
-                        break;
-                    }
-                    catch (IOException)
-                    {
-                        System.Threading.Thread.Sleep(50);
-                    }
-                }
-            }
-
-            if (validationErrors != "")
+            if (!string.IsNullOrEmpty(validationErrors))
             {
                 Assert.True(false, validationErrors);
             }
@@ -604,22 +495,6 @@ namespace OxPt
             var after = source2CopiedToDestDocx.Name.Replace(".docx", "");
             var docxWithRevisionsFi = new FileInfo(Path.Combine(thisTestTempDir.FullName, before + "-COMPARE-" + after + ".docx"));
 
-            if (s_OpenWord)
-            {
-                var source1DocxForWord = new FileInfo(Path.Combine(sourceDir.FullName, name1));
-                var source2DocxForWord = new FileInfo(Path.Combine(sourceDir.FullName, name2));
-
-                var source1CopiedToDestDocxForWord = new FileInfo(Path.Combine(thisTestTempDir.FullName, source1Docx.Name.Replace(".docx", "-For-Word.docx")));
-                var source2CopiedToDestDocxForWord = new FileInfo(Path.Combine(thisTestTempDir.FullName, source2Docx.Name.Replace(".docx", "-For-Word.docx")));
-                File.Copy(source1Docx.FullName, source1CopiedToDestDocxForWord.FullName);
-                File.Copy(source2Docx.FullName, source2CopiedToDestDocxForWord.FullName);
-
-                var wordExe = new FileInfo(@"C:\Program Files (x86)\Microsoft Office\root\Office16\WINWORD.EXE");
-                var path = new DirectoryInfo(@"C:\Users\Eric\Documents\WindowsPowerShellModules\Open-Xml-PowerTools\TestFiles");
-                WordRunner.RunWord(wordExe, source2CopiedToDestDocxForWord);
-                WordRunner.RunWord(wordExe, source1CopiedToDestDocxForWord);
-            }
-
             var source1Wml = new WmlDocument(source1CopiedToDestDocx.FullName);
             var source2Wml = new WmlDocument(source2CopiedToDestDocx.FullName);
             var settings = new WmlComparerSettings
@@ -651,34 +526,6 @@ namespace OxPt
                             sb.Append(ind + "XPath: " + err.Path.XPath + Environment.NewLine);
                         }
                         validationErrors = sb.ToString();
-                    }
-                }
-            }
-
-            if (s_OpenWord)
-            {
-                var wordExe = new FileInfo(@"C:\Program Files (x86)\Microsoft Office\root\Office16\WINWORD.EXE");
-                WordRunner.RunWord(wordExe, docxWithRevisionsFi);
-            }
-
-            // Open Windows Explorer
-            if (m_OpenTempDirInExplorer)
-            {
-                while (true)
-                {
-                    try
-                    {
-                        var semaphorFi = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, "z_ExplorerOpenedSemaphore.txt"));
-                        if (!semaphorFi.Exists)
-                        {
-                            File.WriteAllText(semaphorFi.FullName, "");
-                            TestUtil.Explorer(thisTestTempDir);
-                        }
-                        break;
-                    }
-                    catch (IOException)
-                    {
-                        System.Threading.Thread.Sleep(50);
                     }
                 }
             }
@@ -868,29 +715,6 @@ namespace OxPt
                 File.Copy(source2Docx.FullName, source2CopiedToDestDocx.FullName);
             }
 
-            if (s_OpenWord)
-            {
-                var source1DocxForWord = new FileInfo(Path.Combine(sourceDir.FullName, name1));
-                var source2DocxForWord = new FileInfo(Path.Combine(sourceDir.FullName, name2));
-
-                var source1CopiedToDestDocxForWord = new FileInfo(Path.Combine(thisTestTempDir.FullName, source1Docx.Name.Replace(".docx", "-For-Word.docx")));
-                var source2CopiedToDestDocxForWord = new FileInfo(Path.Combine(thisTestTempDir.FullName, source2Docx.Name.Replace(".docx", "-For-Word.docx")));
-                if (!source1CopiedToDestDocxForWord.Exists)
-                {
-                    File.Copy(source1Docx.FullName, source1CopiedToDestDocxForWord.FullName);
-                }
-
-                if (!source2CopiedToDestDocxForWord.Exists)
-                {
-                    File.Copy(source2Docx.FullName, source2CopiedToDestDocxForWord.FullName);
-                }
-
-                var wordExe = new FileInfo(@"C:\Program Files (x86)\Microsoft Office\root\Office16\WINWORD.EXE");
-                var path = new DirectoryInfo(@"C:\Users\Eric\Documents\WindowsPowerShellModules\Open-Xml-PowerTools\TestFiles");
-                WordRunner.RunWord(wordExe, source2CopiedToDestDocxForWord);
-                WordRunner.RunWord(wordExe, source1CopiedToDestDocxForWord);
-            }
-
             var before = source1CopiedToDestDocx.Name.Replace(".docx", "");
             var after = source2CopiedToDestDocx.Name.Replace(".docx", "");
             var docxWithRevisionsFi = new FileInfo(Path.Combine(thisTestTempDir.FullName, before + "-COMPARE-" + after + ".docx"));
@@ -912,7 +736,7 @@ namespace OxPt
                 {
                     var validator = new OpenXmlValidator();
                     var errors = validator.Validate(wDoc).Where(e => !ExpectedErrors.Contains(e.Description));
-                    if (errors.Count() > 0)
+                    if (errors.Any())
                     {
                         var ind = "  ";
                         var sb = new StringBuilder();
@@ -928,12 +752,6 @@ namespace OxPt
                         Assert.Equal("", sbs);
                     }
                 }
-            }
-
-            if (s_OpenWord)
-            {
-                var wordExe = new FileInfo(@"C:\Program Files (x86)\Microsoft Office\root\Office16\WINWORD.EXE");
-                WordRunner.RunWord(wordExe, docxWithRevisionsFi);
             }
 
             var revisionWml = new WmlDocument(docxWithRevisionsFi.FullName);
@@ -997,30 +815,4 @@ namespace OxPt
             "The 'http://schemas.openxmlformats.org/wordprocessingml/2006/main:fill' attribute is invalid - The value '0' is not valid according to any of the memberTypes of the union.",
         };
     }
-
-    public static class WordRunner
-    {
-        public static void RunWord(FileInfo executablePath, FileInfo docxPath)
-        {
-            if (executablePath.Exists)
-            {
-                using (var proc = new Process())
-                {
-                    proc.StartInfo.FileName = executablePath.FullName;
-                    proc.StartInfo.Arguments = docxPath.FullName;
-                    proc.StartInfo.WorkingDirectory = docxPath.DirectoryName;
-                    proc.StartInfo.UseShellExecute = false;
-                    proc.StartInfo.RedirectStandardOutput = true;
-                    proc.StartInfo.RedirectStandardError = true;
-                    proc.Start();
-                }
-            }
-            else
-            {
-                throw new ArgumentException("Invalid executable path.", "executablePath");
-            }
-        }
-    }
 }
-
-#endif

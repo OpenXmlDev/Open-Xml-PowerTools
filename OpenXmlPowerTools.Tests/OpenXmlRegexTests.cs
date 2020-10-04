@@ -9,8 +9,6 @@ using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using Xunit;
 
-#if !ELIDE_XUNIT_TESTS
-
 namespace OpenXmlPowerTools.Tests
 {
     public class OpenXmlRegexTests
@@ -381,5 +379,3 @@ namespace OpenXmlPowerTools.Tests
         }
     }
 }
-
-#endif

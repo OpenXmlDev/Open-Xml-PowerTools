@@ -7,8 +7,6 @@ using System;
 using System.IO;
 using Xunit;
 
-#if !ELIDE_XUNIT_TESTS
-
 namespace OxPt
 {
     public class CuTests
@@ -225,5 +223,3 @@ namespace OxPt
         }
     }
 }
-
-#endif
