@@ -37,6 +37,11 @@ It supports scenarios such as:
     <PackageId>OpenXmlPowerToolsStandard</PackageId>
     <UserSecretsId>21e414c9-78be-455b-9611-12f18f73d93e</UserSecretsId>
   </PropertyGroup>
+  <ItemGroup>
+    <Compile Remove="Properties\**" />
+    <EmbeddedResource Remove="Properties\**" />
+    <None Remove="Properties\**" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="DocumentFormat.OpenXml" Version="2.10.1" />
@@ -58,10 +63,6 @@ It supports scenarios such as:
 
   <ItemGroup>
     <None Include="NugetIcon.png" Pack="true" PackagePath="\" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Properties\" />
   </ItemGroup>
 
 </Project>
