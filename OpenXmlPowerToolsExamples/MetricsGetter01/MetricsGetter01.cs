@@ -8,13 +8,10 @@ namespace OpenXmlPowerTools
 {
     internal class MetricsGetter01
     {
-        private static void Main(string[] args)
+        private static void Main()
         {
-            MetricsGetterSettings settings = null;
-            FileInfo fi = null;
-
-            fi = new FileInfo("../../ContentControls.docx");
-            settings = new MetricsGetterSettings
+            var fi = new FileInfo("../../ContentControls.docx");
+            var settings = new MetricsGetterSettings
             {
                 IncludeTextInContentControls = false
             };

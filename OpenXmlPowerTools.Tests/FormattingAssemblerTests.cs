@@ -11,8 +11,6 @@ using System.Linq;
 using System.Text;
 using Xunit;
 
-#if !ELIDE_XUNIT_TESTS
-
 namespace OxPt
 {
     public class FaTests
@@ -145,5 +143,3 @@ namespace OxPt
         };
     }
 }
-
-#endif

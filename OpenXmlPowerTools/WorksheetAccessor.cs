@@ -226,7 +226,7 @@ namespace OpenXmlPowerTools
         }
 
         // Creates a new worksheet with the specified name and contents from a memory spreadsheet
-        public static void SetSheetContents(SpreadsheetDocument document, WorksheetPart worksheet, MemorySpreadsheet contents)
+        public static void SetSheetContents(WorksheetPart worksheet, MemorySpreadsheet contents)
         {
             var worksheetXDocument = worksheet.GetXDocument();
             worksheetXDocument.Root.Element(S.sheetData).ReplaceWith(contents.GetElements());
@@ -302,7 +302,7 @@ namespace OpenXmlPowerTools
 
         // Sets the value for the specified cell
         // The "value" must be double/Double, int/Int32, bool/Boolean or string/String type
-        public static void SetCellValue(SpreadsheetDocument document, WorksheetPart worksheet, int row, int column, object value)
+        public static void SetCellValue(WorksheetPart worksheet, int row, int column, object value)
         {
             var worksheetXDocument = worksheet.GetXDocument();
             var cellReference = GetColumnId(column) + row.ToString();
@@ -717,7 +717,7 @@ namespace OpenXmlPowerTools
         }
 
         public enum PivotAxis { Row, Column, Page };
-        public static void AddPivotAxis(SpreadsheetDocument document, WorksheetPart sheet, string fieldName, PivotAxis axis)
+        public static void AddPivotAxis(WorksheetPart sheet, string fieldName, PivotAxis axis)
         {
             // Create indexed items in cache and definition
             var pivotTablePart = sheet.GetPartsOfType<PivotTablePart>().First();
@@ -735,19 +735,19 @@ namespace OpenXmlPowerTools
                 if (x == -1)
                 {
                     values.Add(val);
-                    x = values.Count() - 1;
+                    x = values.Count - 1;
                 }
                 val.ReplaceWith(new XElement(S.x, new XAttribute(NoNamespace.v, x)));
             }
             var sharedItems = cacheDef.Descendants(S.cacheField).Skip(index).First().Element(S.sharedItems);
-            sharedItems.Add(new XAttribute(NoNamespace.count, values.Count()), values);
+            sharedItems.Add(new XAttribute(NoNamespace.count, values.Count), values);
             recordsPart.PutXDocument();
             cacheDefPart.PutXDocument();
 
             // Add axis definition to pivot table field
             var pivotTable = pivotTablePart.GetXDocument();
             var pivotField = pivotTable.Descendants(S.pivotField).Skip(index).First();
-            var items = new XElement(S.items, new XAttribute(NoNamespace.count, values.Count() + 1),
+            var items = new XElement(S.items, new XAttribute(NoNamespace.count, values.Count + 1),
                 values.OrderBy(z => z.Attribute(NoNamespace.v).Value).Select(z => new XElement(S.item,
                     new XAttribute(NoNamespace.x, Array.FindIndex(values.ToArray(),
                         a => a.Attribute(NoNamespace.v).Value == z.Attribute(NoNamespace.v).Value)))));
@@ -822,7 +822,7 @@ namespace OpenXmlPowerTools
             ForcePivotRefresh(cacheDefPart);
         }
 
-        public static void AddDataValueLabel(SpreadsheetDocument document, WorksheetPart sheet, PivotAxis axis)
+        public static void AddDataValueLabel(WorksheetPart sheet, PivotAxis axis)
         {
             var pivotTablePart = sheet.GetPartsOfType<PivotTablePart>().First();
             var pivotTable = pivotTablePart.GetXDocument();
@@ -933,7 +933,7 @@ namespace OpenXmlPowerTools
             fields.Attribute(NoNamespace.count).Value = count.ToString();
             if (count == 2)
             {   // Only when data field count goes from 1 to 2 do we add a special column to label the data fields
-                AddDataValueLabel(document, sheet, PivotAxis.Column);
+                AddDataValueLabel(sheet, PivotAxis.Column);
             }
             pivotTablePart.PutXDocument();
             ForcePivotRefresh(cacheDefPart);

@@ -9,7 +9,7 @@ namespace ExamplePivotTables
 {
     internal class PivotTableExample
     {
-        private static void Main(string[] args)
+        private static void Main()
         {
             var n = DateTime.Now;
             var tempDi = new DirectoryInfo(string.Format("ExampleOutput-{0:00}-{1:00}-{2:00}-{3:00}{4:00}{5:00}", n.Year - 2000, n.Month, n.Day, n.Hour, n.Minute, n.Second));
@@ -39,11 +39,11 @@ namespace ExamplePivotTables
                                 {
                                     if (double.TryParse(item, out var num))
                                     {
-                                        WorksheetAccessor.SetCellValue(doc, sheet, row, column++, num);
+                                        WorksheetAccessor.SetCellValue(sheet, row, column++, num);
                                     }
                                     else
                                     {
-                                        WorksheetAccessor.SetCellValue(doc, sheet, row, column++, item);
+                                        WorksheetAccessor.SetCellValue(sheet, row, column++, item);
                                     }
                                 }
                             }
@@ -138,18 +138,18 @@ namespace ExamplePivotTables
                             row++;
                         }
                     }
-                    WorksheetAccessor.SetSheetContents(doc, sheet, ms);
+                    WorksheetAccessor.SetSheetContents(sheet, ms);
                     WorksheetAccessor.SetRange(doc, "Sales", "Range", 1, 1, row - 1, maxColumn);
                     var pivot = WorksheetAccessor.AddWorksheet(doc, "Pivot");
                     WorksheetAccessor.CreatePivotTable(doc, "Sales", pivot);
 
                     // Configure pivot table rows, columns, data and filters
-                    WorksheetAccessor.AddPivotAxis(doc, pivot, "Year", WorksheetAccessor.PivotAxis.Column);
-                    WorksheetAccessor.AddPivotAxis(doc, pivot, "Quarter", WorksheetAccessor.PivotAxis.Column);
-                    WorksheetAccessor.AddPivotAxis(doc, pivot, "Category", WorksheetAccessor.PivotAxis.Row);
-                    WorksheetAccessor.AddPivotAxis(doc, pivot, "Product", WorksheetAccessor.PivotAxis.Row);
+                    WorksheetAccessor.AddPivotAxis(pivot, "Year", WorksheetAccessor.PivotAxis.Column);
+                    WorksheetAccessor.AddPivotAxis(pivot, "Quarter", WorksheetAccessor.PivotAxis.Column);
+                    WorksheetAccessor.AddPivotAxis(pivot, "Category", WorksheetAccessor.PivotAxis.Row);
+                    WorksheetAccessor.AddPivotAxis(pivot, "Product", WorksheetAccessor.PivotAxis.Row);
                     WorksheetAccessor.AddDataValue(doc, pivot, "Amount");
-                    WorksheetAccessor.AddPivotAxis(doc, pivot, "Region", WorksheetAccessor.PivotAxis.Page);
+                    WorksheetAccessor.AddPivotAxis(pivot, "Region", WorksheetAccessor.PivotAxis.Page);
                 }
                 streamDoc.GetModifiedSmlDocument().SaveAs(Path.Combine(tempDi.FullName, "NewPivot.xlsx"));
             }
@@ -165,14 +165,14 @@ namespace ExamplePivotTables
                     WorksheetAccessor.CreatePivotTable(doc, "Sales", pivot);
 
                     // Configure pivot table rows, columns, data and filters
-                    WorksheetAccessor.AddPivotAxis(doc, pivot, "Year", WorksheetAccessor.PivotAxis.Column);
-                    WorksheetAccessor.AddPivotAxis(doc, pivot, "Quarter", WorksheetAccessor.PivotAxis.Column);
-                    WorksheetAccessor.AddPivotAxis(doc, pivot, "Category", WorksheetAccessor.PivotAxis.Row);
-                    WorksheetAccessor.AddPivotAxis(doc, pivot, "Product", WorksheetAccessor.PivotAxis.Row);
+                    WorksheetAccessor.AddPivotAxis(pivot, "Year", WorksheetAccessor.PivotAxis.Column);
+                    WorksheetAccessor.AddPivotAxis(pivot, "Quarter", WorksheetAccessor.PivotAxis.Column);
+                    WorksheetAccessor.AddPivotAxis(pivot, "Category", WorksheetAccessor.PivotAxis.Row);
+                    WorksheetAccessor.AddPivotAxis(pivot, "Product", WorksheetAccessor.PivotAxis.Row);
                     WorksheetAccessor.AddDataValue(doc, pivot, "Total");
                     WorksheetAccessor.AddDataValue(doc, pivot, "Quantity");
                     WorksheetAccessor.AddDataValue(doc, pivot, "Unit Price");
-                    WorksheetAccessor.AddPivotAxis(doc, pivot, "Region", WorksheetAccessor.PivotAxis.Page);
+                    WorksheetAccessor.AddPivotAxis(pivot, "Region", WorksheetAccessor.PivotAxis.Page);
                 }
                 streamDoc.GetModifiedSmlDocument().SaveAs(Path.Combine(tempDi.FullName, "QuarterlyUnitSalesWithPivot.xlsx"));
             }

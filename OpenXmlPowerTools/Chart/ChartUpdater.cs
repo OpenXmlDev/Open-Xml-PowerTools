@@ -484,7 +484,7 @@ namespace OpenXmlPowerTools
                             var xaRef = xdTablePart.Root.Attribute("ref");
                             xaRef.Value = string.Format("A1:{0}", RowColToString(chartData.CategoryNames.Length - 1, chartData.SeriesNames.Length));
                             var xeNewTableColumns = new XElement(S.tableColumns,
-                                new XAttribute("count", chartData.SeriesNames.Count() + 1),
+                                new XAttribute("count", chartData.SeriesNames.Length + 1),
                                 new[] {
                                     new XElement(S.tableColumn,
                                         new XAttribute("id", 1),

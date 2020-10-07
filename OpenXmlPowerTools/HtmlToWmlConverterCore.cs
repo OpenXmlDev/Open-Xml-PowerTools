@@ -186,10 +186,10 @@ namespace OpenXmlPowerTools.HtmlToWml
                     AnnotateOlUl(wDoc, html);
                     UpdateMainDocumentPart(wDoc, html, settings);
                     NormalizeMainDocumentPart(wDoc);
-                    StylesUpdater.UpdateStylesPart(wDoc, html, settings, defaultCssDoc, authorCssDoc, userCssDoc);
-                    HtmlToWmlFontUpdater.UpdateFontsPart(wDoc, html, settings);
-                    ThemeUpdater.UpdateThemePart(wDoc, html, settings);
-                    NumberingUpdater.UpdateNumberingPart(wDoc, html, settings);
+                    StylesUpdater.UpdateStylesPart(wDoc, html, settings, authorCssDoc);
+                    HtmlToWmlFontUpdater.UpdateFontsPart(wDoc, settings);
+                    ThemeUpdater.UpdateThemePart(wDoc, html);
+                    NumberingUpdater.UpdateNumberingPart(wDoc, html);
                 }
                 newWmlDocument = streamDoc.GetModifiedWmlDocument();
             }
@@ -1399,19 +1399,19 @@ namespace OpenXmlPowerTools.HtmlToWml
 
         public class CharStyleAttributes
         {
-            public string AsciiFont{ get; set;  }
-            public string HAnsiFont{ get; set;  }
-            public string EastAsiaFont{ get; set;  }
-            public string CsFont{ get; set;  }
-            public string Hint{ get; set;  }
-            public bool Rtl{ get; set;  }
+            public string AsciiFont { get; set; }
+            public string HAnsiFont { get; set; }
+            public string EastAsiaFont { get; set; }
+            public string CsFont { get; set; }
+            public string Hint { get; set; }
+            public bool Rtl { get; set; }
 
-            public string LatinLang{ get; set;  }
-            public string BidiLang{ get; set;  }
-            public string EastAsiaLang{ get; set;  }
+            public string LatinLang { get; set; }
+            public string BidiLang { get; set; }
+            public string EastAsiaLang { get; set; }
 
-            public Dictionary<XName, bool?> ToggleProperties{ get; set;  }
-            public Dictionary<XName, XElement> Properties{ get; set;  }
+            public Dictionary<XName, bool?> ToggleProperties { get; set; }
+            public Dictionary<XName, XElement> Properties { get; set; }
 
             public CharStyleAttributes(XElement pPr, XElement rPr)
             {
@@ -2299,7 +2299,6 @@ namespace OpenXmlPowerTools.HtmlToWml
             // However, Word breaks up runs that use more than one font into multiple runs.  Other producers of WordprocessingML may not, so in
             // that case, this routine may need to be augmented to look at all characters in a run.
 
-
             var charToExamine = str.FirstOrDefault(c => !WeakAndNeutralDirectionalCharacters.Contains(c));
             if (charToExamine == '\0')
             {
@@ -2446,9 +2445,9 @@ namespace OpenXmlPowerTools.HtmlToWml
         private static XElement TransformImageToWml(XElement element, HtmlToWmlConverterSettings settings, WordprocessingDocument wDoc)
         {
             var srcAttribute = (string)element.Attribute(XhtmlNoNamespace.src);
-            byte[] ba = null;
             Bitmap bmp = null;
 
+            byte[] ba;
             if (srcAttribute.StartsWith("data:"))
             {
                 var semiIndex = srcAttribute.IndexOf(';');
@@ -2508,7 +2507,7 @@ namespace OpenXmlPowerTools.HtmlToWml
                 var run = new XElement(W.r,
                     GetRunPropertiesForImage(),
                     new XElement(W.drawing,
-                        GetImageAsInline(element, settings, wDoc, bmp, rId, pictureId, pictureDescription)));
+                        GetImageAsInline(element, bmp, rId, pictureId, pictureDescription)));
                 return run;
             }
             if (floatValue == "left" || floatValue == "right")
@@ -2516,13 +2515,13 @@ namespace OpenXmlPowerTools.HtmlToWml
                 var run = new XElement(W.r,
                     GetRunPropertiesForImage(),
                     new XElement(W.drawing,
-                        GetImageAsAnchor(element, settings, wDoc, bmp, rId, floatValue, pictureId, pictureDescription)));
+                        GetImageAsAnchor(element, settings, bmp, rId, floatValue, pictureId, pictureDescription)));
                 return run;
             }
             return null;
         }
 
-        private static XElement GetImageAsInline(XElement element, HtmlToWmlConverterSettings settings, WordprocessingDocument wDoc, Bitmap bmp,
+        private static XElement GetImageAsInline(XElement element, Bitmap bmp,
             string rId, int pictureId, string pictureDescription)
         {
             var inline = new XElement(WP.inline, // 20.4.2.8
@@ -2539,7 +2538,7 @@ namespace OpenXmlPowerTools.HtmlToWml
             return inline;
         }
 
-        private static XElement GetImageAsAnchor(XElement element, HtmlToWmlConverterSettings settings, WordprocessingDocument wDoc, Bitmap bmp,
+        private static XElement GetImageAsAnchor(XElement element, HtmlToWmlConverterSettings settings, Bitmap bmp,
             string rId, string floatValue, int pictureId, string pictureDescription)
         {
             Emu minDistFromEdge = (long)(0.125 * Emu.s_EmusPerInch);
@@ -2767,9 +2766,9 @@ namespace OpenXmlPowerTools.HtmlToWml
             var paragraphMarkRunProperties = GetRunProperties(blockLevelElement, settings);
             var backgroundProperty = GetBackgroundProperty(blockLevelElement);
             var spacingProperty = GetSpacingProperties(blockLevelElement, settings); // spacing, ind, contextualSpacing
-            var jc = GetJustification(blockLevelElement, settings);
+            var jc = GetJustification(blockLevelElement);
             var pStyle = styleName != null ? new XElement(W.pStyle, new XAttribute(W.val, styleName)) : null;
-            var numPr = GetNumberingProperties(blockLevelElement, settings);
+            var numPr = GetNumberingProperties(blockLevelElement);
             var pBdr = GetBlockContentBorders(blockLevelElement, W.pBdr, true);
 
             XElement bidi = null;
@@ -3181,7 +3180,7 @@ namespace OpenXmlPowerTools.HtmlToWml
             return newString;
         }
 
-        private static XElement GetNumberingProperties(XElement paragraph, HtmlToWmlConverterSettings settings)
+        private static XElement GetNumberingProperties(XElement paragraph)
         {
             // Numbering properties ******************************************************
             NumberedItemAnnotation numberedItemAnnotation = null;
@@ -3201,7 +3200,7 @@ namespace OpenXmlPowerTools.HtmlToWml
             return numPr;
         }
 
-        private static XElement GetJustification(XElement blockLevelElement, HtmlToWmlConverterSettings settings)
+        private static XElement GetJustification(XElement blockLevelElement)
         {
             // Justify ******************************************************
             var textAlignProperty = blockLevelElement.GetProp("text-align");
@@ -3313,13 +3312,13 @@ namespace OpenXmlPowerTools.HtmlToWml
                 GetTableWidth(element),
                 GetTableCellSpacing(element),
                 GetBlockContentBorders(element, W.tblBorders, false),
-                GetTableShading(element),
-                GetTableCellMargins(element),
-                GetTableLook(element));
+                GetTableShading(),
+                GetTableCellMargins(),
+                GetTableLook());
             return tblPr;
         }
 
-        private static XElement GetTableShading(XElement element)
+        private static XElement GetTableShading()
         {
             // todo this is not done.
             // needs to work for W.tbl and W.tc
@@ -3412,8 +3411,6 @@ namespace OpenXmlPowerTools.HtmlToWml
             // color of the paragraph properly (including padding).
 
             XAttribute val = null;
-            XAttribute sz = null;
-            XAttribute space = null;
             XAttribute color = null;
 
             if (styleProp != null)
@@ -3431,8 +3428,8 @@ namespace OpenXmlPowerTools.HtmlToWml
             double borderSizeInTwips = GetBorderSize(element, whichBorder);
 
             var borderSizeInOneEighthPoint = borderSizeInTwips / 20 * 8;
-            sz = new XAttribute(W.sz, (int)borderSizeInOneEighthPoint);
-
+            var sz = new XAttribute(W.sz, (int)borderSizeInOneEighthPoint);
+            XAttribute space;
             if (element.Name == XhtmlNoNamespace.td || element.Name == XhtmlNoNamespace.th)
             {
                 space = new XAttribute(W.space, "0");
@@ -3478,7 +3475,7 @@ namespace OpenXmlPowerTools.HtmlToWml
         {
             var widthProp = element.GetProp(string.Format("border-{0}-width", whichBorder));
 
-            if (widthProp != null && widthProp.Terms.Count() == 1)
+            if (widthProp != null && widthProp.Terms.Count == 1)
             {
                 var term = widthProp.Terms.First();
                 var twips = (Twip)widthProp;
@@ -3487,10 +3484,9 @@ namespace OpenXmlPowerTools.HtmlToWml
             return 12;
         }
 
-        private static XElement GetTableLook(XElement element)
+        private static XElement GetTableLook()
         {
             var tblLook = XElement.Parse(
-
 
 @"<w:tblLook w:val='0600' xmlns:w='http://schemas.openxmlformats.org/wordprocessingml/2006/main'/>"
 
@@ -3530,14 +3526,14 @@ namespace OpenXmlPowerTools.HtmlToWml
 
             var tblGrid = new XElement(W.tblGrid,
                 columnWidths.Select(cw => new XElement(W.gridCol,
-                    new XAttribute(W._w, (long)GetTwipWidth(cw, (int)printable)))));
+                    new XAttribute(W._w, (long)GetTwipWidth(cw)))));
             return tblGrid;
         }
 
-        private static Twip GetTwipWidth(CssExpression columnWidth, int printable)
+        private static Twip GetTwipWidth(CssExpression columnWidth)
         {
             Twip defaultTwipWidth = 1440;
-            if (columnWidth.Terms.Count() == 1)
+            if (columnWidth.Terms.Count == 1)
             {
                 var term = columnWidth.Terms.First();
                 if (term.Unit == CssUnit.PT)
@@ -3557,7 +3553,7 @@ namespace OpenXmlPowerTools.HtmlToWml
         {
             var rowList = table.DescendantsTrimmed(XhtmlNoNamespace.table).Where(e => e.Name == XhtmlNoNamespace.tr).ToList();
             var numberColumns = rowList.Select(r => r.Elements().Where(e => e.Name == XhtmlNoNamespace.td || e.Name == XhtmlNoNamespace.th).Count()).Max();
-            var tableArray = new XElement[rowList.Count()][];
+            var tableArray = new XElement[rowList.Count][];
             var rowNumber = 0;
             foreach (var row in rowList)
             {
@@ -3811,7 +3807,7 @@ namespace OpenXmlPowerTools.HtmlToWml
             return tblCellSpacing;
         }
 
-        private static XElement GetTableCellMargins(XElement element)
+        private static XElement GetTableCellMargins()
         {
             // todo very incomplete
             var tblCellMar = XElement.Parse(
@@ -4302,13 +4298,12 @@ namespace OpenXmlPowerTools.HtmlToWml
                 return null;
             }
 
-            if (fontSize.Terms.Count() == 1)
+            if (fontSize.Terms.Count == 1)
             {
                 var term = fontSize.Terms.First();
-                double size = 0;
                 if (term.Unit == CssUnit.PT)
                 {
-                    if (double.TryParse(term.Value, out size))
+                    if (double.TryParse(term.Value, out var size))
                     {
                         return new TPoint(size);
                     }
@@ -4362,7 +4357,7 @@ namespace OpenXmlPowerTools.HtmlToWml
 
     internal class HtmlToWmlFontUpdater
     {
-        public static void UpdateFontsPart(WordprocessingDocument wDoc, XElement html, HtmlToWmlConverterSettings settings)
+        public static void UpdateFontsPart(WordprocessingDocument wDoc, HtmlToWmlConverterSettings settings)
         {
             var fontXDoc = wDoc.MainDocumentPart.FontTablePart.GetXDocument();
 
@@ -4703,7 +4698,7 @@ namespace OpenXmlPowerTools.HtmlToWml
   </w:lvl>
 </w:abstractNum>";
 
-        public static void UpdateNumberingPart(WordprocessingDocument wDoc, XElement html, HtmlToWmlConverterSettings settings)
+        public static void UpdateNumberingPart(WordprocessingDocument wDoc, XElement html)
         {
             InitializeNumberingPart(wDoc);
             var numberingPart = wDoc.MainDocumentPart.NumberingDefinitionsPart;
@@ -4804,9 +4799,7 @@ namespace OpenXmlPowerTools.HtmlToWml
             WordprocessingDocument wDoc,
             XElement html,
             HtmlToWmlConverterSettings settings,
-            CssDocument defaultCssDoc,
-            CssDocument authorCssDoc,
-            CssDocument userCssDoc)
+            CssDocument authorCssDoc)
         {
             var styleXDoc = wDoc.MainDocumentPart.StyleDefinitionsPart.GetXDocument();
 
@@ -4831,7 +4824,7 @@ namespace OpenXmlPowerTools.HtmlToWml
                     var selector = ruleSet.Selectors.Where(
                         sel =>
                         {
-                            var found = sel.SimpleSelectors.Count() == 1 &&
+                            var found = sel.SimpleSelectors.Count == 1 &&
                                 sel.SimpleSelectors.First().Class == item &&
                                 (sel.SimpleSelectors.First().ElementName == "" ||
                                 sel.SimpleSelectors.First().ElementName == null);
@@ -5529,7 +5522,7 @@ namespace OpenXmlPowerTools.HtmlToWml
 
     internal class ThemeUpdater
     {
-        public static void UpdateThemePart(WordprocessingDocument wDoc, XElement html, HtmlToWmlConverterSettings settings)
+        public static void UpdateThemePart(WordprocessingDocument wDoc, XElement html)
         {
             var themeXDoc = wDoc.MainDocumentPart.ThemePart.GetXDocument();
 

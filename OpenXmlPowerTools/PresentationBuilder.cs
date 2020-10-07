@@ -447,7 +447,7 @@ namespace OpenXmlPowerTools
                 var slideMasterPart = sourceDocument.PresentationPart.SlideMasterParts.FirstOrDefault();
                 if (slideMasterPart != null)
                 {
-                    currentMasterPart = CopyMasterSlide(sourceDocument, slideMasterPart, newDocument, newPresentation, images, mediaList);
+                    currentMasterPart = CopyMasterSlide(slideMasterPart, newDocument, newPresentation, images, mediaList);
                 }
 
                 return currentMasterPart;
@@ -457,14 +457,14 @@ namespace OpenXmlPowerTools
                 var slide = (SlidePart)sourceDocument.PresentationPart.GetPartById(slideList.ElementAt(start).Attribute(R.id).Value);
                 if (currentMasterPart == null || keepMaster)
                 {
-                    currentMasterPart = CopyMasterSlide(sourceDocument, slide.SlideLayoutPart.SlideMasterPart, newDocument, newPresentation, images, mediaList);
+                    currentMasterPart = CopyMasterSlide(slide.SlideLayoutPart.SlideMasterPart, newDocument, newPresentation, images, mediaList);
                 }
 
                 var newSlide = newDocument.PresentationPart.AddNewPart<SlidePart>();
                 newSlide.PutXDocument(slide.GetXDocument());
                 AddRelationships(slide, newSlide, new[] { newSlide.GetXDocument().Root });
                 CopyRelatedPartsForContentParts(newDocument, slide, newSlide, new[] { newSlide.GetXDocument().Root }, images, mediaList);
-                CopyTableStyles(sourceDocument, newDocument, slide, newSlide);
+                CopyTableStyles(sourceDocument, newDocument, newSlide);
                 if (slide.NotesSlidePart != null)
                 {
                     if (newDocument.PresentationPart.NotesMasterPart == null)
@@ -510,7 +510,7 @@ namespace OpenXmlPowerTools
             return currentMasterPart;
         }
 
-        private static SlideMasterPart CopyMasterSlide(PresentationDocument sourceDocument, SlideMasterPart sourceMasterPart,
+        private static SlideMasterPart CopyMasterSlide(SlideMasterPart sourceMasterPart,
             PresentationDocument newDocument, XDocument newPresentation, List<ImageData> images, List<MediaData> mediaList)
         {
             // Search for existing master slide with same theme name
@@ -657,7 +657,7 @@ namespace OpenXmlPowerTools
             return newAuthor;
         }
 
-        private static void CopyTableStyles(PresentationDocument oldDocument, PresentationDocument newDocument, OpenXmlPart oldContentPart, OpenXmlPart newContentPart)
+        private static void CopyTableStyles(PresentationDocument oldDocument, PresentationDocument newDocument, OpenXmlPart newContentPart)
         {
             foreach (var table in newContentPart.GetXDocument().Descendants(A.tableStyleId))
             {
@@ -734,7 +734,7 @@ namespace OpenXmlPowerTools
             foreach (var imageReference in relevantElements)
             {
                 CopyRelatedMedia(oldContentPart, newContentPart, imageReference, R.embed, mediaList, "media");
-                CopyRelatedMediaExternalRelationship(oldContentPart, newContentPart, imageReference, R.link, "media");
+                CopyRelatedMediaExternalRelationship(oldContentPart, newContentPart, imageReference, R.link);
             }
 
             foreach (var extendedReference in newContent.DescendantsAndSelf(A14.imgLayer))
@@ -1475,7 +1475,7 @@ namespace OpenXmlPowerTools
             if (oldPartIdPair != null)
             {
                 var oldPart = oldPartIdPair.OpenXmlPart as ImagePart;
-                var temp = ManageImageCopy(oldPart, newContentPart, images);
+                var temp = ManageImageCopy(oldPart, images);
                 if (temp.ImagePart == null)
                 {
                     ImagePart newPart = null;
@@ -1797,8 +1797,7 @@ namespace OpenXmlPowerTools
             }
         }
 
-        private static void CopyRelatedMediaExternalRelationship(OpenXmlPart oldContentPart, OpenXmlPart newContentPart, XElement imageReference, XName attributeName,
-            string mediaRelationshipType)
+        private static void CopyRelatedMediaExternalRelationship(OpenXmlPart oldContentPart, OpenXmlPart newContentPart, XElement imageReference, XName attributeName)
         {
             var relId = (string)imageReference.Attribute(attributeName);
             if (string.IsNullOrEmpty(relId))
@@ -2235,7 +2234,7 @@ namespace OpenXmlPowerTools
         }
 
         // General function for handling images that tries to use an existing image if they are the same
-        private static ImageData ManageImageCopy(ImagePart oldImage, OpenXmlPart newContentPart, List<ImageData> images)
+        private static ImageData ManageImageCopy(ImagePart oldImage, List<ImageData> images)
         {
             var oldImageData = new ImageData(oldImage);
             foreach (var item in images)
@@ -2349,11 +2348,27 @@ namespace OpenXmlPowerTools
         public PresentationBuilderException(string message) : base(message)
         {
         }
+
+        public PresentationBuilderException(string message, Exception innerException) : base(message, innerException)
+        {
+        }
+
+        public PresentationBuilderException()
+        {
+        }
     }
 
     public class PresentationBuilderInternalException : Exception
     {
         public PresentationBuilderInternalException(string message) : base(message)
+        {
+        }
+
+        public PresentationBuilderInternalException(string message, Exception innerException) : base(message, innerException)
+        {
+        }
+
+        public PresentationBuilderInternalException()
         {
         }
     }

@@ -5,7 +5,7 @@ namespace OpenXmlPowerTools
 {
     public class ListItemTextGetter_zh_CN
     {
-        public static string GetListItemText(string languageCultureName, int levelNumber, string numFmt)
+        public static string GetListItemText(int levelNumber, string numFmt)
         {
             var ccTDigitCharacters = new[] {
                 "",
@@ -126,7 +126,7 @@ namespace OpenXmlPowerTools
 
                     if (thousandsRemainder >= 1 && thousandsRemainder <= 9)
                     {
-                        return ccTDigitCharacters[thousands] + thousandCharacter + andCharacter + GetListItemText("zh_CN", thousandsRemainder, numFmt);
+                        return ccTDigitCharacters[thousands] + thousandCharacter + andCharacter + GetListItemText(thousandsRemainder, numFmt);
                     }
 
                     if (thousandsRemainder >= 10 && thousandsRemainder <= 99)

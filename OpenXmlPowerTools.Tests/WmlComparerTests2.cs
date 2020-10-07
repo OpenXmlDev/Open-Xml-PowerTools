@@ -10,16 +10,10 @@ using System.Linq;
 using System.Text;
 using Xunit;
 
-#if !ELIDE_XUNIT_TESTS
-
 namespace OxPt
 {
     public class WcTests2
     {
-        private static readonly bool m_OpenWord = false;
-
-        private static readonly bool m_OpenTempDirInExplorer = false;
-
         [Theory]
         [InlineData("CZ-1000", "CZ/CZ001-Plain.docx", "CZ/CZ001-Plain-Mod.docx", 1)]
         [InlineData("CZ-1010", "CZ/CZ002-Multi-Paragraphs.docx", "CZ/CZ002-Multi-Paragraphs-Mod.docx", 1)]
@@ -43,28 +37,6 @@ namespace OxPt
             var source2CopiedToDestDocx = new FileInfo(Path.Combine(thisTestTempDir.FullName, source2Docx.Name));
             File.Copy(source1Docx.FullName, source1CopiedToDestDocx.FullName);
             File.Copy(source2Docx.FullName, source2CopiedToDestDocx.FullName);
-
-            if (m_OpenWord)
-            {
-                var source1DocxForWord = new FileInfo(Path.Combine(sourceDir.FullName, name1));
-                var source2DocxForWord = new FileInfo(Path.Combine(sourceDir.FullName, name2));
-
-                var source1CopiedToDestDocxForWord = new FileInfo(Path.Combine(thisTestTempDir.FullName, source1Docx.Name.Replace(".docx", "-For-Word.docx")));
-                var source2CopiedToDestDocxForWord = new FileInfo(Path.Combine(thisTestTempDir.FullName, source2Docx.Name.Replace(".docx", "-For-Word.docx")));
-                if (!source1CopiedToDestDocxForWord.Exists)
-                {
-                    File.Copy(source1Docx.FullName, source1CopiedToDestDocxForWord.FullName);
-                }
-
-                if (!source2CopiedToDestDocxForWord.Exists)
-                {
-                    File.Copy(source2Docx.FullName, source2CopiedToDestDocxForWord.FullName);
-                }
-
-                var wordExe = new FileInfo(@"C:\Program Files (x86)\Microsoft Office\root\Office16\WINWORD.EXE");
-                WordRunner.RunWord(wordExe, source2CopiedToDestDocxForWord);
-                WordRunner.RunWord(wordExe, source1CopiedToDestDocxForWord);
-            }
 
             var before = source1CopiedToDestDocx.Name.Replace(".docx", "");
             var after = source2CopiedToDestDocx.Name.Replace(".docx", "");
@@ -101,34 +73,6 @@ namespace OxPt
                         var sbs = sb.ToString();
 
                         Assert.True(sbs.Length == 0, sbs);
-                    }
-                }
-            }
-
-            if (m_OpenWord)
-            {
-                var wordExe = new FileInfo(@"C:\Program Files (x86)\Microsoft Office\root\Office16\WINWORD.EXE");
-                WordRunner.RunWord(wordExe, docxWithRevisionsFi);
-            }
-
-            // Open Windows Explorer
-            if (m_OpenTempDirInExplorer)
-            {
-                while (true)
-                {
-                    try
-                    {
-                        var semaphorFi = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, "z_ExplorerOpenedSemaphore.txt"));
-                        if (!semaphorFi.Exists)
-                        {
-                            File.WriteAllText(semaphorFi.FullName, "");
-                            TestUtil.Explorer(thisTestTempDir);
-                        }
-                        break;
-                    }
-                    catch (IOException)
-                    {
-                        System.Threading.Thread.Sleep(50);
                     }
                 }
             }
@@ -189,5 +133,3 @@ namespace OxPt
         };
     }
 }
-
-#endif

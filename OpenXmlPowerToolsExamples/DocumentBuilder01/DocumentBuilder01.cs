@@ -10,7 +10,7 @@ namespace DocumentBuilderExample
 {
     internal class DocumentBuilderExample
     {
-        private static void Main(string[] args)
+        private static void Main()
         {
             var n = DateTime.Now;
             var tempDi = new DirectoryInfo(string.Format("ExampleOutput-{0:00}-{1:00}-{2:00}-{3:00}{4:00}{5:00}", n.Year - 2000, n.Month, n.Day, n.Hour, n.Minute, n.Second));
@@ -19,10 +19,9 @@ namespace DocumentBuilderExample
             var source1 = "../../Source1.docx";
             var source2 = "../../Source2.docx";
             var source3 = "../../Source3.docx";
-            List<Source> sources = null;
 
             // Create new document from 10 paragraphs starting at paragraph 5 of Source1.docx
-            sources = new List<Source>()
+            var sources = new List<Source>()
             {
                 new Source(new WmlDocument(source1), 5, 10, true),
             };

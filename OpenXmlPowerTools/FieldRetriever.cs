@@ -138,7 +138,7 @@ namespace OpenXmlPowerTools
                                 };
                             }
                         }
-                        if (s.FiStack == null || s.FiStack.Count() == 0)
+                        if (s.FiStack == null || s.FiStack.Count == 0)
                         {
                             return s;
                         }
@@ -369,8 +369,8 @@ namespace OpenXmlPowerTools
             var emptyField = new FieldInfo
             {
                 FieldType = "",
-                Arguments = new string[] { },
-                Switches = new string[] { },
+                Arguments = System.Array.Empty<string>(),
+                Switches = System.Array.Empty<string>(),
             };
 
             if (field.Length == 0)

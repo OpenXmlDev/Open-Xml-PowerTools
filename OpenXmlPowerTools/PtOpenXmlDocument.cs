@@ -15,11 +15,27 @@ namespace OpenXmlPowerTools
         public PowerToolsDocumentException(string message) : base(message)
         {
         }
+
+        public PowerToolsDocumentException()
+        {
+        }
+
+        public PowerToolsDocumentException(string message, Exception innerException) : base(message, innerException)
+        {
+        }
     }
 
     public class PowerToolsInvalidDataException : Exception
     {
         public PowerToolsInvalidDataException(string message) : base(message)
+        {
+        }
+
+        public PowerToolsInvalidDataException()
+        {
+        }
+
+        public PowerToolsInvalidDataException(string message, Exception innerException) : base(message, innerException)
         {
         }
     }

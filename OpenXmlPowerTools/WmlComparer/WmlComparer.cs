@@ -5,7 +5,6 @@ using DocumentFormat.OpenXml.Packaging;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Globalization;
 using System.IO;
 using System.IO.Packaging;
 using System.Linq;
@@ -17,11 +16,11 @@ using System.Xml.Linq;
 /// Currently, the unid is set at the beginning of the algorithm.  It is used by the code that establishes correlation based on first rejecting
 /// tracked revisions, then correlating paragraphs/tables.  It is requred for this algorithm - after finding a correlated sequence in the document with rejected
 /// revisions, it uses the unid to find the same paragraph in the document without rejected revisions, then sets the correlated sha1 hash in that document.
-/// 
+///
 /// But then when accepting tracked revisions, for certain paragraphs (where there are deleted paragraph marks) it is going to lose the unids.  But this isn't a
 /// problem because when paragraph marks are deleted, the correlation is definitely no longer possible.  Any paragraphs that are in a range of paragraphs that
 /// are coalesced can't be correlated to paragraphs in the other document via their hash.  At that point we no longer care what their unids are.
-/// 
+///
 /// But after that it is only used to reconstruct the tree.  It is also used in the debugging code that
 /// prints the various correlated sequences and comparison units - this is display for debugging purposes only.
 
@@ -29,53 +28,25 @@ using System.Xml.Linq;
 /// inserted into the new document, or set as equal.  At this point, we identify a paragraph as a sequential list of content atoms, terminated by a paragraph mark.
 /// This entire list will for a single paragraph, regardless of whether the paragraph is a child of the body, or if the paragraph is in a cell in a table, or if
 /// the paragraph is in a text box.  The list of ancestors, from the paragraph to the root of the XML tree will be the same for all content atoms in the paragraph.
-/// 
+///
 /// Therefore:
-/// 
+///
 /// Iterate through the list of content atoms backwards.  When the loop sees a paragraph mark, it gets the ancestor unids from the paragraph mark to the top of the
 /// tree, and sets this as the same for all content atoms in the paragraph.  For descendants of the paragraph mark, it doesn't really matter if content is put into
 /// separate runs or what not.  We don't need to be concerned about what the unids are for descendants of the paragraph.
 
 namespace OpenXmlPowerTools
 {
-    public class WmlComparerSettings
-    {
-        public char[] WordSeparators { get; set; }
-        public string AuthorForRevisions { get; set; } = "Open-Xml-PowerTools";
-        public string DateTimeForRevisions { get; set; } = DateTime.Now.ToString("o");
-        public double DetailThreshold { get; set; } = 0.15;
-        public bool CaseInsensitive { get; set; } = false;
-        public bool ConflateBreakingAndNonbreakingSpaces = true;
-        public CultureInfo CultureInfo { get; set; } = null;
-        public Action<string> LogCallback { get; set; } = null;
-        public int StartingIdForFootnotesEndnotes { get; set; } = 1;
-
-        public DirectoryInfo DebugTempFileDi { get; set; }
-
-        public WmlComparerSettings()
-        {
-            // note that , and . are processed explicitly to handle cases where they are in a number or word
-            WordSeparators = new[] { ' ', '-', ')', '(', ';', ',', '（', '）', '，', '、', '、', '，', '；', '。', '：', '的', }; // todo need to fix this for complete list
-        }
-    }
-
     public class WmlComparerConsolidateSettings
     {
         public bool ConsolidateWithTable = true;
     }
 
-    public class WmlRevisedDocumentInfo
-    {
-        public WmlDocument RevisedDocument { get; set; }
-        public string Revisor { get; set; }
-        public Color Color { get; set; }
-    }
-
     public static class WmlComparer
     {
-        public static bool s_False { get; set; } = false;
+        public static bool s_False { get; set; }
         public static bool s_True { get; set; } = true;
-        public static bool s_SaveIntermediateFilesForDebugging { get; set; } = false;
+        public static bool s_SaveIntermediateFilesForDebugging { get; set; }
 
         public static WmlDocument Compare(WmlDocument source1, WmlDocument source2, WmlComparerSettings settings)
         {
@@ -280,7 +251,7 @@ namespace OpenXmlPowerTools
 
                     foreach (var blockLevelContent in afterProcMainXDoc.Root.Descendants().Where(d => d.Name == W.p || d.Name == W.tbl || d.Name == W.tr))
                     {
-                        var cloneBlockLevelContentForHashing = (XElement)CloneBlockLevelContentForHashing(wDocAfterProc.MainDocumentPart, blockLevelContent, true, settings);
+                        var cloneBlockLevelContentForHashing = CloneBlockLevelContentForHashing(wDocAfterProc.MainDocumentPart, blockLevelContent, true, settings);
                         var shaString = cloneBlockLevelContentForHashing.ToString(SaveOptions.DisableFormatting)
                             .Replace(" xmlns=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"", "");
                         var sha1Hash = PtUtils.SHA1HashStringForUTF8String(shaString);
@@ -1331,7 +1302,7 @@ namespace OpenXmlPowerTools
             var partInNewDocument = packageOfNewContent.GetPart(consolidatedWDoc.MainDocumentPart.Uri);
             consolidationInfo.RevisionElement = MoveRelatedPartsToDestination(partInDeletedDocument, partInNewDocument, consolidationInfo.RevisionElement);
 
-            var clonedForHashing = (XElement)CloneBlockLevelContentForHashing(consolidatedWDoc.MainDocumentPart, consolidationInfo.RevisionElement, false, settings);
+            var clonedForHashing = CloneBlockLevelContentForHashing(consolidatedWDoc.MainDocumentPart, consolidationInfo.RevisionElement, false, settings);
             clonedForHashing.Descendants().Where(d => d.Name == W.ins || d.Name == W.del).Attributes(W.id).Remove();
             var shaString = clonedForHashing.ToString(SaveOptions.DisableFormatting)
                 .Replace(" xmlns=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"", "");
@@ -1586,7 +1557,7 @@ namespace OpenXmlPowerTools
                 DocxComparerUtil.NotePad(sbs);
             }
 
-            var cal2 = WmlComparer.CreateComparisonUnitAtomList(wDoc2.MainDocumentPart, wDoc2.MainDocumentPart.GetXDocument().Root.Element(W.body), settings);
+            var cal2 = CreateComparisonUnitAtomList(wDoc2.MainDocumentPart, wDoc2.MainDocumentPart.GetXDocument().Root.Element(W.body), settings);
 
             if (s_False)
             {
@@ -2081,7 +2052,7 @@ namespace OpenXmlPowerTools
 
         // it is possible, per the algorithm, for the algorithm to find that the paragraph mark for a single paragraph has been
         // inserted and deleted.  If the algorithm sets them to equal, then sometimes it will equate paragraph marks that should
-        // not be equated.  
+        // not be equated.
         private static void ConjoinDeletedInsertedParagraphMarks(MainDocumentPart mainDocumentPart, XDocument newXDoc)
         {
             ConjoinMultipleParagraphMarks(newXDoc);
@@ -2926,32 +2897,32 @@ namespace OpenXmlPowerTools
         /// - For atoms within a text box, the depth will be 3: Paragraph / txbxContent / Paragraph
         /// - For atoms within a table in a text box, the depth will be 5:  Paragraph / txbxContent / Table / Row / Cell / Paragraph
         /// In any case, we figure out the maximum depth.
-        /// 
+        ///
         /// Then we iterate through the list of content atoms backwards.  We do this n times, where n is the maximum depth.
-        /// 
+        ///
         /// At each level, we find a paragraph mark, and working backwards, we set the guids in the hierarchy so that the content will be assembled together correctly.
-        /// 
+        ///
         /// For each iteration, we only set unids at the level that we are working at.
-        /// 
+        ///
         /// So first we will set all unids at level 1.  When we find a paragraph mark, we get the unid for that level, and then working backwards, until we find another
         /// paragraph mark, we set all unids at level 1 to the same unid as level 1 of the paragraph mark.
-        /// 
+        ///
         /// Then we set all unids at level 2.  When we find a paragraph mark, we get the unid for that level, and then working backwards, until we find another paragraph
         /// mark, we set all unids at level 2 to the same unid as level 2 of the paragraph mark.  At some point, we will find a paragraph mark with no level 2.  This is
         /// not a problem.  We stop setting anything until we find another paragraph mark that has a level 2, at which point we resume setting values at level 2.
-        /// 
+        ///
         /// Same process for level 3, and so on, until we have processed to the maximum depth of the hierarchy.
-        /// 
+        ///
         /// At the end of this process, we will be able to do the coalsce recurse algorithm, and the content atom list will be put back together into a beautiful tree,
         /// where every element is correctly positioned in the hierarchy.
-        /// 
+        ///
         /// This should also properly assemble the test where just the paragraph marks have been deleted for a range of paragraphs.
         ///
         /// There is an interesting thought - it is possible that I have set two runs of text that were initially in the same paragraph, but then after
         /// processing, they match up to text in different paragraphs.  Therefore this will not work.  We need to actually keep a list of reconstructed ancestor
         /// Unids, because the same paragraph would get set to two different IDs - two ComparisonUnitAtoms need to be in separate paragraphs in the reconstructed
         /// document, but their ancestors actually point to the same paragraph.
-        /// 
+        ///
         /// Fix this in the algorithm, and also keep the appropriate list in ComparisonUnitAtom class.
 
         private static void AssembleAncestorUnidsInOrderToRebuildXmlTreeProperly(List<ComparisonUnitAtom> comparisonUnitAtomList)
@@ -3665,7 +3636,7 @@ namespace OpenXmlPowerTools
 
             foreach (var blockLevelContent in blockLevelContentToAnnotate)
             {
-                var cloneBlockLevelContentForHashing = (XElement)CloneBlockLevelContentForHashing(part, blockLevelContent, true, settings);
+                var cloneBlockLevelContentForHashing = CloneBlockLevelContentForHashing(part, blockLevelContent, true, settings);
                 var shaString = cloneBlockLevelContentForHashing.ToString(SaveOptions.DisableFormatting)
                     .Replace(" xmlns=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"", "");
                 var sha1Hash = PtUtils.SHA1HashStringForUTF8String(shaString);
@@ -5553,7 +5524,7 @@ namespace OpenXmlPowerTools
             var cul1 = unknown.ComparisonUnitArray1;
             var cul2 = unknown.ComparisonUnitArray2;
 
-            // first thing to do - if we have an unknown with zero length on left or right side, create appropriate 
+            // first thing to do - if we have an unknown with zero length on left or right side, create appropriate
             // this is a code optimization that enables easier processing of cases elsewhere.
             if (cul1.Length > 0 && cul2.Length == 0)
             {
@@ -5733,7 +5704,7 @@ namespace OpenXmlPowerTools
                                 .Any(dca =>
                                 {
                                     var charValue = dca.ContentElement.Value;
-                                    var isWordSplit = ((int)charValue[0] >= 0x4e00 && (int)charValue[0] <= 0x9fff);
+                                    var isWordSplit = (charValue[0] >= 0x4e00 && charValue[0] <= 0x9fff);
                                     if (!isWordSplit)
                                     {
                                         isWordSplit = settings.WordSeparators.Contains(charValue[0]);
@@ -6913,7 +6884,7 @@ namespace OpenXmlPowerTools
                                 nextIndex++;
                             }
                         }
-                        else if (((int)ch >= 0x4e00 && (int)ch <= 0x9fff) || settings.WordSeparators.Contains(ch))
+                        else if ((ch >= 0x4e00 && ch <= 0x9fff) || settings.WordSeparators.Contains(ch))
                         {
                             nextIndex++;
                             key = nextIndex;
@@ -7601,334 +7572,6 @@ namespace OpenXmlPowerTools
         }
     }
 
-    internal class WithHierarchicalGroupingKey
-    {
-        public string[] HierarchicalGroupingArray;
-        public ComparisonUnitWord ComparisonUnitWord;
-    }
-
-    public abstract class ComparisonUnit
-    {
-        public List<ComparisonUnit> Contents { get; set; }
-        public string SHA1Hash { get; set; }
-        public CorrelationStatus CorrelationStatus { get; set; }
-
-        public IEnumerable<ComparisonUnit> Descendants()
-        {
-            var comparisonUnitList = new List<ComparisonUnit>();
-            DescendantsInternal(this, comparisonUnitList);
-            return comparisonUnitList;
-        }
-
-        public IEnumerable<ComparisonUnitAtom> DescendantContentAtoms()
-        {
-            return Descendants().OfType<ComparisonUnitAtom>();
-        }
-
-        private int? m_DescendantContentAtomsCount = null;
-
-        public int DescendantContentAtomsCount
-        {
-            get
-            {
-                if (m_DescendantContentAtomsCount != null)
-                {
-                    return (int)m_DescendantContentAtomsCount;
-                }
-
-                m_DescendantContentAtomsCount = DescendantContentAtoms().Count();
-                return (int)m_DescendantContentAtomsCount;
-            }
-        }
-
-        private void DescendantsInternal(ComparisonUnit comparisonUnit, List<ComparisonUnit> comparisonUnitList)
-        {
-            foreach (var cu in comparisonUnit.Contents)
-            {
-                comparisonUnitList.Add(cu);
-                if (cu.Contents != null && cu.Contents.Any())
-                {
-                    DescendantsInternal(cu, comparisonUnitList);
-                }
-            }
-        }
-
-        public abstract string ToString(int indent);
-
-        internal static string ComparisonUnitListToString(ComparisonUnit[] cul)
-        {
-            var sb = new StringBuilder();
-            sb.Append("Dump Comparision Unit List To String" + Environment.NewLine);
-            foreach (var item in cul)
-            {
-                sb.Append(item.ToString(2) + Environment.NewLine);
-            }
-            return sb.ToString();
-        }
-    }
-
-    internal class ComparisonUnitWord : ComparisonUnit
-    {
-        public ComparisonUnitWord(IEnumerable<ComparisonUnitAtom> comparisonUnitAtomList)
-        {
-            Contents = comparisonUnitAtomList.OfType<ComparisonUnit>().ToList();
-            var sha1String = Contents
-                .Select(c => c.SHA1Hash)
-                .StringConcatenate();
-            SHA1Hash = PtUtils.SHA1HashStringForUTF8String(sha1String);
-        }
-
-        public static XName[] s_ElementsWithRelationshipIds = new XName[] {
-            A.blip,
-            A.hlinkClick,
-            A.relIds,
-            C.chart,
-            C.externalData,
-            C.userShapes,
-            DGM.relIds,
-            O.OLEObject,
-            VML.fill,
-            VML.imagedata,
-            VML.stroke,
-            W.altChunk,
-            W.attachedTemplate,
-            W.control,
-            W.dataSource,
-            W.embedBold,
-            W.embedBoldItalic,
-            W.embedItalic,
-            W.embedRegular,
-            W.footerReference,
-            W.headerReference,
-            W.headerSource,
-            W.hyperlink,
-            W.printerSettings,
-            W.recipientData,
-            W.saveThroughXslt,
-            W.sourceFileName,
-            W.src,
-            W.subDoc,
-            WNE.toolbarData,
-        };
-
-        public static XName[] s_RelationshipAttributeNames = new XName[] {
-            R.embed,
-            R.link,
-            R.id,
-            R.cs,
-            R.dm,
-            R.lo,
-            R.qs,
-            R.href,
-            R.pict,
-        };
-
-        public override string ToString(int indent)
-        {
-            var sb = new StringBuilder();
-            sb.Append("".PadRight(indent) + "Word SHA1:" + SHA1Hash.Substring(0, 8) + Environment.NewLine);
-            foreach (var comparisonUnitAtom in Contents)
-            {
-                sb.Append(comparisonUnitAtom.ToString(indent + 2) + Environment.NewLine);
-            }
-
-            return sb.ToString();
-        }
-    }
-
-    public class ComparisonUnitAtom : ComparisonUnit
-    {
-        // AncestorElements are kept in order from the body to the leaf, because this is the order in which we need to access in order to reassemble the document.  However, in many places in the code, it is necessary to find the nearest ancestor, i.e. cell so it is necessary to reverse the order when looking for it, i.e. look from the leaf back to the body element.
-
-        public XElement[] AncestorElements { get; set; }
-        public string[] AncestorUnids { get; set; }
-        public XElement ContentElement { get; set; }
-        public XElement ContentElementBefore { get; set; }
-        public ComparisonUnitAtom ComparisonUnitAtomBefore { get; set; }
-        public OpenXmlPart Part { get; set; }
-        public XElement RevTrackElement { get; set; }
-
-        public ComparisonUnitAtom(XElement contentElement, XElement[] ancestorElements, OpenXmlPart part, WmlComparerSettings settings)
-        {
-            ContentElement = contentElement;
-            AncestorElements = ancestorElements;
-            Part = part;
-            RevTrackElement = GetRevisionTrackingElementFromAncestors(contentElement, AncestorElements);
-            if (RevTrackElement == null)
-            {
-                CorrelationStatus = CorrelationStatus.Equal;
-            }
-            else
-            {
-                if (RevTrackElement.Name == W.del)
-                {
-                    CorrelationStatus = CorrelationStatus.Deleted;
-                }
-                else if (RevTrackElement.Name == W.ins)
-                {
-                    CorrelationStatus = CorrelationStatus.Inserted;
-                }
-            }
-            var sha1Hash = (string)contentElement.Attribute(PtOpenXml.SHA1Hash);
-            if (sha1Hash != null)
-            {
-                SHA1Hash = sha1Hash;
-            }
-            else
-            {
-                var shaHashString = GetSha1HashStringForElement(ContentElement, settings);
-                SHA1Hash = PtUtils.SHA1HashStringForUTF8String(shaHashString);
-            }
-        }
-
-        private string GetSha1HashStringForElement(XElement contentElement, WmlComparerSettings settings)
-        {
-            var text = contentElement.Value;
-            if (settings.CaseInsensitive)
-            {
-                text = text.ToUpper(settings.CultureInfo);
-            }
-
-            if (settings.ConflateBreakingAndNonbreakingSpaces)
-            {
-                text = text.Replace(' ', '\x00a0');
-            }
-
-            return contentElement.Name.LocalName + text;
-        }
-
-        private static XElement GetRevisionTrackingElementFromAncestors(XElement contentElement, XElement[] ancestors)
-        {
-            XElement revTrackElement = null;
-
-            if (contentElement.Name == W.pPr)
-            {
-                revTrackElement = contentElement
-                    .Elements(W.rPr)
-                    .Elements()
-                    .FirstOrDefault(e => e.Name == W.del || e.Name == W.ins);
-                return revTrackElement;
-            }
-
-            revTrackElement = ancestors.FirstOrDefault(a => a.Name == W.del || a.Name == W.ins);
-            return revTrackElement;
-        }
-
-        public override string ToString(int indent)
-        {
-            var xNamePad = 16;
-            var indentString = "".PadRight(indent);
-
-            var sb = new StringBuilder();
-            sb.Append(indentString);
-            var correlationStatus = "";
-            if (CorrelationStatus != OpenXmlPowerTools.CorrelationStatus.Nil)
-            {
-                correlationStatus = string.Format("[{0}] ", CorrelationStatus.ToString().PadRight(8));
-            }
-
-            if (ContentElement.Name == W.t || ContentElement.Name == W.delText)
-            {
-                sb.AppendFormat("Atom {0}: {1} {2} SHA1:{3} ", PadLocalName(xNamePad, this), ContentElement.Value, correlationStatus, SHA1Hash.Substring(0, 8));
-                AppendAncestorsDump(sb, this);
-            }
-            else
-            {
-                sb.AppendFormat("Atom {0}:   {1} SHA1:{2} ", PadLocalName(xNamePad, this), correlationStatus, SHA1Hash.Substring(0, 8));
-                AppendAncestorsDump(sb, this);
-            }
-            return sb.ToString();
-        }
-
-        public string ToStringAncestorUnids(int indent)
-        {
-            var xNamePad = 16;
-            var indentString = "".PadRight(indent);
-
-            var sb = new StringBuilder();
-            sb.Append(indentString);
-            var correlationStatus = "";
-            if (CorrelationStatus != OpenXmlPowerTools.CorrelationStatus.Nil)
-            {
-                correlationStatus = string.Format("[{0}] ", CorrelationStatus.ToString().PadRight(8));
-            }
-
-            if (ContentElement.Name == W.t || ContentElement.Name == W.delText)
-            {
-                sb.AppendFormat("Atom {0}: {1} {2} SHA1:{3} ", PadLocalName(xNamePad, this), ContentElement.Value, correlationStatus, SHA1Hash.Substring(0, 8));
-                AppendAncestorsUnidsDump(sb, this);
-            }
-            else
-            {
-                sb.AppendFormat("Atom {0}:   {1} SHA1:{2} ", PadLocalName(xNamePad, this), correlationStatus, SHA1Hash.Substring(0, 8));
-                AppendAncestorsUnidsDump(sb, this);
-            }
-            return sb.ToString();
-        }
-
-        public override string ToString()
-        {
-            return ToString(0);
-        }
-
-        public string ToStringAncestorUnids()
-        {
-            return ToStringAncestorUnids(0);
-        }
-
-        private static string PadLocalName(int xNamePad, ComparisonUnitAtom item)
-        {
-            return (item.ContentElement.Name.LocalName + " ").PadRight(xNamePad, '-') + " ";
-        }
-
-        private void AppendAncestorsDump(StringBuilder sb, ComparisonUnitAtom sr)
-        {
-            var s = sr.AncestorElements.Select(p => p.Name.LocalName + GetUnid(p) + "/").StringConcatenate().TrimEnd('/');
-            sb.Append("Ancestors:" + s);
-        }
-
-        private void AppendAncestorsUnidsDump(StringBuilder sb, ComparisonUnitAtom sr)
-        {
-            var zipped = sr.AncestorElements.Zip(sr.AncestorUnids, (a, u) => new
-            {
-                AncestorElement = a,
-                AncestorUnid = u,
-            });
-            var s = zipped.Select(p => p.AncestorElement.Name.LocalName + "[" + p.AncestorUnid.Substring(0, 8) + "]/").StringConcatenate().TrimEnd('/');
-            sb.Append("Ancestors:" + s);
-        }
-
-        private string GetUnid(XElement p)
-        {
-            var unid = (string)p.Attribute(PtOpenXml.Unid);
-            if (unid == null)
-            {
-                return "";
-            }
-
-            return "[" + unid.Substring(0, 8) + "]";
-        }
-
-        public static string ComparisonUnitAtomListToString(List<ComparisonUnitAtom> comparisonUnitAtomList, int indent)
-        {
-            var sb = new StringBuilder();
-            var cal = comparisonUnitAtomList
-                .Select((ca, i) => new
-                {
-                    ComparisonUnitAtom = ca,
-                    Index = i,
-                });
-            foreach (var item in cal)
-            {
-                sb.Append("".PadRight(indent))
-                  .AppendFormat("[{0:000000}] ", item.Index + 1)
-                  .Append(item.ComparisonUnitAtom.ToString(0) + Environment.NewLine);
-            }
-
-            return sb.ToString();
-        }
-    }
-
     internal enum ComparisonUnitGroupType
     {
         Paragraph,
@@ -7937,195 +7580,4 @@ namespace OpenXmlPowerTools
         Cell,
         Textbox,
     };
-
-    internal class ComparisonUnitGroup : ComparisonUnit
-    {
-        public ComparisonUnitGroupType ComparisonUnitGroupType;
-        public string CorrelatedSHA1Hash;
-        public string StructureSHA1Hash;
-
-        public ComparisonUnitGroup(IEnumerable<ComparisonUnit> comparisonUnitList, ComparisonUnitGroupType groupType, int level)
-        {
-            Contents = comparisonUnitList.ToList();
-            ComparisonUnitGroupType = groupType;
-            var first = comparisonUnitList.First();
-            var comparisonUnitAtom = GetFirstComparisonUnitAtomOfGroup(first);
-            XName ancestorName = null;
-            if (groupType == OpenXmlPowerTools.ComparisonUnitGroupType.Table)
-            {
-                ancestorName = W.tbl;
-            }
-            else if (groupType == OpenXmlPowerTools.ComparisonUnitGroupType.Row)
-            {
-                ancestorName = W.tr;
-            }
-            else if (groupType == OpenXmlPowerTools.ComparisonUnitGroupType.Cell)
-            {
-                ancestorName = W.tc;
-            }
-            else if (groupType == OpenXmlPowerTools.ComparisonUnitGroupType.Paragraph)
-            {
-                ancestorName = W.p;
-            }
-            else if (groupType == OpenXmlPowerTools.ComparisonUnitGroupType.Textbox)
-            {
-                ancestorName = W.txbxContent;
-            }
-
-            var ancestorsToLookAt = comparisonUnitAtom.AncestorElements.Where(ae => ae.Name == W.tbl || ae.Name == W.tr || ae.Name == W.tc || ae.Name == W.p || ae.Name == W.txbxContent).ToArray(); ;
-            var ancestor = ancestorsToLookAt[level];
-
-            if (ancestor == null)
-            {
-                throw new OpenXmlPowerToolsException("Internal error: ComparisonUnitGroup");
-            }
-
-            SHA1Hash = (string)ancestor.Attribute(PtOpenXml.SHA1Hash);
-            CorrelatedSHA1Hash = (string)ancestor.Attribute(PtOpenXml.CorrelatedSHA1Hash);
-            StructureSHA1Hash = (string)ancestor.Attribute(PtOpenXml.StructureSHA1Hash);
-        }
-
-        public static ComparisonUnitAtom GetFirstComparisonUnitAtomOfGroup(ComparisonUnit group)
-        {
-            var thisGroup = group;
-            while (true)
-            {
-                var tg = thisGroup as ComparisonUnitGroup;
-                if (tg != null)
-                {
-                    thisGroup = tg.Contents.First();
-                    continue;
-                }
-                var tw = thisGroup as ComparisonUnitWord;
-                if (tw == null)
-                {
-                    throw new OpenXmlPowerToolsException("Internal error: GetFirstComparisonUnitAtomOfGroup");
-                }
-
-                var ca = (ComparisonUnitAtom)tw.Contents.First();
-                return ca;
-            }
-        }
-
-        public override string ToString(int indent)
-        {
-            var sb = new StringBuilder();
-            sb.Append("".PadRight(indent) + "Group Type: " + ComparisonUnitGroupType.ToString() + " SHA1:" + SHA1Hash + Environment.NewLine);
-            foreach (var comparisonUnitAtom in Contents)
-            {
-                sb.Append(comparisonUnitAtom.ToString(indent + 2));
-            }
-
-            return sb.ToString();
-        }
-    }
-
-    public enum CorrelationStatus
-    {
-        Nil,
-        Normal,
-        Unknown,
-        Inserted,
-        Deleted,
-        Equal,
-        Group,
-    }
-
-    internal class PartSHA1HashAnnotation
-    {
-        public string Hash;
-
-        public PartSHA1HashAnnotation(string hash)
-        {
-            Hash = hash;
-        }
-    }
-
-    internal class CorrelatedSequence
-    {
-        public CorrelationStatus CorrelationStatus;
-
-        // if ComparisonUnitList1 == null and ComparisonUnitList2 contains sequence, then inserted content.
-        // if ComparisonUnitList2 == null and ComparisonUnitList1 contains sequence, then deleted content.
-        // if ComparisonUnitList2 contains sequence and ComparisonUnitList1 contains sequence, then either is Unknown or Equal.
-        public ComparisonUnit[] ComparisonUnitArray1;
-
-        public ComparisonUnit[] ComparisonUnitArray2;
-#if DEBUG
-        public string SourceFile;
-        public int SourceLine;
-#endif
-
-        public CorrelatedSequence()
-        {
-#if DEBUG
-            SourceFile = new System.Diagnostics.StackTrace(true).GetFrame(1).GetFileName();
-            SourceLine = new System.Diagnostics.StackTrace(true).GetFrame(1).GetFileLineNumber();
-#endif
-        }
-
-        public override string ToString()
-        {
-            var sb = new StringBuilder();
-            var indentString = "  ";
-            var indentString4 = "    ";
-            sb.Append("CorrelatedSequence =====" + Environment.NewLine);
-#if DEBUG
-            sb.Append(indentString + "Created at Line: " + SourceLine.ToString() + Environment.NewLine);
-#endif
-            sb.Append(indentString + "CorrelatedItem =====" + Environment.NewLine);
-            sb.Append(indentString4 + "CorrelationStatus: " + CorrelationStatus.ToString() + Environment.NewLine);
-            if (CorrelationStatus == OpenXmlPowerTools.CorrelationStatus.Equal)
-            {
-                sb.Append(indentString4 + "ComparisonUnitList =====" + Environment.NewLine);
-                foreach (var item in ComparisonUnitArray2)
-                {
-                    sb.Append(item.ToString(6) + Environment.NewLine);
-                }
-            }
-            else
-            {
-                if (ComparisonUnitArray1 != null)
-                {
-                    sb.Append(indentString4 + "ComparisonUnitList1 =====" + Environment.NewLine);
-                    foreach (var item in ComparisonUnitArray1)
-                    {
-                        sb.Append(item.ToString(6) + Environment.NewLine);
-                    }
-                }
-                if (ComparisonUnitArray2 != null)
-                {
-                    sb.Append(indentString4 + "ComparisonUnitList2 =====" + Environment.NewLine);
-                    foreach (var item in ComparisonUnitArray2)
-                    {
-                        sb.Append(item.ToString(6) + Environment.NewLine);
-                    }
-                }
-            }
-            return sb.ToString();
-        }
-    }
-
-    internal class DocxComparerUtil
-    {
-        public static void NotePad(string str)
-        {
-            var tempPath = Path.GetTempPath();
-            var guidName = Guid.NewGuid().ToString().Replace("-", "") + ".txt";
-            var fi = new FileInfo(Path.Combine(tempPath, guidName));
-            File.WriteAllText(fi.FullName, str);
-            var notepadExe = new FileInfo(@"C:\Program Files (x86)\Notepad++\notepad++.exe");
-            if (!notepadExe.Exists)
-            {
-                notepadExe = new FileInfo(@"C:\Program Files\Notepad++\notepad++.exe");
-            }
-
-            if (!notepadExe.Exists)
-            {
-                notepadExe = new FileInfo(@"C:\Windows\System32\notepad.exe");
-            }
-
-            ExecutableRunner.RunExecutable(notepadExe.FullName, fi.FullName, tempPath);
-        }
-    }
 }

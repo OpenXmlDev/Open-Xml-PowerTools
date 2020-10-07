@@ -788,11 +788,27 @@ namespace OpenXmlPowerTools
             public InternalException(string message) : base(message)
             {
             }
+
+            public InternalException()
+            {
+            }
+
+            public InternalException(string message, Exception innerException) : base(message, innerException)
+            {
+            }
         }
 
         public class InvalidSettingsException : Exception
         {
             public InvalidSettingsException(string message) : base(message)
+            {
+            }
+
+            public InvalidSettingsException()
+            {
+            }
+
+            public InvalidSettingsException(string message, Exception innerException) : base(message, innerException)
             {
             }
         }

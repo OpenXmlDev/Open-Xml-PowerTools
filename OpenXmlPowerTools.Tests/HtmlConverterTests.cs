@@ -13,8 +13,6 @@ using System.Text;
 using System.Xml.Linq;
 using Xunit;
 
-#if !ELIDE_XUNIT_TESTS
-
 namespace OxPt
 {
     public class HcTests
@@ -369,5 +367,3 @@ namespace OxPt
         }
     }
 }
-
-#endif

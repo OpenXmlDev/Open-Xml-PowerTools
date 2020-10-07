@@ -12,8 +12,6 @@ using System.Linq;
 using System.Reflection;
 using Xunit;
 
-#if !ELIDE_XUNIT_TESTS
-
 namespace OxPt
 {
     public class CaTests
@@ -92,5 +90,3 @@ namespace OxPt
         }
     }
 }
-
-#endif

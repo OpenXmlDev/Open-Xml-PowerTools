@@ -11,7 +11,7 @@ using System.Xml.Linq;
 
 internal class FieldRetriever01
 {
-    private static void Main(string[] args)
+    private static void Main()
     {
         var n = DateTime.Now;
         var tempDi = new DirectoryInfo(string.Format("ExampleOutput-{0:00}-{1:00}-{2:00}-{3:00}{4:00}{5:00}", n.Year - 2000, n.Month, n.Day, n.Hour, n.Minute, n.Second));
@@ -40,12 +40,12 @@ internal class FieldRetriever01
         {
             FieldRetriever.AnnotateWithFieldInfo(footer);
             var root = footer.GetXDocument().Root;
-            RemoveAllButSpecificFields(root, fieldTypesToKeep);
+            RemoveAllButSpecificFields(root);
             footer.PutXDocument();
         }
     }
 
-    private static void RemoveAllButSpecificFields(XElement root, string[] fieldTypesToRetain)
+    private static void RemoveAllButSpecificFields(XElement root)
     {
         var cachedAnnotationInformation = root.Annotation<Dictionary<int, List<XElement>>>();
         var runsToKeep = new List<XElement>();

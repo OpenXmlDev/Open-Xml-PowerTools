@@ -1288,7 +1288,7 @@ namespace OpenXmlPowerTools
             public TimeSpan Time;
         }
 
-        public static string LastBucket = null;
+        public static string LastBucket ;
         private static DateTime LastTime;
         private static Dictionary<string, BucketInfo> Buckets;
 

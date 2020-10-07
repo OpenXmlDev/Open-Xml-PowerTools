@@ -14,7 +14,7 @@ namespace OpenXmlRegex01
 {
     public class OpenXmlRegexExample
     {
-        public static void Main(string[] args)
+        public static void Main()
         {
             var n = DateTime.Now;
             var tempDi = new DirectoryInfo(

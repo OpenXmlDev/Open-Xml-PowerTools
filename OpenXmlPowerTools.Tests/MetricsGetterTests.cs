@@ -6,8 +6,6 @@ using System.IO;
 using System.Xml.Linq;
 using Xunit;
 
-#if !ELIDE_XUNIT_TESTS
-
 namespace OxPt
 {
     public class MgTests
@@ -56,5 +54,3 @@ namespace OxPt
         }
     }
 }
-
-#endif

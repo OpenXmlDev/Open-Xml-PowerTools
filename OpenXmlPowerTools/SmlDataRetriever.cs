@@ -232,7 +232,7 @@ namespace OpenXmlPowerTools
 
                             if (sharedString != null)
                             {
-                                var cellProps = GetCellProps_NotInTable(sDoc, styleXDoc, cell);
+                                var cellProps = GetCellProps_NotInTable(styleXDoc, cell);
                                 var value = sharedString;
                                 string displayValue;
                                 string color = null;
@@ -276,7 +276,7 @@ namespace OpenXmlPowerTools
                                     typeAttr = new XAttribute("Type", type);
                                 }
 
-                                var cellProps = GetCellProps_NotInTable(sDoc, styleXDoc, cell);
+                                var cellProps = GetCellProps_NotInTable(styleXDoc, cell);
                                 string displayValue;
                                 string color = null;
                                 if (cellProps != null)
@@ -402,7 +402,6 @@ namespace OpenXmlPowerTools
 
         private static XElement GetPrevousElement(XElement element)
         {
-            XElement previousElement = null;
             XNode currentNode = element;
             while (true)
             {
@@ -411,7 +410,7 @@ namespace OpenXmlPowerTools
                     return null;
                 }
 
-                previousElement = currentNode.PreviousNode as XElement;
+                var previousElement = currentNode.PreviousNode as XElement;
                 if (previousElement != null)
                 {
                     return previousElement;
@@ -421,7 +420,7 @@ namespace OpenXmlPowerTools
             }
         }
 
-        public static XElement RetrieveTable(SmlDocument smlDoc, string sheetName, string tableName)
+        public static XElement RetrieveTable(SmlDocument smlDoc, string tableName)
         {
             using (var ms = new MemoryStream())
             {
@@ -495,7 +494,7 @@ namespace OpenXmlPowerTools
                             return null;
                         }
 
-                        var cellProps = GetCellProps_InTable(sDoc, styleXDoc, table, tc);
+                        var cellProps = GetCellProps_InTable(styleXDoc, table, tc);
                         if (tc.SharedString != null)
                         {
                             string displayValue;
@@ -740,7 +739,7 @@ namespace OpenXmlPowerTools
             return rowProps;
         }
 
-        private static XElement GetCellProps_NotInTable(SpreadsheetDocument sDoc, XDocument styleXDoc, XElement cell)
+        private static XElement GetCellProps_NotInTable(XDocument styleXDoc, XElement cell)
         {
             var cellProps = new XElement("CellProps");
             var style = (int?)cell.Attribute("s");
@@ -788,7 +787,7 @@ namespace OpenXmlPowerTools
             return cellProps;
         }
 
-        private static XElement GetCellProps_InTable(SpreadsheetDocument sDoc, XDocument styleXDoc, Table table, Cell tc)
+        private static XElement GetCellProps_InTable(XDocument styleXDoc, Table table, Cell tc)
         {
             var style = tc.Style;
             if (style == null)

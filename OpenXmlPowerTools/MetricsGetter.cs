@@ -89,7 +89,7 @@ namespace OpenXmlPowerTools
                     using (var ms = new MemoryStream())
                     {
                         ms.Write(wmlDoc.DocumentByteArray, 0, wmlDoc.DocumentByteArray.Length);
-                        UriFixer.FixInvalidUri(ms, brokenUri => FixUri(brokenUri));
+                        UriFixer.FixInvalidUri(ms, brokenUri => FixUri());
                         wmlDoc = new WmlDocument("dummy.docx", ms.ToArray());
                     }
                     using (var ms = new MemoryStream())
@@ -174,7 +174,7 @@ namespace OpenXmlPowerTools
             }
         }
 
-        private static Uri FixUri(string brokenUri)
+        private static Uri FixUri()
         {
             return new Uri("http://broken-link/");
         }
@@ -279,7 +279,6 @@ namespace OpenXmlPowerTools
             var valid = ValidateWordprocessingDocument(document, metrics, notes, elementCountDictionary);
             if (invalidHyperlink)
             {
-                valid = false;
             }
 
             return metrics;
@@ -631,7 +630,7 @@ namespace OpenXmlPowerTools
                 foreach (var run in xDoc.Descendants(W.r))
                 {
                     formattingMetrics.RunCount++;
-                    AnalyzeRun(run, metrics, notes, formattingMetrics, part.Uri.ToString());
+                    AnalyzeRun(run, notes, formattingMetrics, part.Uri.ToString());
                 }
             }
 
@@ -698,7 +697,7 @@ namespace OpenXmlPowerTools
             }
         }
 
-        private static void AnalyzeRun(XElement run, List<XElement> attList, List<string> notes, FormattingMetrics formattingMetrics, string uri)
+        private static void AnalyzeRun(XElement run, List<string> notes, FormattingMetrics formattingMetrics, string uri)
         {
             var runText = run.Elements()
                 .Where(e => e.Name == W.t || e.Name == W.delText)

@@ -28,8 +28,6 @@ using Xunit;
  * this module do not require the HtmlAgilityPack to run.
 *******************************************************************************************/
 
-#if !ELIDE_XUNIT_TESTS
-
 namespace OxPt
 {
     public class HwTests
@@ -501,5 +499,3 @@ BDO[DIR=""rtl""] { direction: rtl; unicode-bidi: bidi-override }
         private const string userCss = @"";
     }
 }
-
-#endif

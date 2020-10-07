@@ -13,8 +13,6 @@ using System.Xml;
 using System.Xml.Linq;
 using Xunit;
 
-#if !ELIDE_XUNIT_TESTS
-
 namespace OxPt
 {
     public class DaTests
@@ -228,5 +226,3 @@ namespace OxPt
         };
     }
 }
-
-#endif

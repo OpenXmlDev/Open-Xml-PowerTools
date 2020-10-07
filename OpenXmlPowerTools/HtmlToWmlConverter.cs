@@ -293,7 +293,7 @@ ABMkAAB3b3JkL3N0eWxlcy54bWxQSwECLQAUAAYACAAAACEATbb2nsIBAACiBAAAEgAAAAAAAAAA
 AAAAAABELQAAd29yZC9mb250VGFibGUueG1sUEsBAi0AFAAGAAgAAAAhAE5wytZwAQAAxQIAABAA
 AAAAAAAAAAAAAAAANi8AAGRvY1Byb3BzL2FwcC54bWxQSwUGAAAAAAwADAAJAwAA3DEAAAAA";
 
-        private static WmlDocument s_EmptyDocument = null;
+        private static WmlDocument s_EmptyDocument;
 
         public static WmlDocument EmptyDocument
         {

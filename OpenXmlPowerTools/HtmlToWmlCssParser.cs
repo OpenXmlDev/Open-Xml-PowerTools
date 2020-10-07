@@ -428,7 +428,7 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
         // will only be called on expression that is in terms of points
         public static explicit operator Twip(CssExpression length)
         {
-            if (length.Terms.Count() == 1)
+            if (length.Terms.Count == 1)
             {
                 var term = length.Terms.First();
                 if (term.Unit == CssUnit.PT)
@@ -1692,9 +1692,6 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
         private void Css3()
         {
             CssDoc = new CssDocument();
-            CssRuleSet rset = null;
-            CssDirective dir = null;
-
             while (LookaheadToken.TokenKind == 4)
             {
                 Get();
@@ -1714,12 +1711,12 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
             {
                 if (StartOf(2))
                 {
-                    RuleSet(out rset);
+                    RuleSet(out var rset);
                     CssDoc.RuleSets.Add(rset);
                 }
                 else
                 {
-                    Directive(out dir);
+                    Directive(out var dir);
                     CssDoc.Directives.Add(dir);
                 }
                 while (LookaheadToken.TokenKind == 5 || LookaheadToken.TokenKind == 6)
@@ -1743,8 +1740,6 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
         private void RuleSet(out CssRuleSet rset)
         {
             rset = new CssRuleSet();
-            CssDeclaration dec = null;
-
             Selector(out var sel);
             rset.Selectors.Add(sel);
             while (LookaheadToken.TokenKind == 4)
@@ -1772,7 +1767,7 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
             }
             if (StartOf(3))
             {
-                Declaration(out dec);
+                Declaration(out var dec);
                 rset.Declarations.Add(dec);
                 while (LookaheadToken.TokenKind == 4)
                 {
@@ -1817,11 +1812,6 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
         private void Directive(out CssDirective dir)
         {
             dir = new CssDirective();
-            CssDeclaration dec = null;
-            CssRuleSet rset = null;
-            CssExpression exp = null;
-            CssDirective dr = null;
-
             Expect(23);
             dir.Name = "@";
             if (LookaheadToken.TokenKind == 24)
@@ -1893,7 +1883,7 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
                 }
                 else
                 {
-                    Exprsn(out exp);
+                    Exprsn(out var exp);
                     dir.Expression = exp;
                     while (LookaheadToken.TokenKind == 4)
                     {
@@ -1914,7 +1904,7 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
                     {
                         if (dir.Type == CssDirectiveType.Page || dir.Type == CssDirectiveType.FontFace)
                         {
-                            Declaration(out dec);
+                            Declaration(out var dec);
                             dir.Declarations.Add(dec);
                             while (LookaheadToken.TokenKind == 4)
                             {
@@ -1950,7 +1940,7 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
                         }
                         else if (StartOf(2))
                         {
-                            RuleSet(out rset);
+                            RuleSet(out var rset);
                             dir.RuleSets.Add(rset);
                             while (LookaheadToken.TokenKind == 4)
                             {
@@ -1959,7 +1949,7 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
                         }
                         else
                         {
-                            Directive(out dr);
+                            Directive(out var dr);
                             dir.Directives.Add(dr);
                             while (LookaheadToken.TokenKind == 4)
                             {
@@ -2359,11 +2349,10 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
             {
                 ElementName = ""
             };
-            string psd = null;
-            OpenXmlPowerTools.HtmlToWml.CSS.CssAttribute atb = null;
             var parent = ss;
-            string ident = null;
-
+            string psd;
+            CssAttribute atb;
+            string ident;
             if (StartOf(3))
             {
                 if (LookaheadToken.TokenKind == 24)
@@ -2481,8 +2470,6 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
             {
                 Value = ""
             };
-            string quote = null;
-
             Expect(35);
             while (LookaheadToken.TokenKind == 4)
             {
@@ -2551,7 +2538,7 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
                 }
                 else if (LookaheadToken.TokenKind == 7 || LookaheadToken.TokenKind == 8)
                 {
-                    QuotedString(out quote);
+                    QuotedString(out var quote);
                     atb.Value = quote;
                 }
                 else
@@ -2570,8 +2557,6 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
         private void Pseudo(out string pseudo)
         {
             pseudo = "";
-            CssExpression exp = null;
-
             Expect(43);
             if (LookaheadToken.TokenKind == 43)
             {
@@ -2596,7 +2581,7 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
                 {
                     Get();
                 }
-                Exprsn(out exp);
+                Exprsn(out var exp);
                 pseudo += exp.ToString();
                 while (LookaheadToken.TokenKind == 4)
                 {
@@ -2611,9 +2596,7 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
         {
             trm = new CssTerm();
             var val = "";
-            CssExpression exp = null;
-            string ident = null;
-
+            string ident;
             if (LookaheadToken.TokenKind == 7 || LookaheadToken.TokenKind == 8)
             {
                 QuotedString(out val);
@@ -2754,7 +2737,7 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
                         {
                             Get();
                         }
-                        Exprsn(out exp);
+                        Exprsn(out var exp);
                         var func = new CssFunction
                         {
                             Name = trm.Value,
@@ -3208,6 +3191,14 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
     public class FatalError : Exception
     {
         public FatalError(string m) : base(m)
+        {
+        }
+
+        public FatalError(string message, Exception innerException) : base(message, innerException)
+        {
+        }
+
+        public FatalError()
         {
         }
     }
@@ -3792,7 +3783,6 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
                         break;
                     }
                 case 1:
-                    recEnd = m_currentCharacterBytePosition; recKind = 1;
                     if (m_currentInputCharacter == '-' || m_currentInputCharacter >= '0' && m_currentInputCharacter <= '9' || m_currentInputCharacter >= 'A' && m_currentInputCharacter <= 'Z' || m_currentInputCharacter == '_' || m_currentInputCharacter >= 'a' && m_currentInputCharacter <= 'z')
                     {
                         AddCh();
@@ -4043,8 +4033,6 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
                         break;
                     }
                 case 41:
-                    recEnd = m_currentCharacterBytePosition;
-                    recKind = 31;
                     if (m_currentInputCharacter == '=')
                     {
                         AddCh();
@@ -4056,8 +4044,6 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
                         break;
                     }
                 case 42:
-                    recEnd = m_currentCharacterBytePosition;
-                    recKind = 32;
                     if (m_currentInputCharacter == '=')
                     {
                         AddCh();
@@ -4069,7 +4055,6 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
                         break;
                     }
                 case 43:
-                    recEnd = m_currentCharacterBytePosition; recKind = 1;
                     if (m_currentInputCharacter == '-' || m_currentInputCharacter >= '0' && m_currentInputCharacter <= '9' || m_currentInputCharacter >= 'A' && m_currentInputCharacter <= 'Z' || m_currentInputCharacter == '_' || m_currentInputCharacter >= 'a' && m_currentInputCharacter <= 'z')
                     {
                         AddCh();
