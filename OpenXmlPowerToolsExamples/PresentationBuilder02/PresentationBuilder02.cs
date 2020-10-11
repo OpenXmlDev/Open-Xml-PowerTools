@@ -1,7 +1,4 @@
-﻿
-
-using DocumentFormat.OpenXml.Packaging;
-using OpenXmlPowerTools;
+﻿using OpenXmlPowerTools;
 using System;
 using System.Collections.Generic;
 using System.IO;

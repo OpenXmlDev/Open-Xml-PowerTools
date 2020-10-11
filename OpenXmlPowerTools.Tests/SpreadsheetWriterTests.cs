@@ -1,6 +1,4 @@
-﻿
-
-using DocumentFormat.OpenXml.Packaging;
+﻿using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Validation;
 using System;
 using System.Collections.Generic;
@@ -304,27 +302,25 @@ namespace OxPt
 
         private void Validate(FileInfo fi)
         {
-            using (var sDoc = SpreadsheetDocument.Open(fi.FullName, true))
+            using var sDoc = SpreadsheetDocument.Open(fi.FullName, true);
+            var v = new OpenXmlValidator();
+            var errors = v.Validate(sDoc).Where(ve => !s_ExpectedErrors.Contains(ve.Description));
+
+            // if a test fails validation post-processing, then can use this code to determine the SDK
+            // validation error(s).
+
+            if (errors.Count() != 0)
             {
-                var v = new OpenXmlValidator();
-                var errors = v.Validate(sDoc).Where(ve => !s_ExpectedErrors.Contains(ve.Description));
-
-                // if a test fails validation post-processing, then can use this code to determine the SDK
-                // validation error(s).
-
-                if (errors.Count() != 0)
+                var sb = new StringBuilder();
+                foreach (var item in errors)
                 {
-                    var sb = new StringBuilder();
-                    foreach (var item in errors)
-                    {
-                        sb.Append(item.Description).Append(Environment.NewLine);
-                    }
-                    var s = sb.ToString();
-                    Console.WriteLine(s);
+                    sb.Append(item.Description).Append(Environment.NewLine);
                 }
-
-                Assert.Empty(errors);
+                var s = sb.ToString();
+                Console.WriteLine(s);
             }
+
+            Assert.Empty(errors);
         }
 
         private static readonly List<string> s_ExpectedErrors = new List<string>()

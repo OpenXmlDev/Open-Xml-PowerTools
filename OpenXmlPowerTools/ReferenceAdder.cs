@@ -1,6 +1,4 @@
-﻿
-
-using DocumentFormat.OpenXml.Packaging;
+﻿using DocumentFormat.OpenXml.Packaging;
 using System;
 using System.IO;
 using System.Linq;
@@ -32,14 +30,12 @@ namespace OpenXmlPowerTools
     {
         public static WmlDocument AddToc(WmlDocument document, string xPath, string switches, string title, int? rightTabPos)
         {
-            using (var streamDoc = new OpenXmlMemoryStreamDocument(document))
+            using var streamDoc = new OpenXmlMemoryStreamDocument(document);
+            using (var doc = streamDoc.GetWordprocessingDocument())
             {
-                using (var doc = streamDoc.GetWordprocessingDocument())
-                {
-                    AddToc(doc, xPath, switches, title, rightTabPos);
-                }
-                return streamDoc.GetModifiedWmlDocument();
+                AddToc(doc, xPath, switches, title, rightTabPos);
             }
+            return streamDoc.GetModifiedWmlDocument();
         }
 
         public static void AddToc(WordprocessingDocument doc, string xPath, string switches, string title, int? rightTabPos)
@@ -152,14 +148,12 @@ namespace OpenXmlPowerTools
 
         public static WmlDocument AddTof(WmlDocument document, string xPath, string switches, int? rightTabPos)
         {
-            using (var streamDoc = new OpenXmlMemoryStreamDocument(document))
+            using var streamDoc = new OpenXmlMemoryStreamDocument(document);
+            using (var doc = streamDoc.GetWordprocessingDocument())
             {
-                using (var doc = streamDoc.GetWordprocessingDocument())
-                {
-                    AddTof(doc, xPath, switches, rightTabPos);
-                }
-                return streamDoc.GetModifiedWmlDocument();
+                AddTof(doc, xPath, switches, rightTabPos);
             }
+            return streamDoc.GetModifiedWmlDocument();
         }
 
         public static void AddTof(WordprocessingDocument doc, string xPath, string switches, int? rightTabPos)
@@ -233,14 +227,12 @@ namespace OpenXmlPowerTools
 
         public static WmlDocument AddToa(WmlDocument document, string xPath, string switches, int? rightTabPos)
         {
-            using (var streamDoc = new OpenXmlMemoryStreamDocument(document))
+            using var streamDoc = new OpenXmlMemoryStreamDocument(document);
+            using (var doc = streamDoc.GetWordprocessingDocument())
             {
-                using (var doc = streamDoc.GetWordprocessingDocument())
-                {
-                    AddToa(doc, xPath, switches, rightTabPos);
-                }
-                return streamDoc.GetModifiedWmlDocument();
+                AddToa(doc, xPath, switches, rightTabPos);
             }
+            return streamDoc.GetModifiedWmlDocument();
         }
 
         public static void AddToa(WordprocessingDocument doc, string xPath, string switches, int? rightTabPos)

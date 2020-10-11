@@ -1,6 +1,4 @@
-﻿
-
-using DocumentFormat.OpenXml.Packaging;
+﻿using DocumentFormat.OpenXml.Packaging;
 using OpenXmlPowerTools;
 using System;
 using System.Collections.Generic;
@@ -22,14 +20,12 @@ internal class ListItemRetriever01
         var tempDi = new DirectoryInfo(string.Format("ExampleOutput-{0:00}-{1:00}-{2:00}-{3:00}{4:00}{5:00}", n.Year - 2000, n.Month, n.Day, n.Hour, n.Minute, n.Second));
         tempDi.Create();
 
-        using (var wDoc =
-            WordprocessingDocument.Open("../../NumberedListTest.docx", false))
-        {
-            var abstractNumId = 0;
-            var xml = ConvertDocToXml(wDoc, abstractNumId);
-            Console.WriteLine(xml);
-            xml.Save(Path.Combine(tempDi.FullName, "Out.xml"));
-        }
+        using var wDoc =
+            WordprocessingDocument.Open("../../NumberedListTest.docx", false);
+        var abstractNumId = 0;
+        var xml = ConvertDocToXml(wDoc, abstractNumId);
+        Console.WriteLine(xml);
+        xml.Save(Path.Combine(tempDi.FullName, "Out.xml"));
     }
 
     private static XElement ConvertDocToXml(WordprocessingDocument wDoc, int abstractNumId)

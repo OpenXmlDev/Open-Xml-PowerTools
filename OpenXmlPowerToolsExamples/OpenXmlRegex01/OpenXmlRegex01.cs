@@ -1,6 +1,4 @@
-﻿
-
-using DocumentFormat.OpenXml.Packaging;
+﻿using DocumentFormat.OpenXml.Packaging;
 using OpenXmlPowerTools;
 using System;
 using System.Collections.Generic;
@@ -215,25 +213,23 @@ namespace OpenXmlRegex01
             var sourcePres = new FileInfo("../../TestPresentation.pptx");
             var newPres = new FileInfo(Path.Combine(tempDi.FullName, "Modified.pptx"));
             File.Copy(sourcePres.FullName, newPres.FullName);
-            using (var pDoc = PresentationDocument.Open(newPres.FullName, true))
+            using var pDoc = PresentationDocument.Open(newPres.FullName, true);
+            foreach (var slidePart in pDoc.PresentationPart.SlideParts)
             {
-                foreach (var slidePart in pDoc.PresentationPart.SlideParts)
-                {
-                    var xDoc = slidePart.GetXDocument();
+                var xDoc = slidePart.GetXDocument();
 
-                    // Replace content
-                    var content = xDoc.Descendants(A.p);
-                    var regex = new Regex("Hello");
-                    var count = OpenXmlRegex.Replace(content, regex, "H e l l o", null);
-                    Console.WriteLine("Example #18 Replaced: {0}", count);
+                // Replace content
+                var content = xDoc.Descendants(A.p);
+                var regex = new Regex("Hello");
+                var count = OpenXmlRegex.Replace(content, regex, "H e l l o", null);
+                Console.WriteLine("Example #18 Replaced: {0}", count);
 
-                    // If you absolutely want to preserve compatibility with PowerPoint 2007, then you will need to strip the xml:space="preserve" attribute throughout.
-                    // This is an issue for PowerPoint only, not Word, and for 2007 only.
-                    // The side-effect of this is that if a run has space at the beginning or end of it, the space will be stripped upon loading, and content/layout will be affected.
-                    xDoc.Descendants().Attributes(XNamespace.Xml + "space").Remove();
+                // If you absolutely want to preserve compatibility with PowerPoint 2007, then you will need to strip the xml:space="preserve" attribute throughout.
+                // This is an issue for PowerPoint only, not Word, and for 2007 only.
+                // The side-effect of this is that if a run has space at the beginning or end of it, the space will be stripped upon loading, and content/layout will be affected.
+                xDoc.Descendants().Attributes(XNamespace.Xml + "space").Remove();
 
-                    slidePart.PutXDocument();
-                }
+                slidePart.PutXDocument();
             }
         }
     }

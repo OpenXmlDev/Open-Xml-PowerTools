@@ -1,6 +1,4 @@
-﻿
-
-using DocumentFormat.OpenXml.Packaging;
+﻿using DocumentFormat.OpenXml.Packaging;
 using System;
 
 namespace OpenXmlPowerTools
@@ -44,12 +42,7 @@ namespace OpenXmlPowerTools
 
         public PowerToolsBlock(OpenXmlPackage package)
         {
-            if (package == null)
-            {
-                throw new ArgumentNullException("package");
-            }
-
-            _package = package;
+            _package = package ?? throw new ArgumentNullException(nameof(package));
             _package.BeginPowerToolsBlock();
         }
 

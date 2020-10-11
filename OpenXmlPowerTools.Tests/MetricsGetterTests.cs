@@ -1,6 +1,4 @@
-﻿
-
-using OpenXmlPowerTools;
+﻿using OpenXmlPowerTools;
 using System.IO;
 using System.Xml.Linq;
 using Xunit;

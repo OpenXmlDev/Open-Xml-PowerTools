@@ -1,6 +1,4 @@
-﻿
-
-using DocumentFormat.OpenXml.Packaging;
+﻿using DocumentFormat.OpenXml.Packaging;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -25,26 +23,24 @@ namespace OpenXmlPowerTools
         public static WmlDocument AssembleDocument(WmlDocument templateDoc, XElement data, out bool templateError)
         {
             var byteArray = templateDoc.DocumentByteArray;
-            using (var mem = new MemoryStream())
+            using var mem = new MemoryStream();
+            mem.Write(byteArray, 0, byteArray.Length);
+            using (var wordDoc = WordprocessingDocument.Open(mem, true))
             {
-                mem.Write(byteArray, 0, byteArray.Length);
-                using (var wordDoc = WordprocessingDocument.Open(mem, true))
+                if (RevisionAccepter.HasTrackedRevisions(wordDoc))
                 {
-                    if (RevisionAccepter.HasTrackedRevisions(wordDoc))
-                    {
-                        throw new OpenXmlPowerToolsException("Invalid DocumentAssembler template - contains tracked revisions");
-                    }
-
-                    var te = new TemplateError();
-                    foreach (var part in wordDoc.ContentParts())
-                    {
-                        ProcessTemplatePart(data, te, part);
-                    }
-                    templateError = te.HasError;
+                    throw new OpenXmlPowerToolsException("Invalid DocumentAssembler template - contains tracked revisions");
                 }
-                var assembledDocument = new WmlDocument("TempFileName.docx", mem.ToArray());
-                return assembledDocument;
+
+                var te = new TemplateError();
+                foreach (var part in wordDoc.ContentParts())
+                {
+                    ProcessTemplatePart(data, te, part);
+                }
+                templateError = te.HasError;
             }
+            var assembledDocument = new WmlDocument("TempFileName.docx", mem.ToArray());
+            return assembledDocument;
         }
 
         private static void ProcessTemplatePart(XElement data, TemplateError te, OpenXmlPart part)
@@ -876,9 +872,9 @@ namespace OpenXmlPowerTools
 
                 var selectedDatum = selectedData.First();
 
-                if (selectedDatum is XElement)
+                if (selectedDatum is XElement element1)
                 {
-                    return ((XElement)selectedDatum).Value;
+                    return element1.Value;
                 }
 
                 if (selectedDatum is XAttribute)

@@ -1,6 +1,4 @@
-﻿
-
-#define TestForUnsupportedDocuments
+﻿#define TestForUnsupportedDocuments
 #define MergeStylesWithSameNames
 
 using DocumentFormat.OpenXml.Packaging;
@@ -22,54 +20,46 @@ namespace OpenXmlPowerTools
     {
         public static void BuildDocument(List<Source> sources, string fileName)
         {
-            using (var streamDoc = OpenXmlMemoryStreamDocument.CreateWordprocessingDocument())
+            using var streamDoc = OpenXmlMemoryStreamDocument.CreateWordprocessingDocument();
+            using (var output = streamDoc.GetWordprocessingDocument())
             {
-                using (var output = streamDoc.GetWordprocessingDocument())
-                {
-                    BuildDocument(sources, output, new DocumentBuilderSettings());
-                    output.Close();
-                }
-                streamDoc.GetModifiedDocument().SaveAs(fileName);
+                BuildDocument(sources, output, new DocumentBuilderSettings());
+                output.Close();
             }
+            streamDoc.GetModifiedDocument().SaveAs(fileName);
         }
 
         public static void BuildDocument(List<Source> sources, string fileName, DocumentBuilderSettings settings)
         {
-            using (var streamDoc = OpenXmlMemoryStreamDocument.CreateWordprocessingDocument())
+            using var streamDoc = OpenXmlMemoryStreamDocument.CreateWordprocessingDocument();
+            using (var output = streamDoc.GetWordprocessingDocument())
             {
-                using (var output = streamDoc.GetWordprocessingDocument())
-                {
-                    BuildDocument(sources, output, settings);
-                    output.Close();
-                }
-                streamDoc.GetModifiedDocument().SaveAs(fileName);
+                BuildDocument(sources, output, settings);
+                output.Close();
             }
+            streamDoc.GetModifiedDocument().SaveAs(fileName);
         }
 
         public static WmlDocument BuildDocument(List<Source> sources)
         {
-            using (var streamDoc = OpenXmlMemoryStreamDocument.CreateWordprocessingDocument())
+            using var streamDoc = OpenXmlMemoryStreamDocument.CreateWordprocessingDocument();
+            using (var output = streamDoc.GetWordprocessingDocument())
             {
-                using (var output = streamDoc.GetWordprocessingDocument())
-                {
-                    BuildDocument(sources, output, new DocumentBuilderSettings());
-                    output.Close();
-                }
-                return streamDoc.GetModifiedWmlDocument();
+                BuildDocument(sources, output, new DocumentBuilderSettings());
+                output.Close();
             }
+            return streamDoc.GetModifiedWmlDocument();
         }
 
         public static WmlDocument BuildDocument(List<Source> sources, DocumentBuilderSettings settings)
         {
-            using (var streamDoc = OpenXmlMemoryStreamDocument.CreateWordprocessingDocument())
+            using var streamDoc = OpenXmlMemoryStreamDocument.CreateWordprocessingDocument();
+            using (var output = streamDoc.GetWordprocessingDocument())
             {
-                using (var output = streamDoc.GetWordprocessingDocument())
-                {
-                    BuildDocument(sources, output, settings);
-                    output.Close();
-                }
-                return streamDoc.GetModifiedWmlDocument();
+                BuildDocument(sources, output, settings);
+                output.Close();
             }
+            return streamDoc.GetModifiedWmlDocument();
         }
 
         private struct TempSource
@@ -98,100 +88,96 @@ namespace OpenXmlPowerTools
         public static IEnumerable<WmlDocument> SplitOnSections(WmlDocument doc)
         {
             List<TempSource> tempSourceList;
-            using (var streamDoc = new OpenXmlMemoryStreamDocument(doc))
-            using (var document = streamDoc.GetWordprocessingDocument())
-            {
-                var mainDocument = document.MainDocumentPart.GetXDocument();
-                var divs = mainDocument
-                    .Root
-                    .Element(W.body)
-                    .Elements()
-                    .Select((p, i) => new Atbi
+            using var streamDoc = new OpenXmlMemoryStreamDocument(doc);
+            using var document = streamDoc.GetWordprocessingDocument();
+            var mainDocument = document.MainDocumentPart.GetXDocument();
+            var divs = mainDocument
+                .Root
+                .Element(W.body)
+                .Elements()
+                .Select((p, i) => new Atbi
+                {
+                    BlockLevelContent = p,
+                    Index = i,
+                })
+                .Rollup(new Atbid
+                {
+                    BlockLevelContent = null,
+                    Index = -1,
+                    Div = 0,
+                },
+                    (b, p) =>
                     {
-                        BlockLevelContent = p,
-                        Index = i,
-                    })
-                    .Rollup(new Atbid
-                    {
-                        BlockLevelContent = null,
-                        Index = -1,
-                        Div = 0,
-                    },
-                        (b, p) =>
+                        var elementBefore = b.BlockLevelContent
+                            .SiblingsBeforeSelfReverseDocumentOrder()
+                            .FirstOrDefault();
+                        if (elementBefore != null && elementBefore.Descendants(W.sectPr).Any())
                         {
-                            var elementBefore = b.BlockLevelContent
-                                .SiblingsBeforeSelfReverseDocumentOrder()
-                                .FirstOrDefault();
-                            if (elementBefore != null && elementBefore.Descendants(W.sectPr).Any())
-                            {
-                                return new Atbid
-                                {
-                                    BlockLevelContent = b.BlockLevelContent,
-                                    Index = b.Index,
-                                    Div = p.Div + 1,
-                                };
-                            }
-
                             return new Atbid
                             {
                                 BlockLevelContent = b.BlockLevelContent,
                                 Index = b.Index,
-                                Div = p.Div,
+                                Div = p.Div + 1,
                             };
-                        });
-                var groups = divs
-                    .GroupAdjacent(b => b.Div);
-                tempSourceList = groups
-                    .Select(g => new TempSource
-                    {
-                        Start = g.First().Index,
-                        Count = g.Count(),
-                    })
-                    .ToList();
-                foreach (var ts in tempSourceList)
+                        }
+
+                        return new Atbid
+                        {
+                            BlockLevelContent = b.BlockLevelContent,
+                            Index = b.Index,
+                            Div = p.Div,
+                        };
+                    });
+            var groups = divs
+                .GroupAdjacent(b => b.Div);
+            tempSourceList = groups
+                .Select(g => new TempSource
                 {
-                    var sources = new List<Source>()
+                    Start = g.First().Index,
+                    Count = g.Count(),
+                })
+                .ToList();
+            foreach (var ts in tempSourceList)
+            {
+                var sources = new List<Source>()
                     {
                         new Source(doc, ts.Start, ts.Count, true)
                     };
-                    var newDoc = DocumentBuilder.BuildDocument(sources);
-                    newDoc = AdjustSectionBreak(newDoc);
-                    yield return newDoc;
-                }
+                var newDoc = DocumentBuilder.BuildDocument(sources);
+                newDoc = AdjustSectionBreak(newDoc);
+                yield return newDoc;
             }
         }
 
         private static WmlDocument AdjustSectionBreak(WmlDocument doc)
         {
-            using (var streamDoc = new OpenXmlMemoryStreamDocument(doc))
+            using var streamDoc = new OpenXmlMemoryStreamDocument(doc);
+            using (var document = streamDoc.GetWordprocessingDocument())
             {
-                using (var document = streamDoc.GetWordprocessingDocument())
+                var mainXDoc = document.MainDocumentPart.GetXDocument();
+                var lastElement = mainXDoc.Root
+                    .Element(W.body)
+                    .Elements()
+                    .LastOrDefault();
+                if (lastElement != null)
                 {
-                    var mainXDoc = document.MainDocumentPart.GetXDocument();
-                    var lastElement = mainXDoc.Root
-                        .Element(W.body)
-                        .Elements()
-                        .LastOrDefault();
-                    if (lastElement != null)
+                    if (lastElement.Name != W.sectPr &&
+                        lastElement.Descendants(W.sectPr).Any())
                     {
-                        if (lastElement.Name != W.sectPr &&
-                            lastElement.Descendants(W.sectPr).Any())
+                        mainXDoc.Root.Element(W.body).Add(lastElement.Descendants(W.sectPr).First());
+                        lastElement.Descendants(W.sectPr).Remove();
+                        if (!lastElement.Elements()
+                            .Where(e => e.Name != W.pPr)
+                            .Any())
                         {
-                            mainXDoc.Root.Element(W.body).Add(lastElement.Descendants(W.sectPr).First());
-                            lastElement.Descendants(W.sectPr).Remove();
-                            if (!lastElement.Elements()
-                                .Where(e => e.Name != W.pPr)
-                                .Any())
-                            {
-                                lastElement.Remove();
-                            }
-
-                            document.MainDocumentPart.PutXDocument();
+                            lastElement.Remove();
                         }
+
+                        document.MainDocumentPart.PutXDocument();
                     }
                 }
-                return streamDoc.GetModifiedWmlDocument();
             }
+            return streamDoc.GetModifiedWmlDocument();
         }
 
         private static void BuildDocument(List<Source> sources, WordprocessingDocument output, DocumentBuilderSettings settings)
@@ -248,46 +234,44 @@ namespace OpenXmlPowerTools
 
                             if (foundInMainDocPart)
                             {
-                                using (var streamDoc = new OpenXmlMemoryStreamDocument(source.WmlDocument))
-                                using (var doc = streamDoc.GetWordprocessingDocument())
-                                {
+                                using var streamDoc = new OpenXmlMemoryStreamDocument(source.WmlDocument);
+                                using var doc = streamDoc.GetWordprocessingDocument();
 #if TestForUnsupportedDocuments
-                                    // throws exceptions if a document contains unsupported content
-                                    TestForUnsupportedDocument(doc, sources.IndexOf(source));
+                                // throws exceptions if a document contains unsupported content
+                                TestForUnsupportedDocument(doc, sources.IndexOf(source));
 #endif
-                                    if (foundInMainDocPart)
+                                if (foundInMainDocPart)
+                                {
+                                    if (source.KeepSections && source.DiscardHeadersAndFootersInKeptSections)
                                     {
-                                        if (source.KeepSections && source.DiscardHeadersAndFootersInKeptSections)
-                                        {
-                                            RemoveHeadersAndFootersFromSections(doc);
-                                        }
-                                        else if (source.KeepSections)
-                                        {
-                                            ProcessSectionsForLinkToPreviousHeadersAndFooters(doc);
-                                        }
+                                        RemoveHeadersAndFootersFromSections(doc);
+                                    }
+                                    else if (source.KeepSections)
+                                    {
+                                        ProcessSectionsForLinkToPreviousHeadersAndFooters(doc);
+                                    }
 
-                                        var contents = doc.MainDocumentPart.GetXDocument()
-                                            .Root
-                                            .Element(W.body)
-                                            .Elements()
-                                            .Skip(source.Start)
-                                            .Take(source.Count)
-                                            .ToList();
+                                    var contents = doc.MainDocumentPart.GetXDocument()
+                                        .Root
+                                        .Element(W.body)
+                                        .Elements()
+                                        .Skip(source.Start)
+                                        .Take(source.Count)
+                                        .ToList();
 
-                                        try
+                                    try
+                                    {
+                                        AppendDocument(doc, output, contents, source.KeepSections, source.InsertId, images);
+                                    }
+                                    catch (DocumentBuilderInternalException dbie)
+                                    {
+                                        if (dbie.Message.Contains("{0}"))
                                         {
-                                            AppendDocument(doc, output, contents, source.KeepSections, source.InsertId, images);
+                                            throw new DocumentBuilderException(string.Format(dbie.Message, sourceNum2));
                                         }
-                                        catch (DocumentBuilderInternalException dbie)
+                                        else
                                         {
-                                            if (dbie.Message.Contains("{0}"))
-                                            {
-                                                throw new DocumentBuilderException(string.Format(dbie.Message, sourceNum2));
-                                            }
-                                            else
-                                            {
-                                                throw dbie;
-                                            }
+                                            throw dbie;
                                         }
                                     }
                                 }
@@ -300,51 +284,49 @@ namespace OpenXmlPowerTools
                     }
                     else
                     {
-                        using (var streamDoc = new OpenXmlMemoryStreamDocument(source.WmlDocument))
-                        using (var doc = streamDoc.GetWordprocessingDocument())
-                        {
+                        using var streamDoc = new OpenXmlMemoryStreamDocument(source.WmlDocument);
+                        using var doc = streamDoc.GetWordprocessingDocument();
 #if TestForUnsupportedDocuments
-                            // throws exceptions if a document contains unsupported content
-                            TestForUnsupportedDocument(doc, sources.IndexOf(source));
+                        // throws exceptions if a document contains unsupported content
+                        TestForUnsupportedDocument(doc, sources.IndexOf(source));
 #endif
-                            if (source.KeepSections && source.DiscardHeadersAndFootersInKeptSections)
-                            {
-                                RemoveHeadersAndFootersFromSections(doc);
-                            }
-                            else if (source.KeepSections)
-                            {
-                                ProcessSectionsForLinkToPreviousHeadersAndFooters(doc);
-                            }
+                        if (source.KeepSections && source.DiscardHeadersAndFootersInKeptSections)
+                        {
+                            RemoveHeadersAndFootersFromSections(doc);
+                        }
+                        else if (source.KeepSections)
+                        {
+                            ProcessSectionsForLinkToPreviousHeadersAndFooters(doc);
+                        }
 
-                            var body = doc.MainDocumentPart.GetXDocument()
-                                .Root
-                                .Element(W.body);
+                        var body = doc.MainDocumentPart.GetXDocument()
+                            .Root
+                            .Element(W.body);
 
-                            if (body == null)
-                            {
-                                throw new DocumentBuilderException(
-                                    string.Format("Source {0} is unsupported document - contains no body element in the correct namespace", sourceNum2));
-                            }
+                        if (body == null)
+                        {
+                            throw new DocumentBuilderException(
+                                string.Format("Source {0} is unsupported document - contains no body element in the correct namespace", sourceNum2));
+                        }
 
-                            var contents = body
-                                .Elements()
-                                .Skip(source.Start)
-                                .Take(source.Count)
-                                .ToList();
-                            try
+                        var contents = body
+                            .Elements()
+                            .Skip(source.Start)
+                            .Take(source.Count)
+                            .ToList();
+                        try
+                        {
+                            AppendDocument(doc, output, contents, source.KeepSections, null, images);
+                        }
+                        catch (DocumentBuilderInternalException dbie)
+                        {
+                            if (dbie.Message.Contains("{0}"))
                             {
-                                AppendDocument(doc, output, contents, source.KeepSections, null, images);
+                                throw new DocumentBuilderException(string.Format(dbie.Message, sourceNum2));
                             }
-                            catch (DocumentBuilderInternalException dbie)
+                            else
                             {
-                                if (dbie.Message.Contains("{0}"))
-                                {
-                                    throw new DocumentBuilderException(string.Format(dbie.Message, sourceNum2));
-                                }
-                                else
-                                {
-                                    throw dbie;
-                                }
+                                throw dbie;
                             }
                         }
                     }
@@ -352,20 +334,18 @@ namespace OpenXmlPowerTools
                 }
                 if (!sources.Any(s => s.KeepSections))
                 {
-                    using (var streamDoc = new OpenXmlMemoryStreamDocument(sources[0].WmlDocument))
-                    using (var doc = streamDoc.GetWordprocessingDocument())
-                    {
-                        var body = doc.MainDocumentPart.GetXDocument().Root.Element(W.body);
+                    using var streamDoc = new OpenXmlMemoryStreamDocument(sources[0].WmlDocument);
+                    using var doc = streamDoc.GetWordprocessingDocument();
+                    var body = doc.MainDocumentPart.GetXDocument().Root.Element(W.body);
 
-                        if (body != null && body.Elements().Any())
+                    if (body != null && body.Elements().Any())
+                    {
+                        var sectPr = doc.MainDocumentPart.GetXDocument().Root.Elements(W.body)
+                            .Elements().LastOrDefault();
+                        if (sectPr != null && sectPr.Name == W.sectPr)
                         {
-                            var sectPr = doc.MainDocumentPart.GetXDocument().Root.Elements(W.body)
-                                .Elements().LastOrDefault();
-                            if (sectPr != null && sectPr.Name == W.sectPr)
-                            {
-                                AddSectionAndDependencies(doc, output, sectPr, images);
-                                output.MainDocumentPart.GetXDocument().Root.Element(W.body).Add(sectPr);
-                            }
+                            AddSectionAndDependencies(doc, output, sectPr, images);
+                            output.MainDocumentPart.GetXDocument().Root.Element(W.body).Add(sectPr);
                         }
                     }
                 }
@@ -451,44 +431,42 @@ namespace OpenXmlPowerTools
 
                             if (foundInHeadersFooters)
                             {
-                                using (var streamDoc = new OpenXmlMemoryStreamDocument(source.WmlDocument))
-                                using (var doc = streamDoc.GetWordprocessingDocument())
-                                {
+                                using var streamDoc = new OpenXmlMemoryStreamDocument(source.WmlDocument);
+                                using var doc = streamDoc.GetWordprocessingDocument();
 #if TestForUnsupportedDocuments
-                                    // throws exceptions if a document contains unsupported content
-                                    TestForUnsupportedDocument(doc, sources.IndexOf(source));
+                                // throws exceptions if a document contains unsupported content
+                                TestForUnsupportedDocument(doc, sources.IndexOf(source));
 #endif
-                                    var partList = output.MainDocumentPart.HeaderParts.Cast<OpenXmlPart>().Concat(output.MainDocumentPart.FooterParts.Cast<OpenXmlPart>()).ToList();
-                                    foreach (var part in partList)
+                                var partList = output.MainDocumentPart.HeaderParts.Cast<OpenXmlPart>().Concat(output.MainDocumentPart.FooterParts.Cast<OpenXmlPart>()).ToList();
+                                foreach (var part in partList)
+                                {
+                                    var partXDoc = part.GetXDocument();
+                                    if (!partXDoc.Descendants(PtOpenXml.Insert).Any(d => (string)d.Attribute(PtOpenXml.Id) == source.InsertId))
                                     {
-                                        var partXDoc = part.GetXDocument();
-                                        if (!partXDoc.Descendants(PtOpenXml.Insert).Any(d => (string)d.Attribute(PtOpenXml.Id) == source.InsertId))
-                                        {
-                                            continue;
-                                        }
+                                        continue;
+                                    }
 
-                                        var contents = doc.MainDocumentPart.GetXDocument()
-                                            .Root
-                                            .Element(W.body)
-                                            .Elements()
-                                            .Skip(source.Start)
-                                            .Take(source.Count)
-                                            .ToList();
+                                    var contents = doc.MainDocumentPart.GetXDocument()
+                                        .Root
+                                        .Element(W.body)
+                                        .Elements()
+                                        .Skip(source.Start)
+                                        .Take(source.Count)
+                                        .ToList();
 
-                                        try
+                                    try
+                                    {
+                                        AppendDocument(doc, output, part, contents, source.InsertId, images);
+                                    }
+                                    catch (DocumentBuilderInternalException dbie)
+                                    {
+                                        if (dbie.Message.Contains("{0}"))
                                         {
-                                            AppendDocument(doc, output, part, contents, source.InsertId, images);
+                                            throw new DocumentBuilderException(string.Format(dbie.Message, sourceNum));
                                         }
-                                        catch (DocumentBuilderInternalException dbie)
+                                        else
                                         {
-                                            if (dbie.Message.Contains("{0}"))
-                                            {
-                                                throw new DocumentBuilderException(string.Format(dbie.Message, sourceNum));
-                                            }
-                                            else
-                                            {
-                                                throw dbie;
-                                            }
+                                            throw dbie;
                                         }
                                     }
                                 }
@@ -503,16 +481,14 @@ namespace OpenXmlPowerTools
                 }
                 if (sources.Any(s => s.KeepSections) && !output.MainDocumentPart.GetXDocument().Root.Descendants(W.sectPr).Any())
                 {
-                    using (var streamDoc = new OpenXmlMemoryStreamDocument(sources[0].WmlDocument))
-                    using (var doc = streamDoc.GetWordprocessingDocument())
+                    using var streamDoc = new OpenXmlMemoryStreamDocument(sources[0].WmlDocument);
+                    using var doc = streamDoc.GetWordprocessingDocument();
+                    var sectPr = doc.MainDocumentPart.GetXDocument().Root.Element(W.body)
+                        .Elements().LastOrDefault();
+                    if (sectPr != null && sectPr.Name == W.sectPr)
                     {
-                        var sectPr = doc.MainDocumentPart.GetXDocument().Root.Element(W.body)
-                            .Elements().LastOrDefault();
-                        if (sectPr != null && sectPr.Name == W.sectPr)
-                        {
-                            AddSectionAndDependencies(doc, output, sectPr, images);
-                            output.MainDocumentPart.GetXDocument().Root.Element(W.body).Add(sectPr);
-                        }
+                        AddSectionAndDependencies(doc, output, sectPr, images);
+                        output.MainDocumentPart.GetXDocument().Root.Element(W.body).Add(sectPr);
                     }
                 }
                 AdjustDocPrIds(output);
@@ -943,26 +919,22 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml
 
         private static void WriteGlossaryDocumentPart(WmlDocument wmlGlossaryDocument, WordprocessingDocument output, List<ImageData> images)
         {
-            using (var ms = new MemoryStream())
-            {
-                ms.Write(wmlGlossaryDocument.DocumentByteArray, 0, wmlGlossaryDocument.DocumentByteArray.Length);
-                using (var wDoc = WordprocessingDocument.Open(ms, true))
-                {
-                    var fromXDoc = wDoc.MainDocumentPart.GetXDocument();
+            using var ms = new MemoryStream();
+            ms.Write(wmlGlossaryDocument.DocumentByteArray, 0, wmlGlossaryDocument.DocumentByteArray.Length);
+            using var wDoc = WordprocessingDocument.Open(ms, true);
+            var fromXDoc = wDoc.MainDocumentPart.GetXDocument();
 
-                    var outputGlossaryDocumentPart = output.MainDocumentPart.AddNewPart<GlossaryDocumentPart>();
-                    var newXDoc = new XDocument(
-                        new XDeclaration(OnePointZero, Utf8, Yes),
-                        new XElement(W.glossaryDocument,
-                            NamespaceAttributes,
-                            new XElement(W.docParts,
-                                fromXDoc.Descendants(W.docPart))));
-                    outputGlossaryDocumentPart.PutXDocument(newXDoc);
+            var outputGlossaryDocumentPart = output.MainDocumentPart.AddNewPart<GlossaryDocumentPart>();
+            var newXDoc = new XDocument(
+                new XDeclaration(OnePointZero, Utf8, Yes),
+                new XElement(W.glossaryDocument,
+                    NamespaceAttributes,
+                    new XElement(W.docParts,
+                        fromXDoc.Descendants(W.docPart))));
+            outputGlossaryDocumentPart.PutXDocument(newXDoc);
 
-                    CopyGlossaryDocumentPartsToGD(wDoc, output, fromXDoc.Root.Descendants(W.docPart), images);
-                    CopyRelatedPartsForContentParts(wDoc.MainDocumentPart, outputGlossaryDocumentPart, new[] { fromXDoc.Root }, images);
-                }
-            }
+            CopyGlossaryDocumentPartsToGD(wDoc, output, fromXDoc.Root.Descendants(W.docPart), images);
+            CopyRelatedPartsForContentParts(wDoc.MainDocumentPart, outputGlossaryDocumentPart, new[] { fromXDoc.Root }, images);
         }
 
         private static WmlDocument CoalesceGlossaryDocumentParts(IEnumerable<Source> sources)
@@ -981,26 +953,24 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml
             var coalescedRaw = DocumentBuilder.BuildDocument(allGlossaryDocuments);
 
             // now need to do some fix up
-            using (var ms = new MemoryStream())
+            using var ms = new MemoryStream();
+            ms.Write(coalescedRaw.DocumentByteArray, 0, coalescedRaw.DocumentByteArray.Length);
+            using (var wDoc = WordprocessingDocument.Open(ms, true))
             {
-                ms.Write(coalescedRaw.DocumentByteArray, 0, coalescedRaw.DocumentByteArray.Length);
-                using (var wDoc = WordprocessingDocument.Open(ms, true))
-                {
-                    var mainXDoc = wDoc.MainDocumentPart.GetXDocument();
+                var mainXDoc = wDoc.MainDocumentPart.GetXDocument();
 
-                    var newBody = new XElement(W.body,
-                        new XElement(W.docParts,
-                            mainXDoc.Root.Element(W.body).Elements(W.docParts).Elements(W.docPart)));
+                var newBody = new XElement(W.body,
+                    new XElement(W.docParts,
+                        mainXDoc.Root.Element(W.body).Elements(W.docParts).Elements(W.docPart)));
 
-                    mainXDoc.Root.Element(W.body).ReplaceWith(newBody);
+                mainXDoc.Root.Element(W.body).ReplaceWith(newBody);
 
-                    wDoc.MainDocumentPart.PutXDocument();
-                }
-
-                var coalescedGlossaryDocument = new WmlDocument("Coalesced.docx", ms.ToArray());
-
-                return coalescedGlossaryDocument;
+                wDoc.MainDocumentPart.PutXDocument();
             }
+
+            var coalescedGlossaryDocument = new WmlDocument("Coalesced.docx", ms.ToArray());
+
+            return coalescedGlossaryDocument;
         }
 
         private static void InitRelationshipMarkup()
@@ -2370,52 +2340,46 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml
                 InitRelationshipMarkup();
             }
 
-            using (var ms = new MemoryStream())
+            using var ms = new MemoryStream();
+            ms.Write(wmlGlossaryDocument.DocumentByteArray, 0, wmlGlossaryDocument.DocumentByteArray.Length);
+            using var wDoc = WordprocessingDocument.Open(ms, false);
+            if (wDoc.MainDocumentPart.GlossaryDocumentPart == null)
             {
-                ms.Write(wmlGlossaryDocument.DocumentByteArray, 0, wmlGlossaryDocument.DocumentByteArray.Length);
-                using (var wDoc = WordprocessingDocument.Open(ms, false))
-                {
-                    if (wDoc.MainDocumentPart.GlossaryDocumentPart == null)
-                    {
-                        return null;
-                    }
-
-                    var fromXd = wDoc.MainDocumentPart.GlossaryDocumentPart.GetXDocument();
-                    if (fromXd.Root == null)
-                    {
-                        return null;
-                    }
-
-                    using (var outMs = new MemoryStream())
-                    {
-                        using (var outWDoc = WordprocessingDocument.Create(outMs, DocumentFormat.OpenXml.WordprocessingDocumentType.Document))
-                        {
-                            var images = new List<ImageData>();
-
-                            var mdp = outWDoc.AddMainDocumentPart();
-                            var mdpXd = mdp.GetXDocument();
-                            var root = new XElement(W.document);
-                            if (mdpXd.Root == null)
-                            {
-                                mdpXd.Add(root);
-                            }
-                            else
-                            {
-                                mdpXd.Root.ReplaceWith(root);
-                            }
-
-                            root.Add(new XElement(W.body,
-                                fromXd.Root.Elements(W.docParts)));
-                            mdp.PutXDocument();
-
-                            var newContent = fromXd.Root.Elements(W.docParts);
-                            CopyGlossaryDocumentPartsFromGD(wDoc, outWDoc, newContent, images);
-                            CopyRelatedPartsForContentParts(wDoc.MainDocumentPart.GlossaryDocumentPart, mdp, newContent, images);
-                        }
-                        return new WmlDocument("Glossary.docx", outMs.ToArray());
-                    }
-                }
+                return null;
             }
+
+            var fromXd = wDoc.MainDocumentPart.GlossaryDocumentPart.GetXDocument();
+            if (fromXd.Root == null)
+            {
+                return null;
+            }
+
+            using var outMs = new MemoryStream();
+            using (var outWDoc = WordprocessingDocument.Create(outMs, DocumentFormat.OpenXml.WordprocessingDocumentType.Document))
+            {
+                var images = new List<ImageData>();
+
+                var mdp = outWDoc.AddMainDocumentPart();
+                var mdpXd = mdp.GetXDocument();
+                var root = new XElement(W.document);
+                if (mdpXd.Root == null)
+                {
+                    mdpXd.Add(root);
+                }
+                else
+                {
+                    mdpXd.Root.ReplaceWith(root);
+                }
+
+                root.Add(new XElement(W.body,
+                    fromXd.Root.Elements(W.docParts)));
+                mdp.PutXDocument();
+
+                var newContent = fromXd.Root.Elements(W.docParts);
+                CopyGlossaryDocumentPartsFromGD(wDoc, outWDoc, newContent, images);
+                CopyRelatedPartsForContentParts(wDoc.MainDocumentPart.GlossaryDocumentPart, mdp, newContent, images);
+            }
+            return new WmlDocument("Glossary.docx", outMs.ToArray());
         }
 
         private static void CopyGlossaryDocumentPartsFromGD(WordprocessingDocument sourceDocument, WordprocessingDocument newDocument,

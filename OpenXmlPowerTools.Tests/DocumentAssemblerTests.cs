@@ -1,6 +1,4 @@
-﻿
-
-using DocumentFormat.OpenXml.Packaging;
+﻿using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Validation;
 using OpenXmlPowerTools;
 using System;
@@ -123,21 +121,19 @@ namespace OxPt
             using (var ms = new MemoryStream())
             {
                 ms.Write(afterAssembling.DocumentByteArray, 0, afterAssembling.DocumentByteArray.Length);
-                using (var wDoc = WordprocessingDocument.Open(ms, true))
+                using var wDoc = WordprocessingDocument.Open(ms, true);
+                var v = new OpenXmlValidator();
+                var valErrors = v.Validate(wDoc).Where(ve => !s_ExpectedErrors.Contains(ve.Description));
+
+                var sb = new StringBuilder();
+                foreach (var item in valErrors.Select(r => r.Description).OrderBy(t => t).Distinct())
                 {
-                    var v = new OpenXmlValidator();
-                    var valErrors = v.Validate(wDoc).Where(ve => !s_ExpectedErrors.Contains(ve.Description));
-
-                    var sb = new StringBuilder();
-                    foreach (var item in valErrors.Select(r => r.Description).OrderBy(t => t).Distinct())
-                    {
-                        sb.Append(item).Append(Environment.NewLine);
-                    }
-                    var z = sb.ToString();
-                    Console.WriteLine(z);
-
-                    Assert.Empty(valErrors);
+                    sb.Append(item).Append(Environment.NewLine);
                 }
+                var z = sb.ToString();
+                Console.WriteLine(z);
+
+                Assert.Empty(valErrors);
             }
 
             Assert.Equal(err, returnedTemplateError);
@@ -195,12 +191,10 @@ namespace OxPt
             using (var ms = new MemoryStream())
             {
                 ms.Write(afterAssembling.DocumentByteArray, 0, afterAssembling.DocumentByteArray.Length);
-                using (var wDoc = WordprocessingDocument.Open(ms, true))
-                {
-                    var v = new OpenXmlValidator();
-                    var valErrors = v.Validate(wDoc).Where(ve => !s_ExpectedErrors.Contains(ve.Description));
-                    Assert.Empty(valErrors);
-                }
+                using var wDoc = WordprocessingDocument.Open(ms, true);
+                var v = new OpenXmlValidator();
+                var valErrors = v.Validate(wDoc).Where(ve => !s_ExpectedErrors.Contains(ve.Description));
+                Assert.Empty(valErrors);
             }
 
             Assert.Equal(err, returnedTemplateError);

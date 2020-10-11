@@ -1,6 +1,4 @@
-﻿
-
-using System.Drawing;
+﻿using System.Drawing;
 
 namespace OpenXmlPowerTools
 {
@@ -21,7 +19,7 @@ namespace OpenXmlPowerTools
             }
             catch
             {
-                color = default(Color);
+                color = default;
 
                 return false;
             }

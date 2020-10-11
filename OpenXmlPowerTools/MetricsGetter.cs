@@ -1,6 +1,4 @@
-﻿
-
-using DocumentFormat.OpenXml.Packaging;
+﻿using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Validation;
 using System;
 using System.Collections.Generic;
@@ -60,26 +58,22 @@ namespace OpenXmlPowerTools
         {
             try
             {
-                using (var ms = new MemoryStream())
+                using var ms = new MemoryStream();
+                ms.Write(wmlDoc.DocumentByteArray, 0, wmlDoc.DocumentByteArray.Length);
+                using var document = WordprocessingDocument.Open(ms, true);
+                var hasTrackedRevisions = RevisionAccepter.HasTrackedRevisions(document);
+                if (hasTrackedRevisions)
                 {
-                    ms.Write(wmlDoc.DocumentByteArray, 0, wmlDoc.DocumentByteArray.Length);
-                    using (var document = WordprocessingDocument.Open(ms, true))
-                    {
-                        var hasTrackedRevisions = RevisionAccepter.HasTrackedRevisions(document);
-                        if (hasTrackedRevisions)
-                        {
-                            RevisionAccepter.AcceptRevisions(document);
-                        }
-
-                        var metrics1 = GetWmlMetrics(wmlDoc.FileName, false, document, settings);
-                        if (hasTrackedRevisions)
-                        {
-                            metrics1.Add(new XElement(H.RevisionTracking, new XAttribute(H.Val, true)));
-                        }
-
-                        return metrics1;
-                    }
+                    RevisionAccepter.AcceptRevisions(document);
                 }
+
+                var metrics1 = GetWmlMetrics(wmlDoc.FileName, false, document, settings);
+                if (hasTrackedRevisions)
+                {
+                    metrics1.Add(new XElement(H.RevisionTracking, new XAttribute(H.Val, true)));
+                }
+
+                return metrics1;
             }
             catch (OpenXmlPowerToolsException e)
             {
@@ -94,22 +88,20 @@ namespace OpenXmlPowerTools
                     using (var ms = new MemoryStream())
                     {
                         ms.Write(wmlDoc.DocumentByteArray, 0, wmlDoc.DocumentByteArray.Length);
-                        using (var document = WordprocessingDocument.Open(ms, true))
+                        using var document = WordprocessingDocument.Open(ms, true);
+                        var hasTrackedRevisions = RevisionAccepter.HasTrackedRevisions(document);
+                        if (hasTrackedRevisions)
                         {
-                            var hasTrackedRevisions = RevisionAccepter.HasTrackedRevisions(document);
-                            if (hasTrackedRevisions)
-                            {
-                                RevisionAccepter.AcceptRevisions(document);
-                            }
-
-                            var metrics2 = GetWmlMetrics(wmlDoc.FileName, true, document, settings);
-                            if (hasTrackedRevisions)
-                            {
-                                metrics2.Add(new XElement(H.RevisionTracking, new XAttribute(H.Val, true)));
-                            }
-
-                            return metrics2;
+                            RevisionAccepter.AcceptRevisions(document);
                         }
+
+                        var metrics2 = GetWmlMetrics(wmlDoc.FileName, true, document, settings);
+                        if (hasTrackedRevisions)
+                        {
+                            metrics2.Add(new XElement(H.RevisionTracking, new XAttribute(H.Val, true)));
+                        }
+
+                        return metrics2;
                     }
                 }
             }
@@ -124,12 +116,10 @@ namespace OpenXmlPowerTools
         {
             try
             {
-                using (var f = new Font(ff, (float)sz / 2f, fs))
-                {
-                    var proposedSize = new Size(int.MaxValue, int.MaxValue);
-                    var sf = Graphics.Value.MeasureString(text, f, proposedSize);
-                    return (int)sf.Width;
-                }
+                using var f = new Font(ff, (float)sz / 2f, fs);
+                var proposedSize = new Size(int.MaxValue, int.MaxValue);
+                var sf = Graphics.Value.MeasureString(text, f, proposedSize);
+                return (int)sf.Width;
             }
             catch
             {
@@ -227,30 +217,28 @@ namespace OpenXmlPowerTools
             var uniqueNamespaces = new HashSet<string>();
             foreach (var xp in xmlParts)
             {
-                using (var st = xp.GetStream())
+                using var st = xp.GetStream();
+                try
                 {
-                    try
+                    var xdoc = XDocument.Load(st);
+                    var namespaces = xdoc
+                        .Descendants()
+                        .Attributes()
+                        .Where(a => a.IsNamespaceDeclaration)
+                        .Select(a => string.Format("{0}|{1}", a.Name.LocalName, a.Value))
+                        .OrderBy(t => t)
+                        .Distinct()
+                        .ToList();
+                    foreach (var item in namespaces)
                     {
-                        var xdoc = XDocument.Load(st);
-                        var namespaces = xdoc
-                            .Descendants()
-                            .Attributes()
-                            .Where(a => a.IsNamespaceDeclaration)
-                            .Select(a => string.Format("{0}|{1}", a.Name.LocalName, a.Value))
-                            .OrderBy(t => t)
-                            .Distinct()
-                            .ToList();
-                        foreach (var item in namespaces)
-                        {
-                            uniqueNamespaces.Add(item);
-                        }
+                        uniqueNamespaces.Add(item);
                     }
-                    // if catch exception, forget about it.  Just trying to get a most complete survey possible of all namespaces in all documents.
-                    // if caught exception, chances are the document is bad anyway.
-                    catch (Exception)
-                    {
-                        continue;
-                    }
+                }
+                // if catch exception, forget about it.  Just trying to get a most complete survey possible of all namespaces in all documents.
+                // if caught exception, chances are the document is bad anyway.
+                catch (Exception)
+                {
+                    continue;
                 }
             }
             var xe = new XElement(H.Namespaces,
@@ -823,25 +811,21 @@ namespace OpenXmlPowerTools
 
         public static XElement GetXlsxMetrics(SmlDocument smlDoc, MetricsGetterSettings settings)
         {
-            using (var streamDoc = new OpenXmlMemoryStreamDocument(smlDoc))
-            {
-                using (var sDoc = streamDoc.GetSpreadsheetDocument())
-                {
-                    var metrics = new List<XElement>();
+            using var streamDoc = new OpenXmlMemoryStreamDocument(smlDoc);
+            using var sDoc = streamDoc.GetSpreadsheetDocument();
+            var metrics = new List<XElement>();
 
-                    var valid = ValidateAgainstSpecificVersion(sDoc, metrics, DocumentFormat.OpenXml.FileFormatVersions.Office2007, H.SdkValidationError2007);
-                    valid |= ValidateAgainstSpecificVersion(sDoc, metrics, DocumentFormat.OpenXml.FileFormatVersions.Office2010, H.SdkValidationError2010);
-                    valid |= ValidateAgainstSpecificVersion(sDoc, metrics, DocumentFormat.OpenXml.FileFormatVersions.Office2013, H.SdkValidationError2013);
+            var valid = ValidateAgainstSpecificVersion(sDoc, metrics, DocumentFormat.OpenXml.FileFormatVersions.Office2007, H.SdkValidationError2007);
+            valid |= ValidateAgainstSpecificVersion(sDoc, metrics, DocumentFormat.OpenXml.FileFormatVersions.Office2010, H.SdkValidationError2010);
+            valid |= ValidateAgainstSpecificVersion(sDoc, metrics, DocumentFormat.OpenXml.FileFormatVersions.Office2013, H.SdkValidationError2013);
 
-                    return new XElement(H.Metrics,
-                        new XAttribute(H.FileName, smlDoc.FileName),
-                        new XAttribute(H.FileType, "SpreadsheetML"),
-                        metrics,
-                        GetTableInfoForWorkbook(sDoc, settings),
-                        settings.RetrieveNamespaceList ? RetrieveNamespaceList(sDoc) : null,
-                        settings.RetrieveContentTypeList ? RetrieveContentTypeList(sDoc) : null);
-                }
-            }
+            return new XElement(H.Metrics,
+                new XAttribute(H.FileName, smlDoc.FileName),
+                new XAttribute(H.FileType, "SpreadsheetML"),
+                metrics,
+                GetTableInfoForWorkbook(sDoc, settings),
+                settings.RetrieveNamespaceList ? RetrieveNamespaceList(sDoc) : null,
+                settings.RetrieveContentTypeList ? RetrieveContentTypeList(sDoc) : null);
         }
 
         private static XElement GetTableInfoForWorkbook(SpreadsheetDocument spreadsheet, MetricsGetterSettings settings)
@@ -916,23 +900,19 @@ namespace OpenXmlPowerTools
 
         public static XElement GetPptxMetrics(PmlDocument pmlDoc, MetricsGetterSettings settings)
         {
-            using (var streamDoc = new OpenXmlMemoryStreamDocument(pmlDoc))
-            {
-                using (var pDoc = streamDoc.GetPresentationDocument())
-                {
-                    var metrics = new List<XElement>();
+            using var streamDoc = new OpenXmlMemoryStreamDocument(pmlDoc);
+            using var pDoc = streamDoc.GetPresentationDocument();
+            var metrics = new List<XElement>();
 
-                    var valid = ValidateAgainstSpecificVersion(pDoc, metrics, DocumentFormat.OpenXml.FileFormatVersions.Office2007, H.SdkValidationError2007);
-                    valid |= ValidateAgainstSpecificVersion(pDoc, metrics, DocumentFormat.OpenXml.FileFormatVersions.Office2010, H.SdkValidationError2010);
-                    valid |= ValidateAgainstSpecificVersion(pDoc, metrics, DocumentFormat.OpenXml.FileFormatVersions.Office2013, H.SdkValidationError2013);
-                    return new XElement(H.Metrics,
-                        new XAttribute(H.FileName, pmlDoc.FileName),
-                        new XAttribute(H.FileType, "PresentationML"),
-                        metrics,
-                        settings.RetrieveNamespaceList ? RetrieveNamespaceList(pDoc) : null,
-                        settings.RetrieveContentTypeList ? RetrieveContentTypeList(pDoc) : null);
-                }
-            }
+            var valid = ValidateAgainstSpecificVersion(pDoc, metrics, DocumentFormat.OpenXml.FileFormatVersions.Office2007, H.SdkValidationError2007);
+            valid |= ValidateAgainstSpecificVersion(pDoc, metrics, DocumentFormat.OpenXml.FileFormatVersions.Office2010, H.SdkValidationError2010);
+            valid |= ValidateAgainstSpecificVersion(pDoc, metrics, DocumentFormat.OpenXml.FileFormatVersions.Office2013, H.SdkValidationError2013);
+            return new XElement(H.Metrics,
+                new XAttribute(H.FileName, pmlDoc.FileName),
+                new XAttribute(H.FileType, "PresentationML"),
+                metrics,
+                settings.RetrieveNamespaceList ? RetrieveNamespaceList(pDoc) : null,
+                settings.RetrieveContentTypeList ? RetrieveContentTypeList(pDoc) : null);
         }
 
         private static object GetStyleHierarchy(WordprocessingDocument document)

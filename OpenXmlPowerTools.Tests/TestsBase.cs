@@ -1,5 +1,3 @@
-
-
 using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
@@ -16,11 +14,9 @@ namespace OpenXmlPowerTools.Tests
 
         protected static void CreateEmptyWordprocessingDocument(Stream stream)
         {
-            using (var wordDocument = WordprocessingDocument.Create(stream, DocumentType))
-            {
-                var part = wordDocument.AddMainDocumentPart();
-                part.Document = new Document(new Body());
-            }
+            using var wordDocument = WordprocessingDocument.Create(stream, DocumentType);
+            var part = wordDocument.AddMainDocumentPart();
+            part.Document = new Document(new Body());
         }
     }
 }

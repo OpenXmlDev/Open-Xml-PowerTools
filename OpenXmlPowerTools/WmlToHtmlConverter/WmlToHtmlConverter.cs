@@ -1,6 +1,4 @@
-﻿
-
-using DocumentFormat.OpenXml.Packaging;
+﻿using DocumentFormat.OpenXml.Packaging;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -19,13 +17,9 @@ namespace OpenXmlPowerTools
     {
         public static XElement ConvertToHtml(WmlDocument doc, WmlToHtmlConverterSettings htmlConverterSettings)
         {
-            using (var streamDoc = new OpenXmlMemoryStreamDocument(doc))
-            {
-                using (var document = streamDoc.GetWordprocessingDocument())
-                {
-                    return ConvertToHtml(document, htmlConverterSettings);
-                }
-            }
+            using var streamDoc = new OpenXmlMemoryStreamDocument(doc);
+            using var document = streamDoc.GetWordprocessingDocument();
+            return ConvertToHtml(document, htmlConverterSettings);
         }
 
         public static XElement ConvertToHtml(WordprocessingDocument wordDoc, WmlToHtmlConverterSettings htmlConverterSettings)
@@ -239,7 +233,7 @@ namespace OpenXmlPowerTools
                         style
                         .Where(p => p.Key != "PtStyleName")
                         .OrderBy(p => p.Key)
-                        .Select(e => string.Format("{0}: {1};", e.Key, e.Value))
+                        .Select(e => $"{e.Key}: {e.Value};")
                         .StringConcatenate();
                     var st = new XAttribute("style", styleValue);
                     if (d.Attribute("style") != null)
@@ -276,8 +270,7 @@ namespace OpenXmlPowerTools
 
         private static object ConvertToHtmlTransform(WordprocessingDocument wordDoc, WmlToHtmlConverterSettings settings, XNode node, bool suppressTrailingWhiteSpace, decimal currentMarginLeft)
         {
-            var element = node as XElement;
-            if (element == null)
+            if (!(node is XElement element))
             {
                 return null;
             }
@@ -921,9 +914,7 @@ namespace OpenXmlPowerTools
             }
 
             var styles = stylesPart.GetXDocument().Root;
-            return styles != null
-                ? styles.Elements(W.style).FirstOrDefault(s => (string)s.Attribute(W.styleId) == styleId)
-                : null;
+            return styles?.Elements(W.style).FirstOrDefault(s => (string)s.Attribute(W.styleId) == styleId);
         }
 
         private static object CreateSectionDivs(WordprocessingDocument wordDoc, WmlToHtmlConverterSettings settings, XElement element)
@@ -1102,8 +1093,7 @@ namespace OpenXmlPowerTools
             }
             else if (txElementsPrecedingTab.Count == 1)
             {
-                var element = txElementsPrecedingTab.First() as XElement;
-                if (element != null)
+                if (txElementsPrecedingTab.First() is XElement element)
                 {
                     var spanStyle = element.Annotation<Dictionary<string, string>>();
                     spanStyle.AddIfMissing("display", "inline-block");
@@ -1903,8 +1893,15 @@ namespace OpenXmlPowerTools
                         BorderOverride(border2, border1);
                     }
                 }
-                // if the above throws ArgumentException, FormatException, or OverflowException, then abort
-                catch (Exception)
+                catch (ArgumentException)
+                {
+                    // Ignore
+                }
+                catch (FormatException)
+                {
+                    // Ignore
+                }
+                catch (OverflowException)
                 {
                     // Ignore
                 }
@@ -2308,21 +2305,6 @@ namespace OpenXmlPowerTools
 
                 if (currentElement.Name == W.t)
                 {
-                    // TODO: Revisit. This is a quick fix because it doesn't work on Azure.
-                    // Given the changes we've made elsewhere, though, this is not required
-                    // for the first tab at least. We could also enhance that other change
-                    // to deal with all tabs.
-                    //var runContainingTabToReplace = currentElement.Parent;
-                    //var paragraphForRun = runContainingTabToReplace.Ancestors(W.p).First();
-                    //var fontNameAtt = runContainingTabToReplace.Attribute(PtOpenXml.FontName) ??
-                    //                  paragraphForRun.Attribute(PtOpenXml.FontName);
-                    //var languageTypeAtt = runContainingTabToReplace.Attribute(PtOpenXml.LanguageType) ??
-                    //                      paragraphForRun.Attribute(PtOpenXml.LanguageType);
-
-                    //var dummyRun3 = new XElement(W.r, fontNameAtt, languageTypeAtt,
-                    //    runContainingTabToReplace.Elements(W.rPr),
-                    //    currentElement);
-                    //var widthOfText = CalcWidthOfRunInTwips(dummyRun3);
                     const int widthOfText = 0;
                     currentElement.Add(new XAttribute(PtOpenXml.TabWidth, string.Format(NumberFormatInfo.InvariantInfo, "{0:0.000}", widthOfText / 1440m)));
                     twipCounter += widthOfText;
@@ -2445,6 +2427,7 @@ namespace OpenXmlPowerTools
 
             // in theory, all unknown fonts are found by the above test, but if not...
             FontFamily ff;
+
             try
             {
                 ff = new FontFamily(fontName);
@@ -2550,8 +2533,7 @@ namespace OpenXmlPowerTools
         // benefit of leading to a more faithful representation of the Word document in HTML.
         private static object InsertAppropriateNonbreakingSpacesTransform(XNode node)
         {
-            var element = node as XElement;
-            if (element != null)
+            if (node is XElement element)
             {
                 // child content of run to look for
                 // W.br
@@ -2747,7 +2729,7 @@ namespace OpenXmlPowerTools
                 })
                 .Select(g =>
                 {
-                    if (g.Key == string.Empty)
+                    if (string.IsNullOrEmpty(g.Key))
                     {
                         return (object)GroupAndVerticallySpaceNumberedParagraphs(wordDoc, settings, g, 0m);
                     }
@@ -2814,7 +2796,7 @@ namespace OpenXmlPowerTools
             var newContent = grouped
                 .Select(g =>
                 {
-                    if (g.Key == "")
+                    if (string.IsNullOrEmpty(g.Key))
                     {
                         return g.Select(e => ConvertToHtmlTransform(wordDoc, settings, e, false, currentMarginLeft));
                     }
@@ -3145,7 +3127,7 @@ namespace OpenXmlPowerTools
             if (NamedColors.ContainsKey(color))
             {
                 var lc = NamedColors[color];
-                if (lc == "")
+                if (string.IsNullOrEmpty(lc))
                 {
                     return;
                 }
@@ -3169,7 +3151,7 @@ namespace OpenXmlPowerTools
             if (NamedColors.ContainsKey(color))
             {
                 var lc = NamedColors[color];
-                if (lc == "")
+                if (string.IsNullOrEmpty(lc))
                 {
                     return "black";
                 }
@@ -3285,7 +3267,7 @@ namespace OpenXmlPowerTools
                     var a = parsed.Arguments.Length > 0
                         ? new XElement(Xhtml.a, new XAttribute("href", parsed.Arguments[0]), content)
                         : new XElement(Xhtml.a, content);
-                    var a2 = a as XElement;
+                    var a2 = a;
                     if (!a2.Nodes().Any())
                     {
                         a2.Add(new XText(""));
@@ -3402,49 +3384,47 @@ namespace OpenXmlPowerTools
                 return null;
             }
 
-            using (var partStream = imagePart.GetStream())
-            using (var bitmap = new Bitmap(partStream))
+            using var partStream = imagePart.GetStream();
+            using var bitmap = new Bitmap(partStream);
+            if (extentCx != null && extentCy != null)
             {
-                if (extentCx != null && extentCy != null)
-                {
-                    var imageInfo = new ImageInfo
-                    {
-                        Bitmap = bitmap,
-                        ImgStyleAttribute = new XAttribute("style",
-                            string.Format(NumberFormatInfo.InvariantInfo,
-                                "width: {0}in; height: {1}in",
-                                (float)extentCx / ImageInfo.EmusPerInch,
-                                (float)extentCy / ImageInfo.EmusPerInch)),
-                        ContentType = contentType,
-                        DrawingElement = element,
-                        AltText = altText,
-                    };
-                    var imgElement2 = imageHandler(imageInfo);
-                    if (hyperlinkUri != null)
-                    {
-                        return new XElement(XhtmlNoNamespace.a,
-                            new XAttribute(XhtmlNoNamespace.href, hyperlinkUri),
-                            imgElement2);
-                    }
-                    return imgElement2;
-                }
-
-                var imageInfo2 = new ImageInfo
+                var imageInfo = new ImageInfo
                 {
                     Bitmap = bitmap,
+                    ImgStyleAttribute = new XAttribute("style",
+                        string.Format(NumberFormatInfo.InvariantInfo,
+                            "width: {0}in; height: {1}in",
+                            (float)extentCx / ImageInfo.EmusPerInch,
+                            (float)extentCy / ImageInfo.EmusPerInch)),
                     ContentType = contentType,
                     DrawingElement = element,
                     AltText = altText,
                 };
-                var imgElement = imageHandler(imageInfo2);
+                var imgElement2 = imageHandler(imageInfo);
                 if (hyperlinkUri != null)
                 {
                     return new XElement(XhtmlNoNamespace.a,
                         new XAttribute(XhtmlNoNamespace.href, hyperlinkUri),
-                        imgElement);
+                        imgElement2);
                 }
-                return imgElement;
+                return imgElement2;
             }
+
+            var imageInfo2 = new ImageInfo
+            {
+                Bitmap = bitmap,
+                ContentType = contentType,
+                DrawingElement = element,
+                AltText = altText,
+            };
+            var imgElement = imageHandler(imageInfo2);
+            if (hyperlinkUri != null)
+            {
+                return new XElement(XhtmlNoNamespace.a,
+                    new XAttribute(XhtmlNoNamespace.href, hyperlinkUri),
+                    imgElement);
+            }
+            return imgElement;
         }
 
         private static XElement ProcessPictureOrObject(WordprocessingDocument wordDoc,
@@ -3476,46 +3456,42 @@ namespace OpenXmlPowerTools
                     return null;
                 }
 
-                using (var partStream = imagePart.GetStream())
+                using var partStream = imagePart.GetStream();
+                try
                 {
-                    try
+                    using var bitmap = new Bitmap(partStream);
+                    var imageInfo = new ImageInfo()
                     {
-                        using (var bitmap = new Bitmap(partStream))
-                        {
-                            var imageInfo = new ImageInfo()
-                            {
-                                Bitmap = bitmap,
-                                ContentType = contentType,
-                                DrawingElement = element
-                            };
+                        Bitmap = bitmap,
+                        ContentType = contentType,
+                        DrawingElement = element
+                    };
 
-                            var style = (string)element.Elements(VML.shape).Attributes("style").FirstOrDefault();
-                            if (style == null)
-                            {
-                                return imageHandler(imageInfo);
-                            }
+                    var style = (string)element.Elements(VML.shape).Attributes("style").FirstOrDefault();
+                    if (style == null)
+                    {
+                        return imageHandler(imageInfo);
+                    }
 
-                            var tokens = style.Split(';');
-                            var widthInPoints = WidthInPoints(tokens);
-                            var heightInPoints = HeightInPoints(tokens);
-                            if (widthInPoints != null && heightInPoints != null)
-                            {
-                                imageInfo.ImgStyleAttribute = new XAttribute("style",
-                                    string.Format(NumberFormatInfo.InvariantInfo,
-                                        "width: {0}pt; height: {1}pt", widthInPoints, heightInPoints));
-                            }
-                            return imageHandler(imageInfo);
-                        }
-                    }
-                    catch (OutOfMemoryException)
+                    var tokens = style.Split(';');
+                    var widthInPoints = WidthInPoints(tokens);
+                    var heightInPoints = HeightInPoints(tokens);
+                    if (widthInPoints != null && heightInPoints != null)
                     {
-                        // the Bitmap class can throw OutOfMemoryException, which means the bitmap is messed up, so punt.
-                        return null;
+                        imageInfo.ImgStyleAttribute = new XAttribute("style",
+                            string.Format(NumberFormatInfo.InvariantInfo,
+                                "width: {0}pt; height: {1}pt", widthInPoints, heightInPoints));
                     }
-                    catch (ArgumentException)
-                    {
-                        return null;
-                    }
+                    return imageHandler(imageInfo);
+                }
+                catch (OutOfMemoryException)
+                {
+                    // the Bitmap class can throw OutOfMemoryException, which means the bitmap is messed up, so punt.
+                    return null;
+                }
+                catch (ArgumentException)
+                {
+                    return null;
                 }
             }
             catch (ArgumentOutOfRangeException)

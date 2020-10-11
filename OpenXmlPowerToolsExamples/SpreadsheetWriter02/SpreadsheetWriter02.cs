@@ -1,6 +1,4 @@
-﻿
-
-using OpenXmlPowerTools;
+﻿using OpenXmlPowerTools;
 using System;
 using System.IO;
 

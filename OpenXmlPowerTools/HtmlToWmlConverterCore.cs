@@ -1,6 +1,4 @@
-﻿
-
-/***************************************************************************
+﻿/***************************************************************************
  * HTML elements handled in this module:
  *
  * a
@@ -2453,10 +2451,8 @@ namespace OpenXmlPowerTools.HtmlToWml
                 var commaIndex = srcAttribute.IndexOf(',', semiIndex);
                 var base64 = srcAttribute.Substring(commaIndex + 1);
                 ba = Convert.FromBase64String(base64);
-                using (var ms = new MemoryStream(ba))
-                {
-                    bmp = new Bitmap(ms);
-                }
+                using var ms = new MemoryStream(ba);
+                bmp = new Bitmap(ms);
             }
             else
             {

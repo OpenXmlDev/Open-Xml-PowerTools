@@ -1,6 +1,4 @@
-﻿
-
-using DocumentFormat.OpenXml;
+﻿using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Validation;
 using DocumentFormat.OpenXml.Wordprocessing;
@@ -27,71 +25,70 @@ namespace OpenXmlPowerTools
             string backColor,
             string styleName)
         {
-            using (var streamDoc = new OpenXmlMemoryStreamDocument(wmlDoc))
+            using var streamDoc = new OpenXmlMemoryStreamDocument(wmlDoc);
+            using (var wDoc = streamDoc.GetWordprocessingDocument())
             {
-                using (var wDoc = streamDoc.GetWordprocessingDocument())
+                var part = wDoc.MainDocumentPart.StyleDefinitionsPart;
+
+                var body = wDoc.MainDocumentPart.Document.Body;
+
+                var sectionProperties = body.Elements<SectionProperties>().FirstOrDefault();
+
+                var paragraph = new Paragraph();
+                var run = paragraph.AppendChild(new Run());
+                var runProperties = new RunProperties();
+
+                if (isBold)
                 {
-                    var part = wDoc.MainDocumentPart.StyleDefinitionsPart;
+                    runProperties.AppendChild(new Bold());
+                }
 
-                    var body = wDoc.MainDocumentPart.Document.Body;
+                if (isItalic)
+                {
+                    runProperties.AppendChild(new Italic());
+                }
 
-                    var sectionProperties = body.Elements<SectionProperties>().FirstOrDefault();
-
-                    var paragraph = new Paragraph();
-                    var run = paragraph.AppendChild(new Run());
-                    var runProperties = new RunProperties();
-
-                    if (isBold)
+                if (!string.IsNullOrEmpty(foreColor))
+                {
+                    var colorValue = ColorParser.FromName(foreColor).ToArgb();
+                    if (colorValue == 0)
                     {
-                        runProperties.AppendChild(new Bold());
+                        throw new OpenXmlPowerToolsException(string.Format("Add-DocxText: The specified color {0} is unsupported, Please specify the valid color. Ex, Red, Green", foreColor));
                     }
 
-                    if (isItalic)
+                    var ColorHex = string.Format("{0:x6}", colorValue);
+                    runProperties.AppendChild(new DocumentFormat.OpenXml.Wordprocessing.Color() { Val = ColorHex.Substring(2) });
+                }
+
+                if (isUnderline)
+                {
+                    runProperties.AppendChild(new Underline() { Val = UnderlineValues.Single });
+                }
+
+                if (!string.IsNullOrEmpty(backColor))
+                {
+                    var colorShade = ColorParser.FromName(backColor).ToArgb();
+                    if (colorShade == 0)
                     {
-                        runProperties.AppendChild(new Italic());
+                        throw new OpenXmlPowerToolsException(string.Format("Add-DocxText: The specified color {0} is unsupported, Please specify the valid color. Ex, Red, Green", foreColor));
                     }
 
-                    if (!string.IsNullOrEmpty(foreColor))
+                    var ColorShadeHex = string.Format("{0:x6}", colorShade);
+                    runProperties.AppendChild(new Shading() { Fill = ColorShadeHex.Substring(2), Val = ShadingPatternValues.Clear });
+                }
+
+                if (!string.IsNullOrEmpty(styleName))
+                {
+                    var style = part.Styles.Elements<Style>().Where(s => s.StyleId == styleName).FirstOrDefault();
+                    //if the specified style is not present in word document add it
+                    if (style == null)
                     {
-                        var colorValue = ColorParser.FromName(foreColor).ToArgb();
-                        if (colorValue == 0)
-                        {
-                            throw new OpenXmlPowerToolsException(string.Format("Add-DocxText: The specified color {0} is unsupported, Please specify the valid color. Ex, Red, Green", foreColor));
-                        }
+                        using var memoryStream = new MemoryStream();
 
-                        var ColorHex = string.Format("{0:x6}", colorValue);
-                        runProperties.AppendChild(new DocumentFormat.OpenXml.Wordprocessing.Color() { Val = ColorHex.Substring(2) });
-                    }
+                        #region Default.dotx Template has been used to get all the paragraph styles
 
-                    if (isUnderline)
-                    {
-                        runProperties.AppendChild(new Underline() { Val = UnderlineValues.Single });
-                    }
-
-                    if (!string.IsNullOrEmpty(backColor))
-                    {
-                        var colorShade = ColorParser.FromName(backColor).ToArgb();
-                        if (colorShade == 0)
-                        {
-                            throw new OpenXmlPowerToolsException(string.Format("Add-DocxText: The specified color {0} is unsupported, Please specify the valid color. Ex, Red, Green", foreColor));
-                        }
-
-                        var ColorShadeHex = string.Format("{0:x6}", colorShade);
-                        runProperties.AppendChild(new Shading() { Fill = ColorShadeHex.Substring(2), Val = ShadingPatternValues.Clear });
-                    }
-
-                    if (!string.IsNullOrEmpty(styleName))
-                    {
-                        var style = part.Styles.Elements<Style>().Where(s => s.StyleId == styleName).FirstOrDefault();
-                        //if the specified style is not present in word document add it
-                        if (style == null)
-                        {
-                            using (var memoryStream = new MemoryStream())
-                            {
-                                #region Default.dotx Template has been used to get all the paragraph styles
-
-                                var base64 =
-        @"UEsDBBQABgAIAAAAIQDTMB8uXgEAACAFAAATAAAAW0NvbnRlbnRfVHlwZXNdLnhtbLSUy27CMBBF
+                        var base64 =
+@"UEsDBBQABgAIAAAAIQDTMB8uXgEAACAFAAATAAAAW0NvbnRlbnRfVHlwZXNdLnhtbLSUy27CMBBF
 95X6D5G3VWLooqoqAos+li1S6QcYewJW/ZI9vP6+EwKoqiCRCmwiJTP33jNWxoPR2ppsCTFp70rW
 L3osAye90m5Wsq/JW/7IsoTCKWG8g5JtILHR8PZmMNkESBmpXSrZHDE8cZ7kHKxIhQ/gqFL5aAXS
 a5zxIOS3mAG/7/UeuPQOwWGOtQcbDl6gEguD2euaPjckEUxi2XPTWGeVTIRgtBRIdb506k9Kvkso
@@ -305,47 +302,43 @@ AAAVAAAAAAAAAAAAAAAAALojAAB3b3JkL3RoZW1lL3RoZW1lMS54bWxQSwECLQAUAAYACADRagZB
 joxzCXABAAD0AQAAFAAAAAAAAAAAAAAAAADKKgAAd29yZC93ZWJTZXR0aW5ncy54bWxQSwUGAAAA
 AAsACwDBAgAAbCwAAAAA";
 
-                                #endregion Default.dotx Template has been used to get all the paragraph styles
+                        #endregion Default.dotx Template has been used to get all the paragraph styles
 
-                                var base64CharArray = base64.Where(c => c != '\r' && c != '\n').ToArray();
-                                var byteArray = System.Convert.FromBase64CharArray(base64CharArray, 0, base64CharArray.Length);
-                                memoryStream.Write(byteArray, 0, byteArray.Length);
+                        var base64CharArray = base64.Where(c => c != '\r' && c != '\n').ToArray();
+                        var byteArray = System.Convert.FromBase64CharArray(base64CharArray, 0, base64CharArray.Length);
+                        memoryStream.Write(byteArray, 0, byteArray.Length);
 
-                                using (var defaultDotx = WordprocessingDocument.Open(memoryStream, true))
-                                {
-                                    //Get the specified style from Default.dotx template for paragraph
-                                    var templateStyle = defaultDotx.MainDocumentPart.StyleDefinitionsPart.Styles.Elements<Style>().Where(s => s.StyleId == styleName && s.Type == StyleValues.Paragraph).FirstOrDefault();
+                        using var defaultDotx = WordprocessingDocument.Open(memoryStream, true);
+                        //Get the specified style from Default.dotx template for paragraph
+                        var templateStyle = defaultDotx.MainDocumentPart.StyleDefinitionsPart.Styles.Elements<Style>().Where(s => s.StyleId == styleName && s.Type == StyleValues.Paragraph).FirstOrDefault();
 
-                                    //Check if the style is proper style. Ex, Heading1, Heading2
-                                    if (templateStyle == null)
-                                    {
-                                        throw new OpenXmlPowerToolsException(string.Format("Add-DocxText: The specified style name {0} is unsupported, Please specify the valid style. Ex, Heading1, Heading2, Title", styleName));
-                                    }
-                                    else
-                                    {
-                                        part.Styles.Append((templateStyle.CloneNode(true)));
-                                    }
-                                }
-                            }
+                        //Check if the style is proper style. Ex, Heading1, Heading2
+                        if (templateStyle == null)
+                        {
+                            throw new OpenXmlPowerToolsException(string.Format("Add-DocxText: The specified style name {0} is unsupported, Please specify the valid style. Ex, Heading1, Heading2, Title", styleName));
                         }
-
-                        paragraph.ParagraphProperties = new ParagraphProperties(new ParagraphStyleId() { Val = styleName });
+                        else
+                        {
+                            part.Styles.Append((templateStyle.CloneNode(true)));
+                        }
                     }
 
-                    run.AppendChild(runProperties);
-                    run.AppendChild(new Text(strParagraph));
-
-                    if (sectionProperties != null)
-                    {
-                        body.InsertBefore(paragraph, sectionProperties);
-                    }
-                    else
-                    {
-                        body.AppendChild(paragraph);
-                    }
+                    paragraph.ParagraphProperties = new ParagraphProperties(new ParagraphStyleId() { Val = styleName });
                 }
-                return streamDoc.GetModifiedWmlDocument();
+
+                run.AppendChild(runProperties);
+                run.AppendChild(new Text(strParagraph));
+
+                if (sectionProperties != null)
+                {
+                    body.InsertBefore(paragraph, sectionProperties);
+                }
+                else
+                {
+                    body.AppendChild(paragraph);
+                }
             }
+            return streamDoc.GetModifiedWmlDocument();
         }
     }
 
@@ -355,116 +348,112 @@ AAsACwDBAgAAbCwAAAAA";
         {
             var fi = new FileInfo(file);
             var byteArray = File.ReadAllBytes(fi.FullName);
-            using (var memoryStream = new MemoryStream())
+            using var memoryStream = new MemoryStream();
+            memoryStream.Write(byteArray, 0, byteArray.Length);
+            using var wDoc = WordprocessingDocument.Open(memoryStream, true);
+            var destFileName = new FileInfo(fi.Name.Replace(".docx", ".html"));
+            if (outputDirectory != null && outputDirectory != string.Empty)
             {
-                memoryStream.Write(byteArray, 0, byteArray.Length);
-                using (var wDoc = WordprocessingDocument.Open(memoryStream, true))
+                var di = new DirectoryInfo(outputDirectory);
+                if (!di.Exists)
                 {
-                    var destFileName = new FileInfo(fi.Name.Replace(".docx", ".html"));
-                    if (outputDirectory != null && outputDirectory != string.Empty)
-                    {
-                        var di = new DirectoryInfo(outputDirectory);
-                        if (!di.Exists)
-                        {
-                            throw new OpenXmlPowerToolsException("Output directory does not exist");
-                        }
-                        destFileName = new FileInfo(Path.Combine(di.FullName, destFileName.Name));
-                    }
-                    var imageDirectoryName = destFileName.FullName.Substring(0, destFileName.FullName.Length - 5) + "_files";
-                    var imageCounter = 0;
-                    var pageTitle = (string)wDoc.CoreFilePropertiesPart.GetXDocument().Descendants(DC.title).FirstOrDefault();
-                    if (pageTitle == null)
-                    {
-                        pageTitle = fi.FullName;
-                    }
-
-                    var settings = new WmlToHtmlConverterSettings()
-                    {
-                        PageTitle = pageTitle,
-                        FabricateCssClasses = true,
-                        CssClassPrefix = "pt-",
-                        RestrictToSupportedLanguages = false,
-                        RestrictToSupportedNumberingFormats = false,
-                        ImageHandler = imageInfo =>
-                        {
-                            var localDirInfo = new DirectoryInfo(imageDirectoryName);
-                            if (!localDirInfo.Exists)
-                            {
-                                localDirInfo.Create();
-                            }
-
-                            ++imageCounter;
-                            var extension = imageInfo.ContentType.Split('/')[1].ToLower();
-                            ImageFormat imageFormat = null;
-                            if (extension == "png")
-                            {
-                                // Convert png to jpeg.
-                                extension = "gif";
-                                imageFormat = ImageFormat.Gif;
-                            }
-                            else if (extension == "gif")
-                            {
-                                imageFormat = ImageFormat.Gif;
-                            }
-                            else if (extension == "bmp")
-                            {
-                                imageFormat = ImageFormat.Bmp;
-                            }
-                            else if (extension == "jpeg")
-                            {
-                                imageFormat = ImageFormat.Jpeg;
-                            }
-                            else if (extension == "tiff")
-                            {
-                                // Convert tiff to gif.
-                                extension = "gif";
-                                imageFormat = ImageFormat.Gif;
-                            }
-                            else if (extension == "x-wmf")
-                            {
-                                extension = "wmf";
-                                imageFormat = ImageFormat.Wmf;
-                            }
-
-                            // If the image format isn't one that we expect, ignore it,
-                            // and don't return markup for the link.
-                            if (imageFormat == null)
-                            {
-                                return null;
-                            }
-
-                            var imageFileName = imageDirectoryName + "/image" +
-                                imageCounter.ToString() + "." + extension;
-                            try
-                            {
-                                imageInfo.Bitmap.Save(imageFileName, imageFormat);
-                            }
-                            catch (System.Runtime.InteropServices.ExternalException)
-                            {
-                                return null;
-                            }
-                            var img = new XElement(Xhtml.img,
-                                new XAttribute(NoNamespace.src, imageFileName),
-                                imageInfo.ImgStyleAttribute,
-                                imageInfo.AltText != null ?
-                                    new XAttribute(NoNamespace.alt, imageInfo.AltText) : null);
-                            return img;
-                        }
-                    };
-                    var html = WmlToHtmlConverter.ConvertToHtml(wDoc, settings);
-
-                    // Note: the xhtml returned by ConvertToHtmlTransform contains objects of type
-                    // XEntity.  PtOpenXmlUtil.cs define the XEntity class.  See
-                    // http://blogs.msdn.com/ericwhite/archive/2010/01/21/writing-entity-references-using-linq-to-xml.aspx
-                    // for detailed explanation.
-                    //
-                    // If you further transform the XML tree returned by ConvertToHtmlTransform, you
-                    // must do it correctly, or entities will not be serialized properly.
-
-                    var htmlString = html.ToString(SaveOptions.DisableFormatting);
-                    File.WriteAllText(destFileName.FullName, htmlString, Encoding.UTF8);
+                    throw new OpenXmlPowerToolsException("Output directory does not exist");
                 }
+                destFileName = new FileInfo(Path.Combine(di.FullName, destFileName.Name));
             }
+            var imageDirectoryName = destFileName.FullName.Substring(0, destFileName.FullName.Length - 5) + "_files";
+            var imageCounter = 0;
+            var pageTitle = (string)wDoc.CoreFilePropertiesPart.GetXDocument().Descendants(DC.title).FirstOrDefault();
+            if (pageTitle == null)
+            {
+                pageTitle = fi.FullName;
+            }
+
+            var settings = new WmlToHtmlConverterSettings()
+            {
+                PageTitle = pageTitle,
+                FabricateCssClasses = true,
+                CssClassPrefix = "pt-",
+                RestrictToSupportedLanguages = false,
+                RestrictToSupportedNumberingFormats = false,
+                ImageHandler = imageInfo =>
+                {
+                    var localDirInfo = new DirectoryInfo(imageDirectoryName);
+                    if (!localDirInfo.Exists)
+                    {
+                        localDirInfo.Create();
+                    }
+
+                    ++imageCounter;
+                    var extension = imageInfo.ContentType.Split('/')[1].ToLower();
+                    ImageFormat imageFormat = null;
+                    if (extension == "png")
+                    {
+                        // Convert png to jpeg.
+                        extension = "gif";
+                        imageFormat = ImageFormat.Gif;
+                    }
+                    else if (extension == "gif")
+                    {
+                        imageFormat = ImageFormat.Gif;
+                    }
+                    else if (extension == "bmp")
+                    {
+                        imageFormat = ImageFormat.Bmp;
+                    }
+                    else if (extension == "jpeg")
+                    {
+                        imageFormat = ImageFormat.Jpeg;
+                    }
+                    else if (extension == "tiff")
+                    {
+                        // Convert tiff to gif.
+                        extension = "gif";
+                        imageFormat = ImageFormat.Gif;
+                    }
+                    else if (extension == "x-wmf")
+                    {
+                        extension = "wmf";
+                        imageFormat = ImageFormat.Wmf;
+                    }
+
+                    // If the image format isn't one that we expect, ignore it,
+                    // and don't return markup for the link.
+                    if (imageFormat == null)
+                    {
+                        return null;
+                    }
+
+                    var imageFileName = imageDirectoryName + "/image" +
+                        imageCounter.ToString() + "." + extension;
+                    try
+                    {
+                        imageInfo.Bitmap.Save(imageFileName, imageFormat);
+                    }
+                    catch (System.Runtime.InteropServices.ExternalException)
+                    {
+                        return null;
+                    }
+                    var img = new XElement(Xhtml.img,
+                        new XAttribute(NoNamespace.src, imageFileName),
+                        imageInfo.ImgStyleAttribute,
+                        imageInfo.AltText != null ?
+                            new XAttribute(NoNamespace.alt, imageInfo.AltText) : null);
+                    return img;
+                }
+            };
+            var html = WmlToHtmlConverter.ConvertToHtml(wDoc, settings);
+
+            // Note: the xhtml returned by ConvertToHtmlTransform contains objects of type
+            // XEntity.  PtOpenXmlUtil.cs define the XEntity class.  See
+            // http://blogs.msdn.com/ericwhite/archive/2010/01/21/writing-entity-references-using-linq-to-xml.aspx
+            // for detailed explanation.
+            //
+            // If you further transform the XML tree returned by ConvertToHtmlTransform, you
+            // must do it correctly, or entities will not be serialized properly.
+
+            var htmlString = html.ToString(SaveOptions.DisableFormatting);
+            File.WriteAllText(destFileName.FullName, htmlString, Encoding.UTF8);
         }
     }
 
@@ -485,33 +474,27 @@ AAsACwDBAgAAbCwAAAAA";
             var fi = new FileInfo(fileName);
             if (Util.IsWordprocessingML(fi.Extension))
             {
-                using (var wDoc = WordprocessingDocument.Open(fileName, false))
-                {
-                    var validator = new OpenXmlValidator(fileFormatVersion);
-                    var errors = validator.Validate(wDoc);
-                    var valid = errors.Count() == 0;
-                    return valid;
-                }
+                using var wDoc = WordprocessingDocument.Open(fileName, false);
+                var validator = new OpenXmlValidator(fileFormatVersion);
+                var errors = validator.Validate(wDoc);
+                var valid = errors.Count() == 0;
+                return valid;
             }
             else if (Util.IsSpreadsheetML(fi.Extension))
             {
-                using (var sDoc = SpreadsheetDocument.Open(fileName, false))
-                {
-                    var validator = new OpenXmlValidator(fileFormatVersion);
-                    var errors = validator.Validate(sDoc);
-                    var valid = errors.Count() == 0;
-                    return valid;
-                }
+                using var sDoc = SpreadsheetDocument.Open(fileName, false);
+                var validator = new OpenXmlValidator(fileFormatVersion);
+                var errors = validator.Validate(sDoc);
+                var valid = errors.Count() == 0;
+                return valid;
             }
             else if (Util.IsPresentationML(fi.Extension))
             {
-                using (var pDoc = PresentationDocument.Open(fileName, false))
-                {
-                    var validator = new OpenXmlValidator(fileFormatVersion);
-                    var errors = validator.Validate(pDoc);
-                    var valid = errors.Count() == 0;
-                    return valid;
-                }
+                using var pDoc = PresentationDocument.Open(fileName, false);
+                var validator = new OpenXmlValidator(fileFormatVersion);
+                var errors = validator.Validate(pDoc);
+                var valid = errors.Count() == 0;
+                return valid;
             }
             return false;
         }
@@ -533,35 +516,29 @@ AAsACwDBAgAAbCwAAAAA";
             if (Util.IsWordprocessingML(fi.Extension))
             {
                 var wml = new WmlDocument(fileName);
-                using (var streamDoc = new OpenXmlMemoryStreamDocument(wml))
-                using (var wDoc = streamDoc.GetWordprocessingDocument())
-                {
-                    var validator = new OpenXmlValidator(fileFormatVersion);
-                    var errors = validator.Validate(wDoc);
-                    return errors.ToList();
-                }
+                using var streamDoc = new OpenXmlMemoryStreamDocument(wml);
+                using var wDoc = streamDoc.GetWordprocessingDocument();
+                var validator = new OpenXmlValidator(fileFormatVersion);
+                var errors = validator.Validate(wDoc);
+                return errors.ToList();
             }
             else if (Util.IsSpreadsheetML(fi.Extension))
             {
                 var Sml = new SmlDocument(fileName);
-                using (var streamDoc = new OpenXmlMemoryStreamDocument(Sml))
-                using (var wDoc = streamDoc.GetSpreadsheetDocument())
-                {
-                    var validator = new OpenXmlValidator(fileFormatVersion);
-                    var errors = validator.Validate(wDoc);
-                    return errors.ToList();
-                }
+                using var streamDoc = new OpenXmlMemoryStreamDocument(Sml);
+                using var wDoc = streamDoc.GetSpreadsheetDocument();
+                var validator = new OpenXmlValidator(fileFormatVersion);
+                var errors = validator.Validate(wDoc);
+                return errors.ToList();
             }
             else if (Util.IsPresentationML(fi.Extension))
             {
                 var Pml = new PmlDocument(fileName);
-                using (var streamDoc = new OpenXmlMemoryStreamDocument(Pml))
-                using (var wDoc = streamDoc.GetPresentationDocument())
-                {
-                    var validator = new OpenXmlValidator(fileFormatVersion);
-                    var errors = validator.Validate(wDoc);
-                    return errors.ToList();
-                }
+                using var streamDoc = new OpenXmlMemoryStreamDocument(Pml);
+                using var wDoc = streamDoc.GetPresentationDocument();
+                var validator = new OpenXmlValidator(fileFormatVersion);
+                var errors = validator.Validate(wDoc);
+                return errors.ToList();
             }
             return Enumerable.Empty<ValidationErrorInfo>();
         }

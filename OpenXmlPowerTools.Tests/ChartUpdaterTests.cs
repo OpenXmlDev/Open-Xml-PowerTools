@@ -1,6 +1,4 @@
-﻿
-
-using DocumentFormat.OpenXml.Packaging;
+﻿using DocumentFormat.OpenXml.Packaging;
 using OpenXmlPowerTools;
 using System;
 using System.IO;
@@ -42,25 +40,24 @@ namespace OxPt
                 var afterUpdatingDocx = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, templateFile.Name.Replace(".docx", "-processed-by-ChartUpdater.docx")));
                 wmlTemplate.SaveAs(afterUpdatingDocx.FullName);
 
-                using (var wDoc = WordprocessingDocument.Open(afterUpdatingDocx.FullName, true))
+                using var wDoc = WordprocessingDocument.Open(afterUpdatingDocx.FullName, true);
+                var chart1Data = new ChartData
                 {
-                    var chart1Data = new ChartData
-                    {
-                        SeriesNames = new[] {
+                    SeriesNames = new[] {
                             "Car",
                             "Truck",
                             "Van",
                             "Bike",
                             "Boat",
                         },
-                        CategoryDataType = ChartDataType.String,
-                        CategoryNames = new[] {
+                    CategoryDataType = ChartDataType.String,
+                    CategoryNames = new[] {
                             "Q1",
                             "Q2",
                             "Q3",
                             "Q4",
                         },
-                        Values = new double[][] {
+                    Values = new double[][] {
                             new double[] {
                                 100, 310, 220, 450,
                             },
@@ -77,32 +74,32 @@ namespace OxPt
                                 200, 210, 210, 480,
                             },
                         },
-                    };
-                    ChartUpdater.UpdateChart(wDoc, "Chart1", chart1Data);
+                };
+                ChartUpdater.UpdateChart(wDoc, "Chart1", chart1Data);
 
-                    var chart2Data = new ChartData
-                    {
-                        SeriesNames = new[] {
+                var chart2Data = new ChartData
+                {
+                    SeriesNames = new[] {
                             "Series"
                         },
-                        CategoryDataType = ChartDataType.String,
-                        CategoryNames = new[] {
+                    CategoryDataType = ChartDataType.String,
+                    CategoryNames = new[] {
                                 "Cars",
                                 "Trucks",
                                 "Vans",
                                 "Boats",
                             },
-                        Values = new double[][] {
+                    Values = new double[][] {
                             new double[] {
                                 320, 112, 64, 80,
                             },
                         },
-                    };
-                    ChartUpdater.UpdateChart(wDoc, "Chart2", chart2Data);
+                };
+                ChartUpdater.UpdateChart(wDoc, "Chart2", chart2Data);
 
-                    var chart3Data = new ChartData
-                    {
-                        SeriesNames = new[] {
+                var chart3Data = new ChartData
+                {
+                    SeriesNames = new[] {
                             "X1",
                             "X2",
                             "X3",
@@ -110,8 +107,8 @@ namespace OxPt
                             "X5",
                             "X6",
                         },
-                        CategoryDataType = ChartDataType.String,
-                        CategoryNames = new[] {
+                    CategoryDataType = ChartDataType.String,
+                    CategoryNames = new[] {
                             "Y1",
                             "Y2",
                             "Y3",
@@ -119,7 +116,7 @@ namespace OxPt
                             "Y5",
                             "Y6",
                         },
-                        Values = new double[][] {
+                    Values = new double[][] {
                             new double[] {      3.0,      2.1,       .7,      .7,      2.1,      3.0,      },
                             new double[] {      3.0,      2.1,       .8,      .8,      2.1,      3.0,      },
                             new double[] {      3.0,      2.4,      1.2,     1.2,      2.4,      3.0,      },
@@ -127,19 +124,19 @@ namespace OxPt
                             new double[] {      3.0,      2.9,      2.5,     2.5,      2.9,      3.0,      },
                             new double[] {      3.0,      3.0,      3.0,     3.0,      3.0,      3.0,      },
                         },
-                    };
-                    ChartUpdater.UpdateChart(wDoc, "Chart3", chart3Data);
+                };
+                ChartUpdater.UpdateChart(wDoc, "Chart3", chart3Data);
 
-                    var chart4Data = new ChartData
-                    {
-                        SeriesNames = new[] {
+                var chart4Data = new ChartData
+                {
+                    SeriesNames = new[] {
                             "Car",
                             "Truck",
                             "Van",
                         },
-                        CategoryDataType = ChartDataType.DateTime,
-                        CategoryFormatCode = 14,
-                        CategoryNames = new[] {
+                    CategoryDataType = ChartDataType.DateTime,
+                    CategoryFormatCode = 14,
+                    CategoryNames = new[] {
                             ToExcelInteger(new DateTime(2013, 9, 1)),
                             ToExcelInteger(new DateTime(2013, 9, 2)),
                             ToExcelInteger(new DateTime(2013, 9, 3)),
@@ -161,7 +158,7 @@ namespace OxPt
                             ToExcelInteger(new DateTime(2013, 9, 19)),
                             ToExcelInteger(new DateTime(2013, 9, 20)),
                         },
-                        Values = new double[][] {
+                    Values = new double[][] {
                             new double[] {
                                 1, 2, 3, 2, 3, 4, 5, 4, 5, 6, 5, 4, 5, 6, 7, 8, 7, 8, 8, 9,
                             },
@@ -172,9 +169,8 @@ namespace OxPt
                                 2, 3, 3, 3, 3, 2, 2, 2, 3, 2, 3, 3, 4, 4, 4, 3, 4, 5, 5, 4,
                             },
                         },
-                    };
-                    ChartUpdater.UpdateChart(wDoc, "Chart4", chart4Data);
-                }
+                };
+                ChartUpdater.UpdateChart(wDoc, "Chart4", chart4Data);
             }
             if (templateFile.Extension.ToLower() == ".pptx")
             {
@@ -183,23 +179,22 @@ namespace OxPt
                 var afterUpdatingPptx = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, templateFile.Name.Replace(".pptx", "-processed-by-ChartUpdater.pptx")));
                 pmlTemplate.SaveAs(afterUpdatingPptx.FullName);
 
-                using (var pDoc = PresentationDocument.Open(afterUpdatingPptx.FullName, true))
+                using var pDoc = PresentationDocument.Open(afterUpdatingPptx.FullName, true);
+                var chart1Data = new ChartData
                 {
-                    var chart1Data = new ChartData
-                    {
-                        SeriesNames = new[] {
+                    SeriesNames = new[] {
                             "Car",
                             "Truck",
                             "Van",
                         },
-                        CategoryDataType = ChartDataType.String,
-                        CategoryNames = new[] {
+                    CategoryDataType = ChartDataType.String,
+                    CategoryNames = new[] {
                             "Q1",
                             "Q2",
                             "Q3",
                             "Q4",
                         },
-                        Values = new double[][] {
+                    Values = new double[][] {
                             new double[] {
                                 320, 310, 320, 330,
                             },
@@ -210,9 +205,8 @@ namespace OxPt
                                 180, 200, 220, 230,
                             },
                         },
-                    };
-                    ChartUpdater.UpdateChart(pDoc, 1, chart1Data);
-                }
+                };
+                ChartUpdater.UpdateChart(pDoc, 1, chart1Data);
             }
         }
 

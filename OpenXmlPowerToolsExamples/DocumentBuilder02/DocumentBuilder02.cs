@@ -1,6 +1,4 @@
-﻿
-
-using DocumentFormat.OpenXml.Packaging;
+﻿using DocumentFormat.OpenXml.Packaging;
 using OpenXmlPowerTools;
 using System;
 using System.Collections.Generic;
@@ -97,8 +95,8 @@ internal class DocumentBuilderExample02
                 });
             var zipped = PtExtensions.PtZip(beforeZipped, sectionCounts, (pi, sc) => new
             {
-                Paragraph = pi.Paragraph,
-                Index = pi.Index,
+                pi.Paragraph,
+                pi.Index,
                 SectionIndex = sc,
             });
             documentList = zipped

@@ -1,5 +1,3 @@
-
-
 using DocumentFormat.OpenXml.Packaging;
 using System;
 
@@ -43,12 +41,7 @@ namespace OpenXmlPowerTools
 
         public StronglyTypedBlock(OpenXmlPackage package)
         {
-            if (package == null)
-            {
-                throw new ArgumentNullException("package");
-            }
-
-            _package = package;
+            _package = package ?? throw new ArgumentNullException(nameof(package));
             _package.EndPowerToolsBlock();
         }
 

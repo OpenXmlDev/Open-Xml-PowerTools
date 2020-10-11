@@ -1,6 +1,4 @@
-﻿
-
-using DocumentFormat.OpenXml.Packaging;
+﻿using DocumentFormat.OpenXml.Packaging;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -13,22 +11,16 @@ namespace OpenXmlPowerTools
     {
         public static XElement RetrieveSheet(SmlDocument smlDoc, string sheetName)
         {
-            using (var ms = new MemoryStream())
-            {
-                ms.Write(smlDoc.DocumentByteArray, 0, smlDoc.DocumentByteArray.Length);
-                using (var sDoc = SpreadsheetDocument.Open(ms, false))
-                {
-                    return RetrieveSheet(sDoc, sheetName);
-                }
-            }
+            using var ms = new MemoryStream();
+            ms.Write(smlDoc.DocumentByteArray, 0, smlDoc.DocumentByteArray.Length);
+            using var sDoc = SpreadsheetDocument.Open(ms, false);
+            return RetrieveSheet(sDoc, sheetName);
         }
 
         public static XElement RetrieveSheet(string fileName, string sheetName)
         {
-            using (var sDoc = SpreadsheetDocument.Open(fileName, false))
-            {
-                return RetrieveSheet(sDoc, sheetName);
-            }
+            using var sDoc = SpreadsheetDocument.Open(fileName, false);
+            return RetrieveSheet(sDoc, sheetName);
         }
 
         public static XElement RetrieveSheet(SpreadsheetDocument sDoc, string sheetName)
@@ -51,22 +43,16 @@ namespace OpenXmlPowerTools
 
         public static XElement RetrieveRange(SmlDocument smlDoc, string sheetName, string range)
         {
-            using (var ms = new MemoryStream())
-            {
-                ms.Write(smlDoc.DocumentByteArray, 0, smlDoc.DocumentByteArray.Length);
-                using (var sDoc = SpreadsheetDocument.Open(ms, false))
-                {
-                    return RetrieveRange(sDoc, sheetName, range);
-                }
-            }
+            using var ms = new MemoryStream();
+            ms.Write(smlDoc.DocumentByteArray, 0, smlDoc.DocumentByteArray.Length);
+            using var sDoc = SpreadsheetDocument.Open(ms, false);
+            return RetrieveRange(sDoc, sheetName, range);
         }
 
         public static XElement RetrieveRange(string fileName, string sheetName, string range)
         {
-            using (var sDoc = SpreadsheetDocument.Open(fileName, false))
-            {
-                return RetrieveRange(sDoc, sheetName, range);
-            }
+            using var sDoc = SpreadsheetDocument.Open(fileName, false);
+            return RetrieveRange(sDoc, sheetName, range);
         }
 
         public static XElement RetrieveRange(SpreadsheetDocument sDoc, string sheetName, string range)
@@ -77,22 +63,16 @@ namespace OpenXmlPowerTools
 
         public static XElement RetrieveRange(SmlDocument smlDoc, string sheetName, int leftColumn, int topRow, int rightColumn, int bottomRow)
         {
-            using (var ms = new MemoryStream())
-            {
-                ms.Write(smlDoc.DocumentByteArray, 0, smlDoc.DocumentByteArray.Length);
-                using (var sDoc = SpreadsheetDocument.Open(ms, false))
-                {
-                    return RetrieveRange(sDoc, sheetName, leftColumn, topRow, rightColumn, bottomRow);
-                }
-            }
+            using var ms = new MemoryStream();
+            ms.Write(smlDoc.DocumentByteArray, 0, smlDoc.DocumentByteArray.Length);
+            using var sDoc = SpreadsheetDocument.Open(ms, false);
+            return RetrieveRange(sDoc, sheetName, leftColumn, topRow, rightColumn, bottomRow);
         }
 
         public static XElement RetrieveRange(string fileName, string sheetName, int leftColumn, int topRow, int rightColumn, int bottomRow)
         {
-            using (var sDoc = SpreadsheetDocument.Open(fileName, false))
-            {
-                return RetrieveRange(sDoc, sheetName, leftColumn, topRow, rightColumn, bottomRow);
-            }
+            using var sDoc = SpreadsheetDocument.Open(fileName, false);
+            return RetrieveRange(sDoc, sheetName, leftColumn, topRow, rightColumn, bottomRow);
         }
 
         public static XElement RetrieveRange(SpreadsheetDocument sDoc, string sheetName, int leftColumn, int topRow, int rightColumn, int bottomRow)
@@ -421,22 +401,16 @@ namespace OpenXmlPowerTools
 
         public static XElement RetrieveTable(SmlDocument smlDoc, string tableName)
         {
-            using (var ms = new MemoryStream())
-            {
-                ms.Write(smlDoc.DocumentByteArray, 0, smlDoc.DocumentByteArray.Length);
-                using (var sDoc = SpreadsheetDocument.Open(ms, false))
-                {
-                    return RetrieveTable(sDoc, tableName);
-                }
-            }
+            using var ms = new MemoryStream();
+            ms.Write(smlDoc.DocumentByteArray, 0, smlDoc.DocumentByteArray.Length);
+            using var sDoc = SpreadsheetDocument.Open(ms, false);
+            return RetrieveTable(sDoc, tableName);
         }
 
         public static XElement RetrieveTable(string fileName, string tableName)
         {
-            using (var sDoc = SpreadsheetDocument.Open(fileName, false))
-            {
-                return RetrieveTable(sDoc, tableName);
-            }
+            using var sDoc = SpreadsheetDocument.Open(fileName, false);
+            return RetrieveTable(sDoc, tableName);
         }
 
         public static XElement RetrieveTable(SpreadsheetDocument sDoc, string tableName)
@@ -591,22 +565,16 @@ namespace OpenXmlPowerTools
 
         public static string[] SheetNames(SmlDocument smlDoc)
         {
-            using (var ms = new MemoryStream())
-            {
-                ms.Write(smlDoc.DocumentByteArray, 0, smlDoc.DocumentByteArray.Length);
-                using (var sDoc = SpreadsheetDocument.Open(ms, false))
-                {
-                    return SheetNames(sDoc);
-                }
-            }
+            using var ms = new MemoryStream();
+            ms.Write(smlDoc.DocumentByteArray, 0, smlDoc.DocumentByteArray.Length);
+            using var sDoc = SpreadsheetDocument.Open(ms, false);
+            return SheetNames(sDoc);
         }
 
         public static string[] SheetNames(string fileName)
         {
-            using (var sDoc = SpreadsheetDocument.Open(fileName, false))
-            {
-                return SheetNames(sDoc);
-            }
+            using var sDoc = SpreadsheetDocument.Open(fileName, false);
+            return SheetNames(sDoc);
         }
 
         public static string[] SheetNames(SpreadsheetDocument sDoc)
@@ -618,22 +586,16 @@ namespace OpenXmlPowerTools
 
         public static string[] TableNames(SmlDocument smlDoc)
         {
-            using (var ms = new MemoryStream())
-            {
-                ms.Write(smlDoc.DocumentByteArray, 0, smlDoc.DocumentByteArray.Length);
-                using (var sDoc = SpreadsheetDocument.Open(ms, false))
-                {
-                    return TableNames(sDoc);
-                }
-            }
+            using var ms = new MemoryStream();
+            ms.Write(smlDoc.DocumentByteArray, 0, smlDoc.DocumentByteArray.Length);
+            using var sDoc = SpreadsheetDocument.Open(ms, false);
+            return TableNames(sDoc);
         }
 
         public static string[] TableNames(string fileName)
         {
-            using (var sDoc = SpreadsheetDocument.Open(fileName, false))
-            {
-                return TableNames(sDoc);
-            }
+            using var sDoc = SpreadsheetDocument.Open(fileName, false);
+            return TableNames(sDoc);
         }
 
         public static string[] TableNames(SpreadsheetDocument sDoc)

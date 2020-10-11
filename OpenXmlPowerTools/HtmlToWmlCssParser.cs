@@ -1,6 +1,4 @@
-﻿
-
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Drawing;
@@ -1618,15 +1616,6 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
                     "em", "ex", "px", "gd", "rem", "vw", "vh", "vm", "ch", "mm", "cm", "in", "pt", "pc", "deg", "grad", "rad", "turn", "ms", "s", "hz", "khz"
                 });
             return units.Contains(LookaheadToken.TokenValue.ToLower());
-        }
-
-        private bool IsNumber()
-        {
-            if (LookaheadToken.TokenValue.Length > 0)
-            {
-                return char.IsDigit(LookaheadToken.TokenValue[0]);
-            }
-            return false;
         }
 
         public Parser(Scanner scanner)
@@ -3375,7 +3364,7 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
             var read = m_inputStream.Read(m_inputBuffer, m_bufferLength, free);
             if (read > 0)
             {
-                m_inputStreamLength = m_bufferLength = (m_bufferLength + read);
+                m_inputStreamLength = m_bufferLength += read;
                 return read;
             }
             return 0;

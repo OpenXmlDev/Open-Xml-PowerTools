@@ -1,6 +1,4 @@
-﻿
-
-using DocumentFormat.OpenXml.Packaging;
+﻿using DocumentFormat.OpenXml.Packaging;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -571,7 +569,7 @@ namespace OpenXmlPowerTools
             {
                 var i = index - 702;
                 var i1 = i / 676;
-                i = i - i1 * 676;
+                i -= i1 * 676;
                 var i2 = i / 26;
                 var i3 = i % 26;
                 var s = new string((char)('A' + i1), 1) +

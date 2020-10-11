@@ -1,6 +1,4 @@
-﻿
-
-using DocumentFormat.OpenXml.Packaging;
+﻿using DocumentFormat.OpenXml.Packaging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -34,14 +32,12 @@ namespace OpenXmlPowerTools
     {
         public static WmlDocument AssembleFormatting(WmlDocument document, FormattingAssemblerSettings settings)
         {
-            using (var streamDoc = new OpenXmlMemoryStreamDocument(document))
+            using var streamDoc = new OpenXmlMemoryStreamDocument(document);
+            using (var doc = streamDoc.GetWordprocessingDocument())
             {
-                using (var doc = streamDoc.GetWordprocessingDocument())
-                {
-                    AssembleFormatting(doc, settings);
-                }
-                return streamDoc.GetModifiedWmlDocument();
+                AssembleFormatting(doc, settings);
             }
+            return streamDoc.GetModifiedWmlDocument();
         }
 
         public static void AssembleFormatting(WordprocessingDocument wDoc, FormattingAssemblerSettings settings)

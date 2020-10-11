@@ -1,6 +1,4 @@
-﻿
-
-using DocumentFormat.OpenXml.Packaging;
+﻿using DocumentFormat.OpenXml.Packaging;
 using OpenXmlPowerTools;
 using System;
 using System.IO;
@@ -21,19 +19,17 @@ namespace FormattingAssembler01
                 Console.WriteLine(file.Name);
                 var newFile = new FileInfo(Path.Combine(tempDi.FullName, file.Name.Replace(".docx", "out.docx")));
                 File.Copy(file.FullName, newFile.FullName);
-                using (var wDoc = WordprocessingDocument.Open(newFile.FullName, true))
+                using var wDoc = WordprocessingDocument.Open(newFile.FullName, true);
+                var settings = new FormattingAssemblerSettings()
                 {
-                    var settings = new FormattingAssemblerSettings()
-                    {
-                        ClearStyles = true,
-                        RemoveStyleNamesFromParagraphAndRunProperties = true,
-                        CreateHtmlConverterAnnotationAttributes = true,
-                        OrderElementsPerStandard = true,
-                        RestrictToSupportedLanguages = true,
-                        RestrictToSupportedNumberingFormats = true,
-                    };
-                    FormattingAssembler.AssembleFormatting(wDoc, settings);
-                }
+                    ClearStyles = true,
+                    RemoveStyleNamesFromParagraphAndRunProperties = true,
+                    CreateHtmlConverterAnnotationAttributes = true,
+                    OrderElementsPerStandard = true,
+                    RestrictToSupportedLanguages = true,
+                    RestrictToSupportedNumberingFormats = true,
+                };
+                FormattingAssembler.AssembleFormatting(wDoc, settings);
             }
         }
     }

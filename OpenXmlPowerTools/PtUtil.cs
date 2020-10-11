@@ -1,6 +1,4 @@
-﻿
-
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -631,13 +629,11 @@ namespace OpenXmlPowerTools
             IEnumerable<TSecond> second,
             Func<TFirst, TSecond, TResult> func)
         {
-            using (var ie1 = first.GetEnumerator())
-            using (var ie2 = second.GetEnumerator())
+            using var ie1 = first.GetEnumerator();
+            using var ie2 = second.GetEnumerator();
+            while (ie1.MoveNext() && ie2.MoveNext())
             {
-                while (ie1.MoveNext() && ie2.MoveNext())
-                {
-                    yield return func(ie1.Current, ie2.Current);
-                }
+                yield return func(ie1.Current, ie2.Current);
             }
         }
 
@@ -1210,24 +1206,22 @@ namespace OpenXmlPowerTools
             {
                 if (File.Exists(executablePath))
                 {
-                    using (var proc = new Process())
-                    {
-                        proc.StartInfo.FileName = executablePath;
-                        proc.StartInfo.Arguments = arguments;
-                        proc.StartInfo.WorkingDirectory = workingDirectory;
-                        proc.StartInfo.UseShellExecute = false;
-                        proc.StartInfo.RedirectStandardOutput = true;
-                        proc.StartInfo.RedirectStandardError = true;
-                        proc.OutputDataReceived +=
-                            (o, e) => runResults.Output.Append(e.Data).Append(Environment.NewLine);
-                        proc.ErrorDataReceived +=
-                            (o, e) => runResults.Error.Append(e.Data).Append(Environment.NewLine);
-                        proc.Start();
-                        proc.BeginOutputReadLine();
-                        proc.BeginErrorReadLine();
-                        proc.WaitForExit();
-                        runResults.ExitCode = proc.ExitCode;
-                    }
+                    using var proc = new Process();
+                    proc.StartInfo.FileName = executablePath;
+                    proc.StartInfo.Arguments = arguments;
+                    proc.StartInfo.WorkingDirectory = workingDirectory;
+                    proc.StartInfo.UseShellExecute = false;
+                    proc.StartInfo.RedirectStandardOutput = true;
+                    proc.StartInfo.RedirectStandardError = true;
+                    proc.OutputDataReceived +=
+                        (o, e) => runResults.Output.Append(e.Data).Append(Environment.NewLine);
+                    proc.ErrorDataReceived +=
+                        (o, e) => runResults.Error.Append(e.Data).Append(Environment.NewLine);
+                    proc.Start();
+                    proc.BeginOutputReadLine();
+                    proc.BeginErrorReadLine();
+                    proc.WaitForExit();
+                    runResults.ExitCode = proc.ExitCode;
                 }
                 else
                 {
