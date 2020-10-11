@@ -641,7 +641,7 @@ namespace OpenXmlPowerTools
                 tableProps.Add(newTableStyleInfo);
             }
 
-            if (!tableProps.HasElements && !tableProps.HasElements)
+            if (!tableProps.HasElements)
             {
                 tableProps = null;
             }

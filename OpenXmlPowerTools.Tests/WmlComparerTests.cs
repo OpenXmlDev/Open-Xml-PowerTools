@@ -334,7 +334,7 @@ namespace OxPt
                 using var wDoc = WordprocessingDocument.Open(ms, true);
                 var validator = new OpenXmlValidator();
                 var errors = validator.Validate(wDoc).Where(e => !ExpectedErrors.Contains(e.Description));
-                if (errors.Count() > 0)
+                if (errors.Any())
                 {
                     var ind = "  ";
                     var sb = new StringBuilder();
@@ -755,7 +755,7 @@ namespace OxPt
             using var wDoc = WordprocessingDocument.Open(ms, true);
             var validator = new OpenXmlValidator();
             var errors = validator.Validate(wDoc).Where(e => !ExpectedErrors.Contains(e.Description));
-            if (errors.Count() != 0)
+            if (errors.Any())
             {
                 var ind = "  ";
                 var sb = new StringBuilder();

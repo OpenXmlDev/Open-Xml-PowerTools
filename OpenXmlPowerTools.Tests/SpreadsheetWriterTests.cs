@@ -309,7 +309,7 @@ namespace OxPt
             // if a test fails validation post-processing, then can use this code to determine the SDK
             // validation error(s).
 
-            if (errors.Count() != 0)
+            if (errors.Any())
             {
                 var sb = new StringBuilder();
                 foreach (var item in errors)

@@ -435,7 +435,7 @@ namespace OpenXmlPowerTools
             }
 
             var slideList = sourceDocument.PresentationPart.GetXDocument().Root.Descendants(P.sldId);
-            if (slideList.Count() == 0 && (currentMasterPart == null || keepMaster))
+            if (!slideList.Any() && (currentMasterPart == null || keepMaster))
             {
                 var slideMasterPart = sourceDocument.PresentationPart.SlideMasterParts.FirstOrDefault();
                 if (slideMasterPart != null)

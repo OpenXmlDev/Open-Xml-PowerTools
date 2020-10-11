@@ -3310,7 +3310,6 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
                 {
                     while (value >= m_inputStreamLength && ReadNextStreamChunk() > 0)
                     {
-                        ;
                     }
                 }
 

@@ -16,23 +16,23 @@ namespace OpenXmlPowerTools
     {
         public static string SHA1HashStringForUTF8String(string s)
         {
-            byte[] bytes = Encoding.UTF8.GetBytes(s);
+            var bytes = Encoding.UTF8.GetBytes(s);
             var sha1 = SHA1.Create();
-            byte[] hashBytes = sha1.ComputeHash(bytes);
+            var hashBytes = sha1.ComputeHash(bytes);
             return HexStringFromBytes(hashBytes);
         }
 
         public static string SHA1HashStringForByteArray(byte[] bytes)
         {
             var sha1 = SHA1.Create();
-            byte[] hashBytes = sha1.ComputeHash(bytes);
+            var hashBytes = sha1.ComputeHash(bytes);
             return HexStringFromBytes(hashBytes);
         }
 
         public static string HexStringFromBytes(byte[] bytes)
         {
             var sb = new StringBuilder();
-            foreach (byte b in bytes)
+            foreach (var b in bytes)
             {
                 var hex = b.ToString("x2");
                 sb.Append(hex);
@@ -146,7 +146,7 @@ namespace OpenXmlPowerTools
                     var b = l.TrimStart('-') == boundary;
                     return b;
                 })
-                .Where(g => g.Key == false)
+                .Where(g => !g.Key)
                 .ToArray();
 
             var parts = grouped.Select(rp =>
@@ -1287,24 +1287,30 @@ namespace OpenXmlPowerTools
 
         public static void Bucket(string bucket)
         {
-            DateTime now = DateTime.Now;
+            var now = DateTime.Now;
             if (LastBucket != null)
+            {
                 AddToBuckets(now);
+            }
+
             LastBucket = bucket;
             LastTime = now;
         }
 
         public static void End()
         {
-            DateTime now = DateTime.Now;
+            var now = DateTime.Now;
             if (LastBucket != null)
+            {
                 AddToBuckets(now);
+            }
+
             LastBucket = null;
         }
 
         private static void AddToBuckets(DateTime now)
         {
-            TimeSpan d = now - LastTime;
+            var d = now - LastTime;
 
             if (Buckets.ContainsKey(LastBucket))
             {
@@ -1327,10 +1333,13 @@ namespace OpenXmlPowerTools
             var sb = new StringBuilder();
             foreach (var bucket in Buckets.OrderBy(b => b.Key))
             {
-                string ts = bucket.Value.Time.ToString();
+                var ts = bucket.Value.Time.ToString();
                 if (ts.Contains('.'))
+                {
                     ts = ts.Substring(0, ts.Length - 5);
-                string s = bucket.Key.PadRight(80, '-') + "  " + string.Format("{0:00000000}", bucket.Value.Count) + "  " + ts;
+                }
+
+                var s = bucket.Key.PadRight(80, '-') + "  " + string.Format("{0:00000000}", bucket.Value.Count) + "  " + ts;
                 sb.Append(s + Environment.NewLine);
             }
             var total = Buckets
@@ -1342,13 +1351,16 @@ namespace OpenXmlPowerTools
 
         public static string DumpBucketsToCsvByKey()
         {
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder();
             foreach (var bucket in Buckets.OrderBy(b => b.Key))
             {
-                string ts = bucket.Value.Time.TotalMilliseconds.ToString();
+                var ts = bucket.Value.Time.TotalMilliseconds.ToString();
                 if (ts.Contains('.'))
+                {
                     ts = ts.Substring(0, ts.Length - 5);
-                string s = bucket.Key + "," + bucket.Value.Count.ToString() + "," + ts;
+                }
+
+                var s = bucket.Key + "," + bucket.Value.Count.ToString() + "," + ts;
                 sb.Append(s + Environment.NewLine);
             }
             return sb.ToString();
@@ -1365,7 +1377,7 @@ namespace OpenXmlPowerTools
                     ts = ts.Substring(0, ts.Length - 5);
                 }
 
-                string s = bucket.Key.PadRight(60, '-') + "  " + string.Format("{0:00000000}", bucket.Value.Count) + "  " + ts;
+                var s = bucket.Key.PadRight(60, '-') + "  " + string.Format("{0:00000000}", bucket.Value.Count) + "  " + ts;
                 sb.Append(s + Environment.NewLine);
             }
             var total = Buckets

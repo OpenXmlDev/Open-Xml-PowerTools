@@ -38,7 +38,7 @@ namespace OpenXmlPowerTools
             var instrText = groupedSubFields
                 .Select(g =>
                 {
-                    if (g.Key == false)
+                    if (!g.Key)
                     {
                         return g.Select(e =>
                         {
@@ -107,7 +107,7 @@ namespace OpenXmlPowerTools
                                     Id = s.Id + 1,
                                     FiStack = fis,
                                 };
-                            };
+                            }
                             if (e.Attribute(w + "fldCharType").Value == "separate")
                             {
                                 var fis = new Stack<FieldElementTypeInfo>(s.FiStack.Reverse());

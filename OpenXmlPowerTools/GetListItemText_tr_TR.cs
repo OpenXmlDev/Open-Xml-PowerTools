@@ -1,6 +1,4 @@
-﻿
-
-namespace OpenXmlPowerTools
+﻿namespace OpenXmlPowerTools
 {
     public class ListItemTextGetter_tr_TR
     {
@@ -197,8 +195,6 @@ namespace OpenXmlPowerTools
                     return result.Substring(0, 1).ToUpper() +
                         result.Substring(1);
                 }
-                //if (t1 >= 1)
-                //    result += " ";
                 var h1 = (levelNumber % 1000) / 100;
                 var h2 = levelNumber % 100;
                 if (h1 >= 1 && h2 != 0)
@@ -212,8 +208,6 @@ namespace OpenXmlPowerTools
                     return result.Substring(0, 1).ToUpper() +
                         result.Substring(1);
                 }
-                //if (h1 >= 1)
-                //    result += " ";
                 var z = levelNumber % 100;
                 if (z <= 19)
                 {
@@ -234,7 +228,7 @@ namespace OpenXmlPowerTools
 
                     if (r >= 1)
                     {
-                        result += OrdinalOneThroughNineteen[r - 1]; //result += "-" + OrdinalOneThroughNineteen[r - 1];
+                        result += OrdinalOneThroughNineteen[r - 1];
                     }
                 }
                 return result.Substring(0, 1).ToUpper() +

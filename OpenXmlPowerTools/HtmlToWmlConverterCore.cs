@@ -362,7 +362,7 @@ namespace OpenXmlPowerTools.HtmlToWml
                 var groupedCharacters = val.GroupAdjacent(c => c == '\r' || c == '\n');
                 var newNodes = groupedCharacters.Select(g =>
                 {
-                    if (g.Key == true)
+                    if (g.Key)
                     {
                         return (object)(new XElement(XhtmlNoNamespace.br));
                     }
@@ -812,7 +812,7 @@ namespace OpenXmlPowerTools.HtmlToWml
                     var newContent = groupedChildren
                         .Select(g =>
                         {
-                            if (g.Key == false)
+                            if (!g.Key)
                             {
                                 var paragraph = new XElement(W.p,
                                     element.Elements(W.pPr),
@@ -3138,7 +3138,7 @@ namespace OpenXmlPowerTools.HtmlToWml
 
             var newString = groupedCharacters.Select(g =>
             {
-                if (g.Key == true)
+                if (g.Key)
                 {
                     return " ";
                 }
@@ -3391,8 +3391,6 @@ namespace OpenXmlPowerTools.HtmlToWml
 
         private static List<XAttribute> GetBorderAttributes(XElement element, string whichBorder)
         {
-            //if (whichBorder == "right")
-            //    Console.WriteLine(1);
             var styleProp = element.GetProp(string.Format("border-{0}-style", whichBorder));
             var colorProp = element.GetProp(string.Format("border-{0}-color", whichBorder));
             var paddingProp = element.GetProp(string.Format("padding-{0}", whichBorder));
@@ -3450,7 +3448,6 @@ namespace OpenXmlPowerTools.HtmlToWml
             {
                 val.Value = "single";
                 sz.Value = "0";
-                //color.Value = "FF0000";
             }
 
             // sz is in 1/8 of a point
@@ -5059,12 +5056,7 @@ namespace OpenXmlPowerTools.HtmlToWml
 
             if (html.Descendants(XhtmlNoNamespace.h6).Any())
             {
-                PtUtils.AddElementIfMissing(styleXDoc,
-                styleXDoc
-                    .Root
-                    .Elements(W.style)
-                    .Where(e => (string)e.Attribute(W.type) == "paragraph" && (string)e.Attribute(W.styleId) == "Heading6")
-                    .FirstOrDefault(),
+                PtUtils.AddElementIfMissing(styleXDoc, styleXDoc.Root.Elements(W.style).FirstOrDefault(e => (string)e.Attribute(W.type) == "paragraph" && (string)e.Attribute(W.styleId) == "Heading6"),
 @"<w:style w:type='paragraph'
          w:styleId='Heading6'
          xmlns:w='http://schemas.openxmlformats.org/wordprocessingml/2006/main'>

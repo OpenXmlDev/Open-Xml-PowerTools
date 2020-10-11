@@ -1913,11 +1913,10 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml
             foreach (var font in fromFontTable.Root.Elements(W.font))
             {
                 var name = font.Attribute(W.name).Value;
-                if (toFontTable
+                if (!toFontTable
                     .Root
                     .Elements(W.font)
-                    .Where(o => o.Attribute(W.name).Value == name)
-                    .Count() == 0)
+                    .Where(o => o.Attribute(W.name).Value == name).Any())
                 {
                     toFontTable.Root.Add(new XElement(font));
                 }
@@ -2198,7 +2197,7 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml
             var newMainXDoc = newDocument.MainDocumentPart.GetXDocument();
             newMainXDoc.Declaration.Standalone = Yes;
             newMainXDoc.Declaration.Encoding = Utf8;
-            if (keepSection == false)
+            if (!keepSection)
             {
                 var adjustedContents = newContent.Where(e => e.Name != W.sectPr).ToList();
                 adjustedContents.DescendantsAndSelf(W.sectPr).Remove();
@@ -2433,8 +2432,6 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml
                 var newSettingsPart = newDocument.MainDocumentPart.AddNewPart<DocumentSettingsPart>();
                 var settingsXDoc = oldSettingsPart.GetXDocument();
                 AddRelationships(oldSettingsPart, newSettingsPart, new[] { settingsXDoc.Root });
-                //CopyFootnotesPart(sourceDocument, newDocument, settingsXDoc, images);
-                //CopyEndnotesPart(sourceDocument, newDocument, settingsXDoc, images);
                 var newXDoc = newDocument.MainDocumentPart.DocumentSettingsPart.GetXDocument();
                 newXDoc.Declaration.Standalone = Yes;
                 newXDoc.Declaration.Encoding = Utf8;
@@ -2651,7 +2648,6 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml
                     {
                         continue;
                     }
-                    //throw new DocumentBuilderInternalException("Internal Error 0002");
                     newPart.AddHyperlinkRelationship(oldHyperlink.Uri, oldHyperlink.IsExternal, newRid);
                     UpdateContent(newContent, e.Name, relId, newRid);
                 }
@@ -4202,10 +4198,9 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml
             foreach (var start in newContent.DescendantsAndSelf(startElement))
             {
                 var rangeId = start.Attribute(idAttribute).Value;
-                if (newContent
+                if (!newContent
                     .DescendantsAndSelf(endElement)
-                    .Where(e => e.Attribute(idAttribute).Value == rangeId)
-                    .Count() == 0)
+                    .Where(e => e.Attribute(idAttribute).Value == rangeId).Any())
                 {
                     var end = sourceDocument
                         .Descendants(endElement)
@@ -4225,10 +4220,9 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml
             foreach (var end in newContent.Elements(endElement))
             {
                 var rangeId = end.Attribute(idAttribute).Value;
-                if (newContent
+                if (!newContent
                     .DescendantsAndSelf(startElement)
-                    .Where(s => s.Attribute(idAttribute).Value == rangeId)
-                    .Count() == 0)
+                    .Where(s => s.Attribute(idAttribute).Value == rangeId).Any())
                 {
                     var start = sourceDocument
                         .Descendants(startElement)

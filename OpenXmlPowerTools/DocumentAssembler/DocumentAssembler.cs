@@ -696,7 +696,7 @@ namespace OpenXmlPowerTools
                     {
                         return CreateContextErrorMessage(element, "XPathException: " + e.Message, templateError);
                     }
-                    if (tableData.Count() == 0)
+                    if (!tableData.Any())
                     {
                         return CreateContextErrorMessage(element, "Table Select returned no data", templateError);
                     }

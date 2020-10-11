@@ -1,7 +1,4 @@
-﻿
-
-using System;
-using System.Linq;
+﻿using System;
 using System.Text;
 
 // It is possible to optimize DescendantContentAtoms

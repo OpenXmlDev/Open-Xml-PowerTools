@@ -477,7 +477,7 @@ AAsACwDBAgAAbCwAAAAA";
                 using var wDoc = WordprocessingDocument.Open(fileName, false);
                 var validator = new OpenXmlValidator(fileFormatVersion);
                 var errors = validator.Validate(wDoc);
-                var valid = errors.Count() == 0;
+                var valid = !errors.Any();
                 return valid;
             }
             else if (Util.IsSpreadsheetML(fi.Extension))
@@ -485,7 +485,7 @@ AAsACwDBAgAAbCwAAAAA";
                 using var sDoc = SpreadsheetDocument.Open(fileName, false);
                 var validator = new OpenXmlValidator(fileFormatVersion);
                 var errors = validator.Validate(sDoc);
-                var valid = errors.Count() == 0;
+                var valid = !errors.Any();
                 return valid;
             }
             else if (Util.IsPresentationML(fi.Extension))
@@ -493,7 +493,7 @@ AAsACwDBAgAAbCwAAAAA";
                 using var pDoc = PresentationDocument.Open(fileName, false);
                 var validator = new OpenXmlValidator(fileFormatVersion);
                 var errors = validator.Validate(pDoc);
-                var valid = errors.Count() == 0;
+                var valid = !errors.Any();
                 return valid;
             }
             return false;

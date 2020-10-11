@@ -2581,7 +2581,7 @@ namespace OpenXmlPowerTools
                             e.Name == W.yearLong ||
                             e.Name == W.yearShort
                         );
-                    if (hasContent == false)
+                    if (!hasContent)
                     {
                         return new XElement(element.Name,
                             element.Attributes(),

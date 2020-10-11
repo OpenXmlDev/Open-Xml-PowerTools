@@ -555,7 +555,7 @@ namespace OpenXmlPowerTools
                 originalWithUnids.SaveAs(preProcFi1.FullName);
             }
 
-            var revisedDocumentInfoListCount = revisedDocumentInfoList.Count();
+            var revisedDocumentInfoListCount = revisedDocumentInfoList.Count;
 
             using var consolidatedMs = new MemoryStream();
             consolidatedMs.Write(consolidated.DocumentByteArray, 0, consolidated.DocumentByteArray.Length);
@@ -771,7 +771,7 @@ namespace OpenXmlPowerTools
 
                     // process before
                     var contentToAddBefore = lci
-                        .Where(ci => ci.InsertBefore == true)
+                        .Where(ci => ci.InsertBefore)
                         .GroupAdjacent(ci => ci.Revisor + ci.Color.ToString())
                         .Select((groupedCi, idx) => AssembledConjoinedRevisionContent(emptyParagraph, groupedCi, idx, consolidatedWDoc, consolidateSettings));
                     ele.AddBeforeSelf(contentToAddBefore);
@@ -781,14 +781,14 @@ namespace OpenXmlPowerTools
                     // that contains the revisions, then simply replace the paragraph with the one with the revisions.
                     // RC004 documents contain the test data to exercise this.
 
-                    var lciCount = lci.Where(ci => ci.InsertBefore == false).Count();
+                    var lciCount = lci.Where(ci => !ci.InsertBefore).Count();
 
                     if (lciCount > 1 && lciCount == revisedDocumentInfoListCount)
                     {
                         // This is the code that determines if revisions should be consolidated into one.
 
                         var uniqueRevisions = lci
-                            .Where(ci => ci.InsertBefore == false)
+                            .Where(ci => !ci.InsertBefore)
                             .GroupBy(ci =>
                             {
                                 // Get a hash after first accepting revisions and compressing the text.
@@ -798,7 +798,7 @@ namespace OpenXmlPowerTools
                             })
                             .OrderByDescending(g => g.Count())
                             .ToList();
-                        var uniqueRevisionCount = uniqueRevisions.Count();
+                        var uniqueRevisionCount = uniqueRevisions.Count;
 
                         if (uniqueRevisionCount == 1)
                         {
@@ -844,7 +844,7 @@ namespace OpenXmlPowerTools
                     // the magic function is AssembledConjoinedRevisionContent
 
                     var contentToAddAfter = lci
-                        .Where(ci => ci.InsertBefore == false)
+                        .Where(ci => !ci.InsertBefore)
                         .GroupAdjacent(ci => ci.Revisor + ci.Color.ToString())
                         .Select((groupedCi, idx) => AssembledConjoinedRevisionContent(emptyParagraph, groupedCi, idx, consolidatedWDoc, consolidateSettings));
                     ele.AddAfterSelf(contentToAddAfter);
@@ -894,7 +894,7 @@ namespace OpenXmlPowerTools
             if (consolidatedEndnoteXDoc.Root.Elements(W.endnote).Any())
             {
                 maxEndnoteId = consolidatedEndnoteXDoc.Root.Elements(W.endnote).Select(e => (int)e.Attribute(W.id)).Max();
-            };
+            }
 
             /// At this point, content might contain a footnote or endnote reference.
             /// Need to add the footnote / endnote into the consolidated document (with the same guid id)
@@ -1051,7 +1051,7 @@ namespace OpenXmlPowerTools
             if (consolidatedEndnoteXDoc.Root.Elements(W.endnote).Any())
             {
                 maxEndnoteId = consolidatedEndnoteXDoc.Root.Elements(W.endnote).Select(e => (int)e.Attribute(W.id)).Max();
-            };
+            }
 
             var revisor = groupedCi.First().Revisor;
 
@@ -2101,12 +2101,12 @@ namespace OpenXmlPowerTools
                         .Select(a => (string)a)
                         .Distinct()
                         .ToList();
-                    if (statusList.Count() > 1)
+                    if (statusList.Count > 1)
                     {
                         throw new OpenXmlPowerToolsException("Internal error - have both deleted and inserted text elements in the same run.");
                     }
 
-                    if (statusList.Count() == 0)
+                    if (statusList.Count == 0)
                     {
                         return new XElement(W.r,
                             element.Attributes(),
@@ -4023,7 +4023,7 @@ namespace OpenXmlPowerTools
                         {
                             var split1 = SplitAtParagraphMark(remainingInLeft);
                             var split2 = SplitAtParagraphMark(remainingInRight);
-                            if (split1.Count() == 1 && split2.Count() == 1)
+                            if (split1.Count == 1 && split2.Count == 1)
                             {
                                 var csUnknown2 = new CorrelatedSequence
                                 {
@@ -4114,7 +4114,7 @@ namespace OpenXmlPowerTools
                 }
 
                 // if the word contains more than one atom, then not a paragraph mark
-                if (firstCommonWord.Contents.Count() != 1)
+                if (firstCommonWord.Contents.Count != 1)
                 {
                     break;
                 }
@@ -4146,7 +4146,7 @@ namespace OpenXmlPowerTools
                 if (firstCommonWord != null)
                 {
                     // if the word contains more than one atom, then not a paragraph mark
-                    if (firstCommonWord.Contents.Count() == 1)
+                    if (firstCommonWord.Contents.Count == 1)
                     {
                         var firstCommonAtom = firstCommonWord.Contents.First() as ComparisonUnitAtom;
                         if (firstCommonAtom != null)
@@ -4178,7 +4178,7 @@ namespace OpenXmlPowerTools
                 if (firstCommonWord != null && secondCommonWord != null)
                 {
                     // if the word contains more than one atom, then not a paragraph mark
-                    if (firstCommonWord.Contents.Count() == 1 && secondCommonWord.Contents.Count() == 1)
+                    if (firstCommonWord.Contents.Count == 1 && secondCommonWord.Contents.Count == 1)
                     {
                         var firstCommonAtom = firstCommonWord.Contents.First() as ComparisonUnitAtom;
                         var secondCommonAtom = secondCommonWord.Contents.First() as ComparisonUnitAtom;
@@ -5061,7 +5061,7 @@ namespace OpenXmlPowerTools
                 var list2 = cu2.OfType<ComparisonUnitGroup>().Select(g => g.SHA1Hash).ToList();
                 var intersect = list1.Intersect(list2).ToList();
 
-                if (intersect.Count() == 0)
+                if (intersect.Count == 0)
                 {
                     var newListOfCorrelatedSequence = new List<CorrelatedSequence>();
 
@@ -5588,7 +5588,7 @@ namespace OpenXmlPowerTools
                 }
 
                 // if the word contains more than one atom, then not a paragraph mark
-                if (firstCommonWord.Contents.Count() != 1)
+                if (firstCommonWord.Contents.Count != 1)
                 {
                     break;
                 }
@@ -5626,7 +5626,7 @@ namespace OpenXmlPowerTools
                 if (firstCommonWord != null)
                 {
                     // if the word contains more than one atom, then not a paragraph mark
-                    if (firstCommonWord.Contents.Count() == 1)
+                    if (firstCommonWord.Contents.Count == 1)
                     {
                         var firstCommonAtom = firstCommonWord.Contents.First() as ComparisonUnitAtom;
                         if (firstCommonAtom != null)
@@ -5660,7 +5660,7 @@ namespace OpenXmlPowerTools
             {
                 var commonSequence = cul1.Skip(currentI1).Take(currentLongestCommonSequenceLength).ToArray();
                 // if they are all ComparisonUnitWord objects
-                var oneIsNotWord = commonSequence.Any(cs => (cs as ComparisonUnitWord) == null);
+                var oneIsNotWord = commonSequence.Any(cs => !(cs is ComparisonUnitWord));
                 var allAreWords = !oneIsNotWord;
                 if (allAreWords)
                 {
@@ -6658,7 +6658,7 @@ namespace OpenXmlPowerTools
             // This is probably not very common, but it will never do any harm.
             var tblGroup1 = unknown.ComparisonUnitArray1.First() as ComparisonUnitGroup;
             var tblGroup2 = unknown.ComparisonUnitArray2.First() as ComparisonUnitGroup;
-            if (tblGroup1.Contents.Count() == tblGroup2.Contents.Count()) // if there are the same number of rows
+            if (tblGroup1.Contents.Count == tblGroup2.Contents.Count) // if there are the same number of rows
             {
                 var zipped = tblGroup1.Contents.Zip(tblGroup2.Contents, (r1, r2) => new
                 {
@@ -7374,7 +7374,7 @@ namespace OpenXmlPowerTools
         private static void MoveLastSectPrIntoLastParagraph(XElement contentParent)
         {
             var lastSectPrList = contentParent.Elements(W.sectPr).ToList();
-            if (lastSectPrList.Count() > 1)
+            if (lastSectPrList.Count > 1)
             {
                 throw new OpenXmlPowerToolsException("Invalid document");
             }

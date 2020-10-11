@@ -299,7 +299,7 @@ namespace OpenXmlPowerTools
                     return new XElement(W.r,
                         grouped.Select(g =>
                         {
-                            if (g.Key == false)
+                            if (!g.Key)
                             {
                                 return (object)g;
                             }

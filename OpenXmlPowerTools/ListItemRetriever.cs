@@ -1129,11 +1129,9 @@ namespace OpenXmlPowerTools
                             }
                         }
 
-                        if (previous == null ||
-                            level >= previous.Count() ||
-                            (level == ilvl && startOverride != null && !startOverrideAlreadyUsed.Contains(numId)))
+                        if (previous == null || level >= previous.Count || (level == ilvl && startOverride != null && !startOverrideAlreadyUsed.Contains(numId)))
                         {
-                            if (previous == null || level >= previous.Count())
+                            if (previous == null || level >= previous.Count)
                             {
                                 var start = listItemInfo.Start(level);
                                 // only look at startOverride if the level that we're examining is same as the paragraph's level.

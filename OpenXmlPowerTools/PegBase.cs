@@ -2179,7 +2179,6 @@ namespace Peg.Base
         {
             for (; pos_ < srcLen_ && charset.Matches(src_[pos_]); ++pos_)
             {
-                ;
             }
 
             return true;
@@ -2190,7 +2189,6 @@ namespace Peg.Base
             var pos0 = pos_;
             for (; pos_ < srcLen_ && charset.Matches(src_[pos_]); ++pos_)
             {
-                ;
             }
 
             return pos_ > pos0;

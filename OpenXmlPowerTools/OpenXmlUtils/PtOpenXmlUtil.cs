@@ -2,7 +2,6 @@
 
 namespace OpenXmlPowerTools
 {
-
     public static class PtOpenXmlUtil
     {
         public static readonly XNamespace mp = "http://schemas.microsoft.com/office/mac/powerpoint/2008/main";

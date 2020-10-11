@@ -420,7 +420,7 @@ namespace OpenXmlPowerTools
         {
             var validator = new OpenXmlValidator(versionToValidateAgainst);
             var errors = validator.Validate(wDoc);
-            var valid = errors.Count() == 0;
+            var valid = !errors.Any();
             if (!valid)
             {
                 if (!metrics.Any(e => e.Name == H.SdkValidationError))
@@ -453,7 +453,7 @@ namespace OpenXmlPowerTools
         {
             var validator = new OpenXmlValidator(versionToValidateAgainst);
             var errors = validator.Validate(sDoc);
-            var valid = errors.Count() == 0;
+            var valid = !errors.Any();
             if (!valid)
             {
                 if (!metrics.Any(e => e.Name == H.SdkValidationError))
@@ -486,7 +486,7 @@ namespace OpenXmlPowerTools
         {
             var validator = new OpenXmlValidator(versionToValidateAgainst);
             var errors = validator.Validate(pDoc);
-            var valid = errors.Count() == 0;
+            var valid = !errors.Any();
             if (!valid)
             {
                 if (!metrics.Any(e => e.Name == H.SdkValidationError))

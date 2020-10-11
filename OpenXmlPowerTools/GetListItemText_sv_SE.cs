@@ -1,6 +1,4 @@
-﻿
-
-using System;
+﻿using System;
 
 namespace OpenXmlPowerTools
 {
@@ -133,7 +131,7 @@ namespace OpenXmlPowerTools
             }
             else if (tens > 1)
             {
-                result += Tens[tens] + OneThroughNineteen[ones]; ;
+                result += Tens[tens] + OneThroughNineteen[ones];
                 return result.Substring(0, 1).ToUpper() + result.Substring(1);
             }
             else
@@ -226,7 +224,7 @@ namespace OpenXmlPowerTools
             }
             else if (tens > 1)
             {
-                result += Tens[tens] + OrdinalOneThroughNineteen[ones]; ;
+                result += Tens[tens] + OrdinalOneThroughNineteen[ones];
                 return result.Substring(0, 1).ToUpper() + result.Substring(1);
             }
             else
