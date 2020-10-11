@@ -3176,21 +3176,6 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
         }
     }
 
-    public class FatalError : Exception
-    {
-        public FatalError(string m) : base(m)
-        {
-        }
-
-        public FatalError(string message, Exception innerException) : base(message, innerException)
-        {
-        }
-
-        public FatalError()
-        {
-        }
-    }
-
     public class CssToken
     {
         public int TokenKind { get; set; }

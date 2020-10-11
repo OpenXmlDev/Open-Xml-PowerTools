@@ -1,9 +1,4 @@
-﻿
-
-#define TestForUnsupportedDocuments
-#define MergeStylesWithSameNames
-
-using System;
+﻿using System;
 
 namespace OpenXmlPowerTools
 {
