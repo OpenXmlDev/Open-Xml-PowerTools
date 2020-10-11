@@ -1,7 +1,4 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
-// Licensed under the MIT license. See LICENSE file in the project root for full license information.
-
-using DocumentFormat.OpenXml.Packaging;
+﻿using DocumentFormat.OpenXml.Packaging;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -382,7 +379,7 @@ namespace OpenXmlPowerTools
                     var byteArray = binaryReader.ReadBytes(len);
                     // the following expression creates the base64String, then chunks
                     // it to lines of 76 characters long
-                    var base64String = (System.Convert.ToBase64String(byteArray))
+                    var base64String = (Convert.ToBase64String(byteArray))
                         .Select
                         (
                             (c, i) => new FlatOpcTupple()
@@ -588,7 +585,7 @@ namespace OpenXmlPowerTools
                             var base64CharArray = base64StringInChunks
                                 .Where(c => c != '\r' && c != '\n').ToArray();
                             var byteArray =
-                                System.Convert.FromBase64CharArray(base64CharArray,
+                                Convert.FromBase64CharArray(base64CharArray,
                                 0, base64CharArray.Length);
                             binaryWriter.Write(byteArray);
                         }
@@ -668,8 +665,8 @@ namespace OpenXmlPowerTools
     {
         public static string ConvertToBase64(string fileName)
         {
-            var ba = System.IO.File.ReadAllBytes(fileName);
-            var base64String = (System.Convert.ToBase64String(ba))
+            var ba = File.ReadAllBytes(fileName);
+            var base64String = (Convert.ToBase64String(ba))
                 .Select
                 (
                     (c, i) => new
@@ -703,7 +700,7 @@ namespace OpenXmlPowerTools
         public static byte[] ConvertFromBase64(string b64)
         {
             var b64b = b64.Replace("\r\n", "");
-            var ba = System.Convert.FromBase64String(b64b);
+            var ba = Convert.FromBase64String(b64b);
             return ba;
         }
     }

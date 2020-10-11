@@ -1,5 +1,4 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
-// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+﻿
 
 using DocumentFormat.OpenXml.Packaging;
 using ExcelFormula;
@@ -136,10 +135,12 @@ namespace OpenXmlPowerTools
         {
             return column;
         }
+
         public object GetValue()
         {
             return cellValue;
         }
+
         public int GetStyleIndex()
         {
             return styleIndex;
@@ -268,8 +269,10 @@ namespace OpenXmlPowerTools
                 {
                     case "b":
                         return (cellValue.Element(S.v).Value == "1");
+
                     case "s":
                         return GetSharedString(document, System.Convert.ToInt32(cellValue.Element(S.v).Value));
+
                     case "inlineStr":
                         return cellValue.Element(S._is).Element(S.t).Value;
                 }
@@ -392,7 +395,7 @@ namespace OpenXmlPowerTools
                         columnAfterXElement.AddBeforeSelf(newCell);
                     }
                     else
-                    {   //There is no inmediate right cell 
+                    {   //There is no inmediate right cell
                         //Add the new cell as the last element for the row
                         rowElement.Add(newCell);
                     }
@@ -717,6 +720,7 @@ namespace OpenXmlPowerTools
         }
 
         public enum PivotAxis { Row, Column, Page };
+
         public static void AddPivotAxis(WorksheetPart sheet, string fieldName, PivotAxis axis)
         {
             // Create indexed items in cache and definition
@@ -776,6 +780,7 @@ namespace OpenXmlPowerTools
                         fields.Attribute(NoNamespace.count).Value = fields.Elements(S.field).Count().ToString();
                     }
                     break;
+
                 case PivotAxis.Row:
                     pivotField.Add(new XAttribute(NoNamespace.axis, "axisRow"), items);
                     // Add to rowFields
@@ -790,6 +795,7 @@ namespace OpenXmlPowerTools
                         fields.Attribute(NoNamespace.count).Value = fields.Elements(S.field).Count().ToString();
                     }
                     break;
+
                 case PivotAxis.Page:
                     pivotField.Add(new XAttribute(NoNamespace.axis, "axisPage"), items);
                     // Add to pageFields
@@ -849,6 +855,7 @@ namespace OpenXmlPowerTools
                         fields.Attribute(NoNamespace.count).Value = fields.Elements(S.field).Count().ToString();
                     }
                     break;
+
                 case PivotAxis.Row:
                     // Add to rowFields
                     {
@@ -862,6 +869,7 @@ namespace OpenXmlPowerTools
                         fields.Attribute(NoNamespace.count).Value = fields.Elements(S.field).Count().ToString();
                     }
                     break;
+
                 case PivotAxis.Page:
                     // Add to pageFields
                     {
@@ -990,6 +998,7 @@ namespace OpenXmlPowerTools
             {
                 Auto = true;
             }
+
             public ColorInfo(ColorType type, int value)
             {
                 if (type == ColorType.Indexed)
@@ -1001,11 +1010,13 @@ namespace OpenXmlPowerTools
                     Theme = value;
                 }
             }
+
             public ColorInfo(int theme, double tint)
             {
                 Theme = theme;
                 Tint = tint;
             }
+
             public ColorInfo(string rgb)
             {
                 RGB = rgb;
@@ -1126,6 +1137,7 @@ namespace OpenXmlPowerTools
                     case SchemeType.Major:
                         font.Add(new XElement(S.scheme, new XAttribute(NoNamespace.val, "major")));
                         break;
+
                     case SchemeType.Minor:
                         font.Add(new XElement(S.scheme, new XAttribute(NoNamespace.val, "minor")));
                         break;
@@ -1179,57 +1191,75 @@ namespace OpenXmlPowerTools
                     case PatternType.DarkDown:
                         pattern.Add(new XAttribute(NoNamespace.patternType, "darkDown"));
                         break;
+
                     case PatternType.DarkGray:
                         pattern.Add(new XAttribute(NoNamespace.patternType, "darkGray"));
                         break;
+
                     case PatternType.DarkGrid:
                         pattern.Add(new XAttribute(NoNamespace.patternType, "darkGrid"));
                         break;
+
                     case PatternType.DarkHorizontal:
                         pattern.Add(new XAttribute(NoNamespace.patternType, "darkHorizontal"));
                         break;
+
                     case PatternType.DarkTrellis:
                         pattern.Add(new XAttribute(NoNamespace.patternType, "darkTrellis"));
                         break;
+
                     case PatternType.DarkUp:
                         pattern.Add(new XAttribute(NoNamespace.patternType, "darkUp"));
                         break;
+
                     case PatternType.DarkVertical:
                         pattern.Add(new XAttribute(NoNamespace.patternType, "darkVertical"));
                         break;
+
                     case PatternType.Gray0625:
                         pattern.Add(new XAttribute(NoNamespace.patternType, "gray0625"));
                         break;
+
                     case PatternType.Gray125:
                         pattern.Add(new XAttribute(NoNamespace.patternType, "gray125"));
                         break;
+
                     case PatternType.LightDown:
                         pattern.Add(new XAttribute(NoNamespace.patternType, "lightDown"));
                         break;
+
                     case PatternType.LightGray:
                         pattern.Add(new XAttribute(NoNamespace.patternType, "lightGray"));
                         break;
+
                     case PatternType.LightGrid:
                         pattern.Add(new XAttribute(NoNamespace.patternType, "lightGrid"));
                         break;
+
                     case PatternType.LightHorizontal:
                         pattern.Add(new XAttribute(NoNamespace.patternType, "lightHorizontal"));
                         break;
+
                     case PatternType.LightTrellis:
                         pattern.Add(new XAttribute(NoNamespace.patternType, "lightTrellis"));
                         break;
+
                     case PatternType.LightUp:
                         pattern.Add(new XAttribute(NoNamespace.patternType, "lightUp"));
                         break;
+
                     case PatternType.LightVertical:
                         pattern.Add(new XAttribute(NoNamespace.patternType, "lightVertical"));
                         break;
+
                     case PatternType.MediumGray:
                         pattern.Add(new XAttribute(NoNamespace.patternType, "mediumGray"));
                         break;
+
                     case PatternType.None:
                         pattern.Add(new XAttribute(NoNamespace.patternType, "none"));
                         break;
+
                     case PatternType.Solid:
                         pattern.Add(new XAttribute(NoNamespace.patternType, "solid"));
                         break;
@@ -1353,6 +1383,7 @@ namespace OpenXmlPowerTools
                 None, DashDot, DashDotDot, Dashed, Dotted, Double, Hair,
                 Medium, MediumDashDot, MediumDashDotDot, MediumDashed, SlantDashDot, Thick, Thin
             };
+
             private readonly LineStyle Style;
             private readonly ColorInfo Color;
 
@@ -1370,39 +1401,51 @@ namespace OpenXmlPowerTools
                     case LineStyle.DashDot:
                         line.Add(new XAttribute(NoNamespace.style, "dashDot"));
                         break;
+
                     case LineStyle.DashDotDot:
                         line.Add(new XAttribute(NoNamespace.style, "dashDotDot"));
                         break;
+
                     case LineStyle.Dashed:
                         line.Add(new XAttribute(NoNamespace.style, "dashed"));
                         break;
+
                     case LineStyle.Dotted:
                         line.Add(new XAttribute(NoNamespace.style, "dotted"));
                         break;
+
                     case LineStyle.Double:
                         line.Add(new XAttribute(NoNamespace.style, "double"));
                         break;
+
                     case LineStyle.Hair:
                         line.Add(new XAttribute(NoNamespace.style, "hair"));
                         break;
+
                     case LineStyle.Medium:
                         line.Add(new XAttribute(NoNamespace.style, "medium"));
                         break;
+
                     case LineStyle.MediumDashDot:
                         line.Add(new XAttribute(NoNamespace.style, "mediumDashDot"));
                         break;
+
                     case LineStyle.MediumDashDotDot:
                         line.Add(new XAttribute(NoNamespace.style, "mediumDashDotDot"));
                         break;
+
                     case LineStyle.MediumDashed:
                         line.Add(new XAttribute(NoNamespace.style, "mediumDashed"));
                         break;
+
                     case LineStyle.SlantDashDot:
                         line.Add(new XAttribute(NoNamespace.style, "slantDashDot"));
                         break;
+
                     case LineStyle.Thick:
                         line.Add(new XAttribute(NoNamespace.style, "thick"));
                         break;
+
                     case LineStyle.Thin:
                         line.Add(new XAttribute(NoNamespace.style, "thin"));
                         break;
@@ -1553,6 +1596,7 @@ namespace OpenXmlPowerTools
         public class CellAlignment
         {
             public enum Horizontal { General, Center, CenterContinuous, Distributed, Fill, Justify, Left, Right };
+
             public enum Vertical { Bottom, Center, Distributed, Justify, Top };
 
             public Horizontal HorizontalAlignment { get; set; }
@@ -1584,21 +1628,27 @@ namespace OpenXmlPowerTools
                     case Horizontal.Center:
                         align.Add(new XAttribute(NoNamespace.horizontal, "center"));
                         break;
+
                     case Horizontal.CenterContinuous:
                         align.Add(new XAttribute(NoNamespace.horizontal, "centerContinuous"));
                         break;
+
                     case Horizontal.Distributed:
                         align.Add(new XAttribute(NoNamespace.horizontal, "distributed"));
                         break;
+
                     case Horizontal.Fill:
                         align.Add(new XAttribute(NoNamespace.horizontal, "fill"));
                         break;
+
                     case Horizontal.Justify:
                         align.Add(new XAttribute(NoNamespace.horizontal, "justify"));
                         break;
+
                     case Horizontal.Left:
                         align.Add(new XAttribute(NoNamespace.horizontal, "left"));
                         break;
+
                     case Horizontal.Right:
                         align.Add(new XAttribute(NoNamespace.horizontal, "right"));
                         break;
@@ -1633,12 +1683,15 @@ namespace OpenXmlPowerTools
                     case Vertical.Center:
                         align.Add(new XAttribute(NoNamespace.vertical, "center"));
                         break;
+
                     case Vertical.Distributed:
                         align.Add(new XAttribute(NoNamespace.vertical, "distributed"));
                         break;
+
                     case Vertical.Justify:
                         align.Add(new XAttribute(NoNamespace.vertical, "justify"));
                         break;
+
                     case Vertical.Top:
                         align.Add(new XAttribute(NoNamespace.vertical, "top"));
                         break;
@@ -2387,7 +2440,7 @@ namespace OpenXmlPowerTools
                         columnAfterXElement.AddBeforeSelf(newCellXElement);
                     }
                     else
-                    {   //There is no inmediate right cell 
+                    {   //There is no inmediate right cell
                         //Add the new cell as the last element for the row
                         rowElement.Add(newCellXElement);
                     }

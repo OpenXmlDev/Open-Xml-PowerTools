@@ -1,5 +1,4 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
-// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+﻿
 
 using System;
 using System.Diagnostics;
@@ -9,7 +8,7 @@ namespace OpenXmlPowerTools
 {
     public class TestUtil
     {
-        private static bool? s_DeleteTempFiles ;
+        private static bool? s_DeleteTempFiles;
 
         public static bool DeleteTempFiles
         {
@@ -26,7 +25,7 @@ namespace OpenXmlPowerTools
             }
         }
 
-        private static DirectoryInfo s_TempDir ;
+        private static DirectoryInfo s_TempDir;
 
         public static DirectoryInfo TempDir
         {

@@ -1,5 +1,4 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
-// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+﻿
 
 using DocumentFormat.OpenXml.Packaging;
 using System;
@@ -17,10 +16,12 @@ namespace OpenXmlPowerTools
         {
             return ReferenceAdder.AddToc(this, xPath, switches, title, rightTabPos);
         }
+
         public WmlDocument AddTof(string xPath, string switches, int? rightTabPos)
         {
             return ReferenceAdder.AddTof(this, xPath, switches, rightTabPos);
         }
+
         public WmlDocument AddToa(string xPath, string switches, int? rightTabPos)
         {
             return ReferenceAdder.AddToa(this, xPath, switches, rightTabPos);

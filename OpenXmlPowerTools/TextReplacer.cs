@@ -1,5 +1,4 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
-// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+﻿
 
 using DocumentFormat.OpenXml.Packaging;
 using System.IO;
@@ -29,6 +28,7 @@ namespace OpenXmlPowerTools
         private class MatchSemaphore
         {
             public int MatchId;
+
             public MatchSemaphore(int matchId)
             {
                 MatchId = matchId;

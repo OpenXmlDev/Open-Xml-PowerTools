@@ -1,5 +1,4 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
-// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+﻿
 
 using System;
 using System.Collections;
@@ -1288,7 +1287,7 @@ namespace OpenXmlPowerTools
             public TimeSpan Time;
         }
 
-        public static string LastBucket ;
+        public static string LastBucket;
         private static DateTime LastTime;
         private static Dictionary<string, BucketInfo> Buckets;
 
@@ -1388,7 +1387,7 @@ namespace OpenXmlPowerTools
             Buckets = new Dictionary<string, BucketInfo>();
         }
     }
-    
+
     public class XEntity : XText
     {
         public override void WriteTo(XmlWriter writer)
