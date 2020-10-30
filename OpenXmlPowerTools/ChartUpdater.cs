@@ -60,8 +60,8 @@ namespace OpenXmlPowerTools
         public double[][] Values;
 
         /// <summary>
-        /// 组合图表中，第二个图表的序列索引
-        /// 这些序列数据会被复制到第二个图表的序列中
+        /// 组合图表中，第二个图表的序列索引.
+        /// 这些序列数据会被复制到第二个图表的序列中.
         /// </summary>
         public int[] SecondChartSeriesIndex;
 
@@ -107,10 +107,10 @@ namespace OpenXmlPowerTools
         }
 
         /// <summary>
-        /// 移动第二图表的序列数据
+        /// 移动第二图表的序列数据.
         /// </summary>
-        /// <param name="chartPart"></param>
-        /// <param name="chartData"></param>
+        /// <param name="chartPart">图表部件.</param>
+        /// <param name="chartData">图表数据.</param>
         private static void MoveSecondChartSeries(ChartPart chartPart, ChartData chartData)
         {
             if (chartData.SecondChartType == null)
