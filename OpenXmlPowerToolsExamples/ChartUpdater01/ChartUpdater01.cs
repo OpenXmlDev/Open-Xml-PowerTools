@@ -25,9 +25,10 @@ namespace OpenXmlPowerTools
 
             using (var wDoc = WordprocessingDocument.Open(fi.FullName, true))
             {
-                var chart2Data = new ChartData
+                var chart1Data = new ChartData
                 {
-                    ChartType = C.lineChart,
+                    SecondChartType = C.lineChart,
+                    SecondChartSeriesIndex = new[] { 1 },
                     SeriesNames = new[] {
                             "平仓手数",
                             "平仓盈亏-逐笔对冲",
@@ -45,26 +46,6 @@ namespace OpenXmlPowerTools
                         },
                         new double[] {
                             -11323.65, 3101, -12220, 15421,
-                        },
-                    },
-                };
-                ChartUpdater.UpdateChart(wDoc, "towTypeChart", chart2Data);
-
-                var chart1Data = new ChartData
-                {
-                    SeriesNames = new[] {
-                            "平仓手数",
-                        },
-                    CategoryDataType = ChartDataType.String,
-                    CategoryNames = new[] {
-                            "1:0天",
-                            "1:1天",
-                            "1:2天",
-                            "1:3天",
-                        },
-                    Values = new double[][] {
-                        new double[] {
-                            100, 310, 220, 450,
                         },
                     },
                 };

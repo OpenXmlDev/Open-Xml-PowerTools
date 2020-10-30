@@ -58,6 +58,14 @@ namespace OpenXmlPowerTools
         public string[] CategoryNames;
 
         public double[][] Values;
+
+        /// <summary>
+        /// 组合图表中，第二个图表的序列索引
+        /// 这些序列数据会被复制到第二个图表的序列中
+        /// </summary>
+        public int[] SecondChartSeriesIndex;
+
+        public XName SecondChartType;
     }
 
     public class ChartUpdater
@@ -95,6 +103,46 @@ namespace OpenXmlPowerTools
             }
 
             UpdateSeries(chartPart, chartData);
+            MoveSecondChartSeries(chartPart, chartData);
+        }
+
+        /// <summary>
+        /// 移动第二图表的序列数据
+        /// </summary>
+        /// <param name="chartPart"></param>
+        /// <param name="chartData"></param>
+        private static void MoveSecondChartSeries(ChartPart chartPart, ChartData chartData)
+        {
+            if (chartData.SecondChartType == null)
+            {
+                return;
+            }
+
+            if (chartData.SecondChartSeriesIndex != null && chartData.SecondChartSeriesIndex.Length == 0)
+            {
+                return;
+            }
+
+            XDocument cpXDoc = chartPart.GetXDocument();
+            XElement root = cpXDoc.Root;
+
+            // 根据配置得到序列            
+            var series = chartData.SecondChartSeriesIndex.Select(x =>
+                    root.Descendants(C.ser).ElementAt(x)
+                ).ToList();
+
+            var firstParent = series.First().Parent;
+
+            var chart = root.Descendants(chartData.SecondChartType).FirstOrDefault();
+
+            var firstSeries = chart.Descendants(C.ser).FirstOrDefault();
+            firstSeries.Parent.Elements(C.ser).Skip(1).Remove();
+
+            firstSeries.ReplaceWith(series);
+
+            // 删除旧series
+            series.Remove();
+            chartPart.PutXDocument();
         }
 
         private static Dictionary<int, string> FormatCodes = new Dictionary<int, string>()
@@ -427,7 +475,7 @@ namespace OpenXmlPowerTools
                         var firstRow = new XElement(S.row,
                             new XAttribute("r", "1"),
                             new XAttribute("spans", string.Format("1:{0}", chartData.SeriesNames.Length + 1)),
-                            new [] { new XElement(S.c,
+                            new[] { new XElement(S.c,
                                 new XAttribute("r", "A1"),
                                 new XAttribute("t", "str"),
                                 new XElement(S.v,
