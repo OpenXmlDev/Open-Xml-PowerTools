@@ -797,23 +797,23 @@ namespace OpenXmlPowerTools
                 yield return source[i++];
         }
 
-        //public static IEnumerable<T> SkipLast<T>(this IEnumerable<T> source, int count)
-        //{
-        //    var saveList = new Queue<T>();
-        //    var saved = 0;
-        //    foreach (T item in source)
-        //    {
-        //        if (saved < count)
-        //        {
-        //            saveList.Enqueue(item);
-        //            ++saved;
-        //            continue;
-        //        }
+        public static IEnumerable<T> PtSkipLast<T>(this IEnumerable<T> source, int count)
+        {
+            var saveList = new Queue<T>();
+            var saved = 0;
+            foreach (T item in source)
+            {
+                if (saved < count)
+                {
+                    saveList.Enqueue(item);
+                    ++saved;
+                    continue;
+                }
 
-        //        saveList.Enqueue(item);
-        //        yield return saveList.Dequeue();
-        //    }
-        //}
+                saveList.Enqueue(item);
+                yield return saveList.Dequeue();
+            }
+        }
 
         public static bool? ToBoolean(this XAttribute a)
         {
