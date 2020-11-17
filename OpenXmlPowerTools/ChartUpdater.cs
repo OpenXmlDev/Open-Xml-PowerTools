@@ -138,6 +138,20 @@ namespace OpenXmlPowerTools
             var firstSeries = chart.Descendants(C.ser).FirstOrDefault();
             firstSeries.Parent.Elements(C.ser).Skip(1).Remove();
 
+            // 如果第二坐标轴为折线图，那么让它正确显示
+            if (chartData.SecondChartType == C.lineChart)
+            {
+                series.ForEach(x =>
+                {
+                    var spPrs = x.Descendants(C.spPr);
+                    spPrs.Remove();
+
+                    var smooth = new XElement(C.smooth);
+                    smooth.SetAttributeValue(C.val, "0");                     
+                    x.Add(smooth);
+                });
+            }
+
             firstSeries.ReplaceWith(series);
 
             // 删除旧series
