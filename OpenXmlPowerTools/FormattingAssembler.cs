@@ -312,8 +312,11 @@ namespace OpenXmlPowerTools
                             .StringConcatenate()
                             .TrimEnd('.');
 
+                        ListItemRetriever.ListItemInfo listItemInfo2 = element.Annotation<ListItemRetriever.ListItemInfo>();
+
                         var listItemRun = new XElement(W.r,
                             new XAttribute(PtOpenXml.ListItemRun, levelNumsString),
+                            listItemInfo2 != null ? new XAttribute(PtOpenXml.AbstractNumId, listItemInfo2.AbstractNumId) : null,
                             element.Attribute(PtOpenXml.FontName),
                             element.Attribute(PtOpenXml.LanguageType),
                             listItemRunProps,

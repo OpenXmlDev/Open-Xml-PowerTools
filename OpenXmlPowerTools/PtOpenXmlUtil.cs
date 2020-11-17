@@ -5850,6 +5850,13 @@ listSeparator
         public static readonly XName div = xhtml + "div";
         public static readonly XName h1 = xhtml + "h1";
         public static readonly XName h2 = xhtml + "h2";
+        public static readonly XName h3 = xhtml + "h3";
+        public static readonly XName h4 = xhtml + "h4";
+        public static readonly XName h5 = xhtml + "h5";
+        public static readonly XName h6 = xhtml + "h6";
+        public static readonly XName h7 = xhtml + "h7";
+        public static readonly XName h8 = xhtml + "h8";
+        public static readonly XName h9 = xhtml + "h9";
         public static readonly XName head = xhtml + "head";
         public static readonly XName html = xhtml + "html";
         public static readonly XName i = xhtml + "i";
