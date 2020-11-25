@@ -3000,7 +3000,7 @@ namespace OpenXmlPowerTools
                     {
                         var thisUnid = (string)ae.Attribute(PtOpenXml.Unid);
                         if (thisUnid == null)
-                            Guid.NewGuid().ToString().Replace("-", "");
+                            thisUnid = Guid.NewGuid().ToString().Replace("-", "");
                         return thisUnid;
                     });
                 var thisAncestorUnids = currentAncestorUnids
