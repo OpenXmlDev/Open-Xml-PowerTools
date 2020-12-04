@@ -768,6 +768,9 @@ namespace OpenXmlPowerTools
                             if (ce.Elements().Count(e => e.Name != W.rPr) != 1)
                                 return dontConsolidate;
 
+                            if (ce.Attribute(PtOpenXml.AbstractNumId) != null)
+                                return dontConsolidate;
+
                             XElement rPr = ce.Element(W.rPr);
                             string rPrString = rPr != null ? rPr.ToString(SaveOptions.None) : string.Empty;
 
@@ -5831,6 +5834,8 @@ listSeparator
         public static XName FontName = pt + "FontName";
         public static XName LanguageType = pt + "LanguageType";
         public static XName AbstractNumId = pt + "AbstractNumId";
+        public static XName HtmlStructure = pt + "HtmlStructure";
+        public static XName HtmlStyle = pt + "HtmlStyle";
         public static XName StyleName = pt + "StyleName";
         public static XName TabWidth = pt + "TabWidth";
         public static XName Leader = pt + "Leader";
