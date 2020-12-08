@@ -106,12 +106,12 @@ namespace OpenXmlPowerTools
             {
                 if (fileName == null)
                 {
-                    throw new ArgumentNullException("fileName");
+                    throw new ArgumentNullException(nameof(fileName));
                 }
 
                 if (workbook == null)
                 {
-                    throw new ArgumentNullException("workbook");
+                    throw new ArgumentNullException(nameof(workbook));
                 }
 
                 var fi = new FileInfo(fileName);

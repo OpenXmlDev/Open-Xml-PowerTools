@@ -33,7 +33,7 @@ namespace OpenXmlPowerTools
                 .FirstOrDefault(s => (string)s.Attribute("name") == sheetName);
             if (sheet == null)
             {
-                throw new ArgumentException("Invalid sheet name passed to RetrieveSheet", "sheetName");
+                throw new ArgumentException("Invalid sheet name passed to RetrieveSheet", nameof(sheetName));
             }
 
             var range = "A1:XFD1048576";
@@ -85,7 +85,7 @@ namespace OpenXmlPowerTools
                 .FirstOrDefault(s => (string)s.Attribute("name") == sheetName);
             if (sheet == null)
             {
-                throw new ArgumentException("Invalid sheet name passed to RetrieveRange", "sheetName");
+                throw new ArgumentException("Invalid sheet name passed to RetrieveRange", nameof(sheetName));
             }
 
             var rId = (string)sheet.Attribute(R.id);
@@ -418,7 +418,7 @@ namespace OpenXmlPowerTools
             var table = sDoc.Table(tableName);
             if (table == null)
             {
-                throw new ArgumentException("Table not found", "tableName");
+                throw new ArgumentException("Table not found", nameof(tableName));
             }
 
             var styleXDoc = sDoc.WorkbookPart.WorkbookStylesPart.GetXDocument();

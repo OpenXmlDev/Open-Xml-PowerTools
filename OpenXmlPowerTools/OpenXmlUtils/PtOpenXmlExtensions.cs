@@ -14,7 +14,7 @@ namespace OpenXmlPowerTools
         {
             if (part == null)
             {
-                throw new ArgumentNullException("part");
+                throw new ArgumentNullException(nameof(part));
             }
 
             var partXDocument = part.Annotation<XDocument>();
@@ -47,7 +47,7 @@ namespace OpenXmlPowerTools
         {
             if (part == null)
             {
-                throw new ArgumentNullException("part");
+                throw new ArgumentNullException(nameof(part));
             }
 
             namespaceManager = part.Annotation<XmlNamespaceManager>();
@@ -94,7 +94,7 @@ namespace OpenXmlPowerTools
         {
             if (part == null)
             {
-                throw new ArgumentNullException("part");
+                throw new ArgumentNullException(nameof(part));
             }
 
             var partXDocument = part.GetXDocument();
@@ -110,7 +110,7 @@ namespace OpenXmlPowerTools
         {
             if (part == null)
             {
-                throw new ArgumentNullException("part");
+                throw new ArgumentNullException(nameof(part));
             }
 
             var partXDocument = part.GetXDocument();
@@ -132,12 +132,12 @@ namespace OpenXmlPowerTools
         {
             if (part == null)
             {
-                throw new ArgumentNullException("part");
+                throw new ArgumentNullException(nameof(part));
             }
 
             if (document == null)
             {
-                throw new ArgumentNullException("document");
+                throw new ArgumentNullException(nameof(document));
             }
 
             using (var partStream = part.GetStream(FileMode.Create, FileAccess.Write))

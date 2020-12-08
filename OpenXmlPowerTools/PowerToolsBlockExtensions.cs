@@ -31,7 +31,7 @@ namespace OpenXmlPowerTools
         {
             if (package == null)
             {
-                throw new ArgumentNullException("package");
+                throw new ArgumentNullException(nameof(package));
             }
 
             package.RemovePowerToolsAnnotations();
@@ -51,7 +51,7 @@ namespace OpenXmlPowerTools
         {
             if (package == null)
             {
-                throw new ArgumentNullException("package");
+                throw new ArgumentNullException(nameof(package));
             }
 
             foreach (var part in package.GetAllParts())
@@ -67,7 +67,7 @@ namespace OpenXmlPowerTools
         {
             if (package == null)
             {
-                throw new ArgumentNullException("package");
+                throw new ArgumentNullException(nameof(package));
             }
 
             foreach (var part in package.GetAllParts())

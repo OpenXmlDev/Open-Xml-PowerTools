@@ -119,12 +119,12 @@ namespace OpenXmlPowerTools
         {
             if (content == null)
             {
-                throw new ArgumentNullException("content");
+                throw new ArgumentNullException(nameof(content));
             }
 
             if (regex == null)
             {
-                throw new ArgumentNullException("regex");
+                throw new ArgumentNullException(nameof(regex));
             }
 
             IEnumerable<XElement> contentList = content as IList<XElement> ?? content.ToList();
