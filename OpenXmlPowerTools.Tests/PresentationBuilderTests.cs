@@ -92,7 +92,9 @@ namespace OxPt
             PresentationBuilder.BuildPresentation(sources, processedDestPptx.FullName);
         }
 
-#if NETCOREAPP3_1
+#if NET5_0
+        [Fact(Skip="Bug since netcore 2.0 : https://github.com/OfficeDev/Open-Xml-PowerTools/pull/238#issuecomment-412375570")]
+#elif NETCOREAPP3_1
         [Fact(Skip="Bug since netcore 2.0 : https://github.com/OfficeDev/Open-Xml-PowerTools/pull/238#issuecomment-412375570")]
 #else
 

@@ -4,15 +4,15 @@ image:
   - Ubuntu
 skip_tags: true
 configuration: Release
-nuget:
-  account_feed: true
-  project_feed: true
+
 before_build:
-  - ps: >-
-      nuget restore
+  - ps: dotnet restore
 
 build:
   project: OpenXmlPowerTools.sln
+  publish_nuget: true
+  publish_nuget_symbols: true
+  use_snupkg_format: true
   verbosity: minimal
 
 dotnet_csproj:

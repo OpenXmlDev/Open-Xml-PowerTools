@@ -13,17 +13,7 @@
     <PackageVersion>5.0.0</PackageVersion>
     <PackageIcon>NugetIcon.png</PackageIcon>
     <PackageProjectUrl>https://github.com/Codeuctivity/Open-Xml-PowerTools</PackageProjectUrl>
-    <Description>The Open XML SDK provides tools for working with Office Word, Excel, and PowerPoint documents. This version is a fork focusing on current .net core and framework versions.
-    
-It supports scenarios such as:
-
-- High-performance generation of word-processing documents, spreadsheets, and presentations.
-- Populating content in Word files from an XML data source.
-- Splitting up (shredding) a Word or PowerPoint file into multiple files, and combining multiple Word/PowerPoint files into a single file.
-- Extraction of data from Excel documents.
-- Searching and replacing content in Word/PowerPoint using regular expressions.
-- Updating cached data and embedded spreadsheets for charts in Word/PowerPoint.
-- Document modification, such as removing tracked revisions or removing unacceptable content from documents.</Description>
+    <Description>The Open XML SDK provides tools for working with Office Word, Excel, and PowerPoint documents. This version is a fork focusing on current .net versions.</Description>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <IncludeSymbols>true</IncludeSymbols>
@@ -36,6 +26,7 @@ It supports scenarios such as:
     <AssemblyOriginatorKeyFile>OpenXmlPowerTools.snk</AssemblyOriginatorKeyFile>
     <PackageId>OpenXmlPowerToolsStandard</PackageId>
     <UserSecretsId>21e414c9-78be-455b-9611-12f18f73d93e</UserSecretsId>
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
   </PropertyGroup>
   <ItemGroup>
     <Compile Remove="Properties\**" />
@@ -49,16 +40,12 @@ It supports scenarios such as:
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="SonarAnalyzer.CSharp" Version="8.13.1.21947">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="3.3.0">
+    <PackageReference Include="SonarAnalyzer.CSharp" Version="8.15.0.24505">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
    
-    <PackageReference Include="System.Drawing.Common" Version="4.7.0" />
+    <PackageReference Include="System.Drawing.Common" Version="5.0.0" />
   </ItemGroup>
 
   <ItemGroup>

@@ -60,9 +60,9 @@ namespace OpenXmlPowerTools
                 html = XElement.Parse(sb.ToString());
             }
 #else
-            catch (XmlException e)
+            catch (XmlException)
             {
-                throw e;
+                throw;
             }
 #endif
             html = (XElement)ConvertToNoNamespace(html);

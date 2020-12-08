@@ -156,12 +156,9 @@ namespace OpenXmlPowerTools
                     {
                         if (dbie.Message.Contains("{0}"))
                         {
-                            throw new PresentationBuilderException(string.Format(dbie.Message, sourceNum));
+                            throw new PresentationBuilderException(string.Format(dbie.Message, sourceNum), dbie);
                         }
-                        else
-                        {
-                            throw dbie;
-                        }
+                        throw;
                     }
                 }
                 sourceNum++;
@@ -1613,8 +1610,7 @@ namespace OpenXmlPowerTools
             }
         }
 
-        private static void CopyRelatedMedia(OpenXmlPart oldContentPart, OpenXmlPart newContentPart, XElement imageReference, XName attributeName,
-            List<MediaData> mediaList, string mediaRelationshipType)
+        private static void CopyRelatedMedia(OpenXmlPart oldContentPart, OpenXmlPart newContentPart, XElement imageReference, XName attributeName, List<MediaData> mediaList, string mediaRelationshipType)
         {
             var relId = (string)imageReference.Attribute(attributeName);
             if (string.IsNullOrEmpty(relId))

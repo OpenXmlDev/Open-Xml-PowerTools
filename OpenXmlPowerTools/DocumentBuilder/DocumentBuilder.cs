@@ -267,12 +267,9 @@ namespace OpenXmlPowerTools
                                     {
                                         if (dbie.Message.Contains("{0}"))
                                         {
-                                            throw new DocumentBuilderException(string.Format(dbie.Message, sourceNum2));
+                                            throw new DocumentBuilderException(string.Format(dbie.Message, sourceNum2), dbie);
                                         }
-                                        else
-                                        {
-                                            throw dbie;
-                                        }
+                                        throw;
                                     }
                                 }
                             }
@@ -322,12 +319,9 @@ namespace OpenXmlPowerTools
                         {
                             if (dbie.Message.Contains("{0}"))
                             {
-                                throw new DocumentBuilderException(string.Format(dbie.Message, sourceNum2));
+                                throw new DocumentBuilderException(string.Format(dbie.Message, sourceNum2), dbie);
                             }
-                            else
-                            {
-                                throw dbie;
-                            }
+                            throw;
                         }
                     }
                     ++sourceNum2;
@@ -462,12 +456,9 @@ namespace OpenXmlPowerTools
                                     {
                                         if (dbie.Message.Contains("{0}"))
                                         {
-                                            throw new DocumentBuilderException(string.Format(dbie.Message, sourceNum));
+                                            throw new DocumentBuilderException(string.Format(dbie.Message, sourceNum), dbie);
                                         }
-                                        else
-                                        {
-                                            throw dbie;
-                                        }
+                                        throw;
                                     }
                                 }
                             }

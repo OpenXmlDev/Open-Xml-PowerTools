@@ -191,9 +191,8 @@ namespace OpenXmlPowerTools
             }
             catch (Exception e)
             {
-                Console.WriteLine("Unhandled exception: {0} in {1}",
-                    e.ToString(), e.Source);
-                throw e;
+                Console.WriteLine("Unhandled exception: {0} in {1}", e.ToString(), e.Source);
+                throw;
             }
         }
 
