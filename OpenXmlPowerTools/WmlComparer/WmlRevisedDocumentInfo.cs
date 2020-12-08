@@ -1,4 +1,4 @@
-﻿using System.Drawing;
+using System.Drawing;
 
 // It is possible to optimize DescendantContentAtoms
 

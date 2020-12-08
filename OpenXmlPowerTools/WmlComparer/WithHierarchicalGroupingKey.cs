@@ -1,4 +1,4 @@
-﻿// It is possible to optimize DescendantContentAtoms
+// It is possible to optimize DescendantContentAtoms
 
 /// Currently, the unid is set at the beginning of the algorithm.  It is used by the code that establishes correlation based on first rejecting
 /// tracked revisions, then correlating paragraphs/tables.  It is requred for this algorithm - after finding a correlated sequence in the document with rejected

@@ -485,11 +485,11 @@ namespace OpenXmlPowerTools
                                     new XElement(S.tableColumn,
                                         new XAttribute("id", 1),
                                         new XAttribute("name", " "))
-                            }.Concat(
-                                chartData.SeriesNames.Select((cn, ci) =>
-                                    new XElement(S.tableColumn,
-                                        new XAttribute("id", ci + 2),
-                                        new XAttribute("name", cn)))));
+                        }.Concat(
+                            chartData.SeriesNames.Select((cn, ci) =>
+                                new XElement(S.tableColumn,
+                                    new XAttribute("id", ci + 2),
+                                    new XAttribute("name", cn)))));
                         var xeExistingTableColumns = xdTablePart.Root.Element(S.tableColumns);
                         if (xeExistingTableColumns != null)
                         {

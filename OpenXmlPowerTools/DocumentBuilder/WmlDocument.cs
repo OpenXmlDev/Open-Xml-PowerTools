@@ -1,4 +1,4 @@
-﻿
+
 
 #define TestForUnsupportedDocuments
 #define MergeStylesWithSameNames

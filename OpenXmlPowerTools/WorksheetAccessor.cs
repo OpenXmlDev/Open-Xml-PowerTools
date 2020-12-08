@@ -718,7 +718,6 @@ namespace OpenXmlPowerTools
         }
 
         public enum PivotAxis { Row, Column, Page };
-
         public static void AddPivotAxis(WorksheetPart sheet, string fieldName, PivotAxis axis)
         {
             // Create indexed items in cache and definition
