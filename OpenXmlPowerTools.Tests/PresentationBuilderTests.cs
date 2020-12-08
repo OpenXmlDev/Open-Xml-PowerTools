@@ -1,7 +1,4 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
-// Licensed under the MIT license. See LICENSE file in the project root for full license information.
-
-using DocumentFormat.OpenXml.Packaging;
+﻿using DocumentFormat.OpenXml.Packaging;
 using OpenXmlPowerTools;
 using System.Collections.Generic;
 using System.IO;
@@ -95,15 +92,13 @@ namespace OxPt
             PresentationBuilder.BuildPresentation(sources, processedDestPptx.FullName);
         }
 
-#if NETCOREAPP2_0
-        [Fact(Skip="Bug in netcore 2.0 : https://github.com/OfficeDev/Open-Xml-PowerTools/pull/238#issuecomment-412375570")]
-#else
-#if NETCOREAPP3_1
+#if NET5_0
+        [Fact(Skip="Bug since netcore 2.0 : https://github.com/OfficeDev/Open-Xml-PowerTools/pull/238#issuecomment-412375570")]
+#elif NETCOREAPP3_1
         [Fact(Skip="Bug since netcore 2.0 : https://github.com/OfficeDev/Open-Xml-PowerTools/pull/238#issuecomment-412375570")]
 #else
 
         [Fact]
-#endif
 #endif
         public void PB006_VideoFormats()
         {
@@ -126,14 +121,12 @@ namespace OxPt
 
         private static string[] GetMediaDataContentTypes(FileInfo fi)
         {
-            using (var ptDoc = PresentationDocument.Open(fi.FullName, false))
-            {
-                return ptDoc.PresentationPart.SlideParts.SelectMany(
-                        p => p.DataPartReferenceRelationships.Select(d => d.DataPart.ContentType))
-                    .Distinct()
-                    .OrderBy(m => m)
-                    .ToArray();
-            }
+            using var ptDoc = PresentationDocument.Open(fi.FullName, false);
+            return ptDoc.PresentationPart.SlideParts.SelectMany(
+                    p => p.DataPartReferenceRelationships.Select(d => d.DataPart.ContentType))
+                .Distinct()
+                .OrderBy(m => m)
+                .ToArray();
         }
     }
 }

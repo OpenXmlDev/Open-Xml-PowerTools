@@ -1,7 +1,4 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
-// Licensed under the MIT license. See LICENSE file in the project root for full license information.
-
-using DocumentFormat.OpenXml.Packaging;
+﻿using DocumentFormat.OpenXml.Packaging;
 using OpenXmlPowerTools;
 using System;
 using System.Collections.Generic;
@@ -22,7 +19,7 @@ internal class FieldRetriever01
         File.Copy(docWithFooter.FullName, scrubbedDocument.FullName);
         using (var wDoc = WordprocessingDocument.Open(scrubbedDocument.FullName, true))
         {
-            ScrubFooter(wDoc, new[] { "PAGE" });
+            ScrubFooter(wDoc);
         }
 
         docWithFooter = new FileInfo("../../DocWithFooter2.docx");
@@ -30,11 +27,11 @@ internal class FieldRetriever01
         File.Copy(docWithFooter.FullName, scrubbedDocument.FullName);
         using (var wDoc = WordprocessingDocument.Open(scrubbedDocument.FullName, true))
         {
-            ScrubFooter(wDoc, new[] { "PAGE", "DATE" });
+            ScrubFooter(wDoc);
         }
     }
 
-    private static void ScrubFooter(WordprocessingDocument wDoc, string[] fieldTypesToKeep)
+    private static void ScrubFooter(WordprocessingDocument wDoc)
     {
         foreach (var footer in wDoc.MainDocumentPart.FooterParts)
         {

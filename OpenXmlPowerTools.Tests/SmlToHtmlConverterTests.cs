@@ -1,7 +1,4 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
-// Licensed under the MIT license. See LICENSE file in the project root for full license information.
-
-using DocumentFormat.OpenXml.Packaging;
+﻿using DocumentFormat.OpenXml.Packaging;
 using OpenXmlPowerTools;
 using System.IO;
 using Xunit;
@@ -57,12 +54,10 @@ namespace OxPt
 
             var dataTemplateFileNameSuffix = "-2-Generated-XmlData-Entire-Sheet.xml";
             var dataXmlFi = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, sourceXlsx.Name.Replace(".xlsx", dataTemplateFileNameSuffix)));
-            using (var sDoc = SpreadsheetDocument.Open(sourceXlsx.FullName, true))
-            {
-                var settings = new SmlToHtmlConverterSettings();
-                var rangeXml = SmlDataRetriever.RetrieveSheet(sDoc, sheetName);
-                rangeXml.Save(dataXmlFi.FullName);
-            }
+            using var sDoc = SpreadsheetDocument.Open(sourceXlsx.FullName, true);
+            var settings = new SmlToHtmlConverterSettings();
+            var rangeXml = SmlDataRetriever.RetrieveSheet(sDoc, sheetName);
+            rangeXml.Save(dataXmlFi.FullName);
         }
 
         [Theory]
@@ -117,12 +112,10 @@ namespace OxPt
 
             var dataTemplateFileNameSuffix = string.Format("-2-Generated-XmlData-{0}.xml", range.Replace(":", ""));
             var dataXmlFi = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, sourceXlsx.Name.Replace(".xlsx", dataTemplateFileNameSuffix)));
-            using (var sDoc = SpreadsheetDocument.Open(sourceXlsx.FullName, true))
-            {
-                var settings = new SmlToHtmlConverterSettings();
-                var rangeXml = SmlDataRetriever.RetrieveRange(sDoc, sheetName, range);
-                rangeXml.Save(dataXmlFi.FullName);
-            }
+            using var sDoc = SpreadsheetDocument.Open(sourceXlsx.FullName, true);
+            var settings = new SmlToHtmlConverterSettings();
+            var rangeXml = SmlDataRetriever.RetrieveRange(sDoc, sheetName, range);
+            rangeXml.Save(dataXmlFi.FullName);
         }
 
         [Theory]
@@ -147,12 +140,10 @@ namespace OxPt
             }
 
             var dataXmlFi = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, sourceXlsx.Name.Replace(".xlsx", "-2-Generated-XmlData.xml")));
-            using (var sDoc = SpreadsheetDocument.Open(sourceXlsx.FullName, true))
-            {
-                var settings = new SmlToHtmlConverterSettings();
-                var rangeXml = SmlDataRetriever.RetrieveTable(sDoc, tableName);
-                rangeXml.Save(dataXmlFi.FullName);
-            }
+            using var sDoc = SpreadsheetDocument.Open(sourceXlsx.FullName, true);
+            var settings = new SmlToHtmlConverterSettings();
+            var rangeXml = SmlDataRetriever.RetrieveTable(sDoc, tableName);
+            rangeXml.Save(dataXmlFi.FullName);
         }
 
         [Theory]
@@ -161,11 +152,9 @@ namespace OxPt
         {
             var sourceDir = new DirectoryInfo("../../../../TestFiles/");
             var sourceXlsx = new FileInfo(Path.Combine(sourceDir.FullName, name));
-            using (var sDoc = SpreadsheetDocument.Open(sourceXlsx.FullName, true))
-            {
-                var sheetNames = SmlDataRetriever.SheetNames(sDoc);
-                Assert.Equal(numberOfSheets, sheetNames.Length);
-            }
+            using var sDoc = SpreadsheetDocument.Open(sourceXlsx.FullName, true);
+            var sheetNames = SmlDataRetriever.SheetNames(sDoc);
+            Assert.Equal(numberOfSheets, sheetNames.Length);
         }
 
         [Theory]
@@ -175,11 +164,9 @@ namespace OxPt
         {
             var sourceDir = new DirectoryInfo("../../../../TestFiles/");
             var sourceXlsx = new FileInfo(Path.Combine(sourceDir.FullName, name));
-            using (var sDoc = SpreadsheetDocument.Open(sourceXlsx.FullName, true))
-            {
-                var table = SmlDataRetriever.TableNames(sDoc);
-                Assert.Equal(numberOfTables, table.Length);
-            }
+            using var sDoc = SpreadsheetDocument.Open(sourceXlsx.FullName, true);
+            var table = SmlDataRetriever.TableNames(sDoc);
+            Assert.Equal(numberOfTables, table.Length);
         }
     }
 }

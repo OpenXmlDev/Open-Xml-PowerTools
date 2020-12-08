@@ -1,5 +1,4 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
-// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+﻿// Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 #define COPY_FILES_FOR_DEBUGGING
 
@@ -36,17 +35,15 @@ namespace OxPt
                 File.Copy(sourceDocx.FullName, annotatedDocx.FullName);
             }
 
-            using (var wDoc = WordprocessingDocument.Open(annotatedDocx.FullName, true))
-            {
-                var contentParent = wDoc.MainDocumentPart.GetXDocument().Root.Element(W.body);
-                var settings = new WmlComparerSettings();
+            using var wDoc = WordprocessingDocument.Open(annotatedDocx.FullName, true);
+            var contentParent = wDoc.MainDocumentPart.GetXDocument().Root.Element(W.body);
+            var settings = new WmlComparerSettings();
 
-                var type = typeof(WmlComparer);
-                var method = type.GetMethods(BindingFlags.NonPublic | BindingFlags.Static).Where(x => x.Name == "CreateComparisonUnitAtomList" && x.IsStatic).Single();
+            var type = typeof(WmlComparer);
+            var method = type.GetMethods(BindingFlags.NonPublic | BindingFlags.Static).Where(x => x.Name == "CreateComparisonUnitAtomList" && x.IsStatic).Single();
 
-                //Act
-                method.Invoke(null, new object[] { wDoc.MainDocumentPart, contentParent, settings });
-            }
+            //Act
+            method.Invoke(null, new object[] { wDoc.MainDocumentPart, contentParent, settings });
 #endif
         }
 
@@ -71,22 +68,20 @@ namespace OxPt
 
             var contentAtomDataFi = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, sourceDocx.Name.Replace(".docx", string.Format(CultureInfo.InvariantCulture, "-{0}-3-ContentAtomData.txt", thisGuid))));
 
-            using (var wDoc = WordprocessingDocument.Open(coalescedDocx.FullName, true))
-            {
-                var exception = Assert.Throws<TargetInvocationException>(() =>
-                  {
-                      var contentParent = wDoc.MainDocumentPart.GetXDocument().Root.Element(W.body);
-                      var settings = new WmlComparerSettings();
+            using var wDoc = WordprocessingDocument.Open(coalescedDocx.FullName, true);
+            var exception = Assert.Throws<TargetInvocationException>(() =>
+              {
+                  var contentParent = wDoc.MainDocumentPart.GetXDocument().Root.Element(W.body);
+                  var settings = new WmlComparerSettings();
 
-                      var type = typeof(WmlComparer);
-                      var method = type.GetMethods(BindingFlags.NonPublic | BindingFlags.Static).Where(x => x.Name == "CreateComparisonUnitAtomList" && x.IsStatic).Single();
+                  var type = typeof(WmlComparer);
+                  var method = type.GetMethods(BindingFlags.NonPublic | BindingFlags.Static).Where(x => x.Name == "CreateComparisonUnitAtomList" && x.IsStatic).Single();
 
-                      //Act
-                      method.Invoke(null, new object[] { wDoc.MainDocumentPart, contentParent, settings });
-                  });
+                  //Act
+                  method.Invoke(null, new object[] { wDoc.MainDocumentPart, contentParent, settings });
+              });
 
-                Assert.IsType<NotSupportedException>(exception.InnerException);
-            }
+            Assert.IsType<NotSupportedException>(exception.InnerException);
         }
     }
 }

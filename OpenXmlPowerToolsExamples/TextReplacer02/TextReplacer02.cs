@@ -1,7 +1,4 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
-// Licensed under the MIT license. See LICENSE file in the project root for full license information.
-
-using DocumentFormat.OpenXml.Packaging;
+﻿using DocumentFormat.OpenXml.Packaging;
 using System;
 using System.IO;
 
@@ -28,18 +25,14 @@ namespace OpenXmlPowerTools
 
             try
             {
-                using (var doc = WordprocessingDocument.Open(Path.Combine(tempDi.FullName, "Test02.docx"), true))
-                {
-                    TextReplacer.SearchAndReplace(doc, "the", "this", false);
-                }
+                using var doc = WordprocessingDocument.Open(Path.Combine(tempDi.FullName, "Test02.docx"), true);
+                TextReplacer.SearchAndReplace(doc, "the", "this", false);
             }
             catch (Exception) { }
             try
             {
-                using (var doc = WordprocessingDocument.Open(Path.Combine(tempDi.FullName, "Test03.docx"), true))
-                {
-                    TextReplacer.SearchAndReplace(doc, "the", "this", false);
-                }
+                using var doc = WordprocessingDocument.Open(Path.Combine(tempDi.FullName, "Test03.docx"), true);
+                TextReplacer.SearchAndReplace(doc, "the", "this", false);
             }
             catch (Exception) { }
             using (var doc = WordprocessingDocument.Open(Path.Combine(tempDi.FullName, "Test04.docx"), true))

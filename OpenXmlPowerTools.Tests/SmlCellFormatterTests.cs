@@ -1,7 +1,4 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
-// Licensed under the MIT license. See LICENSE file in the project root for full license information.
-
-using DocumentFormat.OpenXml.Packaging;
+﻿using DocumentFormat.OpenXml.Packaging;
 using OpenXmlPowerTools;
 using System.IO;
 using System.Linq;
@@ -122,14 +119,12 @@ namespace OxPt
                 File.Copy(sourceXlsx.FullName, sourceCopiedToDestXlsx.FullName);
             }
 
-            using (var sDoc = SpreadsheetDocument.Open(sourceXlsx.FullName, true))
-            {
-                var rangeXml = SmlDataRetriever.RetrieveRange(sDoc, sheetName, range);
-                var displayValue = (string)rangeXml.Descendants("DisplayValue").FirstOrDefault();
-                var displayColor = (string)rangeXml.Descendants("DisplayColor").FirstOrDefault();
-                Assert.Equal(expected, displayValue);
-                Assert.Equal(expectedColor, displayColor);
-            }
+            using var sDoc = SpreadsheetDocument.Open(sourceXlsx.FullName, true);
+            var rangeXml = SmlDataRetriever.RetrieveRange(sDoc, sheetName, range);
+            var displayValue = (string)rangeXml.Descendants("DisplayValue").FirstOrDefault();
+            var displayColor = (string)rangeXml.Descendants("DisplayColor").FirstOrDefault();
+            Assert.Equal(expected, displayValue);
+            Assert.Equal(expectedColor, displayColor);
         }
     }
 }

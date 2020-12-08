@@ -1,7 +1,4 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
-// Licensed under the MIT license. See LICENSE file in the project root for full license information.
-
-using DocumentFormat.OpenXml.Packaging;
+﻿using DocumentFormat.OpenXml.Packaging;
 using System;
 
 namespace OpenXmlPowerTools
@@ -20,12 +17,12 @@ namespace OpenXmlPowerTools
     /// </para>
     /// <code>
     ///     [Your code using the strongly typed classes]
-    /// 
+    ///
     ///     using (new PowerToolsBlock(wordprocessingDocument))
     ///     {
     ///         [Your code using the PowerTools]
     ///     }
-    /// 
+    ///
     ///    [Your code using the strongly typed classes]
     /// </code>
     /// <para>
@@ -45,12 +42,7 @@ namespace OpenXmlPowerTools
 
         public PowerToolsBlock(OpenXmlPackage package)
         {
-            if (package == null)
-            {
-                throw new ArgumentNullException("package");
-            }
-
-            _package = package;
+            _package = package ?? throw new ArgumentNullException(nameof(package));
             _package.BeginPowerToolsBlock();
         }
 

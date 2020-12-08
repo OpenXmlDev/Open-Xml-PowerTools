@@ -1,7 +1,4 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
-// Licensed under the MIT license. See LICENSE file in the project root for full license information.
-
-using DocumentFormat.OpenXml.Packaging;
+﻿using DocumentFormat.OpenXml.Packaging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,14 +15,12 @@ namespace OpenXmlPowerTools
     {
         public static WmlDocument RejectRevisions(WmlDocument document)
         {
-            using (var streamDoc = new OpenXmlMemoryStreamDocument(document))
+            using var streamDoc = new OpenXmlMemoryStreamDocument(document);
+            using (var doc = streamDoc.GetWordprocessingDocument())
             {
-                using (var doc = streamDoc.GetWordprocessingDocument())
-                {
-                    RejectRevisions(doc);
-                }
-                return streamDoc.GetModifiedWmlDocument();
+                RejectRevisions(doc);
             }
+            return streamDoc.GetModifiedWmlDocument();
         }
 
         public static void RejectRevisions(WordprocessingDocument doc)
@@ -683,14 +678,12 @@ namespace OpenXmlPowerTools
 
         public static WmlDocument AcceptRevisions(WmlDocument document)
         {
-            using (var streamDoc = new OpenXmlMemoryStreamDocument(document))
+            using var streamDoc = new OpenXmlMemoryStreamDocument(document);
+            using (var doc = streamDoc.GetWordprocessingDocument())
             {
-                using (var doc = streamDoc.GetWordprocessingDocument())
-                {
-                    AcceptRevisions(doc);
-                }
-                return streamDoc.GetModifiedWmlDocument();
+                AcceptRevisions(doc);
             }
+            return streamDoc.GetModifiedWmlDocument();
         }
 
         public static void AcceptRevisions(WordprocessingDocument doc)
@@ -1291,13 +1284,6 @@ namespace OpenXmlPowerTools
             }
             return node;
         }
-
-        private enum DeletedParagraphCollectionType
-        {
-            DeletedParagraphMarkContent,
-            ParagraphFollowing,
-            Other
-        };
 
         /// Accept deleted paragraphs.
         ///
@@ -2342,13 +2328,9 @@ namespace OpenXmlPowerTools
 
         public static bool HasTrackedRevisions(WmlDocument document)
         {
-            using (var streamDoc = new OpenXmlMemoryStreamDocument(document))
-            {
-                using (var wdoc = streamDoc.GetWordprocessingDocument())
-                {
-                    return RevisionAccepter.HasTrackedRevisions(wdoc);
-                }
-            }
+            using var streamDoc = new OpenXmlMemoryStreamDocument(document);
+            using var wdoc = streamDoc.GetWordprocessingDocument();
+            return RevisionAccepter.HasTrackedRevisions(wdoc);
         }
 
         public static bool HasTrackedRevisions(WordprocessingDocument doc)

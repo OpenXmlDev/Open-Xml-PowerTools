@@ -1,7 +1,4 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
-// Licensed under the MIT license. See LICENSE file in the project root for full license information.
-
-using DocumentFormat.OpenXml.Packaging;
+﻿using DocumentFormat.OpenXml.Packaging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -397,111 +394,109 @@ namespace OpenXmlPowerTools
             var embeddedSpreadsheet = chartPart.GetPartById(embeddedSpreadsheetRid);
             if (embeddedSpreadsheet != null)
             {
-                using (var sDoc = SpreadsheetDocument.Open(embeddedSpreadsheet.GetStream(), true))
+                using var sDoc = SpreadsheetDocument.Open(embeddedSpreadsheet.GetStream(), true);
+                var workbookPart = sDoc.WorkbookPart;
+                var wbRoot = workbookPart.GetXDocument().Root;
+                var sheetRid = (string)wbRoot
+                    .Elements(S.sheets)
+                    .Elements(S.sheet)
+                    .Where(s => (string)s.Attribute("name") == sheet)
+                    .Attributes(R.id)
+                    .FirstOrDefault();
+                if (sheetRid != null)
                 {
-                    var workbookPart = sDoc.WorkbookPart;
-                    var wbRoot = workbookPart.GetXDocument().Root;
-                    var sheetRid = (string)wbRoot
-                        .Elements(S.sheets)
-                        .Elements(S.sheet)
-                        .Where(s => (string)s.Attribute("name") == sheet)
-                        .Attributes(R.id)
-                        .FirstOrDefault();
-                    if (sheetRid != null)
+                    var sheetPart = workbookPart.GetPartById(sheetRid);
+                    var xdSheet = sheetPart.GetXDocument();
+                    var sheetData = xdSheet.Descendants(S.sheetData).FirstOrDefault();
+
+                    var stylePart = workbookPart.WorkbookStylesPart;
+                    var xdStyle = stylePart.GetXDocument();
+
+                    var categoryStyleId = 0;
+                    if (chartData.CategoryFormatCode != 0)
                     {
-                        var sheetPart = workbookPart.GetPartById(sheetRid);
-                        var xdSheet = sheetPart.GetXDocument();
-                        var sheetData = xdSheet.Descendants(S.sheetData).FirstOrDefault();
+                        categoryStyleId = AddDxfToDxfs(xdSheet, xdStyle, chartData.CategoryFormatCode);
+                    }
 
-                        var stylePart = workbookPart.WorkbookStylesPart;
-                        var xdStyle = stylePart.GetXDocument();
+                    stylePart.PutXDocument();
 
-                        var categoryStyleId = 0;
-                        if (chartData.CategoryFormatCode != 0)
-                        {
-                            categoryStyleId = AddDxfToDxfs(xdSheet, xdStyle, chartData.CategoryFormatCode);
-                        }
-
-                        stylePart.PutXDocument();
-
-                        var firstRow = new XElement(S.row,
-                            new XAttribute("r", "1"),
-                            new XAttribute("spans", string.Format("1:{0}", chartData.SeriesNames.Length + 1)),
-                            new[] { new XElement(S.c,
+                    var firstRow = new XElement(S.row,
+                        new XAttribute("r", "1"),
+                        new XAttribute("spans", string.Format("1:{0}", chartData.SeriesNames.Length + 1)),
+                        new[] { new XElement(S.c,
                                 new XAttribute("r", "A1"),
                                 new XAttribute("t", "str"),
                                 new XElement(S.v,
                                     new XAttribute(XNamespace.Xml + "space", "preserve"),
                                     " "))}
-                                .Concat(
-                                    chartData.SeriesNames
-                                        .Select((sn, i) => new XElement(S.c,
-                                            new XAttribute("r", RowColToString(0, i + 1)),
-                                            new XAttribute("t", "str"),
-                                            new XElement(S.v, sn)))));
-                        var otherRows = chartData
-                            .CategoryNames
-                            .Select((cn, r) =>
-                            {
-                                var row = new XElement(S.row,
-                                    new XAttribute("r", r + 2),
-                                    new XAttribute("spans", string.Format("1:{0}", chartData.SeriesNames.Length + 1)),
-                                    new[] {
+                            .Concat(
+                                chartData.SeriesNames
+                                    .Select((sn, i) => new XElement(S.c,
+                                        new XAttribute("r", RowColToString(0, i + 1)),
+                                        new XAttribute("t", "str"),
+                                        new XElement(S.v, sn)))));
+                    var otherRows = chartData
+                        .CategoryNames
+                        .Select((cn, r) =>
+                        {
+                            var row = new XElement(S.row,
+                                new XAttribute("r", r + 2),
+                                new XAttribute("spans", string.Format("1:{0}", chartData.SeriesNames.Length + 1)),
+                                new[] {
                                         new XElement(S.c,
                                             new XAttribute("r", RowColToString(r + 1, 0)),
                                             categoryStyleId != 0 ? new XAttribute("s", categoryStyleId) : null,
                                             chartData.CategoryDataType == ChartDataType.String ? new XAttribute("t", "str") : null,
                                             new XElement(S.v, cn))
-                                    }.Concat(
-                                        Enumerable.Range(0, chartData.Values.Length)
-                                            .Select((c, ci) =>
-                                            {
-                                                var cell = new XElement(S.c,
-                                                    new XAttribute("r", RowColToString(r + 1, ci + 1)),
-                                                    new XElement(S.v, chartData.Values[ci][r]));
-                                                return cell;
-                                            })));
-                                return row;
-                            });
-                        var allRows = new[] {
+                                }.Concat(
+                                    Enumerable.Range(0, chartData.Values.Length)
+                                        .Select((c, ci) =>
+                                        {
+                                            var cell = new XElement(S.c,
+                                                new XAttribute("r", RowColToString(r + 1, ci + 1)),
+                                                new XElement(S.v, chartData.Values[ci][r]));
+                                            return cell;
+                                        })));
+                            return row;
+                        });
+                    var allRows = new[] {
                             firstRow
                         }.Concat(otherRows);
-                        var newSheetData = new XElement(S.sheetData,
-                            allRows);
-                        sheetData.ReplaceWith(newSheetData);
-                        sheetPart.PutXDocument();
+                    var newSheetData = new XElement(S.sheetData,
+                        allRows);
+                    sheetData.ReplaceWith(newSheetData);
+                    sheetPart.PutXDocument();
 
-                        var tablePartRid = (string)xdSheet
-                            .Root
-                            .Elements(S.tableParts)
-                            .Elements(S.tablePart)
-                            .Attributes(R.id)
-                            .FirstOrDefault();
-                        if (tablePartRid != null)
-                        {
-                            var partTable = sheetPart.GetPartById(tablePartRid);
-                            var xdTablePart = partTable.GetXDocument();
-                            var xaRef = xdTablePart.Root.Attribute("ref");
-                            xaRef.Value = string.Format("A1:{0}", RowColToString(chartData.CategoryNames.Length - 1, chartData.SeriesNames.Length));
-                            var xeNewTableColumns = new XElement(S.tableColumns,
-                                new XAttribute("count", chartData.SeriesNames.Length + 1),
-                                new[] {
+                    var tablePartRid = (string)xdSheet
+                        .Root
+                        .Elements(S.tableParts)
+                        .Elements(S.tablePart)
+                        .Attributes(R.id)
+                        .FirstOrDefault();
+                    if (tablePartRid != null)
+                    {
+                        var partTable = sheetPart.GetPartById(tablePartRid);
+                        var xdTablePart = partTable.GetXDocument();
+                        var xaRef = xdTablePart.Root.Attribute("ref");
+                        xaRef.Value = string.Format("A1:{0}", RowColToString(chartData.CategoryNames.Length - 1, chartData.SeriesNames.Length));
+                        var xeNewTableColumns = new XElement(S.tableColumns,
+                            new XAttribute("count", chartData.SeriesNames.Length + 1),
+                            new[] {
                                     new XElement(S.tableColumn,
                                         new XAttribute("id", 1),
                                         new XAttribute("name", " "))
-                                }.Concat(
-                                    chartData.SeriesNames.Select((cn, ci) =>
-                                        new XElement(S.tableColumn,
-                                            new XAttribute("id", ci + 2),
-                                            new XAttribute("name", cn)))));
-                            var xeExistingTableColumns = xdTablePart.Root.Element(S.tableColumns);
-                            if (xeExistingTableColumns != null)
-                            {
-                                xeExistingTableColumns.ReplaceWith(xeNewTableColumns);
-                            }
-
-                            partTable.PutXDocument();
+                        }.Concat(
+                            chartData.SeriesNames.Select((cn, ci) =>
+                                new XElement(S.tableColumn,
+                                    new XAttribute("id", ci + 2),
+                                    new XAttribute("name", cn)))));
+                        var xeExistingTableColumns = xdTablePart.Root.Element(S.tableColumns);
+                        if (xeExistingTableColumns != null)
+                        {
+                            xeExistingTableColumns.ReplaceWith(xeNewTableColumns);
                         }
+
+                        partTable.PutXDocument();
                     }
                 }
             }

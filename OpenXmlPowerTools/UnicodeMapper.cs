@@ -1,5 +1,4 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
-// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+﻿
 
 using System;
 using System.Collections.Generic;
@@ -204,12 +203,12 @@ namespace OpenXmlPowerTools
         {
             if (string.IsNullOrEmpty(fontAttributeValue))
             {
-                throw new ArgumentException("Argument is null or empty.", "fontAttributeValue");
+                throw new ArgumentException("Argument is null or empty.", nameof(fontAttributeValue));
             }
 
             if (string.IsNullOrEmpty(charAttributeValue))
             {
-                throw new ArgumentException("Argument is null or empty.", "charAttributeValue");
+                throw new ArgumentException("Argument is null or empty.", nameof(charAttributeValue));
             }
 
             return SymToChar(new XElement(W.sym,
@@ -229,26 +228,26 @@ namespace OpenXmlPowerTools
         {
             if (sym == null)
             {
-                throw new ArgumentNullException("sym");
+                throw new ArgumentNullException(nameof(sym));
             }
 
             if (sym.Name != W.sym)
             {
-                throw new ArgumentException(string.Format("Not a w:sym: {0}", sym.Name), "sym");
+                throw new ArgumentException(string.Format("Not a w:sym: {0}", sym.Name), nameof(sym));
             }
 
             var fontAttribute = sym.Attribute(W.font);
             var fontAttributeValue = fontAttribute != null ? fontAttribute.Value : null;
             if (fontAttributeValue == null)
             {
-                throw new ArgumentException("w:sym element has no w:font attribute.", "sym");
+                throw new ArgumentException("w:sym element has no w:font attribute.", nameof(sym));
             }
 
             var charAttribute = sym.Attribute(W._char);
             var charAttributeValue = charAttribute != null ? charAttribute.Value : null;
             if (charAttributeValue == null)
             {
-                throw new ArgumentException("w:sym element has no w:char attribute.", "sym");
+                throw new ArgumentException("w:sym element has no w:char attribute.", nameof(sym));
             }
 
             // Return Unicode value if it is in the dictionary.

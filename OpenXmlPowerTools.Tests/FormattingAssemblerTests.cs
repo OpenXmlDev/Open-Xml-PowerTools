@@ -1,7 +1,4 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
-// Licensed under the MIT license. See LICENSE file in the project root for full license information.
-
-using DocumentFormat.OpenXml.Packaging;
+﻿using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Validation;
 using OpenXmlPowerTools;
 using System;
@@ -87,25 +84,23 @@ namespace OxPt
 
         private void Validate(FileInfo fi)
         {
-            using (var wDoc = WordprocessingDocument.Open(fi.FullName, true))
+            using var wDoc = WordprocessingDocument.Open(fi.FullName, true);
+            var v = new OpenXmlValidator();
+            var errors = v.Validate(wDoc).Where(ve =>
             {
-                var v = new OpenXmlValidator();
-                var errors = v.Validate(wDoc).Where(ve =>
-                {
-                    var found = s_ExpectedErrors.Any(xe => ve.Description.Contains(xe));
-                    return !found;
-                });
+                var found = s_ExpectedErrors.Any(xe => ve.Description.Contains(xe));
+                return !found;
+            });
 
-                if (errors.Count() != 0)
+            if (errors.Any())
+            {
+                var sb = new StringBuilder();
+                foreach (var item in errors)
                 {
-                    var sb = new StringBuilder();
-                    foreach (var item in errors)
-                    {
-                        sb.Append(item.Description).Append(Environment.NewLine);
-                    }
-                    var s = sb.ToString();
-                    Assert.True(false, s);
+                    sb.Append(item.Description).Append(Environment.NewLine);
                 }
+                var s = sb.ToString();
+                Assert.True(false, s);
             }
         }
 

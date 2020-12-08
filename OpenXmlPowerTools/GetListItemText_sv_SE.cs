@@ -1,7 +1,4 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
-// Licensed under the MIT license. See LICENSE file in the project root for full license information.
-
-using System;
+﻿using System;
 
 namespace OpenXmlPowerTools
 {
@@ -56,7 +53,7 @@ namespace OpenXmlPowerTools
             //Validation
             if (thousands > 19)
             {
-                throw new ArgumentOutOfRangeException("levelNumber", "Convering a levelNumber to ordinal text that is greater then 19 999 is not supported");
+                throw new ArgumentOutOfRangeException(nameof(levelNumber), "Convering a levelNumber to ordinal text that is greater then 19 999 is not supported");
             }
 
             if (levelNumber == 0)
@@ -66,7 +63,7 @@ namespace OpenXmlPowerTools
 
             if (levelNumber < 0)
             {
-                throw new ArgumentOutOfRangeException("levelNumber", "Converting a negative levelNumber to ordinal text is not supported");
+                throw new ArgumentOutOfRangeException(nameof(levelNumber), "Converting a negative levelNumber to ordinal text is not supported");
             }
 
             /* exact thousands */
@@ -134,7 +131,7 @@ namespace OpenXmlPowerTools
             }
             else if (tens > 1)
             {
-                result += Tens[tens] + OneThroughNineteen[ones]; ;
+                result += Tens[tens] + OneThroughNineteen[ones];
                 return result.Substring(0, 1).ToUpper() + result.Substring(1);
             }
             else
@@ -150,12 +147,12 @@ namespace OpenXmlPowerTools
 
             if (levelNumber <= 0)
             {
-                throw new ArgumentOutOfRangeException("levelNumber", "Converting a zero or negative levelNumber to ordinal text is not supported");
+                throw new ArgumentOutOfRangeException(nameof(levelNumber), "Converting a zero or negative levelNumber to ordinal text is not supported");
             }
 
             if (levelNumber >= 10000)
             {
-                throw new ArgumentOutOfRangeException("levelNumber", "Convering a levelNumber to ordinal text that is greater then 10000 is not supported");
+                throw new ArgumentOutOfRangeException(nameof(levelNumber), "Convering a levelNumber to ordinal text that is greater then 10000 is not supported");
             }
 
             if (levelNumber == 1)
@@ -227,7 +224,7 @@ namespace OpenXmlPowerTools
             }
             else if (tens > 1)
             {
-                result += Tens[tens] + OrdinalOneThroughNineteen[ones]; ;
+                result += Tens[tens] + OrdinalOneThroughNineteen[ones];
                 return result.Substring(0, 1).ToUpper() + result.Substring(1);
             }
             else

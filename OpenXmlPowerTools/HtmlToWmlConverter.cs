@@ -1,7 +1,4 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
-// Licensed under the MIT license. See LICENSE file in the project root for full license information.
-
-using DocumentFormat.OpenXml.Packaging;
+﻿using DocumentFormat.OpenXml.Packaging;
 using OpenXmlPowerTools.HtmlToWml;
 using System;
 using System.IO;
@@ -318,37 +315,35 @@ AAAAAAAAAAAAAAAANi8AAGRvY1Byb3BzL2FwcC54bWxQSwUGAAAAAAwADAAJAwAA3DEAAAAA";
             using (var ms = new MemoryStream())
             {
                 ms.Write(wmlDocument.DocumentByteArray, 0, wmlDocument.DocumentByteArray.Length);
-                using (var wDoc = WordprocessingDocument.Open(ms, false))
-                {
-                    GetDefaultFontInfo(wDoc, out var majorLatinFont, out var minorLatinFont, out var defaultFontSize);
-                    settings.MajorLatinFont = majorLatinFont;
-                    settings.MinorLatinFont = minorLatinFont;
-                    settings.DefaultFontSize = defaultFontSize;
+                using var wDoc = WordprocessingDocument.Open(ms, false);
+                GetDefaultFontInfo(wDoc, out var majorLatinFont, out var minorLatinFont, out var defaultFontSize);
+                settings.MajorLatinFont = majorLatinFont;
+                settings.MinorLatinFont = minorLatinFont;
+                settings.DefaultFontSize = defaultFontSize;
 
-                    settings.MinorLatinFont = "Times New Roman";
-                    settings.DefaultFontSize = 12d;
-                    settings.DefaultBlockContentMargin = "auto";
-                    settings.DefaultSpacingElement = new XElement(W.spacing,
-                        new XAttribute(W.before, 100),
-                        new XAttribute(W.beforeAutospacing, 1),
-                        new XAttribute(W.after, 100),
-                        new XAttribute(W.afterAutospacing, 1),
-                        new XAttribute(W.line, 240),
-                        new XAttribute(W.lineRule, "auto"));
-                    settings.DefaultSpacingElementForParagraphsInTables = new XElement(W.spacing,
-                        new XAttribute(W.before, 100),
-                        new XAttribute(W.beforeAutospacing, 1),
-                        new XAttribute(W.after, 100),
-                        new XAttribute(W.afterAutospacing, 1),
-                        new XAttribute(W.line, 240),
-                        new XAttribute(W.lineRule, "auto"));
+                settings.MinorLatinFont = "Times New Roman";
+                settings.DefaultFontSize = 12d;
+                settings.DefaultBlockContentMargin = "auto";
+                settings.DefaultSpacingElement = new XElement(W.spacing,
+                    new XAttribute(W.before, 100),
+                    new XAttribute(W.beforeAutospacing, 1),
+                    new XAttribute(W.after, 100),
+                    new XAttribute(W.afterAutospacing, 1),
+                    new XAttribute(W.line, 240),
+                    new XAttribute(W.lineRule, "auto"));
+                settings.DefaultSpacingElementForParagraphsInTables = new XElement(W.spacing,
+                    new XAttribute(W.before, 100),
+                    new XAttribute(W.beforeAutospacing, 1),
+                    new XAttribute(W.after, 100),
+                    new XAttribute(W.afterAutospacing, 1),
+                    new XAttribute(W.line, 240),
+                    new XAttribute(W.lineRule, "auto"));
 
-                    var mXDoc = wDoc.MainDocumentPart.GetXDocument();
-                    var existingSectPr = mXDoc.Root.Descendants(W.sectPr).FirstOrDefault();
-                    settings.SectPr = new XElement(W.sectPr,
-                        existingSectPr.Elements(W.pgSz),
-                        existingSectPr.Elements(W.pgMar));
-                }
+                var mXDoc = wDoc.MainDocumentPart.GetXDocument();
+                var existingSectPr = mXDoc.Root.Descendants(W.sectPr).FirstOrDefault();
+                settings.SectPr = new XElement(W.sectPr,
+                    existingSectPr.Elements(W.pgSz),
+                    existingSectPr.Elements(W.pgMar));
             }
             return settings;
         }

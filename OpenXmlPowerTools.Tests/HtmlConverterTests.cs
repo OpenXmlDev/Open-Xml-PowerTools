@@ -1,7 +1,4 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
-// Licensed under the MIT license. See LICENSE file in the project root for full license information.
-
-#define COPY_FILES_FOR_DEBUGGING
+﻿#define COPY_FILES_FOR_DEBUGGING
 
 using DocumentFormat.OpenXml.Packaging;
 using OpenXmlPowerTools;
@@ -111,259 +108,249 @@ namespace OxPt
         private static void CopyFormattingAssembledDocx(FileInfo source, FileInfo dest)
         {
             var ba = File.ReadAllBytes(source.FullName);
-            using (var ms = new MemoryStream())
+            using var ms = new MemoryStream();
+            ms.Write(ba, 0, ba.Length);
+            using (var wordDoc = WordprocessingDocument.Open(ms, true))
             {
-                ms.Write(ba, 0, ba.Length);
-                using (var wordDoc = WordprocessingDocument.Open(ms, true))
+                RevisionAccepter.AcceptRevisions(wordDoc);
+                var simplifyMarkupSettings = new SimplifyMarkupSettings
                 {
-                    RevisionAccepter.AcceptRevisions(wordDoc);
-                    var simplifyMarkupSettings = new SimplifyMarkupSettings
-                    {
-                        RemoveComments = true,
-                        RemoveContentControls = true,
-                        RemoveEndAndFootNotes = true,
-                        RemoveFieldCodes = false,
-                        RemoveLastRenderedPageBreak = true,
-                        RemovePermissions = true,
-                        RemoveProof = true,
-                        RemoveRsidInfo = true,
-                        RemoveSmartTags = true,
-                        RemoveSoftHyphens = true,
-                        RemoveGoBackBookmark = true,
-                        ReplaceTabsWithSpaces = false,
-                    };
-                    MarkupSimplifier.SimplifyMarkup(wordDoc, simplifyMarkupSettings);
+                    RemoveComments = true,
+                    RemoveContentControls = true,
+                    RemoveEndAndFootNotes = true,
+                    RemoveFieldCodes = false,
+                    RemoveLastRenderedPageBreak = true,
+                    RemovePermissions = true,
+                    RemoveProof = true,
+                    RemoveRsidInfo = true,
+                    RemoveSmartTags = true,
+                    RemoveSoftHyphens = true,
+                    RemoveGoBackBookmark = true,
+                    ReplaceTabsWithSpaces = false,
+                };
+                MarkupSimplifier.SimplifyMarkup(wordDoc, simplifyMarkupSettings);
 
-                    var formattingAssemblerSettings = new FormattingAssemblerSettings
-                    {
-                        RemoveStyleNamesFromParagraphAndRunProperties = false,
-                        ClearStyles = false,
-                        RestrictToSupportedLanguages = false,
-                        RestrictToSupportedNumberingFormats = false,
-                        CreateHtmlConverterAnnotationAttributes = true,
-                        OrderElementsPerStandard = false,
-                        ListItemRetrieverSettings =
-                            new ListItemRetrieverSettings()
-                            {
-                                ListItemTextImplementations = ListItemRetrieverSettings.DefaultListItemTextImplementations,
-                            },
-                    };
+                var formattingAssemblerSettings = new FormattingAssemblerSettings
+                {
+                    RemoveStyleNamesFromParagraphAndRunProperties = false,
+                    ClearStyles = false,
+                    RestrictToSupportedLanguages = false,
+                    RestrictToSupportedNumberingFormats = false,
+                    CreateHtmlConverterAnnotationAttributes = true,
+                    OrderElementsPerStandard = false,
+                    ListItemRetrieverSettings =
+                        new ListItemRetrieverSettings()
+                        {
+                            ListItemTextImplementations = ListItemRetrieverSettings.DefaultListItemTextImplementations,
+                        },
+                };
 
-                    FormattingAssembler.AssembleFormatting(wordDoc, formattingAssemblerSettings);
-                }
-                var newBa = ms.ToArray();
-                File.WriteAllBytes(dest.FullName, newBa);
+                FormattingAssembler.AssembleFormatting(wordDoc, formattingAssemblerSettings);
             }
+            var newBa = ms.ToArray();
+            File.WriteAllBytes(dest.FullName, newBa);
         }
 
         private static void ConvertToHtml(FileInfo sourceDocx, FileInfo destFileName)
         {
             var byteArray = File.ReadAllBytes(sourceDocx.FullName);
-            using (var memoryStream = new MemoryStream())
+            using var memoryStream = new MemoryStream();
+            memoryStream.Write(byteArray, 0, byteArray.Length);
+            using var wDoc = WordprocessingDocument.Open(memoryStream, true);
+            var outputDirectory = destFileName.Directory;
+            destFileName = new FileInfo(Path.Combine(outputDirectory.FullName, destFileName.Name));
+            var imageDirectoryName = destFileName.FullName.Substring(0, destFileName.FullName.Length - 5) + "_files";
+            var imageCounter = 0;
+            var pageTitle = (string)wDoc.CoreFilePropertiesPart.GetXDocument().Descendants(DC.title).FirstOrDefault();
+            if (pageTitle == null)
             {
-                memoryStream.Write(byteArray, 0, byteArray.Length);
-                using (var wDoc = WordprocessingDocument.Open(memoryStream, true))
+                pageTitle = sourceDocx.FullName;
+            }
+
+            var settings = new WmlToHtmlConverterSettings()
+            {
+                PageTitle = pageTitle,
+                FabricateCssClasses = true,
+                CssClassPrefix = "pt-",
+                RestrictToSupportedLanguages = false,
+                RestrictToSupportedNumberingFormats = false,
+                ImageHandler = imageInfo =>
                 {
-                    var outputDirectory = destFileName.Directory;
-                    destFileName = new FileInfo(Path.Combine(outputDirectory.FullName, destFileName.Name));
-                    var imageDirectoryName = destFileName.FullName.Substring(0, destFileName.FullName.Length - 5) + "_files";
-                    var imageCounter = 0;
-                    var pageTitle = (string)wDoc.CoreFilePropertiesPart.GetXDocument().Descendants(DC.title).FirstOrDefault();
-                    if (pageTitle == null)
+                    var localDirInfo = new DirectoryInfo(imageDirectoryName);
+                    if (!localDirInfo.Exists)
                     {
-                        pageTitle = sourceDocx.FullName;
+                        localDirInfo.Create();
                     }
 
-                    var settings = new WmlToHtmlConverterSettings()
+                    ++imageCounter;
+                    var extension = imageInfo.ContentType.Split('/')[1].ToUpperInvariant();
+                    ImageFormat imageFormat = null;
+                    if (extension == "PNG")
                     {
-                        PageTitle = pageTitle,
-                        FabricateCssClasses = true,
-                        CssClassPrefix = "pt-",
-                        RestrictToSupportedLanguages = false,
-                        RestrictToSupportedNumberingFormats = false,
-                        ImageHandler = imageInfo =>
-                        {
-                            var localDirInfo = new DirectoryInfo(imageDirectoryName);
-                            if (!localDirInfo.Exists)
-                            {
-                                localDirInfo.Create();
-                            }
+                        // Convert png to jpeg.
+                        extension = "GIF";
+                        imageFormat = ImageFormat.Gif;
+                    }
+                    else if (extension == "GIF")
+                    {
+                        imageFormat = ImageFormat.Gif;
+                    }
+                    else if (extension == "BMP")
+                    {
+                        imageFormat = ImageFormat.Bmp;
+                    }
+                    else if (extension == "JPEG")
+                    {
+                        imageFormat = ImageFormat.Jpeg;
+                    }
+                    else if (extension == "TIFF")
+                    {
+                        // Convert tiff to gif.
+                        extension = "GIF";
+                        imageFormat = ImageFormat.Gif;
+                    }
+                    else if (extension == "X-WMF")
+                    {
+                        extension = "WMF";
+                        imageFormat = ImageFormat.Wmf;
+                    }
 
-                            ++imageCounter;
-                            var extension = imageInfo.ContentType.Split('/')[1].ToUpperInvariant();
-                            ImageFormat imageFormat = null;
-                            if (extension == "PNG")
-                            {
-                                // Convert png to jpeg.
-                                extension = "GIF";
-                                imageFormat = ImageFormat.Gif;
-                            }
-                            else if (extension == "GIF")
-                            {
-                                imageFormat = ImageFormat.Gif;
-                            }
-                            else if (extension == "BMP")
-                            {
-                                imageFormat = ImageFormat.Bmp;
-                            }
-                            else if (extension == "JPEG")
-                            {
-                                imageFormat = ImageFormat.Jpeg;
-                            }
-                            else if (extension == "TIFF")
-                            {
-                                // Convert tiff to gif.
-                                extension = "GIF";
-                                imageFormat = ImageFormat.Gif;
-                            }
-                            else if (extension == "X-WMF")
-                            {
-                                extension = "WMF";
-                                imageFormat = ImageFormat.Wmf;
-                            }
+                    // If the image format isn't one that we expect, ignore it, and don't return markup for the link.
+                    if (imageFormat == null)
+                    {
+                        return null;
+                    }
 
-                            // If the image format isn't one that we expect, ignore it, and don't return markup for the link.
-                            if (imageFormat == null)
-                            {
-                                return null;
-                            }
-
-                            var imageFileName = imageDirectoryName + "/image" + imageCounter.ToString(CultureInfo.InvariantCulture) + "." + extension;
-                            try
-                            {
-                                imageInfo.Bitmap.Save(imageFileName, imageFormat);
-                            }
-                            catch (System.Runtime.InteropServices.ExternalException)
-                            {
-                                return null;
-                            }
-                            var img = new XElement(Xhtml.img,
-                                new XAttribute(NoNamespace.src, imageFileName),
-                                imageInfo.ImgStyleAttribute,
-                                imageInfo.AltText != null ?
-                                    new XAttribute(NoNamespace.alt, imageInfo.AltText) : null);
-                            return img;
-                        }
-                    };
-                    var html = WmlToHtmlConverter.ConvertToHtml(wDoc, settings);
-
-                    // Note: the xhtml returned by ConvertToHtmlTransform contains objects of type
-                    // XEntity.  PtOpenXmlUtil.cs define the XEntity class.  See
-                    // http://blogs.msdn.com/ericwhite/archive/2010/01/21/writing-entity-references-using-linq-to-xml.aspx
-                    // for detailed explanation.
-                    //
-                    // If you further transform the XML tree returned by ConvertToHtmlTransform, you
-                    // must do it correctly, or entities will not be serialized properly.
-
-                    var htmlString = html.ToString(SaveOptions.DisableFormatting);
-                    File.WriteAllText(destFileName.FullName, htmlString, Encoding.UTF8);
+                    var imageFileName = imageDirectoryName + "/image" + imageCounter.ToString(CultureInfo.InvariantCulture) + "." + extension;
+                    try
+                    {
+                        imageInfo.Bitmap.Save(imageFileName, imageFormat);
+                    }
+                    catch (System.Runtime.InteropServices.ExternalException)
+                    {
+                        return null;
+                    }
+                    var img = new XElement(Xhtml.img,
+                        new XAttribute(NoNamespace.src, imageFileName),
+                        imageInfo.ImgStyleAttribute,
+                        imageInfo.AltText != null ?
+                            new XAttribute(NoNamespace.alt, imageInfo.AltText) : null);
+                    return img;
                 }
-            }
+            };
+            var html = WmlToHtmlConverter.ConvertToHtml(wDoc, settings);
+
+            // Note: the xhtml returned by ConvertToHtmlTransform contains objects of type
+            // XEntity.  PtOpenXmlUtil.cs define the XEntity class.  See
+            // http://blogs.msdn.com/ericwhite/archive/2010/01/21/writing-entity-references-using-linq-to-xml.aspx
+            // for detailed explanation.
+            //
+            // If you further transform the XML tree returned by ConvertToHtmlTransform, you
+            // must do it correctly, or entities will not be serialized properly.
+
+            var htmlString = html.ToString(SaveOptions.DisableFormatting);
+            File.WriteAllText(destFileName.FullName, htmlString, Encoding.UTF8);
         }
 
         private static void ConvertToHtmlNoCssClasses(FileInfo sourceDocx, FileInfo destFileName)
         {
             var byteArray = File.ReadAllBytes(sourceDocx.FullName);
-            using (var memoryStream = new MemoryStream())
+            using var memoryStream = new MemoryStream();
+            memoryStream.Write(byteArray, 0, byteArray.Length);
+            using var wDoc = WordprocessingDocument.Open(memoryStream, true);
+            var outputDirectory = destFileName.Directory;
+            destFileName = new FileInfo(Path.Combine(outputDirectory.FullName, destFileName.Name));
+            var imageDirectoryName = destFileName.FullName.Substring(0, destFileName.FullName.Length - 5) + "_files";
+            var imageCounter = 0;
+            var pageTitle = (string)wDoc.CoreFilePropertiesPart.GetXDocument().Descendants(DC.title).FirstOrDefault();
+            if (pageTitle == null)
             {
-                memoryStream.Write(byteArray, 0, byteArray.Length);
-                using (var wDoc = WordprocessingDocument.Open(memoryStream, true))
+                pageTitle = sourceDocx.FullName;
+            }
+
+            var settings = new WmlToHtmlConverterSettings()
+            {
+                PageTitle = pageTitle,
+                FabricateCssClasses = false,
+                RestrictToSupportedLanguages = false,
+                RestrictToSupportedNumberingFormats = false,
+                ImageHandler = imageInfo =>
                 {
-                    var outputDirectory = destFileName.Directory;
-                    destFileName = new FileInfo(Path.Combine(outputDirectory.FullName, destFileName.Name));
-                    var imageDirectoryName = destFileName.FullName.Substring(0, destFileName.FullName.Length - 5) + "_files";
-                    var imageCounter = 0;
-                    var pageTitle = (string)wDoc.CoreFilePropertiesPart.GetXDocument().Descendants(DC.title).FirstOrDefault();
-                    if (pageTitle == null)
+                    var localDirInfo = new DirectoryInfo(imageDirectoryName);
+                    if (!localDirInfo.Exists)
                     {
-                        pageTitle = sourceDocx.FullName;
+                        localDirInfo.Create();
                     }
 
-                    var settings = new WmlToHtmlConverterSettings()
+                    ++imageCounter;
+                    var extension = imageInfo.ContentType.Split('/')[1].ToUpperInvariant();
+                    ImageFormat imageFormat = null;
+                    if (extension == "PNG")
                     {
-                        PageTitle = pageTitle,
-                        FabricateCssClasses = false,
-                        RestrictToSupportedLanguages = false,
-                        RestrictToSupportedNumberingFormats = false,
-                        ImageHandler = imageInfo =>
-                        {
-                            var localDirInfo = new DirectoryInfo(imageDirectoryName);
-                            if (!localDirInfo.Exists)
-                            {
-                                localDirInfo.Create();
-                            }
+                        // Convert png to jpeg.
+                        extension = "GIF";
+                        imageFormat = ImageFormat.Gif;
+                    }
+                    else if (extension == "GIF")
+                    {
+                        imageFormat = ImageFormat.Gif;
+                    }
+                    else if (extension == "BMP")
+                    {
+                        imageFormat = ImageFormat.Bmp;
+                    }
+                    else if (extension == "JPEG")
+                    {
+                        imageFormat = ImageFormat.Jpeg;
+                    }
+                    else if (extension == "TIFF")
+                    {
+                        // Convert tiff to gif.
+                        extension = "GIF";
+                        imageFormat = ImageFormat.Gif;
+                    }
+                    else if (extension == "X-WMF")
+                    {
+                        extension = "WMF";
+                        imageFormat = ImageFormat.Wmf;
+                    }
 
-                            ++imageCounter;
-                            var extension = imageInfo.ContentType.Split('/')[1].ToUpperInvariant();
-                            ImageFormat imageFormat = null;
-                            if (extension == "PNG")
-                            {
-                                // Convert png to jpeg.
-                                extension = "GIF";
-                                imageFormat = ImageFormat.Gif;
-                            }
-                            else if (extension == "GIF")
-                            {
-                                imageFormat = ImageFormat.Gif;
-                            }
-                            else if (extension == "BMP")
-                            {
-                                imageFormat = ImageFormat.Bmp;
-                            }
-                            else if (extension == "JPEG")
-                            {
-                                imageFormat = ImageFormat.Jpeg;
-                            }
-                            else if (extension == "TIFF")
-                            {
-                                // Convert tiff to gif.
-                                extension = "GIF";
-                                imageFormat = ImageFormat.Gif;
-                            }
-                            else if (extension == "X-WMF")
-                            {
-                                extension = "WMF";
-                                imageFormat = ImageFormat.Wmf;
-                            }
+                    // If the image format isn't one that we expect, ignore it,
+                    // and don't return markup for the link.
+                    if (imageFormat == null)
+                    {
+                        return null;
+                    }
 
-                            // If the image format isn't one that we expect, ignore it,
-                            // and don't return markup for the link.
-                            if (imageFormat == null)
-                            {
-                                return null;
-                            }
-
-                            var imageFileName = imageDirectoryName + "/image" + imageCounter.ToString(CultureInfo.InvariantCulture) + "." + extension;
-                            try
-                            {
-                                imageInfo.Bitmap.Save(imageFileName, imageFormat);
-                            }
-                            catch (System.Runtime.InteropServices.ExternalException)
-                            {
-                                return null;
-                            }
-                            var img = new XElement(Xhtml.img,
-                                new XAttribute(NoNamespace.src, imageFileName),
-                                imageInfo.ImgStyleAttribute,
-                                imageInfo.AltText != null ?
-                                    new XAttribute(NoNamespace.alt, imageInfo.AltText) : null);
-                            return img;
-                        }
-                    };
-                    var html = WmlToHtmlConverter.ConvertToHtml(wDoc, settings);
-
-                    // Note: the xhtml returned by ConvertToHtmlTransform contains objects of type
-                    // XEntity.  PtOpenXmlUtil.cs define the XEntity class.  See
-                    // http://blogs.msdn.com/ericwhite/archive/2010/01/21/writing-entity-references-using-linq-to-xml.aspx
-                    // for detailed explanation.
-                    //
-                    // If you further transform the XML tree returned by ConvertToHtmlTransform, you
-                    // must do it correctly, or entities will not be serialized properly.
-
-                    var htmlString = html.ToString(SaveOptions.DisableFormatting);
-                    File.WriteAllText(destFileName.FullName, htmlString, Encoding.UTF8);
+                    var imageFileName = imageDirectoryName + "/image" + imageCounter.ToString(CultureInfo.InvariantCulture) + "." + extension;
+                    try
+                    {
+                        imageInfo.Bitmap.Save(imageFileName, imageFormat);
+                    }
+                    catch (System.Runtime.InteropServices.ExternalException)
+                    {
+                        return null;
+                    }
+                    var img = new XElement(Xhtml.img,
+                        new XAttribute(NoNamespace.src, imageFileName),
+                        imageInfo.ImgStyleAttribute,
+                        imageInfo.AltText != null ?
+                            new XAttribute(NoNamespace.alt, imageInfo.AltText) : null);
+                    return img;
                 }
-            }
+            };
+            var html = WmlToHtmlConverter.ConvertToHtml(wDoc, settings);
+
+            // Note: the xhtml returned by ConvertToHtmlTransform contains objects of type
+            // XEntity.  PtOpenXmlUtil.cs define the XEntity class.  See
+            // http://blogs.msdn.com/ericwhite/archive/2010/01/21/writing-entity-references-using-linq-to-xml.aspx
+            // for detailed explanation.
+            //
+            // If you further transform the XML tree returned by ConvertToHtmlTransform, you
+            // must do it correctly, or entities will not be serialized properly.
+
+            var htmlString = html.ToString(SaveOptions.DisableFormatting);
+            File.WriteAllText(destFileName.FullName, htmlString, Encoding.UTF8);
         }
     }
 }

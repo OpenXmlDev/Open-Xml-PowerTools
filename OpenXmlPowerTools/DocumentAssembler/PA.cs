@@ -1,7 +1,4 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
-// Licensed under the MIT license. See LICENSE file in the project root for full license information.
-
-using System.Xml.Linq;
+﻿using System.Xml.Linq;
 
 namespace OpenXmlPowerTools
 {
@@ -15,7 +12,6 @@ namespace OpenXmlPowerTools
             public static readonly XName EndRepeat = "EndRepeat";
             public static readonly XName Conditional = "Conditional";
             public static readonly XName EndConditional = "EndConditional";
-
             public static readonly XName Select = "Select";
             public static readonly XName Optional = "Optional";
             public static readonly XName Match = "Match";

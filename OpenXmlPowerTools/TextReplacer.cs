@@ -1,7 +1,4 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
-// Licensed under the MIT license. See LICENSE file in the project root for full license information.
-
-using DocumentFormat.OpenXml.Packaging;
+﻿using DocumentFormat.OpenXml.Packaging;
 using System.IO;
 using System.Linq;
 using System.Xml.Linq;
@@ -29,6 +26,7 @@ namespace OpenXmlPowerTools
         private class MatchSemaphore
         {
             public int MatchId;
+
             public MatchSemaphore(int matchId)
             {
                 MatchId = matchId;
@@ -241,14 +239,12 @@ namespace OpenXmlPowerTools
 
         public static WmlDocument SearchAndReplace(WmlDocument doc, string search, string replace, bool matchCase)
         {
-            using (var streamDoc = new OpenXmlMemoryStreamDocument(doc))
+            using var streamDoc = new OpenXmlMemoryStreamDocument(doc);
+            using (var document = streamDoc.GetWordprocessingDocument())
             {
-                using (var document = streamDoc.GetWordprocessingDocument())
-                {
-                    SearchAndReplace(document, search, replace, matchCase);
-                }
-                return streamDoc.GetModifiedWmlDocument();
+                SearchAndReplace(document, search, replace, matchCase);
             }
+            return streamDoc.GetModifiedWmlDocument();
         }
 
         public static void SearchAndReplace(WordprocessingDocument wordDoc, string search,
@@ -469,14 +465,12 @@ namespace OpenXmlPowerTools
 
         public static PmlDocument SearchAndReplace(PmlDocument doc, string search, string replace, bool matchCase)
         {
-            using (var streamDoc = new OpenXmlMemoryStreamDocument(doc))
+            using var streamDoc = new OpenXmlMemoryStreamDocument(doc);
+            using (var document = streamDoc.GetPresentationDocument())
             {
-                using (var document = streamDoc.GetPresentationDocument())
-                {
-                    SearchAndReplace(document, search, replace, matchCase);
-                }
-                return streamDoc.GetModifiedPmlDocument();
+                SearchAndReplace(document, search, replace, matchCase);
             }
+            return streamDoc.GetModifiedPmlDocument();
         }
 
         public static void SearchAndReplace(PresentationDocument pDoc, string search,

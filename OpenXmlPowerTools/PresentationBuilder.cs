@@ -1,7 +1,4 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
-// Licensed under the MIT license. See LICENSE file in the project root for full license information.
-
-using DocumentFormat.OpenXml.Packaging;
+﻿using DocumentFormat.OpenXml.Packaging;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -70,28 +67,24 @@ namespace OpenXmlPowerTools
     {
         public static void BuildPresentation(List<SlideSource> sources, string fileName)
         {
-            using (var streamDoc = OpenXmlMemoryStreamDocument.CreatePresentationDocument())
+            using var streamDoc = OpenXmlMemoryStreamDocument.CreatePresentationDocument();
+            using (var output = streamDoc.GetPresentationDocument())
             {
-                using (var output = streamDoc.GetPresentationDocument())
-                {
-                    BuildPresentation(sources, output);
-                    output.Close();
-                }
-                streamDoc.GetModifiedDocument().SaveAs(fileName);
+                BuildPresentation(sources, output);
+                output.Close();
             }
+            streamDoc.GetModifiedDocument().SaveAs(fileName);
         }
 
         public static PmlDocument BuildPresentation(List<SlideSource> sources)
         {
-            using (var streamDoc = OpenXmlMemoryStreamDocument.CreatePresentationDocument())
+            using var streamDoc = OpenXmlMemoryStreamDocument.CreatePresentationDocument();
+            using (var output = streamDoc.GetPresentationDocument())
             {
-                using (var output = streamDoc.GetPresentationDocument())
-                {
-                    BuildPresentation(sources, output);
-                    output.Close();
-                }
-                return streamDoc.GetModifiedPmlDocument();
+                BuildPresentation(sources, output);
+                output.Close();
             }
+            return streamDoc.GetModifiedPmlDocument();
         }
 
         private static void BuildPresentation(List<SlideSource> sources, PresentationDocument output)
@@ -163,12 +156,9 @@ namespace OpenXmlPowerTools
                     {
                         if (dbie.Message.Contains("{0}"))
                         {
-                            throw new PresentationBuilderException(string.Format(dbie.Message, sourceNum));
+                            throw new PresentationBuilderException(string.Format(dbie.Message, sourceNum), dbie);
                         }
-                        else
-                        {
-                            throw dbie;
-                        }
+                        throw;
                     }
                 }
                 sourceNum++;
@@ -442,7 +432,7 @@ namespace OpenXmlPowerTools
             }
 
             var slideList = sourceDocument.PresentationPart.GetXDocument().Root.Descendants(P.sldId);
-            if (slideList.Count() == 0 && (currentMasterPart == null || keepMaster))
+            if (!slideList.Any() && (currentMasterPart == null || keepMaster))
             {
                 var slideMasterPart = sourceDocument.PresentationPart.SlideMasterParts.FirstOrDefault();
                 if (slideMasterPart != null)
@@ -1620,8 +1610,7 @@ namespace OpenXmlPowerTools
             }
         }
 
-        private static void CopyRelatedMedia(OpenXmlPart oldContentPart, OpenXmlPart newContentPart, XElement imageReference, XName attributeName,
-            List<MediaData> mediaList, string mediaRelationshipType)
+        private static void CopyRelatedMedia(OpenXmlPart oldContentPart, OpenXmlPart newContentPart, XElement imageReference, XName attributeName, List<MediaData> mediaList, string mediaRelationshipType)
         {
             var relId = (string)imageReference.Attribute(attributeName);
             if (string.IsNullOrEmpty(relId))

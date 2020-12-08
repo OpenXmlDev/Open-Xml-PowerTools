@@ -1,7 +1,4 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
-// Licensed under the MIT license. See LICENSE file in the project root for full license information.
-
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Drawing;
@@ -1621,15 +1618,6 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
             return units.Contains(LookaheadToken.TokenValue.ToLower());
         }
 
-        private bool IsNumber()
-        {
-            if (LookaheadToken.TokenValue.Length > 0)
-            {
-                return char.IsDigit(LookaheadToken.TokenValue[0]);
-            }
-            return false;
-        }
-
         public Parser(Scanner scanner)
         {
             Scanner = scanner;
@@ -3188,21 +3176,6 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
         }
     }
 
-    public class FatalError : Exception
-    {
-        public FatalError(string m) : base(m)
-        {
-        }
-
-        public FatalError(string message, Exception innerException) : base(message, innerException)
-        {
-        }
-
-        public FatalError()
-        {
-        }
-    }
-
     public class CssToken
     {
         public int TokenKind { get; set; }
@@ -3336,14 +3309,12 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
                 if (value >= m_inputStreamLength && m_inputStream != null && !m_inputStream.CanSeek)
                 {
                     while (value >= m_inputStreamLength && ReadNextStreamChunk() > 0)
-                    {
-                        ;
-                    }
+                    { }
                 }
 
                 if (value < 0 || value > m_inputStreamLength)
                 {
-                    throw new FatalError("buffer out of bounds access, position: " + value);
+                    throw new ArgumentException("buffer out of bounds access, position: " + value);
                 }
 
                 if (value >= m_bufferStart && value < m_bufferStart + m_bufferLength)
@@ -3376,7 +3347,7 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
             var read = m_inputStream.Read(m_inputBuffer, m_bufferLength, free);
             if (read > 0)
             {
-                m_inputStreamLength = m_bufferLength = (m_bufferLength + read);
+                m_inputStreamLength = m_bufferLength += read;
                 return read;
             }
             return 0;
@@ -3542,16 +3513,9 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
 
         public Scanner(string fileName)
         {
-            try
-            {
-                Stream stream = new FileStream(fileName, FileMode.Open, FileAccess.Read, FileShare.Read);
-                m_scannerBuffer = new CssBuffer(stream, false);
-                Init();
-            }
-            catch (IOException)
-            {
-                throw new FatalError("Cannot open file " + fileName);
-            }
+            Stream stream = new FileStream(fileName, FileMode.Open, FileAccess.Read, FileShare.Read);
+            m_scannerBuffer = new CssBuffer(stream, false);
+            Init();
         }
 
         public Scanner(Stream s)
@@ -3576,7 +3540,7 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
                 var ch2 = m_currentInputCharacter;
                 if (ch1 != 0xBB || ch2 != 0xBF)
                 {
-                    throw new FatalError(string.Format("illegal byte order mark: EF {0,2:X} {1,2:X}", ch1, ch2));
+                    throw new NotSupportedException(string.Format("illegal byte order mark: EF {0,2:X} {1,2:X}", ch1, ch2));
                 }
                 m_scannerBuffer = new UTF8Buffer(m_scannerBuffer);
                 m_columnNumberOfCurrentCharacter = 0;

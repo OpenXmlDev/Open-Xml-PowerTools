@@ -1,7 +1,4 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
-// Licensed under the MIT license. See LICENSE file in the project root for full license information.
-
-using DocumentFormat.OpenXml.Packaging;
+﻿using DocumentFormat.OpenXml.Packaging;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -56,16 +53,12 @@ namespace OpenXmlPowerTools
     {
         public static XElement ConvertTableToHtml(SmlDocument smlDoc, SmlToHtmlConverterSettings settings, string tableName)
         {
-            using (var ms = new MemoryStream())
-            {
-                ms.Write(smlDoc.DocumentByteArray, 0, smlDoc.DocumentByteArray.Length);
-                using (var sDoc = SpreadsheetDocument.Open(ms, false))
-                {
-                    var rangeXml = SmlDataRetriever.RetrieveTable(sDoc, tableName);
-                    var xhtml = ConvertToHtmlInternal(sDoc, settings, rangeXml);
-                    return xhtml;
-                }
-            }
+            using var ms = new MemoryStream();
+            ms.Write(smlDoc.DocumentByteArray, 0, smlDoc.DocumentByteArray.Length);
+            using var sDoc = SpreadsheetDocument.Open(ms, false);
+            var rangeXml = SmlDataRetriever.RetrieveTable(sDoc, tableName);
+            var xhtml = ConvertToHtmlInternal(sDoc, settings, rangeXml);
+            return xhtml;
         }
 
         public static XElement ConvertTableToHtml(SpreadsheetDocument sDoc, SmlToHtmlConverterSettings settings, string tableName)

@@ -1,7 +1,4 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
-// Licensed under the MIT license. See LICENSE file in the project root for full license information.
-
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -19,23 +16,23 @@ namespace OpenXmlPowerTools
     {
         public static string SHA1HashStringForUTF8String(string s)
         {
-            byte[] bytes = Encoding.UTF8.GetBytes(s);
+            var bytes = Encoding.UTF8.GetBytes(s);
             var sha1 = SHA1.Create();
-            byte[] hashBytes = sha1.ComputeHash(bytes);
+            var hashBytes = sha1.ComputeHash(bytes);
             return HexStringFromBytes(hashBytes);
         }
 
         public static string SHA1HashStringForByteArray(byte[] bytes)
         {
             var sha1 = SHA1.Create();
-            byte[] hashBytes = sha1.ComputeHash(bytes);
+            var hashBytes = sha1.ComputeHash(bytes);
             return HexStringFromBytes(hashBytes);
         }
 
         public static string HexStringFromBytes(byte[] bytes)
         {
             var sb = new StringBuilder();
-            foreach (byte b in bytes)
+            foreach (var b in bytes)
             {
                 var hex = b.ToString("x2");
                 sb.Append(hex);
@@ -149,7 +146,7 @@ namespace OpenXmlPowerTools
                     var b = l.TrimStart('-') == boundary;
                     return b;
                 })
-                .Where(g => g.Key == false)
+                .Where(g => !g.Key)
                 .ToArray();
 
             var parts = grouped.Select(rp =>
@@ -632,13 +629,11 @@ namespace OpenXmlPowerTools
             IEnumerable<TSecond> second,
             Func<TFirst, TSecond, TResult> func)
         {
-            using (var ie1 = first.GetEnumerator())
-            using (var ie2 = second.GetEnumerator())
+            using var ie1 = first.GetEnumerator();
+            using var ie2 = second.GetEnumerator();
+            while (ie1.MoveNext() && ie2.MoveNext())
             {
-                while (ie1.MoveNext() && ie2.MoveNext())
-                {
-                    yield return func(ie1.Current, ie2.Current);
-                }
+                yield return func(ie1.Current, ie2.Current);
             }
         }
 
@@ -1211,28 +1206,26 @@ namespace OpenXmlPowerTools
             {
                 if (File.Exists(executablePath))
                 {
-                    using (var proc = new Process())
-                    {
-                        proc.StartInfo.FileName = executablePath;
-                        proc.StartInfo.Arguments = arguments;
-                        proc.StartInfo.WorkingDirectory = workingDirectory;
-                        proc.StartInfo.UseShellExecute = false;
-                        proc.StartInfo.RedirectStandardOutput = true;
-                        proc.StartInfo.RedirectStandardError = true;
-                        proc.OutputDataReceived +=
-                            (o, e) => runResults.Output.Append(e.Data).Append(Environment.NewLine);
-                        proc.ErrorDataReceived +=
-                            (o, e) => runResults.Error.Append(e.Data).Append(Environment.NewLine);
-                        proc.Start();
-                        proc.BeginOutputReadLine();
-                        proc.BeginErrorReadLine();
-                        proc.WaitForExit();
-                        runResults.ExitCode = proc.ExitCode;
-                    }
+                    using var proc = new Process();
+                    proc.StartInfo.FileName = executablePath;
+                    proc.StartInfo.Arguments = arguments;
+                    proc.StartInfo.WorkingDirectory = workingDirectory;
+                    proc.StartInfo.UseShellExecute = false;
+                    proc.StartInfo.RedirectStandardOutput = true;
+                    proc.StartInfo.RedirectStandardError = true;
+                    proc.OutputDataReceived +=
+                        (o, e) => runResults.Output.Append(e.Data).Append(Environment.NewLine);
+                    proc.ErrorDataReceived +=
+                        (o, e) => runResults.Error.Append(e.Data).Append(Environment.NewLine);
+                    proc.Start();
+                    proc.BeginOutputReadLine();
+                    proc.BeginErrorReadLine();
+                    proc.WaitForExit();
+                    runResults.ExitCode = proc.ExitCode;
                 }
                 else
                 {
-                    throw new ArgumentException("Invalid executable path.", "executablePath");
+                    throw new ArgumentException("Invalid executable path.", nameof(executablePath));
                 }
             }
             catch (Exception e)
@@ -1288,30 +1281,36 @@ namespace OpenXmlPowerTools
             public TimeSpan Time;
         }
 
-        public static string LastBucket ;
+        public static string LastBucket;
         private static DateTime LastTime;
         private static Dictionary<string, BucketInfo> Buckets;
 
         public static void Bucket(string bucket)
         {
-            DateTime now = DateTime.Now;
+            var now = DateTime.Now;
             if (LastBucket != null)
+            {
                 AddToBuckets(now);
+            }
+
             LastBucket = bucket;
             LastTime = now;
         }
 
         public static void End()
         {
-            DateTime now = DateTime.Now;
+            var now = DateTime.Now;
             if (LastBucket != null)
+            {
                 AddToBuckets(now);
+            }
+
             LastBucket = null;
         }
 
         private static void AddToBuckets(DateTime now)
         {
-            TimeSpan d = now - LastTime;
+            var d = now - LastTime;
 
             if (Buckets.ContainsKey(LastBucket))
             {
@@ -1334,10 +1333,13 @@ namespace OpenXmlPowerTools
             var sb = new StringBuilder();
             foreach (var bucket in Buckets.OrderBy(b => b.Key))
             {
-                string ts = bucket.Value.Time.ToString();
+                var ts = bucket.Value.Time.ToString();
                 if (ts.Contains('.'))
+                {
                     ts = ts.Substring(0, ts.Length - 5);
-                string s = bucket.Key.PadRight(80, '-') + "  " + string.Format("{0:00000000}", bucket.Value.Count) + "  " + ts;
+                }
+
+                var s = bucket.Key.PadRight(80, '-') + "  " + string.Format("{0:00000000}", bucket.Value.Count) + "  " + ts;
                 sb.Append(s + Environment.NewLine);
             }
             var total = Buckets
@@ -1349,13 +1351,16 @@ namespace OpenXmlPowerTools
 
         public static string DumpBucketsToCsvByKey()
         {
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder();
             foreach (var bucket in Buckets.OrderBy(b => b.Key))
             {
-                string ts = bucket.Value.Time.TotalMilliseconds.ToString();
+                var ts = bucket.Value.Time.TotalMilliseconds.ToString();
                 if (ts.Contains('.'))
+                {
                     ts = ts.Substring(0, ts.Length - 5);
-                string s = bucket.Key + "," + bucket.Value.Count.ToString() + "," + ts;
+                }
+
+                var s = bucket.Key + "," + bucket.Value.Count.ToString() + "," + ts;
                 sb.Append(s + Environment.NewLine);
             }
             return sb.ToString();
@@ -1372,7 +1377,7 @@ namespace OpenXmlPowerTools
                     ts = ts.Substring(0, ts.Length - 5);
                 }
 
-                string s = bucket.Key.PadRight(60, '-') + "  " + string.Format("{0:00000000}", bucket.Value.Count) + "  " + ts;
+                var s = bucket.Key.PadRight(60, '-') + "  " + string.Format("{0:00000000}", bucket.Value.Count) + "  " + ts;
                 sb.Append(s + Environment.NewLine);
             }
             var total = Buckets
@@ -1388,7 +1393,7 @@ namespace OpenXmlPowerTools
             Buckets = new Dictionary<string, BucketInfo>();
         }
     }
-    
+
     public class XEntity : XText
     {
         public override void WriteTo(XmlWriter writer)

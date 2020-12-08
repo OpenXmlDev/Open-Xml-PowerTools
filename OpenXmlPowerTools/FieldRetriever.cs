@@ -1,7 +1,4 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
-// Licensed under the MIT license. See LICENSE file in the project root for full license information.
-
-using DocumentFormat.OpenXml.Packaging;
+﻿using DocumentFormat.OpenXml.Packaging;
 using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Linq;
@@ -41,7 +38,7 @@ namespace OpenXmlPowerTools
             var instrText = groupedSubFields
                 .Select(g =>
                 {
-                    if (g.Key == false)
+                    if (!g.Key)
                     {
                         return g.Select(e =>
                         {
@@ -110,7 +107,7 @@ namespace OpenXmlPowerTools
                                     Id = s.Id + 1,
                                     FiStack = fis,
                                 };
-                            };
+                            }
                             if (e.Attribute(w + "fldCharType").Value == "separate")
                             {
                                 var fis = new Stack<FieldElementTypeInfo>(s.FiStack.Reverse());
@@ -198,7 +195,7 @@ namespace OpenXmlPowerTools
                 return new
                 {
                     Element = t1,
-                    Id = t2.Id,
+                    t2.Id,
                     WmlFieldInfoStack = t2.FiStack,
                 };
             });

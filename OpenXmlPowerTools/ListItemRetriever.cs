@@ -1,7 +1,4 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
-// Licensed under the MIT license. See LICENSE file in the project root for full license information.
-
-using DocumentFormat.OpenXml.Packaging;
+﻿using DocumentFormat.OpenXml.Packaging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -53,7 +50,7 @@ namespace OpenXmlPowerTools
             /// </summary>
             public XElement AbstractNum { get; set; }
 
-            public ListItemSourceSet(XDocument numXDoc, XDocument styleXDoc, int numId)
+            public ListItemSourceSet(XDocument numXDoc, int numId)
             {
                 NumId = numId;
 
@@ -134,7 +131,7 @@ namespace OpenXmlPowerTools
 
             public ListItemSource(XDocument numXDoc, XDocument stylesXDoc, int numId)
             {
-                Main = new ListItemSourceSet(numXDoc, stylesXDoc, numId);
+                Main = new ListItemSourceSet(numXDoc, numId);
 
                 NumStyleLinkName = (string)Main
                     .AbstractNum
@@ -156,7 +153,7 @@ namespace OpenXmlPowerTools
 
                     if (numStyleLinkNumId != null)
                     {
-                        NumStyleLink = new ListItemSourceSet(numXDoc, stylesXDoc, (int)numStyleLinkNumId);
+                        NumStyleLink = new ListItemSourceSet(numXDoc, (int)numStyleLinkNumId);
                     }
                 }
             }
@@ -421,7 +418,7 @@ namespace OpenXmlPowerTools
             throw new OpenXmlPowerToolsException("Internal error - should never ask for ilvl without it first being set.");
         }
 
-        public static ListItemInfo GetListItemInfo(XDocument numXDoc, XDocument stylesXDoc, XElement paragraph)
+        public static ListItemInfo GetListItemInfo(XElement paragraph)
         {
             // The following is an optimization - only determine ListItemInfo once for a
             // paragraph.
@@ -435,7 +432,6 @@ namespace OpenXmlPowerTools
         }
 
         private static readonly ListItemInfo NotAListItem = new ListItemInfo(false, true);
-        private static readonly ListItemInfo ZeroNumId = new ListItemInfo(false, false);
 
         public static void InitListItemInfo(XDocument numXDoc, XDocument stylesXDoc, XElement paragraph)
         {
@@ -518,8 +514,7 @@ namespace OpenXmlPowerTools
 
             if (paragraphStyleName != null)
             {
-                listItemInfo.FromStyle = InitializeStyleListItemSource(numXDoc, stylesXDoc, paragraph, paragraphStyleName,
-                        out style_ilvl, out styleZeroNumId);
+                listItemInfo.FromStyle = InitializeStyleListItemSource(numXDoc, stylesXDoc, paragraph, out style_ilvl, out styleZeroNumId);
             }
 
             int? paragraph_ilvl = null;
@@ -530,8 +525,7 @@ namespace OpenXmlPowerTools
                 listItemInfo.FromParagraph = InitializeParagraphListItemSource(numXDoc, stylesXDoc, paragraph, paragraphNumberingProperties, out paragraph_ilvl, out paragraphZeroNumId);
             }
 
-            if (styleZeroNumId == true && paragraphZeroNumId == null ||
-                paragraphZeroNumId == true)
+            if (styleZeroNumId == true && paragraphZeroNumId == null || paragraphZeroNumId == true)
             {
                 paragraph.AddAnnotation(NotAListItem);
                 AddListItemInfoIntoCache(numXDoc, paragraphStyleName, paragraphNumId, NotAListItem);
@@ -659,8 +653,7 @@ namespace OpenXmlPowerTools
             return listItemSource;
         }
 
-        private static ListItemSource InitializeStyleListItemSource(XDocument numXDoc, XDocument stylesXDoc, XElement paragraph, string paragraphStyleName,
-            out int? ilvl, out bool? zeroNumId)
+        private static ListItemSource InitializeStyleListItemSource(XDocument numXDoc, XDocument stylesXDoc, XElement paragraph, out int? ilvl, out bool? zeroNumId)
         {
             zeroNumId = null;
             var pPr = FormattingAssembler.ParagraphStyleRollup(paragraph, stylesXDoc, GetDefaultParagraphStyleName(stylesXDoc));
@@ -769,10 +762,7 @@ namespace OpenXmlPowerTools
 
         private static ListItemInfo GetListItemInfoFromCache(XDocument numXDoc, string styleName, int? numId)
         {
-            var key =
-                (styleName == null ? "" : styleName) +
-                "|" +
-                (numId == null ? "" : numId.ToString());
+            var key = (styleName ?? "") + "|" + (numId == null ? "" : numId.ToString());
 
             var numXDocRoot = numXDoc.Root;
             var listItemInfoCache =
@@ -846,7 +836,7 @@ namespace OpenXmlPowerTools
             var listItemInfo = paragraph.Annotation<ListItemInfo>();
             if (listItemInfo == null)
             {
-                InitializeListItemRetriever(wordDoc, settings);
+                InitializeListItemRetriever(wordDoc);
             }
 
             listItemInfo = paragraph.Annotation<ListItemInfo>();
@@ -873,7 +863,6 @@ namespace OpenXmlPowerTools
                 return null;
             }
 
-            var numXDoc = numberingDefinitionsPart.GetXDocument();
             var stylesXDoc = styleDefinitionsPart.GetXDocument();
 
             var lvl = listItemInfo.Lvl(GetParagraphLevel(paragraph));
@@ -893,7 +882,7 @@ namespace OpenXmlPowerTools
             var levelNumbers = levelNumbersAnnotation.LevelNumbersArray;
             var languageIdentifier = GetLanguageIdentifier(paragraph, stylesXDoc);
             var listItem = FormatListItem(listItemInfo, levelNumbers, GetParagraphLevel(paragraph),
-                lvlText, stylesXDoc, languageIdentifier, settings);
+                lvlText, languageIdentifier, settings);
             return listItem;
         }
 
@@ -979,15 +968,15 @@ namespace OpenXmlPowerTools
             return languageIdentifier;
         }
 
-        private static void InitializeListItemRetriever(WordprocessingDocument wordDoc, ListItemRetrieverSettings settings)
+        private static void InitializeListItemRetriever(WordprocessingDocument wordDoc)
         {
             foreach (var part in wordDoc.ContentParts())
             {
-                InitializeListItemRetrieverForPart(wordDoc, part, settings);
+                InitializeListItemRetrieverForPart(wordDoc, part);
             }
         }
 
-        private static void InitializeListItemRetrieverForPart(WordprocessingDocument wordDoc, OpenXmlPart part, ListItemRetrieverSettings settings)
+        private static void InitializeListItemRetrieverForPart(WordprocessingDocument wordDoc, OpenXmlPart part)
         {
             var mainXDoc = part.GetXDocument();
 
@@ -1140,11 +1129,9 @@ namespace OpenXmlPowerTools
                             }
                         }
 
-                        if (previous == null ||
-                            level >= previous.Count() ||
-                            (level == ilvl && startOverride != null && !startOverrideAlreadyUsed.Contains(numId)))
+                        if (previous == null || level >= previous.Count || (level == ilvl && startOverride != null && !startOverrideAlreadyUsed.Contains(numId)))
                         {
-                            if (previous == null || level >= previous.Count())
+                            if (previous == null || level >= previous.Count)
                             {
                                 var start = listItemInfo.Start(level);
                                 // only look at startOverride if the level that we're examining is same as the paragraph's level.
@@ -1246,8 +1233,7 @@ namespace OpenXmlPowerTools
             }
         }
 
-        private static string FormatListItem(ListItemInfo lii, int[] levelNumbers, int ilvl,
-            string lvlText, XDocument styles, string languageCultureName, ListItemRetrieverSettings settings)
+        private static string FormatListItem(ListItemInfo lii, int[] levelNumbers, int ilvl, string lvlText, string languageCultureName, ListItemRetrieverSettings settings)
         {
             var formatTokens = GetFormatTokens(lvlText).ToArray();
             var lvl = lii.Lvl(ilvl);

@@ -1,7 +1,4 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
-// Licensed under the MIT license. See LICENSE file in the project root for full license information.
-
-using DocumentFormat.OpenXml.Packaging;
+﻿using DocumentFormat.OpenXml.Packaging;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -46,15 +43,13 @@ namespace OpenXmlPowerTools
     {
         public static WmlDocument SimplifyMarkup(WmlDocument doc, SimplifyMarkupSettings settings)
         {
-            using (var streamDoc = new OpenXmlMemoryStreamDocument(doc))
+            using var streamDoc = new OpenXmlMemoryStreamDocument(doc);
+            using (var document = streamDoc.GetWordprocessingDocument())
             {
-                using (var document = streamDoc.GetWordprocessingDocument())
-                {
-                    SimplifyMarkup(document, settings);
-                }
-
-                return streamDoc.GetModifiedWmlDocument();
+                SimplifyMarkup(document, settings);
             }
+
+            return streamDoc.GetModifiedWmlDocument();
         }
 
         public static void SimplifyMarkup(WordprocessingDocument doc, SimplifyMarkupSettings settings)
@@ -304,7 +299,7 @@ namespace OpenXmlPowerTools
                     return new XElement(W.r,
                         grouped.Select(g =>
                         {
-                            if (g.Key == false)
+                            if (!g.Key)
                             {
                                 return (object)g;
                             }

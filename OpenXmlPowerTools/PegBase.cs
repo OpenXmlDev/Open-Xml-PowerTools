@@ -1,7 +1,4 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
-// Licensed under the MIT license. See LICENSE file in the project root for full license information.
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -39,11 +36,9 @@ namespace Peg.Base
                 return false;
             }
 
-            using (var brdr = new BinaryReader(File.Open(path_, FileMode.Open, FileAccess.Read)))
-            {
-                src = brdr.ReadBytes((int)brdr.BaseStream.Length);
-                return true;
-            }
+            using var brdr = new BinaryReader(File.Open(path_, FileMode.Open, FileAccess.Read));
+            src = brdr.ReadBytes((int)brdr.BaseStream.Length);
+            return true;
         }
 
         public bool LoadFile(out string src)
@@ -57,36 +52,30 @@ namespace Peg.Base
                     return false;
                 }
 
-                using (var rd = new StreamReader(path_, true))
-                {
-                    src = rd.ReadToEnd();
-                    return true;
-                }
+                using var rd = new StreamReader(path_, true);
+                src = rd.ReadToEnd();
+                return true;
             }
             else
             {
                 if (encoding_ == FileEncoding.utf16be)//UTF16BE
                 {
-                    using (var brdr = new BinaryReader(File.Open(path_, FileMode.Open, FileAccess.Read)))
+                    using var brdr = new BinaryReader(File.Open(path_, FileMode.Open, FileAccess.Read));
+                    var bytes = brdr.ReadBytes((int)brdr.BaseStream.Length);
+                    var s = new StringBuilder();
+                    for (var i = 0; i < bytes.Length; i += 2)
                     {
-                        var bytes = brdr.ReadBytes((int)brdr.BaseStream.Length);
-                        var s = new StringBuilder();
-                        for (var i = 0; i < bytes.Length; i += 2)
-                        {
-                            var c = (char)(bytes[i] << 8 | bytes[i + 1]);
-                            s.Append(c);
-                        }
-                        src = s.ToString();
-                        return true;
+                        var c = (char)(bytes[i] << 8 | bytes[i + 1]);
+                        s.Append(c);
                     }
+                    src = s.ToString();
+                    return true;
                 }
                 else
                 {
-                    using (var rd = new StreamReader(path_, textEncoding))
-                    {
-                        src = rd.ReadToEnd();
-                        return true;
-                    }
+                    using var rd = new StreamReader(path_, textEncoding);
+                    src = rd.ReadToEnd();
+                    return true;
                 }
             }
         }
@@ -112,46 +101,44 @@ namespace Peg.Base
 
         private static FileEncoding DetermineUnicodeWhenFirstCharIsAscii(string path)
         {
-            using (var br = new BinaryReader(File.Open(path, FileMode.Open, FileAccess.Read)))
+            using var br = new BinaryReader(File.Open(path, FileMode.Open, FileAccess.Read));
+            var startBytes = br.ReadBytes(4);
+            if (startBytes.Length == 0)
             {
-                var startBytes = br.ReadBytes(4);
-                if (startBytes.Length == 0)
-                {
-                    return FileEncoding.none;
-                }
+                return FileEncoding.none;
+            }
 
-                if (startBytes.Length == 1 || startBytes.Length == 3)
-                {
-                    return FileEncoding.utf8;
-                }
-
-                if (startBytes.Length == 2 && startBytes[0] != 0)
-                {
-                    return FileEncoding.utf16le;
-                }
-
-                if (startBytes.Length == 2 && startBytes[0] == 0)
-                {
-                    return FileEncoding.utf16be;
-                }
-
-                if (startBytes[0] == 0 && startBytes[1] == 0)
-                {
-                    return FileEncoding.utf32be;
-                }
-
-                if (startBytes[0] == 0 && startBytes[1] != 0)
-                {
-                    return FileEncoding.utf16be;
-                }
-
-                if (startBytes[0] != 0 && startBytes[1] == 0)
-                {
-                    return FileEncoding.utf16le;
-                }
-
+            if (startBytes.Length == 1 || startBytes.Length == 3)
+            {
                 return FileEncoding.utf8;
             }
+
+            if (startBytes.Length == 2 && startBytes[0] != 0)
+            {
+                return FileEncoding.utf16le;
+            }
+
+            if (startBytes.Length == 2 && startBytes[0] == 0)
+            {
+                return FileEncoding.utf16be;
+            }
+
+            if (startBytes[0] == 0 && startBytes[1] == 0)
+            {
+                return FileEncoding.utf32be;
+            }
+
+            if (startBytes[0] == 0 && startBytes[1] != 0)
+            {
+                return FileEncoding.utf16be;
+            }
+
+            if (startBytes[0] != 0 && startBytes[1] == 0)
+            {
+                return FileEncoding.utf16le;
+            }
+
+            return FileEncoding.utf8;
         }
 
         private FileEncoding GetEncoding(EncodingClass encodingClass, UnicodeDetection detection, string path)
@@ -2192,7 +2179,6 @@ namespace Peg.Base
         {
             for (; pos_ < srcLen_ && charset.Matches(src_[pos_]); ++pos_)
             {
-                ;
             }
 
             return true;
@@ -2203,7 +2189,6 @@ namespace Peg.Base
             var pos0 = pos_;
             for (; pos_ < srcLen_ && charset.Matches(src_[pos_]); ++pos_)
             {
-                ;
             }
 
             return pos_ > pos0;

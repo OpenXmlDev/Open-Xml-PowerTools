@@ -1,7 +1,4 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
-// Licensed under the MIT license. See LICENSE file in the project root for full license information.
-
-using System.IO;
+﻿using System.IO;
 using System.Linq;
 using System.Xml;
 using System.Xml.Linq;
@@ -63,9 +60,9 @@ namespace OpenXmlPowerTools
                 html = XElement.Parse(sb.ToString());
             }
 #else
-            catch (XmlException e)
+            catch (XmlException)
             {
-                throw e;
+                throw;
             }
 #endif
             html = (XElement)ConvertToNoNamespace(html);

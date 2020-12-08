@@ -1,7 +1,4 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
-// Licensed under the MIT license. See LICENSE file in the project root for full license information.
-
-using DocumentFormat.OpenXml.Packaging;
+﻿using DocumentFormat.OpenXml.Packaging;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -26,26 +23,24 @@ namespace OpenXmlPowerTools
         public static WmlDocument AssembleDocument(WmlDocument templateDoc, XElement data, out bool templateError)
         {
             var byteArray = templateDoc.DocumentByteArray;
-            using (var mem = new MemoryStream())
+            using var mem = new MemoryStream();
+            mem.Write(byteArray, 0, byteArray.Length);
+            using (var wordDoc = WordprocessingDocument.Open(mem, true))
             {
-                mem.Write(byteArray, 0, byteArray.Length);
-                using (var wordDoc = WordprocessingDocument.Open(mem, true))
+                if (RevisionAccepter.HasTrackedRevisions(wordDoc))
                 {
-                    if (RevisionAccepter.HasTrackedRevisions(wordDoc))
-                    {
-                        throw new OpenXmlPowerToolsException("Invalid DocumentAssembler template - contains tracked revisions");
-                    }
-
-                    var te = new TemplateError();
-                    foreach (var part in wordDoc.ContentParts())
-                    {
-                        ProcessTemplatePart(data, te, part);
-                    }
-                    templateError = te.HasError;
+                    throw new OpenXmlPowerToolsException("Invalid DocumentAssembler template - contains tracked revisions");
                 }
-                var assembledDocument = new WmlDocument("TempFileName.docx", mem.ToArray());
-                return assembledDocument;
+
+                var te = new TemplateError();
+                foreach (var part in wordDoc.ContentParts())
+                {
+                    ProcessTemplatePart(data, te, part);
+                }
+                templateError = te.HasError;
             }
+            var assembledDocument = new WmlDocument("TempFileName.docx", mem.ToArray());
+            return assembledDocument;
         }
 
         private static void ProcessTemplatePart(XElement data, TemplateError te, OpenXmlPart part)
@@ -605,7 +600,7 @@ namespace OpenXmlPowerTools
             return null;
         }
 
-        private static Dictionary<XName, PASchemaSet> s_PASchemaSets ;
+        private static Dictionary<XName, PASchemaSet> s_PASchemaSets;
 
         private static object ContentReplacementTransform(XNode node, XElement data, TemplateError templateError)
         {
@@ -701,7 +696,7 @@ namespace OpenXmlPowerTools
                     {
                         return CreateContextErrorMessage(element, "XPathException: " + e.Message, templateError);
                     }
-                    if (tableData.Count() == 0)
+                    if (!tableData.Any())
                     {
                         return CreateContextErrorMessage(element, "Table Select returned no data", templateError);
                     }
@@ -877,9 +872,9 @@ namespace OpenXmlPowerTools
 
                 var selectedDatum = selectedData.First();
 
-                if (selectedDatum is XElement)
+                if (selectedDatum is XElement element1)
                 {
-                    return ((XElement)selectedDatum).Value;
+                    return element1.Value;
                 }
 
                 if (selectedDatum is XAttribute)

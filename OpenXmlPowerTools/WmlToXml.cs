@@ -1,7 +1,4 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
-// Licensed under the MIT license. See LICENSE file in the project root for full license information.
-
-using DocumentFormat.OpenXml.Packaging;
+﻿using DocumentFormat.OpenXml.Packaging;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -172,15 +169,13 @@ namespace OpenXmlPowerTools
     {
         public static WmlDocument ApplyContentTypes(WmlDocument document, WmlToXmlSettings settings)
         {
-            using (var streamDoc = new OpenXmlMemoryStreamDocument(document))
+            using var streamDoc = new OpenXmlMemoryStreamDocument(document);
+            using (var wDoc = streamDoc.GetWordprocessingDocument())
             {
-                using (var wDoc = streamDoc.GetWordprocessingDocument())
-                {
-                    WmlToXmlUtil.AssignUnidToBlc(wDoc);
-                    ApplyContentTypes(wDoc, settings);
-                }
-                return streamDoc.GetModifiedWmlDocument();
+                WmlToXmlUtil.AssignUnidToBlc(wDoc);
+                ApplyContentTypes(wDoc, settings);
             }
+            return streamDoc.GetModifiedWmlDocument();
         }
 
         public static void ApplyContentTypes(WordprocessingDocument wDoc, WmlToXmlSettings settings)
@@ -314,13 +309,9 @@ namespace OpenXmlPowerTools
 
         public static XElement ProduceContentTypeXml(WmlDocument document, WmlToXmlSettings settings)
         {
-            using (var streamDoc = new OpenXmlMemoryStreamDocument(document))
-            {
-                using (var doc = streamDoc.GetWordprocessingDocument())
-                {
-                    return ProduceContentTypeXml(doc, settings);
-                }
-            }
+            using var streamDoc = new OpenXmlMemoryStreamDocument(document);
+            using var doc = streamDoc.GetWordprocessingDocument();
+            return ProduceContentTypeXml(doc, settings);
         }
 
         public static XElement ProduceContentTypeXml(WordprocessingDocument wDoc, WmlToXmlSettings settings)
@@ -819,7 +810,7 @@ namespace OpenXmlPowerTools
                         nextRunText = nextRunText.Substring(sepChars.Count);
                         nextRunTextElement.Value = nextRunText;
 
-                        lastFldCharRunText.Value = lastFldCharRunText.Value + sepCharsString;
+                        lastFldCharRunText.Value += sepCharsString;
                     }
 
                     var re = new Regex("[A-F0-9.]+$");
@@ -2098,104 +2089,102 @@ namespace OpenXmlPowerTools
             {
                 msContentTypeApplied.Write(wmlWithContentTypeApplied.DocumentByteArray, 0, wmlWithContentTypeApplied.DocumentByteArray.Length);
                 msRawSourceDocument.Write(wmlRawSourceDocument.DocumentByteArray, 0, wmlRawSourceDocument.DocumentByteArray.Length);
-                using (var wDocContentTypeApplied = WordprocessingDocument.Open(msContentTypeApplied, true))
-                using (var wDocRawSourceDocument = WordprocessingDocument.Open(msRawSourceDocument, true))
+                using var wDocContentTypeApplied = WordprocessingDocument.Open(msContentTypeApplied, true);
+                using var wDocRawSourceDocument = WordprocessingDocument.Open(msRawSourceDocument, true);
+                foreach (var vr in settings.GlobalValidationRules)
                 {
-                    foreach (var vr in settings.GlobalValidationRules)
+                    if (settings.DocumentType != null &&
+                        vr.DocumentTypeInfoCollection != null)
+                    {
+                        var thisdti = vr.DocumentTypeInfoCollection.FirstOrDefault(dti => dti.DocumentType == settings.DocumentType);
+                        if (thisdti == null)
+                        {
+                            throw new OpenXmlPowerToolsException("Incorrect setup of Validation Rules");
+                        }
+
+                        if (thisdti.ValidationErrorType == ValidationErrorType.NotApplicable)
+                        {
+                            continue;
+                        }
+                    }
+                    if (vr.GlobalRuleLambda != null)
+                    {
+                        var valErrors = vr.GlobalRuleLambda(vr, wDocRawSourceDocument, wDocContentTypeApplied, contentTypeXml, settings);
+                        if (valErrors != null && valErrors.Any())
+                        {
+                            foreach (var ve in valErrors)
+                            {
+                                errorList.Add(ve);
+                            }
+                        }
+                    }
+                }
+                var mXDoc = wDocContentTypeApplied.MainDocumentPart.GetXDocument();
+                var sXDoc = wDocContentTypeApplied.MainDocumentPart.StyleDefinitionsPart.GetXDocument();
+
+                var defaultParagraphStyle = sXDoc
+                    .Root
+                    .Elements(W.style)
+                    .FirstOrDefault(s => (string)s.Attribute(W._default) == "1");
+
+                string defaultParagraphStyleName = null;
+                if (defaultParagraphStyle != null)
+                {
+                    defaultParagraphStyleName = (string)defaultParagraphStyle.Attribute(W.styleId);
+                }
+
+                foreach (var blc in mXDoc.Root.Descendants().Where(d => d.Name == W.p || d.Name == W.tbl || d.Name == W.tr || d.Name == W.tc))
+                {
+                    var styleId = (string)blc
+                        .Elements(W.pPr)
+                        .Elements(W.pStyle)
+                        .Attributes(W.val)
+                        .FirstOrDefault();
+                    var styleName = (string)sXDoc
+                        .Root
+                        .Elements(W.style)
+                        .Where(s => (string)s.Attribute(W.styleId) == styleId)
+                        .Elements(W.name)
+                        .Attributes(W.val)
+                        .FirstOrDefault();
+
+                    if (styleName == null && blc.Name == W.p)
+                    {
+                        styleName = defaultParagraphStyleName;
+                    }
+
+                    foreach (var vr in settings.BlockLevelContentValidationRules)
                     {
                         if (settings.DocumentType != null &&
                             vr.DocumentTypeInfoCollection != null)
                         {
-                            var thisdti = vr.DocumentTypeInfoCollection.FirstOrDefault(dti => dti.DocumentType == settings.DocumentType);
-                            if (thisdti == null)
-                            {
-                                throw new OpenXmlPowerToolsException("Incorrect setup of Validation Rules");
-                            }
-
-                            if (thisdti.ValidationErrorType == ValidationErrorType.NotApplicable)
+                            if (!vr.DocumentTypeInfoCollection.Any(dti => dti.DocumentType == settings.DocumentType))
                             {
                                 continue;
                             }
                         }
-                        if (vr.GlobalRuleLambda != null)
+
+                        var matchStyle = true;
+                        if (vr.StyleNameRegex != null)
                         {
-                            var valErrors = vr.GlobalRuleLambda(vr, wDocRawSourceDocument, wDocContentTypeApplied, contentTypeXml, settings);
+                            if (styleName == null)
+                            {
+                                matchStyle = false;
+                            }
+                            else
+                            {
+                                var match = vr.StyleNameRegex.Match(styleName);
+                                matchStyle = match.Success;
+                            }
+                        }
+                        if (matchStyle && vr.BlockLevelContentRuleLambda != null)
+                        {
+                            var valErrors = vr.BlockLevelContentRuleLambda(blc, vr, wDocContentTypeApplied, contentTypeXml, settings);
                             if (valErrors != null && valErrors.Any())
                             {
                                 foreach (var ve in valErrors)
                                 {
                                     errorList.Add(ve);
-                                }
-                            }
-                        }
-                    }
-                    var mXDoc = wDocContentTypeApplied.MainDocumentPart.GetXDocument();
-                    var sXDoc = wDocContentTypeApplied.MainDocumentPart.StyleDefinitionsPart.GetXDocument();
-
-                    var defaultParagraphStyle = sXDoc
-                        .Root
-                        .Elements(W.style)
-                        .FirstOrDefault(s => (string)s.Attribute(W._default) == "1");
-
-                    string defaultParagraphStyleName = null;
-                    if (defaultParagraphStyle != null)
-                    {
-                        defaultParagraphStyleName = (string)defaultParagraphStyle.Attribute(W.styleId);
-                    }
-
-                    foreach (var blc in mXDoc.Root.Descendants().Where(d => d.Name == W.p || d.Name == W.tbl || d.Name == W.tr || d.Name == W.tc))
-                    {
-                        var styleId = (string)blc
-                            .Elements(W.pPr)
-                            .Elements(W.pStyle)
-                            .Attributes(W.val)
-                            .FirstOrDefault();
-                        var styleName = (string)sXDoc
-                            .Root
-                            .Elements(W.style)
-                            .Where(s => (string)s.Attribute(W.styleId) == styleId)
-                            .Elements(W.name)
-                            .Attributes(W.val)
-                            .FirstOrDefault();
-
-                        if (styleName == null && blc.Name == W.p)
-                        {
-                            styleName = defaultParagraphStyleName;
-                        }
-
-                        foreach (var vr in settings.BlockLevelContentValidationRules)
-                        {
-                            if (settings.DocumentType != null &&
-                                vr.DocumentTypeInfoCollection != null)
-                            {
-                                if (!vr.DocumentTypeInfoCollection.Any(dti => dti.DocumentType == settings.DocumentType))
-                                {
-                                    continue;
-                                }
-                            }
-
-                            var matchStyle = true;
-                            if (vr.StyleNameRegex != null)
-                            {
-                                if (styleName == null)
-                                {
-                                    matchStyle = false;
-                                }
-                                else
-                                {
-                                    var match = vr.StyleNameRegex.Match(styleName);
-                                    matchStyle = match.Success;
-                                }
-                            }
-                            if (matchStyle && vr.BlockLevelContentRuleLambda != null)
-                            {
-                                var valErrors = vr.BlockLevelContentRuleLambda(blc, vr, wDocContentTypeApplied, contentTypeXml, settings);
-                                if (valErrors != null && valErrors.Any())
-                                {
-                                    foreach (var ve in valErrors)
-                                    {
-                                        errorList.Add(ve);
-                                    }
                                 }
                             }
                         }
@@ -2223,15 +2212,13 @@ namespace OpenXmlPowerTools
     {
         public static WmlDocument AssignUnidToBlc(WmlDocument wmlDoc)
         {
-            using (var ms = new MemoryStream())
+            using var ms = new MemoryStream();
+            ms.Write(wmlDoc.DocumentByteArray, 0, wmlDoc.DocumentByteArray.Length);
+            using (var wDoc = WordprocessingDocument.Open(ms, true))
             {
-                ms.Write(wmlDoc.DocumentByteArray, 0, wmlDoc.DocumentByteArray.Length);
-                using (var wDoc = WordprocessingDocument.Open(ms, true))
-                {
-                    AssignUnidToBlc(wDoc);
-                }
-                return new WmlDocument(wmlDoc.FileName, ms.ToArray());
+                AssignUnidToBlc(wDoc);
             }
+            return new WmlDocument(wmlDoc.FileName, ms.ToArray());
         }
 
         public static void AssignUnidToBlc(WordprocessingDocument wDoc)

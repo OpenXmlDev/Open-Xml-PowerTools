@@ -1,7 +1,4 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
-// Licensed under the MIT license. See LICENSE file in the project root for full license information.
-
-using DocumentFormat.OpenXml.Packaging;
+﻿using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Validation;
 using OpenXmlPowerTools;
 using System;
@@ -164,7 +161,6 @@ namespace OxPt
         public void DB007_Example_DocumentBuilder02_WhitePaper()
         {
             var sourceDir = new DirectoryInfo("../../../../TestFiles/");
-            var spec = new FileInfo(Path.Combine(sourceDir.FullName, "DB007-Spec.docx"));
             var whitePaper = new FileInfo(Path.Combine(sourceDir.FullName, "DB007-WhitePaper.docx"));
             var paperAbstract = new FileInfo(Path.Combine(sourceDir.FullName, "DB007-Abstract.docx"));
             var authorBio = new FileInfo(Path.Combine(sourceDir.FullName, "DB007-AuthorBiography.docx"));
@@ -348,8 +344,8 @@ namespace OxPt
                     });
                 var zipped = PtExtensions.PtZip(beforeZipped, sectionCounts, (pi, sc) => new
                 {
-                    Paragraph = pi.Paragraph,
-                    Index = pi.Index,
+                    pi.Paragraph,
+                    pi.Index,
                     SectionIndex = sc,
                 });
                 documentList = zipped
@@ -470,11 +466,9 @@ namespace OxPt
                 sourceDocx.Name.Replace(".docx", "-processed-by-DocumentBuilder.docx")));
             DocumentBuilder.BuildDocument(sources, processedDestDocx.FullName);
 
-            using (var wDoc = WordprocessingDocument.Open(processedDestDocx.FullName, false))
-            {
-                var numberingRoot = wDoc.MainDocumentPart.NumberingDefinitionsPart.GetXDocument().Root;
-                Assert.Equal(3, numberingRoot.Elements(W.num).Count());
-            }
+            using var wDoc = WordprocessingDocument.Open(processedDestDocx.FullName, false);
+            var numberingRoot = wDoc.MainDocumentPart.NumberingDefinitionsPart.GetXDocument().Root;
+            Assert.Equal(3, numberingRoot.Elements(W.num).Count());
         }
 
         [Fact]
@@ -498,17 +492,15 @@ namespace OxPt
                 new FileInfo(Path.Combine(TestUtil.TempDir.FullName, "DB013a-Colored-Heading1.docx"));
             DocumentBuilder.BuildDocument(sources, processedDestDocx.FullName);
 
-            using (var wDoc = WordprocessingDocument.Open(processedDestDocx.FullName, false))
-            {
-                var styles = wDoc.MainDocumentPart.StyleDefinitionsPart.GetXDocument().Root.Elements(W.style).ToArray();
-                Assert.Equal(1, styles.Count(s => s.Element(W.name).Attribute(W.val).Value == "heading 1"));
+            using var wDoc = WordprocessingDocument.Open(processedDestDocx.FullName, false);
+            var styles = wDoc.MainDocumentPart.StyleDefinitionsPart.GetXDocument().Root.Elements(W.style).ToArray();
+            Assert.Equal(1, styles.Count(s => s.Element(W.name).Attribute(W.val).Value == "heading 1"));
 
-                var styleIds = new HashSet<string>(styles.Select(s => s.Attribute(W.styleId).Value));
-                var paragraphStylesIds = new HashSet<string>(wDoc.MainDocumentPart.GetXDocument()
-                    .Descendants(W.pStyle)
-                    .Select(p => p.Attribute(W.val).Value));
-                Assert.Subset(styleIds, paragraphStylesIds);
-            }
+            var styleIds = new HashSet<string>(styles.Select(s => s.Attribute(W.styleId).Value));
+            var paragraphStylesIds = new HashSet<string>(wDoc.MainDocumentPart.GetXDocument()
+                .Descendants(W.pStyle)
+                .Select(p => p.Attribute(W.val).Value));
+            Assert.Subset(styleIds, paragraphStylesIds);
         }
 
         [Fact]
@@ -532,17 +524,15 @@ namespace OxPt
                 new FileInfo(Path.Combine(TestUtil.TempDir.FullName, "DB013b-Colored-List.docx"));
             DocumentBuilder.BuildDocument(sources, processedDestDocx.FullName);
 
-            using (var wDoc = WordprocessingDocument.Open(processedDestDocx.FullName, false))
-            {
-                var styles = wDoc.MainDocumentPart.StyleDefinitionsPart.GetXDocument().Root.Elements(W.style).ToArray();
-                Assert.Equal(1, styles.Count(s => s.Element(W.name).Attribute(W.val).Value == "List Paragraph"));
+            using var wDoc = WordprocessingDocument.Open(processedDestDocx.FullName, false);
+            var styles = wDoc.MainDocumentPart.StyleDefinitionsPart.GetXDocument().Root.Elements(W.style).ToArray();
+            Assert.Equal(1, styles.Count(s => s.Element(W.name).Attribute(W.val).Value == "List Paragraph"));
 
-                var styleIds = new HashSet<string>(styles.Select(s => s.Attribute(W.styleId).Value));
-                var paragraphStylesIds = new HashSet<string>(wDoc.MainDocumentPart.GetXDocument()
-                    .Descendants(W.pStyle)
-                    .Select(p => p.Attribute(W.val).Value));
-                Assert.Subset(styleIds, paragraphStylesIds);
-            }
+            var styleIds = new HashSet<string>(styles.Select(s => s.Attribute(W.styleId).Value));
+            var paragraphStylesIds = new HashSet<string>(wDoc.MainDocumentPart.GetXDocument()
+                .Descendants(W.pStyle)
+                .Select(p => p.Attribute(W.val).Value));
+            Assert.Subset(styleIds, paragraphStylesIds);
         }
 
         [Fact]
@@ -558,12 +548,10 @@ namespace OxPt
             DocumentBuilder.BuildDocument(sources, processedDestDocx.FullName);
             Validate(processedDestDocx);
 
-            using (var wDoc = WordprocessingDocument.Open(processedDestDocx.FullName, false))
-            {
-                Assert.NotNull(wDoc.WebExTaskpanesPart);
-                Assert.Equal(2, wDoc.WebExTaskpanesPart.Taskpanes.ChildElements.Count);
-                Assert.Equal(2, wDoc.WebExTaskpanesPart.WebExtensionParts.Count());
-            }
+            using var wDoc = WordprocessingDocument.Open(processedDestDocx.FullName, false);
+            Assert.NotNull(wDoc.WebExTaskpanesPart);
+            Assert.Equal(2, wDoc.WebExTaskpanesPart.Taskpanes.ChildElements.Count);
+            Assert.Equal(2, wDoc.WebExTaskpanesPart.WebExtensionParts.Count());
         }
 
         [Fact]
@@ -601,11 +589,9 @@ namespace OxPt
                 sourceDocx.Name.Replace(".docx", "-processed-by-DocumentBuilder.docx")));
             DocumentBuilder.BuildDocument(sources, processedDestDocx.FullName);
 
-            using (var wDoc = WordprocessingDocument.Open(processedDestDocx.FullName, true))
-            {
-                var styles = wDoc.MainDocumentPart.StyleDefinitionsPart.GetXDocument().Root.Elements(W.docDefaults).ToArray();
-                Assert.Single(styles);
-            }
+            using var wDoc = WordprocessingDocument.Open(processedDestDocx.FullName, true);
+            var styles = wDoc.MainDocumentPart.StyleDefinitionsPart.GetXDocument().Root.Elements(W.docDefaults).ToArray();
+            Assert.Single(styles);
         }
 
         [Theory]
@@ -699,25 +685,23 @@ namespace OxPt
 
         private void Validate(FileInfo fi)
         {
-            using (var wDoc = WordprocessingDocument.Open(fi.FullName, true))
+            using var wDoc = WordprocessingDocument.Open(fi.FullName, true);
+            var v = new OpenXmlValidator();
+            var errors = v.Validate(wDoc).Where(ve =>
             {
-                var v = new OpenXmlValidator();
-                var errors = v.Validate(wDoc).Where(ve =>
-                {
-                    var found = s_ExpectedErrors.Any(xe => ve.Description.Contains(xe));
-                    return !found;
-                });
+                var found = s_ExpectedErrors.Any(xe => ve.Description.Contains(xe));
+                return !found;
+            });
 
-                if (errors.Any())
+            if (errors.Any())
+            {
+                var sb = new StringBuilder();
+                foreach (var item in errors)
                 {
-                    var sb = new StringBuilder();
-                    foreach (var item in errors)
-                    {
-                        sb.Append(item.Description).Append(Environment.NewLine);
-                    }
-                    var s = sb.ToString();
-                    Assert.True(false, s);
+                    sb.Append(item.Description).Append(Environment.NewLine);
                 }
+                var s = sb.ToString();
+                Assert.True(false, s);
             }
         }
 
@@ -754,44 +738,42 @@ namespace OxPt
 
         private void ValidateUniqueDocPrIds(FileInfo fi)
         {
-            using (var doc = WordprocessingDocument.Open(fi.FullName, false))
+            using var doc = WordprocessingDocument.Open(fi.FullName, false);
+            var docPrIds = new HashSet<string>();
+            foreach (var item in doc.MainDocumentPart.GetXDocument().Descendants(WP.docPr))
             {
-                var docPrIds = new HashSet<string>();
-                foreach (var item in doc.MainDocumentPart.GetXDocument().Descendants(WP.docPr))
+                Assert.True(docPrIds.Add(item.Attribute(NoNamespace.id).Value));
+            }
+
+            foreach (var header in doc.MainDocumentPart.HeaderParts)
+            {
+                foreach (var item in header.GetXDocument().Descendants(WP.docPr))
                 {
                     Assert.True(docPrIds.Add(item.Attribute(NoNamespace.id).Value));
                 }
+            }
 
-                foreach (var header in doc.MainDocumentPart.HeaderParts)
+            foreach (var footer in doc.MainDocumentPart.FooterParts)
+            {
+                foreach (var item in footer.GetXDocument().Descendants(WP.docPr))
                 {
-                    foreach (var item in header.GetXDocument().Descendants(WP.docPr))
-                    {
-                        Assert.True(docPrIds.Add(item.Attribute(NoNamespace.id).Value));
-                    }
+                    Assert.True(docPrIds.Add(item.Attribute(NoNamespace.id).Value));
                 }
+            }
 
-                foreach (var footer in doc.MainDocumentPart.FooterParts)
+            if (doc.MainDocumentPart.FootnotesPart != null)
+            {
+                foreach (var item in doc.MainDocumentPart.FootnotesPart.GetXDocument().Descendants(WP.docPr))
                 {
-                    foreach (var item in footer.GetXDocument().Descendants(WP.docPr))
-                    {
-                        Assert.True(docPrIds.Add(item.Attribute(NoNamespace.id).Value));
-                    }
+                    Assert.True(docPrIds.Add(item.Attribute(NoNamespace.id).Value));
                 }
+            }
 
-                if (doc.MainDocumentPart.FootnotesPart != null)
+            if (doc.MainDocumentPart.EndnotesPart != null)
+            {
+                foreach (var item in doc.MainDocumentPart.EndnotesPart.GetXDocument().Descendants(WP.docPr))
                 {
-                    foreach (var item in doc.MainDocumentPart.FootnotesPart.GetXDocument().Descendants(WP.docPr))
-                    {
-                        Assert.True(docPrIds.Add(item.Attribute(NoNamespace.id).Value));
-                    }
-                }
-
-                if (doc.MainDocumentPart.EndnotesPart != null)
-                {
-                    foreach (var item in doc.MainDocumentPart.EndnotesPart.GetXDocument().Descendants(WP.docPr))
-                    {
-                        Assert.True(docPrIds.Add(item.Attribute(NoNamespace.id).Value));
-                    }
+                    Assert.True(docPrIds.Add(item.Attribute(NoNamespace.id).Value));
                 }
             }
         }

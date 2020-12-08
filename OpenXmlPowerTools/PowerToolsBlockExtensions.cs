@@ -1,5 +1,4 @@
-// Copyright (c) Microsoft. All rights reserved.
-// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
 
 using DocumentFormat.OpenXml.Packaging;
 using System;
@@ -32,7 +31,7 @@ namespace OpenXmlPowerTools
         {
             if (package == null)
             {
-                throw new ArgumentNullException("package");
+                throw new ArgumentNullException(nameof(package));
             }
 
             package.RemovePowerToolsAnnotations();
@@ -52,7 +51,7 @@ namespace OpenXmlPowerTools
         {
             if (package == null)
             {
-                throw new ArgumentNullException("package");
+                throw new ArgumentNullException(nameof(package));
             }
 
             foreach (var part in package.GetAllParts())
@@ -68,7 +67,7 @@ namespace OpenXmlPowerTools
         {
             if (package == null)
             {
-                throw new ArgumentNullException("package");
+                throw new ArgumentNullException(nameof(package));
             }
 
             foreach (var part in package.GetAllParts())

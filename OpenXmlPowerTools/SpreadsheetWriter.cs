@@ -1,7 +1,4 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
-// Licensed under the MIT license. See LICENSE file in the project root for full license information.
-
-#undef DisplayWorkingSet
+﻿#undef DisplayWorkingSet
 
 using DocumentFormat.OpenXml.Packaging;
 using System;
@@ -109,12 +106,12 @@ namespace OpenXmlPowerTools
             {
                 if (fileName == null)
                 {
-                    throw new ArgumentNullException("fileName");
+                    throw new ArgumentNullException(nameof(fileName));
                 }
 
                 if (workbook == null)
                 {
-                    throw new ArgumentNullException("workbook");
+                    throw new ArgumentNullException(nameof(workbook));
                 }
 
                 var fi = new FileInfo(fileName);
@@ -132,73 +129,70 @@ namespace OpenXmlPowerTools
                 File.WriteAllBytes(fi.FullName, byteArray);
 
                 // open the workbook, and create the TableProperties sheet, populate it
-                using (var sDoc = SpreadsheetDocument.Open(fi.FullName, true))
+                using var sDoc = SpreadsheetDocument.Open(fi.FullName, true);
+                var workbookPart = sDoc.WorkbookPart;
+                var wXDoc = workbookPart.GetXDocument();
+                var sheetElement = wXDoc
+                    .Root
+                    .Elements(S.sheets)
+                    .Elements(S.sheet)
+                    .Where(s => (string)s.Attribute(SSNoNamespace.name) == "Sheet1")
+                    .FirstOrDefault();
+                if (sheetElement == null)
                 {
-                    var workbookPart = sDoc.WorkbookPart;
-                    var wXDoc = workbookPart.GetXDocument();
-                    var sheetElement = wXDoc
-                        .Root
-                        .Elements(S.sheets)
-                        .Elements(S.sheet)
-                        .Where(s => (string)s.Attribute(SSNoNamespace.name) == "Sheet1")
-                        .FirstOrDefault();
-                    if (sheetElement == null)
-                    {
-                        throw new SpreadsheetWriterInternalException();
-                    }
-
-                    var id = (string)sheetElement.Attribute(R.id);
-                    sheetElement.Remove();
-                    workbookPart.PutXDocument();
-
-                    var sPart = (WorksheetPart)workbookPart.GetPartById(id);
-                    workbookPart.DeletePart(sPart);
-
-                    var appXDoc = sDoc
-                        .ExtendedFilePropertiesPart
-                        .GetXDocument();
-                    var vector = appXDoc
-                        .Root
-                        .Elements(EP.TitlesOfParts)
-                        .Elements(VT.vector)
-                        .FirstOrDefault();
-                    if (vector != null)
-                    {
-                        vector.SetAttributeValue(SSNoNamespace.size, 0);
-                        var lpstr = vector.Element(VT.lpstr);
-                        lpstr.Remove();
-                    }
-                    var vector2 = appXDoc
-                        .Root
-                        .Elements(EP.HeadingPairs)
-                        .Elements(VT.vector)
-                        .FirstOrDefault();
-                    var variant = vector2
-                        .Descendants(VT.i4)
-                        .FirstOrDefault();
-                    if (variant != null)
-                    {
-                        variant.Value = "1";
-                    }
-
-                    sDoc.ExtendedFilePropertiesPart.PutXDocument();
-
-                    if (workbook.Worksheets != null)
-                    {
-                        foreach (var worksheet in workbook.Worksheets)
-                        {
-                            AddWorksheet(sDoc, worksheet);
-                        }
-                    }
-
-                    workbookPart.WorkbookStylesPart.PutXDocument();
+                    throw new SpreadsheetWriterInternalException();
                 }
+
+                var id = (string)sheetElement.Attribute(R.id);
+                sheetElement.Remove();
+                workbookPart.PutXDocument();
+
+                var sPart = (WorksheetPart)workbookPart.GetPartById(id);
+                workbookPart.DeletePart(sPart);
+
+                var appXDoc = sDoc
+                    .ExtendedFilePropertiesPart
+                    .GetXDocument();
+                var vector = appXDoc
+                    .Root
+                    .Elements(EP.TitlesOfParts)
+                    .Elements(VT.vector)
+                    .FirstOrDefault();
+                if (vector != null)
+                {
+                    vector.SetAttributeValue(SSNoNamespace.size, 0);
+                    var lpstr = vector.Element(VT.lpstr);
+                    lpstr.Remove();
+                }
+                var vector2 = appXDoc
+                    .Root
+                    .Elements(EP.HeadingPairs)
+                    .Elements(VT.vector)
+                    .FirstOrDefault();
+                var variant = vector2
+                    .Descendants(VT.i4)
+                    .FirstOrDefault();
+                if (variant != null)
+                {
+                    variant.Value = "1";
+                }
+
+                sDoc.ExtendedFilePropertiesPart.PutXDocument();
+
+                if (workbook.Worksheets != null)
+                {
+                    foreach (var worksheet in workbook.Worksheets)
+                    {
+                        AddWorksheet(sDoc, worksheet);
+                    }
+                }
+
+                workbookPart.WorkbookStylesPart.PutXDocument();
             }
             catch (Exception e)
             {
-                Console.WriteLine("Unhandled exception: {0} in {1}",
-                    e.ToString(), e.Source);
-                throw e;
+                Console.WriteLine("Unhandled exception: {0} in {1}", e.ToString(), e.Source);
+                throw;
             }
         }
 
@@ -242,7 +236,7 @@ namespace OpenXmlPowerTools
                 }
                 else
                 {
-                    size = size + 1;
+                    size += 1;
                 }
 
                 vector.SetAttributeValue(SSNoNamespace.size, size);
@@ -281,62 +275,60 @@ namespace OpenXmlPowerTools
 
             using (var partStream = worksheetPart.GetStream(FileMode.Create, FileAccess.Write))
             {
-                using (var partXmlWriter = XmlWriter.Create(partStream))
-                {
-                    partXmlWriter.WriteStartDocument();
-                    partXmlWriter.WriteStartElement("worksheet", ws);
-                    partXmlWriter.WriteStartElement("sheetData", ws);
+                using var partXmlWriter = XmlWriter.Create(partStream);
+                partXmlWriter.WriteStartDocument();
+                partXmlWriter.WriteStartElement("worksheet", ws);
+                partXmlWriter.WriteStartElement("sheetData", ws);
 
-                    var numColumnHeadingRows = 0;
-                    var numColumns = 0;
-                    if (worksheetData.ColumnHeadings != null)
+                var numColumnHeadingRows = 0;
+                var numColumns = 0;
+                if (worksheetData.ColumnHeadings != null)
+                {
+                    var row = new RowDfn
                     {
-                        var row = new RowDfn
-                        {
-                            Cells = worksheetData.ColumnHeadings
-                        };
-                        SerializeRows(sDoc, partXmlWriter, new[] { row }, 1, out numColumns, out numColumnHeadingRows);
-                    }
-                    SerializeRows(sDoc, partXmlWriter, worksheetData.Rows, numColumnHeadingRows + 1, out var numColumnsInRows,
-                        out var numRows);
-                    var totalRows = numColumnHeadingRows + numRows;
-                    var totalColumns = Math.Max(numColumns, numColumnsInRows);
-                    if (worksheetData.ColumnHeadings != null && worksheetData.TableName != null)
-                    {
-                        partXmlWriter.WriteEndElement();
-                        var rId2 = "R" + Guid.NewGuid().ToString().Replace("-", "");
-                        partXmlWriter.WriteStartElement("tableParts", ws);
-                        partXmlWriter.WriteStartAttribute("count");
-                        partXmlWriter.WriteValue(1);
-                        partXmlWriter.WriteEndAttribute();
-                        partXmlWriter.WriteStartElement("tablePart", ws);
-                        partXmlWriter.WriteStartAttribute("id", relns);
-                        partXmlWriter.WriteValue(rId2);
-                        var tdp = worksheetPart.AddNewPart<TableDefinitionPart>(rId2);
-                        var tXDoc = tdp.GetXDocument();
-                        var table = new XElement(S.table,
-                            new XAttribute(SSNoNamespace.id, 1),
-                            new XAttribute(SSNoNamespace.name, worksheetData.TableName),
-                            new XAttribute(SSNoNamespace.displayName, worksheetData.TableName),
-                            new XAttribute(SSNoNamespace._ref, "A1:" + SpreadsheetMLUtil.IntToColumnId(totalColumns - 1) + totalRows.ToString()),
-                            new XAttribute(SSNoNamespace.totalsRowShown, 0),
-                            new XElement(S.autoFilter,
-                                new XAttribute(SSNoNamespace._ref, "A1:" + SpreadsheetMLUtil.IntToColumnId(totalColumns - 1) + totalRows.ToString())),
-                            new XElement(S.tableColumns,
-                                new XAttribute(SSNoNamespace.count, totalColumns),
-                                worksheetData.ColumnHeadings.Select((ch, i) =>
-                                    new XElement(S.tableColumn,
-                                        new XAttribute(SSNoNamespace.id, i + 1),
-                                        new XAttribute(SSNoNamespace.name, ch.Value)))),
-                            new XElement(S.tableStyleInfo,
-                                new XAttribute(SSNoNamespace.name, "TableStyleMedium2"),
-                                new XAttribute(SSNoNamespace.showFirstColumn, 0),
-                                new XAttribute(SSNoNamespace.showLastColumn, 0),
-                                new XAttribute(SSNoNamespace.showRowStripes, 1),
-                                new XAttribute(SSNoNamespace.showColumnStripes, 0)));
-                        tXDoc.Add(table);
-                        tdp.PutXDocument();
-                    }
+                        Cells = worksheetData.ColumnHeadings
+                    };
+                    SerializeRows(sDoc, partXmlWriter, new[] { row }, 1, out numColumns, out numColumnHeadingRows);
+                }
+                SerializeRows(sDoc, partXmlWriter, worksheetData.Rows, numColumnHeadingRows + 1, out var numColumnsInRows,
+                    out var numRows);
+                var totalRows = numColumnHeadingRows + numRows;
+                var totalColumns = Math.Max(numColumns, numColumnsInRows);
+                if (worksheetData.ColumnHeadings != null && worksheetData.TableName != null)
+                {
+                    partXmlWriter.WriteEndElement();
+                    var rId2 = "R" + Guid.NewGuid().ToString().Replace("-", "");
+                    partXmlWriter.WriteStartElement("tableParts", ws);
+                    partXmlWriter.WriteStartAttribute("count");
+                    partXmlWriter.WriteValue(1);
+                    partXmlWriter.WriteEndAttribute();
+                    partXmlWriter.WriteStartElement("tablePart", ws);
+                    partXmlWriter.WriteStartAttribute("id", relns);
+                    partXmlWriter.WriteValue(rId2);
+                    var tdp = worksheetPart.AddNewPart<TableDefinitionPart>(rId2);
+                    var tXDoc = tdp.GetXDocument();
+                    var table = new XElement(S.table,
+                        new XAttribute(SSNoNamespace.id, 1),
+                        new XAttribute(SSNoNamespace.name, worksheetData.TableName),
+                        new XAttribute(SSNoNamespace.displayName, worksheetData.TableName),
+                        new XAttribute(SSNoNamespace._ref, "A1:" + SpreadsheetMLUtil.IntToColumnId(totalColumns - 1) + totalRows.ToString()),
+                        new XAttribute(SSNoNamespace.totalsRowShown, 0),
+                        new XElement(S.autoFilter,
+                            new XAttribute(SSNoNamespace._ref, "A1:" + SpreadsheetMLUtil.IntToColumnId(totalColumns - 1) + totalRows.ToString())),
+                        new XElement(S.tableColumns,
+                            new XAttribute(SSNoNamespace.count, totalColumns),
+                            worksheetData.ColumnHeadings.Select((ch, i) =>
+                                new XElement(S.tableColumn,
+                                    new XAttribute(SSNoNamespace.id, i + 1),
+                                    new XAttribute(SSNoNamespace.name, ch.Value)))),
+                        new XElement(S.tableStyleInfo,
+                            new XAttribute(SSNoNamespace.name, "TableStyleMedium2"),
+                            new XAttribute(SSNoNamespace.showFirstColumn, 0),
+                            new XAttribute(SSNoNamespace.showLastColumn, 0),
+                            new XAttribute(SSNoNamespace.showRowStripes, 1),
+                            new XAttribute(SSNoNamespace.showColumnStripes, 0)));
+                    tXDoc.Add(table);
+                    tdp.PutXDocument();
                 }
             }
             sDoc.WorkbookPart.WorkbookStylesPart.PutXDocument();
