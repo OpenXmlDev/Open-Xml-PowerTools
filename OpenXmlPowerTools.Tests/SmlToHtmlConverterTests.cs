@@ -53,8 +53,8 @@ namespace OxPt
             }
 
             var dataTemplateFileNameSuffix = "-2-Generated-XmlData-Entire-Sheet.xml";
-            var dataXmlFi = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, sourceXlsx.Name.Replace(".xlsx", dataTemplateFileNameSuffix)));
-            using var sDoc = SpreadsheetDocument.Open(sourceXlsx.FullName, true);
+            var dataXmlFi = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, sourceCopiedToDestXlsx.Name.Replace(".xlsx", dataTemplateFileNameSuffix)));
+            using var sDoc = SpreadsheetDocument.Open(sourceCopiedToDestXlsx.FullName, true);
             var settings = new SmlToHtmlConverterSettings();
             var rangeXml = SmlDataRetriever.RetrieveSheet(sDoc, sheetName);
             rangeXml.Save(dataXmlFi.FullName);
@@ -111,8 +111,8 @@ namespace OxPt
             }
 
             var dataTemplateFileNameSuffix = string.Format("-2-Generated-XmlData-{0}.xml", range.Replace(":", ""));
-            var dataXmlFi = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, sourceXlsx.Name.Replace(".xlsx", dataTemplateFileNameSuffix)));
-            using var sDoc = SpreadsheetDocument.Open(sourceXlsx.FullName, true);
+            var dataXmlFi = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, sourceCopiedToDestXlsx.Name.Replace(".xlsx", dataTemplateFileNameSuffix)));
+            using var sDoc = SpreadsheetDocument.Open(sourceCopiedToDestXlsx.FullName, true);
             var settings = new SmlToHtmlConverterSettings();
             var rangeXml = SmlDataRetriever.RetrieveRange(sDoc, sheetName, range);
             rangeXml.Save(dataXmlFi.FullName);
@@ -139,8 +139,8 @@ namespace OxPt
                 File.Copy(sourceXlsx.FullName, sourceCopiedToDestXlsx.FullName);
             }
 
-            var dataXmlFi = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, sourceXlsx.Name.Replace(".xlsx", "-2-Generated-XmlData.xml")));
-            using var sDoc = SpreadsheetDocument.Open(sourceXlsx.FullName, true);
+            var dataXmlFi = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, sourceCopiedToDestXlsx.Name.Replace(".xlsx", "-2-Generated-XmlData.xml")));
+            using var sDoc = SpreadsheetDocument.Open(sourceCopiedToDestXlsx.FullName, true);
             var settings = new SmlToHtmlConverterSettings();
             var rangeXml = SmlDataRetriever.RetrieveTable(sDoc, tableName);
             rangeXml.Save(dataXmlFi.FullName);
@@ -152,7 +152,7 @@ namespace OxPt
         {
             var sourceDir = new DirectoryInfo("../../../../TestFiles/");
             var sourceXlsx = new FileInfo(Path.Combine(sourceDir.FullName, name));
-            using var sDoc = SpreadsheetDocument.Open(sourceXlsx.FullName, true);
+            using var sDoc = SpreadsheetDocument.Open(sourceXlsx.FullName, false);
             var sheetNames = SmlDataRetriever.SheetNames(sDoc);
             Assert.Equal(numberOfSheets, sheetNames.Length);
         }
@@ -164,7 +164,7 @@ namespace OxPt
         {
             var sourceDir = new DirectoryInfo("../../../../TestFiles/");
             var sourceXlsx = new FileInfo(Path.Combine(sourceDir.FullName, name));
-            using var sDoc = SpreadsheetDocument.Open(sourceXlsx.FullName, true);
+            using var sDoc = SpreadsheetDocument.Open(sourceXlsx.FullName, false);
             var table = SmlDataRetriever.TableNames(sDoc);
             Assert.Equal(numberOfTables, table.Length);
         }
