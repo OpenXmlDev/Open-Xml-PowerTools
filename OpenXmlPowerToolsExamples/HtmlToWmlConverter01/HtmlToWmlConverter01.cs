@@ -96,9 +96,9 @@ internal class HtmlToWmlConverterExample
                 html = XElement.Parse(sb.ToString());
             }
 #else
-            catch (XmlException e)
+            catch (XmlException)
             {
-                throw e;
+                throw;
             }
 #endif
             // HtmlToWmlConverter expects the HTML elements to be in no namespace, so convert all elements to no namespace.

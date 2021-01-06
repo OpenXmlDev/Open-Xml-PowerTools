@@ -1,6 +1,7 @@
 ﻿using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Validation;
 using OpenXmlPowerTools;
+using OpenXmlPowerTools.Tests;
 using System;
 using System.IO;
 using System.Linq;
@@ -395,7 +396,9 @@ namespace OxPt
             WmlDocument formattedDoc;
 
             if (File.Exists(destDocxFi.FullName))
+            {
                 File.Delete(destDocxFi.FullName);
+            }
 
             doc.SaveAs(destDocxFi.FullName);
             using (var ms = new MemoryStream())

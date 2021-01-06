@@ -69,7 +69,7 @@ internal class HtmlConverterHelper
         }
 
         // TODO: Determine max-width from size of content area.
-        var settings = new HtmlConverterSettings()
+        var settings = new WmlToHtmlConverterSettings()
         {
             AdditionalCss = "body { margin: 1cm auto; max-width: 20cm; padding: 0; }",
             PageTitle = pageTitle,
@@ -144,7 +144,7 @@ internal class HtmlConverterHelper
                 return img;
             }
         };
-        var htmlElement = HtmlConverter.ConvertToHtml(wDoc, settings);
+        var htmlElement = WmlToHtmlConverter.ConvertToHtml(wDoc, settings);
 
         // Produce HTML document with <!DOCTYPE html > declaration to tell the browser
         // we are using HTML5.

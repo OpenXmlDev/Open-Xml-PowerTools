@@ -4,6 +4,7 @@
 
 using DocumentFormat.OpenXml.Packaging;
 using OpenXmlPowerTools;
+using OpenXmlPowerTools.Tests;
 using System;
 using System.Globalization;
 using System.IO;

@@ -1,6 +1,4 @@
-﻿
-
-using DocumentFormat.OpenXml.Packaging;
+﻿using DocumentFormat.OpenXml.Packaging;
 using System;
 using System.Drawing.Imaging;
 using System.IO;
@@ -151,8 +149,8 @@ namespace OpenXmlPowerTools
                     }
                     else if (extension == "tiff")
                     {
-                                // Convert tiff to gif.
-                                extension = "gif";
+                        // Convert tiff to gif.
+                        extension = "gif";
                         imageFormat = ImageFormat.Gif;
                     }
                     else if (extension == "x-wmf")
@@ -161,9 +159,9 @@ namespace OpenXmlPowerTools
                         imageFormat = ImageFormat.Wmf;
                     }
 
-                            // If the image format isn't one that we expect, ignore it,
-                            // and don't return markup for the link.
-                            if (imageFormat == null)
+                    // If the image format isn't one that we expect, ignore it,
+                    // and don't return markup for the link.
+                    if (imageFormat == null)
                     {
                         return null;
                     }
@@ -263,9 +261,9 @@ namespace OpenXmlPowerTools
                 html = XElement.Parse(sb.ToString());
             }
 #else
-                catch (XmlException e)
+                catch (XmlException)
                 {
-                    throw e;
+                    throw;
                 }
 #endif
                 // HtmlToWmlConverter expects the HTML elements to be in no namespace, so convert all elements to no namespace.

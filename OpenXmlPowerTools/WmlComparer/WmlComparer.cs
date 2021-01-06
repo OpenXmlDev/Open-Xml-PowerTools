@@ -1461,7 +1461,6 @@ namespace OpenXmlPowerTools
                 .Descendants()
                 .Where(d => d.Name == W.footnoteReference || d.Name == W.endnoteReference);
 
-            var rnd = new Random();
             foreach (var r in references)
             {
                 var oldId = (string)r.Attribute(W.id);
@@ -1470,10 +1469,7 @@ namespace OpenXmlPowerTools
                 r.Attribute(W.id).Value = newId;
                 if (r.Name == W.footnoteReference)
                 {
-                    var fn = footnotesPartXDoc
-                        .Root
-                        .Elements()
-                        .FirstOrDefault(e => (string)e.Attribute(W.id) == oldId);
+                    var fn = footnotesPartXDoc.Root.Elements().FirstOrDefault(e => (string)e.Attribute(W.id) == oldId);
                     if (fn == null)
                     {
                         throw new OpenXmlPowerToolsException("Invalid document");
@@ -1483,10 +1479,7 @@ namespace OpenXmlPowerTools
                 }
                 else
                 {
-                    var en = endnotesPartXDoc
-                        .Root
-                        .Elements()
-                        .FirstOrDefault(e => (string)e.Attribute(W.id) == oldId);
+                    var en = endnotesPartXDoc?.Root.Elements().FirstOrDefault(e => (string)e.Attribute(W.id) == oldId);
                     if (en == null)
                     {
                         throw new OpenXmlPowerToolsException("Invalid document");
@@ -3043,7 +3036,6 @@ namespace OpenXmlPowerTools
                     }
                 }
 
-                var thisDepth = cua.AncestorElements.Length;
                 var additionalAncestorUnids = cua
                     .AncestorElements
                     .Skip(currentAncestorUnids.Length)

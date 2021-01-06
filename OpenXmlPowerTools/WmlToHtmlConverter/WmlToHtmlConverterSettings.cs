@@ -6,15 +6,32 @@ namespace OpenXmlPowerTools
 {
     public class WmlToHtmlConverterSettings
     {
+        /// <summary>
+        /// Pate title of Html
+        /// </summary>
         public string PageTitle { get; set; }
+
+        /// <summary>
+        /// Css class name prefix
+        /// </summary>
         public string CssClassPrefix { get; set; }
+
         public bool FabricateCssClasses { get; set; }
         public string GeneralCss { get; set; }
         public string AdditionalCss { get; set; }
         public bool RestrictToSupportedLanguages { get; set; }
         public bool RestrictToSupportedNumberingFormats { get; set; }
         public Dictionary<string, Func<int, string, string>> ListItemImplementations { get; set; }
+
+        /// <summary>
+        /// Image handler
+        /// </summary>
         public Func<ImageInfo, XElement> ImageHandler { get; set; }
+
+        /// <summary>
+        /// Handler that get applied to w:t
+        /// </summary>
+        public IWordprocessingTextHandler WordprocessingTextHandler { get; }
 
         public WmlToHtmlConverterSettings()
         {
@@ -26,19 +43,7 @@ namespace OpenXmlPowerTools
             RestrictToSupportedLanguages = false;
             RestrictToSupportedNumberingFormats = false;
             ListItemImplementations = ListItemRetrieverSettings.DefaultListItemTextImplementations;
-        }
-
-        public WmlToHtmlConverterSettings(HtmlConverterSettings htmlConverterSettings)
-        {
-            PageTitle = htmlConverterSettings.PageTitle;
-            CssClassPrefix = htmlConverterSettings.CssClassPrefix;
-            FabricateCssClasses = htmlConverterSettings.FabricateCssClasses;
-            GeneralCss = htmlConverterSettings.GeneralCss;
-            AdditionalCss = htmlConverterSettings.AdditionalCss;
-            RestrictToSupportedLanguages = htmlConverterSettings.RestrictToSupportedLanguages;
-            RestrictToSupportedNumberingFormats = htmlConverterSettings.RestrictToSupportedNumberingFormats;
-            ListItemImplementations = htmlConverterSettings.ListItemImplementations;
-            ImageHandler = htmlConverterSettings.ImageHandler;
+            WordprocessingTextHandler = new WordprocessingTextSymbolToUnicodeHandler();
         }
     }
 }
