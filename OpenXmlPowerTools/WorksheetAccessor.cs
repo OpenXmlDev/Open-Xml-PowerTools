@@ -2298,6 +2298,7 @@ namespace OpenXmlPowerTools
         /// <summary>
         /// Creates a worksheet document and inserts data into it
         /// </summary>
+        /// <param name="document"></param>
         /// <param name="headerList">List of values that will act as the header</param>
         /// <param name="valueTable">Values for worksheet content</param>
         /// <param name="headerRow">Header row</param>

@@ -10,27 +10,27 @@ using System.Xml.Linq;
 
 // It is possible to optimize DescendantContentAtoms
 
-/// Currently, the unid is set at the beginning of the algorithm.  It is used by the code that establishes correlation based on first rejecting
-/// tracked revisions, then correlating paragraphs/tables.  It is requred for this algorithm - after finding a correlated sequence in the document with rejected
-/// revisions, it uses the unid to find the same paragraph in the document without rejected revisions, then sets the correlated sha1 hash in that document.
-///
-/// But then when accepting tracked revisions, for certain paragraphs (where there are deleted paragraph marks) it is going to lose the unids.  But this isn't a
-/// problem because when paragraph marks are deleted, the correlation is definitely no longer possible.  Any paragraphs that are in a range of paragraphs that
-/// are coalesced can't be correlated to paragraphs in the other document via their hash.  At that point we no longer care what their unids are.
-///
-/// But after that it is only used to reconstruct the tree.  It is also used in the debugging code that
-/// prints the various correlated sequences and comparison units - this is display for debugging purposes only.
+// Currently, the unid is set at the beginning of the algorithm.  It is used by the code that establishes correlation based on first rejecting
+// tracked revisions, then correlating paragraphs/tables.  It is requred for this algorithm - after finding a correlated sequence in the document with rejected
+// revisions, it uses the unid to find the same paragraph in the document without rejected revisions, then sets the correlated sha1 hash in that document.
+//
+// But then when accepting tracked revisions, for certain paragraphs (where there are deleted paragraph marks) it is going to lose the unids.  But this isn't a
+// problem because when paragraph marks are deleted, the correlation is definitely no longer possible.  Any paragraphs that are in a range of paragraphs that
+// are coalesced can't be correlated to paragraphs in the other document via their hash.  At that point we no longer care what their unids are.
+//
+// But after that it is only used to reconstruct the tree.  It is also used in the debugging code that
+// prints the various correlated sequences and comparison units - this is display for debugging purposes only.
 
-/// The key idea here is that a given paragraph will always have the same ancestors, and it doesn't matter whether the content was deleted from the old document,
-/// inserted into the new document, or set as equal.  At this point, we identify a paragraph as a sequential list of content atoms, terminated by a paragraph mark.
-/// This entire list will for a single paragraph, regardless of whether the paragraph is a child of the body, or if the paragraph is in a cell in a table, or if
-/// the paragraph is in a text box.  The list of ancestors, from the paragraph to the root of the XML tree will be the same for all content atoms in the paragraph.
-///
-/// Therefore:
-///
-/// Iterate through the list of content atoms backwards.  When the loop sees a paragraph mark, it gets the ancestor unids from the paragraph mark to the top of the
-/// tree, and sets this as the same for all content atoms in the paragraph.  For descendants of the paragraph mark, it doesn't really matter if content is put into
-/// separate runs or what not.  We don't need to be concerned about what the unids are for descendants of the paragraph.
+// The key idea here is that a given paragraph will always have the same ancestors, and it doesn't matter whether the content was deleted from the old document,
+// inserted into the new document, or set as equal.  At this point, we identify a paragraph as a sequential list of content atoms, terminated by a paragraph mark.
+// This entire list will for a single paragraph, regardless of whether the paragraph is a child of the body, or if the paragraph is in a cell in a table, or if
+// the paragraph is in a text box.  The list of ancestors, from the paragraph to the root of the XML tree will be the same for all content atoms in the paragraph.
+//
+// Therefore:
+//
+// Iterate through the list of content atoms backwards.  When the loop sees a paragraph mark, it gets the ancestor unids from the paragraph mark to the top of the
+// tree, and sets this as the same for all content atoms in the paragraph.  For descendants of the paragraph mark, it doesn't really matter if content is put into
+// separate runs or what not.  We don't need to be concerned about what the unids are for descendants of the paragraph.
 
 namespace OpenXmlPowerTools
 {
@@ -896,9 +896,9 @@ namespace OpenXmlPowerTools
                 maxEndnoteId = consolidatedEndnoteXDoc.Root.Elements(W.endnote).Select(e => (int)e.Attribute(W.id)).Max();
             }
 
-            /// At this point, content might contain a footnote or endnote reference.
-            /// Need to add the footnote / endnote into the consolidated document (with the same guid id)
-            /// Because of preprocessing of the documents, all footnote and endnote references will be unique at this point
+            // At this point, content might contain a footnote or endnote reference.
+            // Need to add the footnote / endnote into the consolidated document (with the same guid id)
+            // Because of preprocessing of the documents, all footnote and endnote references will be unique at this point
 
             if (ci.RevisionElement.Descendants(W.footnoteReference).Any())
             {
@@ -1105,12 +1105,9 @@ namespace OpenXmlPowerTools
                             captionParagraph,
                             groupedCi.Select(ci =>
                             {
-                                {
-                                }
-
-                                /// At this point, content might contain a footnote or endnote reference.
-                                /// Need to add the footnote / endnote into the consolidated document (with the same guid id)
-                                /// Because of preprocessing of the documents, all footnote and endnote references will be unique at this point
+                                // At this point, content might contain a footnote or endnote reference.
+                                // Need to add the footnote / endnote into the consolidated document (with the same guid id)
+                                // Because of preprocessing of the documents, all footnote and endnote references will be unique at this point
 
                                 if (ci.RevisionElement.Descendants(W.endnoteReference).Any())
                                 {
@@ -1218,9 +1215,9 @@ namespace OpenXmlPowerTools
                                     paraAfter,
                                     };
 
-                    /// At this point, content might contain a footnote or endnote reference.
-                    /// Need to add the footnote / endnote into the consolidated document (with the same guid id)
-                    /// Because of preprocessing of the documents, all footnote and endnote references will be unique at this point
+                    // At this point, content might contain a footnote or endnote reference.
+                    // Need to add the footnote / endnote into the consolidated document (with the same guid id)
+                    // Because of preprocessing of the documents, all footnote and endnote references will be unique at this point
 
                     if (ci.RevisionElement.Descendants(W.footnoteReference).Any())
                     {
@@ -2992,13 +2989,13 @@ namespace OpenXmlPowerTools
                 }
             }
 
-            /// If the following loop finds a pPr that is in a text box, then continue on, processing the pPr and all of its contents as though it were
-            /// content in the containing text box.  This is going to leave it after this loop where the AncestorUnids for the content in the text box will be
-            /// incomplete.  We then will need to go through the rComparisonUnitAtomList a second time, processing all of the text boxes.
+            // If the following loop finds a pPr that is in a text box, then continue on, processing the pPr and all of its contents as though it were
+            // content in the containing text box.  This is going to leave it after this loop where the AncestorUnids for the content in the text box will be
+            // incomplete.  We then will need to go through the rComparisonUnitAtomList a second time, processing all of the text boxes.
 
-            /// Note that this makes the basic assumption that a text box can't be nested inside of a text box, which, as far as I know, is a good assumption.
+            // Note that this makes the basic assumption that a text box can't be nested inside of a text box, which, as far as I know, is a good assumption.
 
-            /// This also makes the basic assumption that an endnote / footnote can't contain a text box, which I believe is a good assumption.
+            // This also makes the basic assumption that an endnote / footnote can't contain a text box, which I believe is a good assumption.
 
             string[] currentAncestorUnids = null;
             foreach (var cua in rComparisonUnitAtomList)
@@ -3084,15 +3081,6 @@ namespace OpenXmlPowerTools
                 }
                 if (cua.ContentElement.Name == W.pPr)
                 {
-                    //if (s_True)
-                    //{
-                    //    var sb = new StringBuilder();
-                    //    foreach (var item in comparisonUnitAtomList)
-                    //        sb.Append(item.ToString()).Append(Environment.NewLine);
-                    //    var sbs = sb.ToString();
-                    //    DocxComparerUtil.NotePad(sbs);
-                    //}
-
                     var pPr_inTextBox = cua
                         .AncestorElements
                         .Any(ae => ae.Name == W.txbxContent);
@@ -3170,8 +3158,6 @@ namespace OpenXmlPowerTools
                 .Select(cs =>
                 {
                     // need to write some code here to find out if we are assembling a paragraph (or anything) that contains the following unid.
-                    // why do are we dropping content???????
-                    //string searchFor = "0ecb9184";
 
                     if (cs.CorrelationStatus == CorrelationStatus.Equal)
                     {
