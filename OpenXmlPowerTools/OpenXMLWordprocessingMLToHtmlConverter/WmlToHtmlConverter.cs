@@ -11,7 +11,7 @@ using System.Xml.Linq;
 // Content-Language: en-US
 // Content-Language: fr-FR
 
-namespace OpenXmlPowerTools
+namespace OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
 {
     /// <summary>
     /// Converts a wordDoc to a self contained HTML
@@ -3246,7 +3246,7 @@ namespace OpenXmlPowerTools
         };
 
         internal static XElement ProcessImage(WordprocessingDocument wordDoc,
-            XElement element, Func<ImageInfo, XElement> imageHandler)
+            XElement element, IImageHandler imageHandler)
         {
             if (imageHandler == null)
             {
@@ -3264,7 +3264,7 @@ namespace OpenXmlPowerTools
         }
 
         private static XElement ProcessDrawing(WordprocessingDocument wordDoc,
-            XElement element, Func<ImageInfo, XElement> imageHandler)
+            XElement element, IImageHandler imageHandler)
         {
             var containerElement = element.Elements()
                 .FirstOrDefault(e => e.Name == WP.inline || e.Name == WP.anchor);
@@ -3355,7 +3355,7 @@ namespace OpenXmlPowerTools
                     DrawingElement = element,
                     AltText = altText,
                 };
-                var imgElement2 = imageHandler(imageInfo);
+                var imgElement2 = imageHandler.TransformImage(imageInfo);
                 if (hyperlinkUri != null)
                 {
                     return new XElement(XhtmlNoNamespace.a,
@@ -3372,18 +3372,15 @@ namespace OpenXmlPowerTools
                 DrawingElement = element,
                 AltText = altText,
             };
-            var imgElement = imageHandler(imageInfo2);
+            var imgElement = imageHandler.TransformImage(imageInfo2);
             if (hyperlinkUri != null)
             {
-                return new XElement(XhtmlNoNamespace.a,
-                    new XAttribute(XhtmlNoNamespace.href, hyperlinkUri),
-                    imgElement);
+                return new XElement(XhtmlNoNamespace.a, new XAttribute(XhtmlNoNamespace.href, hyperlinkUri), imgElement);
             }
             return imgElement;
         }
 
-        private static XElement ProcessPictureOrObject(WordprocessingDocument wordDoc,
-            XElement element, Func<ImageInfo, XElement> imageHandler)
+        private static XElement ProcessPictureOrObject(WordprocessingDocument wordDoc, XElement element, IImageHandler imageHandler)
         {
             var imageRid = (string)element.Elements(VML.shape).Elements(VML.imagedata).Attributes(R.id).FirstOrDefault();
             if (imageRid == null)
@@ -3425,7 +3422,7 @@ namespace OpenXmlPowerTools
                     var style = (string)element.Elements(VML.shape).Attributes("style").FirstOrDefault();
                     if (style == null)
                     {
-                        return imageHandler(imageInfo);
+                        return imageHandler.TransformImage(imageInfo);
                     }
 
                     var tokens = style.Split(';');
@@ -3437,7 +3434,7 @@ namespace OpenXmlPowerTools
                             string.Format(NumberFormatInfo.InvariantInfo,
                                 "width: {0}pt; height: {1}pt", widthInPoints, heightInPoints));
                     }
-                    return imageHandler(imageInfo);
+                    return imageHandler.TransformImage(imageInfo);
                 }
                 catch (OutOfMemoryException)
                 {

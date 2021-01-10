@@ -93,6 +93,7 @@ namespace OxPt
             Validate(outXlsx);
         }
 
+        // Breaks with DocumentFormat.OpenXml 2.12  but works till 2.11.3
         [Fact]
         public void SW002_AllDataTypes()
         {
@@ -307,8 +308,7 @@ namespace OxPt
             var v = new OpenXmlValidator();
             var errors = v.Validate(sDoc).Where(ve => !s_ExpectedErrors.Contains(ve.Description));
 
-            // if a test fails validation post-processing, then can use this code to determine the SDK
-            // validation error(s).
+            // if a test fails validation post-processing, then can use this code to determine the SDK validation error(s).
 
             if (errors.Any())
             {
