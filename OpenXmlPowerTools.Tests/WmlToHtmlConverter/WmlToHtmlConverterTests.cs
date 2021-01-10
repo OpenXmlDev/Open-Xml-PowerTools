@@ -1,6 +1,4 @@
-﻿#define COPY_FILES_FOR_DEBUGGING
-
-using DocumentFormat.OpenXml.Packaging;
+﻿using DocumentFormat.OpenXml.Packaging;
 using OpenXmlPowerTools;
 using OpenXmlPowerTools.Tests;
 using System.Drawing.Imaging;
@@ -77,20 +75,6 @@ namespace OxPt
             var sourceDir = new DirectoryInfo("../../../../TestFiles/");
             var sourceDocx = new FileInfo(Path.Combine(sourceDir.FullName, name));
 
-#if COPY_FILES_FOR_DEBUGGING
-            var sourceCopiedToDestDocx = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, sourceDocx.Name.Replace(".docx", "-1-Source.docx")));
-            if (!sourceCopiedToDestDocx.Exists)
-            {
-                File.Copy(sourceDocx.FullName, sourceCopiedToDestDocx.FullName);
-            }
-
-            var assembledFormattingDestDocx = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, sourceDocx.Name.Replace(".docx", "-2-FormattingAssembled.docx")));
-            if (!assembledFormattingDestDocx.Exists)
-            {
-                CopyFormattingAssembledDocx(sourceDocx, assembledFormattingDestDocx);
-            }
-#endif
-
             var oxPtConvertedDestHtml = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, sourceDocx.Name.Replace(".docx", "-3-OxPt.html")));
             ConvertToHtml(sourceDocx, oxPtConvertedDestHtml, false);
         }
@@ -104,20 +88,6 @@ namespace OxPt
 
             var oxPtConvertedDestHtml = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, sourceDocx.Name.Replace(".docx", "-5-OxPt-No-CSS-Classes.html")));
             ConvertToHtml(sourceDocx, oxPtConvertedDestHtml, true);
-        }
-
-        [Theory]
-        [InlineData("Bulletpoint.docx")]
-        public void ShouldConvertToHtmlEncoded(string name)
-        {
-            var sourceDir = new DirectoryInfo("../../../../TestFiles/");
-            var sourceDocx = new FileInfo(Path.Combine(sourceDir.FullName, name));
-
-            var oxPtConvertedDestHtml = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, sourceDocx.Name.Replace(".docx", "-5-ShouldConvertToHtmlEncoded.html")));
-            ConvertToHtml(sourceDocx, oxPtConvertedDestHtml, true);
-
-            var html = File.ReadAllText(oxPtConvertedDestHtml.FullName);
-            Assert.Contains("•", html);
         }
 
         private static void CopyFormattingAssembledDocx(FileInfo source, FileInfo dest)
@@ -135,6 +105,7 @@ namespace OxPt
                     RemoveEndAndFootNotes = true,
                     RemoveFieldCodes = false,
                     RemoveLastRenderedPageBreak = true,
+
                     RemovePermissions = true,
                     RemoveProof = true,
                     RemoveRsidInfo = true,

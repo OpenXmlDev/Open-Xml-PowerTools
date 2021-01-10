@@ -43,7 +43,7 @@ namespace OpenXmlPowerTools
             RestrictToSupportedLanguages = false;
             RestrictToSupportedNumberingFormats = false;
             ListItemImplementations = ListItemRetrieverSettings.DefaultListItemTextImplementations;
-            WordprocessingTextHandler = new WordprocessingTextSymbolToUnicodeHandler();
+            WordprocessingTextHandler = new WordprocessingTextDummyHandler();
         }
     }
 }
