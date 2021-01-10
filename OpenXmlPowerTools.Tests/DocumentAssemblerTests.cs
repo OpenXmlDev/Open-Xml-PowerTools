@@ -1,6 +1,7 @@
 ﻿using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Validation;
 using OpenXmlPowerTools;
+using OpenXmlPowerTools.Tests;
 using System;
 using System.Collections.Generic;
 using System.IO;

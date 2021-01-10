@@ -155,26 +155,17 @@ namespace OpenXmlPowerTools
             using (var document = streamDoc.GetWordprocessingDocument())
             {
                 var mainXDoc = document.MainDocumentPart.GetXDocument();
-                var lastElement = mainXDoc.Root
-                    .Element(W.body)
-                    .Elements()
-                    .LastOrDefault();
-                if (lastElement != null)
+                var lastElement = mainXDoc.Root.Element(W.body).Elements().LastOrDefault();
+                if (lastElement != null && lastElement.Name != W.sectPr && lastElement.Descendants(W.sectPr).Any())
                 {
-                    if (lastElement.Name != W.sectPr &&
-                        lastElement.Descendants(W.sectPr).Any())
+                    mainXDoc.Root.Element(W.body).Add(lastElement.Descendants(W.sectPr).First());
+                    lastElement.Descendants(W.sectPr).Remove();
+                    if (!lastElement.Elements().Any(e => e.Name != W.pPr))
                     {
-                        mainXDoc.Root.Element(W.body).Add(lastElement.Descendants(W.sectPr).First());
-                        lastElement.Descendants(W.sectPr).Remove();
-                        if (!lastElement.Elements()
-                            .Where(e => e.Name != W.pPr)
-                            .Any())
-                        {
-                            lastElement.Remove();
-                        }
-
-                        document.MainDocumentPart.PutXDocument();
+                        lastElement.Remove();
                     }
+
+                    document.MainDocumentPart.PutXDocument();
                 }
             }
             return streamDoc.GetModifiedWmlDocument();

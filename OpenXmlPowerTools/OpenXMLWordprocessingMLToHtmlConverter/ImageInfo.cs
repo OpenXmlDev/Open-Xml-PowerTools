@@ -1,9 +1,7 @@
-﻿
-
-using System.Drawing;
+﻿using System.Drawing;
 using System.Xml.Linq;
 
-namespace OpenXmlPowerTools
+namespace OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
 {
     public class ImageInfo
     {

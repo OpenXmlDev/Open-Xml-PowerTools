@@ -1,8 +1,6 @@
-﻿
+﻿using System.Collections.Generic;
 
-using System.Collections.Generic;
-
-namespace OpenXmlPowerTools
+namespace OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
 {
     internal static class HtmlConverterExtensions
     {

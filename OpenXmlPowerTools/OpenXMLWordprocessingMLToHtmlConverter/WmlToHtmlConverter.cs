@@ -11,10 +11,19 @@ using System.Xml.Linq;
 // Content-Language: en-US
 // Content-Language: fr-FR
 
-namespace OpenXmlPowerTools
+namespace OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
 {
+    /// <summary>
+    /// Converts a wordDoc to a self contained HTML
+    /// </summary>
     public static class WmlToHtmlConverter
     {
+        /// <summary>
+        /// Converts a wordDoc to a self contained HTML
+        /// </summary>
+        /// <param name="doc"></param>
+        /// <param name="htmlConverterSettings"></param>
+        /// <returns></returns>
         public static XElement ConvertToHtml(WmlDocument doc, WmlToHtmlConverterSettings htmlConverterSettings)
         {
             using var streamDoc = new OpenXmlMemoryStreamDocument(doc);
@@ -22,6 +31,12 @@ namespace OpenXmlPowerTools
             return ConvertToHtml(document, htmlConverterSettings);
         }
 
+        /// <summary>
+        /// Converts a wordDoc to a self contained HTML
+        /// </summary>
+        /// <param name="wordDoc"></param>
+        /// <param name="htmlConverterSettings"></param>
+        /// <returns></returns>
         public static XElement ConvertToHtml(WordprocessingDocument wordDoc, WmlToHtmlConverterSettings htmlConverterSettings)
         {
             RevisionAccepter.AcceptRevisions(wordDoc);
@@ -268,7 +283,7 @@ namespace OpenXmlPowerTools
             }
         }
 
-        private static object ConvertToHtmlTransform(WordprocessingDocument wordDoc, WmlToHtmlConverterSettings settings, XNode node, bool suppressTrailingWhiteSpace, decimal currentMarginLeft)
+        private static object ConvertToHtmlTransform(WordprocessingDocument wordDoc, WmlToHtmlConverterSettings settings, XNode node, bool suppressTrailingWhiteSpace, decimal currentMarginLeft, Dictionary<string, string> styleContext = default!)
         {
             if (!(node is XElement element))
             {
@@ -300,27 +315,19 @@ namespace OpenXmlPowerTools
                 return new XElement(Xhtml.body, CreateSectionDivs(wordDoc, settings, element));
             }
 
-            // Transform the w:p element to the XHTML h:h1-h6 or h:p element (if the previous paragraph does not
-            // have a style separator).
+            // Transform the w:p element to the XHTML h:h1-h6 or h:p element (if the previous paragraph does not have a style separator).
             if (element.Name == W.p)
             {
                 return ProcessParagraph(wordDoc, settings, element, suppressTrailingWhiteSpace, currentMarginLeft);
             }
 
-            // Transform hyperlinks to the XHTML h:a element.
+            // Transform hyper links to the XHTML h:a element.
             if (element.Name == W.hyperlink && element.Attribute(R.id) != null)
             {
                 try
                 {
-                    var a = new XElement(Xhtml.a,
-                        new XAttribute("href",
-                            wordDoc.MainDocumentPart
-                                .HyperlinkRelationships
-                                .First(x => x.Id == (string)element.Attribute(R.id))
-                                .Uri
-                            ),
-                        element.Elements(W.r).Select(run => ConvertRun(wordDoc, settings, run))
-                        );
+                    var a = new XElement(Xhtml.a, new XAttribute("href", wordDoc.MainDocumentPart.HyperlinkRelationships.First(x => x.Id == (string)element.Attribute(R.id)).Uri), element.Elements(W.r).Select(run => ConvertRun(wordDoc, settings, run)));
+
                     if (!a.Nodes().Any())
                     {
                         a.Add(new XText(""));
@@ -355,11 +362,8 @@ namespace OpenXmlPowerTools
             // Transform every w:t element to a text node.
             if (element.Name == W.t)
             {
-                // We don't need to convert characters to entities in a UTF-8 document.
-                // Further, we don't need &nbsp; entities for significant whitespace
-                // because we are wrapping the text nodes in <span> elements within
-                // which all whitespace is significant.
-                return new XText(element.Value);
+                // We don't need &nbsp; entities for significant whitespace because we are wrapping the text nodes in <span> elements within which all whitespace is significant.
+                return new XText(settings.WordprocessingTextHandler.TransformText(element.Value, styleContext));
             }
 
             // Transform symbols to spans
@@ -495,23 +499,17 @@ namespace OpenXmlPowerTools
                 }
 
                 var runContainingTabToReplace = element.Ancestors(W.r).First();
-                var fontNameAtt = runContainingTabToReplace.Attribute(PtOpenXml.pt + "FontName") ??
-                                  runContainingTabToReplace.Ancestors(W.p).First().Attribute(PtOpenXml.pt + "FontName");
+                var fontNameAtt = runContainingTabToReplace.Attribute(PtOpenXml.pt + "FontName") ?? runContainingTabToReplace.Ancestors(W.p).First().Attribute(PtOpenXml.pt + "FontName");
 
-                var dummyRun = new XElement(W.r,
-                    fontNameAtt,
-                    runContainingTabToReplace.Elements(W.rPr),
-                    new XElement(W.t, leaderChar));
+                var dummyRun = new XElement(W.r, fontNameAtt, runContainingTabToReplace.Elements(W.rPr), new XElement(W.t, leaderChar));
 
                 var widthOfLeaderChar = CalcWidthOfRunInTwips(dummyRun);
 
                 var forceArial = false;
+
                 if (widthOfLeaderChar == 0)
                 {
-                    dummyRun = new XElement(W.r,
-                        new XAttribute(PtOpenXml.FontName, "Arial"),
-                        runContainingTabToReplace.Elements(W.rPr),
-                        new XElement(W.t, leaderChar));
+                    dummyRun = new XElement(W.r, new XAttribute(PtOpenXml.FontName, "Arial"), runContainingTabToReplace.Elements(W.rPr), new XElement(W.t, leaderChar));
                     widthOfLeaderChar = CalcWidthOfRunInTwips(dummyRun);
                     forceArial = true;
                 }
@@ -561,7 +559,7 @@ namespace OpenXmlPowerTools
 
         private static object ProcessBreak(XElement element)
         {
-            XElement span = null;
+            XElement span = default!;
             var tabWidth = (decimal?)element.Attribute(PtOpenXml.TabWidth);
             if (tabWidth != null)
             {
@@ -574,17 +572,12 @@ namespace OpenXmlPowerTools
             }
 
             var paragraph = element.Ancestors(W.p).FirstOrDefault();
-            var isBidi = paragraph != null &&
-                         paragraph.Elements(W.pPr).Elements(W.bidi).Any(b => b.Attribute(W.val) == null ||
-                                                                             b.Attribute(W.val).ToBoolean() == true);
+            var isBidi = paragraph != null && paragraph.Elements(W.pPr).Elements(W.bidi).Any(b => b.Attribute(W.val) == null || b.Attribute(W.val).ToBoolean() == true);
             var zeroWidthChar = isBidi ? new XEntity("#x200f") : new XEntity("#x200e");
 
             return new object[]
             {
-                new XElement(Xhtml.br),
-                zeroWidthChar,
-                span,
-            };
+                new XElement(Xhtml.br), zeroWidthChar, span};
         }
 
         private static object ProcessContentControl(WordprocessingDocument wordDoc, WmlToHtmlConverterSettings settings,
@@ -680,18 +673,15 @@ namespace OpenXmlPowerTools
             if (tblInd != null)
             {
                 var tblIndType = (string)tblInd.Attribute(W.type);
-                if (tblIndType != null)
+                if (tblIndType != null && tblIndType == "dxa")
                 {
-                    if (tblIndType == "dxa")
+                    var width = (decimal?)tblInd.Attribute(W._w);
+                    if (width != null)
                     {
-                        var width = (decimal?)tblInd.Attribute(W._w);
-                        if (width != null)
-                        {
-                            style.AddIfMissing("margin-left",
-                                width > 0m
-                                    ? string.Format(NumberFormatInfo.InvariantInfo, "{0}pt", width / 20m)
-                                    : "0");
-                        }
+                        style.AddIfMissing("margin-left",
+                            width > 0m
+                                ? string.Format(NumberFormatInfo.InvariantInfo, "{0}pt", width / 20m)
+                                : "0");
                     }
                 }
             }
@@ -1091,15 +1081,12 @@ namespace OpenXmlPowerTools
                 };
                 span.AddAnnotation(spanStyle);
             }
-            else if (txElementsPrecedingTab.Count == 1)
+            else if (txElementsPrecedingTab.Count == 1 && txElementsPrecedingTab.First() is XElement element)
             {
-                if (txElementsPrecedingTab.First() is XElement element)
-                {
-                    var spanStyle = element.Annotation<Dictionary<string, string>>();
-                    spanStyle.AddIfMissing("display", "inline-block");
-                    spanStyle.AddIfMissing("text-indent", "0");
-                    spanStyle.AddIfMissing("width", string.Format(NumberFormatInfo.InvariantInfo, "{0:0.000}in", totalWidth));
-                }
+                var spanStyle = element.Annotation<Dictionary<string, string>>();
+                spanStyle.AddIfMissing("display", "inline-block");
+                spanStyle.AddIfMissing("text-indent", "0");
+                spanStyle.AddIfMissing("width", string.Format(NumberFormatInfo.InvariantInfo, "{0:0.000}in", totalWidth));
             }
             return txElementsPrecedingTab;
         }
@@ -1312,11 +1299,8 @@ namespace OpenXmlPowerTools
 
         private static void DefineFontSize(Dictionary<string, string> style, XElement paragraph)
         {
-            var sz = paragraph
-                .DescendantsTrimmed(W.txbxContent)
-                .Where(e => e.Name == W.r)
-                .Select(r => GetFontSize(r))
-                .Max();
+            var sz = paragraph.DescendantsTrimmed(W.txbxContent).Where(e => e.Name == W.r).Select(r => GetFontSize(r)).Max();
+
             if (sz != null)
             {
                 style.AddIfMissing("font-size", string.Format(NumberFormatInfo.InvariantInfo, "{0}pt", sz / 2.0m));
@@ -1383,7 +1367,7 @@ namespace OpenXmlPowerTools
             }
 
             var style = DefineRunStyle(run);
-            object content = run.Elements().Select(e => ConvertToHtmlTransform(wordDoc, settings, e, false, 0m));
+            object content = run.Elements().Select(e => ConvertToHtmlTransform(wordDoc, settings, e, false, 0m, style));
 
             // Wrap content in h:sup or h:sub elements as necessary.
             if (rPr.Element(W.vertAlign) != null)
@@ -1414,11 +1398,7 @@ namespace OpenXmlPowerTools
             {
                 style.AddIfMissing("margin", "0");
                 style.AddIfMissing("padding", "0");
-                var xe = new XElement(Xhtml.span,
-                    langAttribute,
-                    runStartMark,
-                    content,
-                    runEndMark);
+                var xe = new XElement(Xhtml.span, langAttribute, runStartMark, content, runEndMark);
 
                 xe.AddAnnotation(style);
                 content = xe;
@@ -1562,9 +1542,7 @@ namespace OpenXmlPowerTools
                 return null;
             }
 
-            return languageType == "bidi"
-                ? (decimal?)rPr.Elements(W.szCs).Attributes(W.val).FirstOrDefault()
-                : (decimal?)rPr.Elements(W.sz).Attributes(W.val).FirstOrDefault();
+            return languageType == "bidi" ? (decimal?)rPr.Elements(W.szCs).Attributes(W.val).FirstOrDefault() : (decimal?)rPr.Elements(W.sz).Attributes(W.val).FirstOrDefault();
         }
 
         private static void DetermineRunMarks(XElement run, XElement rPr, Dictionary<string, string> style, out XEntity runStartMark, out XEntity runEndMark)
@@ -1580,12 +1558,9 @@ namespace OpenXmlPowerTools
 
             // Can't add directional marks if the font-family is symbol - they are visible, and display as a ?
             var addDirectionalMarks = true;
-            if (style.ContainsKey("font-family"))
+            if (style.ContainsKey("font-family") && style["font-family"].ToLower() == "symbol")
             {
-                if (style["font-family"].ToLower() == "symbol")
-                {
-                    addDirectionalMarks = false;
-                }
+                addDirectionalMarks = false;
             }
             if (!addDirectionalMarks)
             {
@@ -1934,8 +1909,7 @@ namespace OpenXmlPowerTools
 
         private static void CalculateSpanWidthForTabs(WordprocessingDocument wordDoc)
         {
-            // Note: when implementing a paging version of the HTML transform, this needs to be done
-            // for all content parts, not just the main document part.
+            // Note: when implementing a paging version of the HTML transform, this needs to be done for all content parts, not just the main document part.
 
             // w:defaultTabStop in settings
             var sxd = wordDoc.MainDocumentPart.DocumentSettingsPart.GetXDocument();
@@ -1962,13 +1936,10 @@ namespace OpenXmlPowerTools
 
             // if it is not a paragraph or if there are no tabs in the paragraph,
             // then no need to continue processing.
-            if (element.Name != W.p ||
-                !element.DescendantsTrimmed(W.txbxContent).Where(d => d.Name == W.r).Elements(W.tab).Any())
+            if (element.Name != W.p || !element.DescendantsTrimmed(W.txbxContent).Where(d => d.Name == W.r).Elements(W.tab).Any())
             {
                 // TODO: Revisit. Can we just return the node if it is a paragraph that does not have any tab?
-                return new XElement(element.Name,
-                    element.Attributes(),
-                    element.Nodes().Select(n => CalculateSpanWidthTransform(n, defaultTabStop)));
+                return new XElement(element.Name, element.Attributes(), element.Nodes().Select(n => CalculateSpanWidthTransform(n, defaultTabStop)));
             }
 
             var clonedPara = new XElement(element);
@@ -2450,20 +2421,10 @@ namespace OpenXmlPowerTools
                 fs |= FontStyle.Italic;
             }
 
-            // Appended blank as a quick fix to accommodate &nbsp; that will get
-            // appended to some layout-critical runs such as list item numbers.
-            // In some cases, this might not be required or even wrong, so this
-            // must be revisited.
-            // TODO: Revisit.
-            var runText = r.DescendantsTrimmed(W.txbxContent)
-                .Where(e => e.Name == W.t)
-                .Select(t => (string)t)
-                .StringConcatenate() + " ";
+            // Appended blank as a quick fix to accommodate &nbsp; that will get appended to some layout-critical runs such as list item numbers. In some cases, this might not be required or even wrong, so this must be revisited.
+            var runText = r.DescendantsTrimmed(W.txbxContent).Where(e => e.Name == W.t).Select(t => (string)t).StringConcatenate() + " ";
 
-            var tabLength = r.DescendantsTrimmed(W.txbxContent)
-                .Where(e => e.Name == W.tab)
-                .Select(t => (decimal)t.Attribute(PtOpenXml.TabWidth))
-                .Sum();
+            var tabLength = r.DescendantsTrimmed(W.txbxContent).Where(e => e.Name == W.tab).Select(t => (decimal)t.Attribute(PtOpenXml.TabWidth)).Sum();
 
             if (runText.Length == 0 && tabLength == 0)
             {
@@ -2978,12 +2939,9 @@ namespace OpenXmlPowerTools
 
                 style.Add("border-" + whichSide, borderStyle + " " + color + " " + borderWidth);
                 if (borderType == BorderType.Cell &&
-                    (whichSide == "left" || whichSide == "right"))
+                    (whichSide == "left" || whichSide == "right") && space < 5.4m)
                 {
-                    if (space < 5.4m)
-                    {
-                        space = 5.4m;
-                    }
+                    space = 5.4m;
                 }
 
                 style.Add("padding-" + whichSide, space == 0 ? "0" : string.Format(NumberFormatInfo.InvariantInfo, "{0:0.0}pt", space));
@@ -3280,8 +3238,7 @@ namespace OpenXmlPowerTools
             return txformed;
         }
 
-        // Don't process wmf files (with contentType == "image/x-wmf") because GDI consumes huge amounts
-        // of memory when dealing with wmf perhaps because it loads a DLL to do the rendering?
+        // Don't process wmf files (with contentType == "image/x-wmf") because GDI consumes huge amounts of memory when dealing with wmf perhaps because it loads a DLL to do the rendering?
         // It actually works, but is not recommended.
         private static readonly List<string> ImageContentTypes = new List<string>
         {
@@ -3289,7 +3246,7 @@ namespace OpenXmlPowerTools
         };
 
         internal static XElement ProcessImage(WordprocessingDocument wordDoc,
-            XElement element, Func<ImageInfo, XElement> imageHandler)
+            XElement element, IImageHandler imageHandler)
         {
             if (imageHandler == null)
             {
@@ -3307,7 +3264,7 @@ namespace OpenXmlPowerTools
         }
 
         private static XElement ProcessDrawing(WordprocessingDocument wordDoc,
-            XElement element, Func<ImageInfo, XElement> imageHandler)
+            XElement element, IImageHandler imageHandler)
         {
             var containerElement = element.Elements()
                 .FirstOrDefault(e => e.Name == WP.inline || e.Name == WP.anchor);
@@ -3335,34 +3292,32 @@ namespace OpenXmlPowerTools
                 }
             }
 
-            var extentCx = (int?)containerElement.Elements(WP.extent)
-                .Attributes(NoNamespace.cx).FirstOrDefault();
-            var extentCy = (int?)containerElement.Elements(WP.extent)
-                .Attributes(NoNamespace.cy).FirstOrDefault();
-            var altText = (string)containerElement.Elements(WP.docPr).Attributes(NoNamespace.descr).FirstOrDefault() ??
-                          ((string)containerElement.Elements(WP.docPr).Attributes(NoNamespace.name).FirstOrDefault() ?? "");
+            var extentCx = (int?)containerElement.Elements(WP.extent).Attributes(NoNamespace.cx).FirstOrDefault();
+            var extentCy = (int?)containerElement.Elements(WP.extent).Attributes(NoNamespace.cy).FirstOrDefault();
+            var altText = (string)containerElement.Elements(WP.docPr).Attributes(NoNamespace.descr).FirstOrDefault() ?? ((string)containerElement.Elements(WP.docPr).Attributes(NoNamespace.name).FirstOrDefault() ?? "");
+            var blipFill = containerElement.Elements(A.graphic).Elements(A.graphicData).Elements(Pic._pic).Elements(Pic.blipFill).FirstOrDefault();
 
-            var blipFill = containerElement.Elements(A.graphic)
-                .Elements(A.graphicData)
-                .Elements(Pic._pic).Elements(Pic.blipFill).FirstOrDefault();
             if (blipFill == null)
             {
                 return null;
             }
 
             var imageRid = (string)blipFill.Elements(A.blip).Attributes(R.embed).FirstOrDefault();
+
             if (imageRid == null)
             {
                 return null;
             }
 
             var pp3 = wordDoc.MainDocumentPart.Parts.FirstOrDefault(pp => pp.RelationshipId == imageRid);
+
             if (pp3 == null)
             {
                 return null;
             }
 
             var imagePart = (ImagePart)pp3.OpenXmlPart;
+
             if (imagePart == null)
             {
                 return null;
@@ -3400,7 +3355,7 @@ namespace OpenXmlPowerTools
                     DrawingElement = element,
                     AltText = altText,
                 };
-                var imgElement2 = imageHandler(imageInfo);
+                var imgElement2 = imageHandler.TransformImage(imageInfo);
                 if (hyperlinkUri != null)
                 {
                     return new XElement(XhtmlNoNamespace.a,
@@ -3417,18 +3372,15 @@ namespace OpenXmlPowerTools
                 DrawingElement = element,
                 AltText = altText,
             };
-            var imgElement = imageHandler(imageInfo2);
+            var imgElement = imageHandler.TransformImage(imageInfo2);
             if (hyperlinkUri != null)
             {
-                return new XElement(XhtmlNoNamespace.a,
-                    new XAttribute(XhtmlNoNamespace.href, hyperlinkUri),
-                    imgElement);
+                return new XElement(XhtmlNoNamespace.a, new XAttribute(XhtmlNoNamespace.href, hyperlinkUri), imgElement);
             }
             return imgElement;
         }
 
-        private static XElement ProcessPictureOrObject(WordprocessingDocument wordDoc,
-            XElement element, Func<ImageInfo, XElement> imageHandler)
+        private static XElement ProcessPictureOrObject(WordprocessingDocument wordDoc, XElement element, IImageHandler imageHandler)
         {
             var imageRid = (string)element.Elements(VML.shape).Elements(VML.imagedata).Attributes(R.id).FirstOrDefault();
             if (imageRid == null)
@@ -3470,7 +3422,7 @@ namespace OpenXmlPowerTools
                     var style = (string)element.Elements(VML.shape).Attributes("style").FirstOrDefault();
                     if (style == null)
                     {
-                        return imageHandler(imageInfo);
+                        return imageHandler.TransformImage(imageInfo);
                     }
 
                     var tokens = style.Split(';');
@@ -3482,7 +3434,7 @@ namespace OpenXmlPowerTools
                             string.Format(NumberFormatInfo.InvariantInfo,
                                 "width: {0}pt; height: {1}pt", widthInPoints, heightInPoints));
                     }
-                    return imageHandler(imageInfo);
+                    return imageHandler.TransformImage(imageInfo);
                 }
                 catch (OutOfMemoryException)
                 {

@@ -1,5 +1,6 @@
 ﻿using DocumentFormat.OpenXml.Packaging;
 using OpenXmlPowerTools;
+using OpenXmlPowerTools.Tests;
 using System.IO;
 using System.Linq;
 using Xunit;
@@ -119,7 +120,7 @@ namespace OxPt
                 File.Copy(sourceXlsx.FullName, sourceCopiedToDestXlsx.FullName);
             }
 
-            using var sDoc = SpreadsheetDocument.Open(sourceXlsx.FullName, true);
+            using var sDoc = SpreadsheetDocument.Open(sourceCopiedToDestXlsx.FullName, true);
             var rangeXml = SmlDataRetriever.RetrieveRange(sDoc, sheetName, range);
             var displayValue = (string)rangeXml.Descendants("DisplayValue").FirstOrDefault();
             var displayColor = (string)rangeXml.Descendants("DisplayColor").FirstOrDefault();

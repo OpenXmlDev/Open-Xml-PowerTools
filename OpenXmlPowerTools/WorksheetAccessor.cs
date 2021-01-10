@@ -718,6 +718,7 @@ namespace OpenXmlPowerTools
         }
 
         public enum PivotAxis { Row, Column, Page };
+
         public static void AddPivotAxis(WorksheetPart sheet, string fieldName, PivotAxis axis)
         {
             // Create indexed items in cache and definition
@@ -1564,8 +1565,8 @@ namespace OpenXmlPowerTools
         {
             var styles = document.WorkbookPart.WorkbookStylesPart.GetXDocument();
             var xfId = styles.Root.Element(S.cellStyles).Elements(S.cellStyle)
-                .Where(t => t.Attribute(NoNamespace.name).Value == styleName)
-                .FirstOrDefault().Attribute(NoNamespace.xfId).Value;
+                .FirstOrDefault(t => t.Attribute(NoNamespace.name).Value == styleName)
+                .Attribute(NoNamespace.xfId).Value;
             var cellXfs = styles.Root.Element(S.cellXfs);
             var index = Array.FindIndex(cellXfs.Elements(S.xf).ToArray(),
                 z => z.Attribute(NoNamespace.xfId).Value == xfId);
@@ -2297,6 +2298,7 @@ namespace OpenXmlPowerTools
         /// <summary>
         /// Creates a worksheet document and inserts data into it
         /// </summary>
+        /// <param name="document"></param>
         /// <param name="headerList">List of values that will act as the header</param>
         /// <param name="valueTable">Values for worksheet content</param>
         /// <param name="headerRow">Header row</param>
@@ -2423,9 +2425,7 @@ namespace OpenXmlPowerTools
                 //look if cell already exist at that row
                 var currentCellXElement = rowElement
                     .Elements(ns + "c")
-                    .Where(
-                        t => t.Attribute("r").Value == cellReference
-                    ).FirstOrDefault();
+                    .FirstOrDefault(t => t.Attribute("r").Value == cellReference);
 
                 if (currentCellXElement == null)
                 {   //cell element does not exist at row indicated as parameter
@@ -2444,7 +2444,7 @@ namespace OpenXmlPowerTools
                 }
                 else
                 {
-                    //cell alreay exist
+                    //cell already exists
                     //replace the current cell with that with the new value
                     currentCellXElement.ReplaceWith(newCellXElement);
                 }
@@ -2455,6 +2455,7 @@ namespace OpenXmlPowerTools
         /// Adds a given worksheet to the document
         /// </summary>
         /// <param name="worksheet">Worksheet document to add</param>
+        /// <param name="doc">document</param>
         /// <returns>Worksheet part just added</returns>
         public static WorksheetPart Add(SpreadsheetDocument doc, XDocument worksheet)
         {
@@ -2475,11 +2476,7 @@ namespace OpenXmlPowerTools
                 document.Root
                 .Element(ns + "sheets")
                 .Elements(ns + "sheet")
-                .Where(
-                    t =>
-                        t.Attribute("name").Value.StartsWith("sheet", StringComparison.OrdinalIgnoreCase)
-                )
-                .Count() + 1;
+                .Count(t => t.Attribute("name").Value.StartsWith("sheet", StringComparison.OrdinalIgnoreCase)) + 1;
 
             // Adds content to workbook document to reference worksheet document
             document.Root

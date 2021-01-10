@@ -1,6 +1,7 @@
 ﻿using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Validation;
 using OpenXmlPowerTools;
+using OpenXmlPowerTools.Tests;
 using System;
 using System.IO;
 using System.Linq;
@@ -360,10 +361,7 @@ namespace OxPt
 
             var doc = HtmlToWmlConverter.ConvertHtmlToWml(defaultCss, usedAuthorCss, userCss, html, settings, null, s_ProduceAnnotatedHtml ? annotatedHtmlFi.FullName : null);
             Assert.NotNull(doc);
-            if (doc != null)
-            {
-                SaveValidateAndFormatMainDocPart(destDocxFi, doc);
-            }
+            SaveValidateAndFormatMainDocPart(destDocxFi, doc);
         }
 
         [Theory]
@@ -397,6 +395,11 @@ namespace OxPt
         {
             WmlDocument formattedDoc;
 
+            if (File.Exists(destDocxFi.FullName))
+            {
+                File.Delete(destDocxFi.FullName);
+            }
+
             doc.SaveAs(destDocxFi.FullName);
             using (var ms = new MemoryStream())
             {
@@ -407,12 +410,9 @@ namespace OxPt
                     document.MainDocumentPart.PutXDocumentWithFormatting();
                     var validator = new OpenXmlValidator();
                     var errors = validator.Validate(document);
-                    var errorsString = errors
-                        .Select(e => e.Description + Environment.NewLine)
-                        .StringConcatenate();
+                    var errorsString = errors.Select(e => e.Description + Environment.NewLine).StringConcatenate();
 
-                    // Assert that there were no errors in the generated document.
-                    Assert.Equal("", errorsString);
+                    Assert.True(errorsString.Length == 0, $"Error in {destDocxFi.FullName}\n{errorsString}");
                 }
                 formattedDoc = new WmlDocument(destDocxFi.FullName, ms.ToArray());
             }

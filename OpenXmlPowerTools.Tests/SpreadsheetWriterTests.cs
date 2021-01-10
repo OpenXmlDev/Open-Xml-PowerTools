@@ -1,5 +1,6 @@
 ﻿using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Validation;
+using OpenXmlPowerTools.Tests;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -87,11 +88,12 @@ namespace OxPt
                     }
                 }
             };
-            var outXlsx = new FileInfo(Path.Combine(Sw.TestUtil.TempDir.FullName, "SW001-Simple.xlsx"));
+            var outXlsx = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, "SW001-Simple.xlsx"));
             Sw.SpreadsheetWriter.Write(outXlsx.FullName, wb);
             Validate(outXlsx);
         }
 
+        // Breaks with DocumentFormat.OpenXml 2.12  but works till 2.11.3
         [Fact]
         public void SW002_AllDataTypes()
         {
@@ -295,7 +297,7 @@ namespace OxPt
                     }
                 }
             };
-            var outXlsx = new FileInfo(Path.Combine(Sw.TestUtil.TempDir.FullName, "SW002-DataTypes.xlsx"));
+            var outXlsx = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, "SW002-DataTypes.xlsx"));
             Sw.SpreadsheetWriter.Write(outXlsx.FullName, wb);
             Validate(outXlsx);
         }
@@ -306,8 +308,7 @@ namespace OxPt
             var v = new OpenXmlValidator();
             var errors = v.Validate(sDoc).Where(ve => !s_ExpectedErrors.Contains(ve.Description));
 
-            // if a test fails validation post-processing, then can use this code to determine the SDK
-            // validation error(s).
+            // if a test fails validation post-processing, then can use this code to determine the SDK validation error(s).
 
             if (errors.Any())
             {

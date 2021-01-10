@@ -1,4 +1,5 @@
 ﻿using OpenXmlPowerTools;
+using OpenXmlPowerTools.Tests;
 using System.IO;
 using Xunit;
 
