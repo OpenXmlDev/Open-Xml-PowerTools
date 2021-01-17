@@ -1,4 +1,7 @@
-﻿using DocumentFormat.OpenXml.Packaging;
+﻿// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
+using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Validation;
 using System;
 using System.Collections.Generic;
@@ -14,10 +17,10 @@ namespace OpenXmlPowerTools
 {
     public class MetricsGetterSettings
     {
-        public bool IncludeTextInContentControls { get; set; }
-        public bool IncludeXlsxTableCellData { get; set; }
-        public bool RetrieveNamespaceList { get; set; }
-        public bool RetrieveContentTypeList { get; set; }
+        public bool IncludeTextInContentControls;
+        public bool IncludeXlsxTableCellData;
+        public bool RetrieveNamespaceList;
+        public bool RetrieveContentTypeList;
     }
 
     public class MetricsGetter
@@ -58,22 +61,26 @@ namespace OpenXmlPowerTools
         {
             try
             {
-                using var ms = new MemoryStream();
-                ms.Write(wmlDoc.DocumentByteArray, 0, wmlDoc.DocumentByteArray.Length);
-                using var document = WordprocessingDocument.Open(ms, true);
-                var hasTrackedRevisions = RevisionAccepter.HasTrackedRevisions(document);
-                if (hasTrackedRevisions)
+                using (var ms = new MemoryStream())
                 {
-                    RevisionAccepter.AcceptRevisions(document);
-                }
+                    ms.Write(wmlDoc.DocumentByteArray, 0, wmlDoc.DocumentByteArray.Length);
+                    using (var document = WordprocessingDocument.Open(ms, true))
+                    {
+                        var hasTrackedRevisions = RevisionAccepter.HasTrackedRevisions(document);
+                        if (hasTrackedRevisions)
+                        {
+                            RevisionAccepter.AcceptRevisions(document);
+                        }
 
-                var metrics1 = GetWmlMetrics(wmlDoc.FileName, false, document, settings);
-                if (hasTrackedRevisions)
-                {
-                    metrics1.Add(new XElement(H.RevisionTracking, new XAttribute(H.Val, true)));
-                }
+                        var metrics1 = GetWmlMetrics(wmlDoc.FileName, false, document, settings);
+                        if (hasTrackedRevisions)
+                        {
+                            metrics1.Add(new XElement(H.RevisionTracking, new XAttribute(H.Val, true)));
+                        }
 
-                return metrics1;
+                        return metrics1;
+                    }
+                }
             }
             catch (OpenXmlPowerToolsException e)
             {
@@ -82,26 +89,30 @@ namespace OpenXmlPowerTools
                     using (var ms = new MemoryStream())
                     {
                         ms.Write(wmlDoc.DocumentByteArray, 0, wmlDoc.DocumentByteArray.Length);
-                        UriFixer.FixInvalidUri(ms, brokenUri => FixUri());
+#if !NET35
+                        UriFixer.FixInvalidUri(ms, brokenUri => FixUri(brokenUri));
+#endif
                         wmlDoc = new WmlDocument("dummy.docx", ms.ToArray());
                     }
                     using (var ms = new MemoryStream())
                     {
                         ms.Write(wmlDoc.DocumentByteArray, 0, wmlDoc.DocumentByteArray.Length);
-                        using var document = WordprocessingDocument.Open(ms, true);
-                        var hasTrackedRevisions = RevisionAccepter.HasTrackedRevisions(document);
-                        if (hasTrackedRevisions)
+                        using (var document = WordprocessingDocument.Open(ms, true))
                         {
-                            RevisionAccepter.AcceptRevisions(document);
-                        }
+                            var hasTrackedRevisions = RevisionAccepter.HasTrackedRevisions(document);
+                            if (hasTrackedRevisions)
+                            {
+                                RevisionAccepter.AcceptRevisions(document);
+                            }
 
-                        var metrics2 = GetWmlMetrics(wmlDoc.FileName, true, document, settings);
-                        if (hasTrackedRevisions)
-                        {
-                            metrics2.Add(new XElement(H.RevisionTracking, new XAttribute(H.Val, true)));
-                        }
+                            var metrics2 = GetWmlMetrics(wmlDoc.FileName, true, document, settings);
+                            if (hasTrackedRevisions)
+                            {
+                                metrics2.Add(new XElement(H.RevisionTracking, new XAttribute(H.Val, true)));
+                            }
 
-                        return metrics2;
+                            return metrics2;
+                        }
                     }
                 }
             }
@@ -116,10 +127,12 @@ namespace OpenXmlPowerTools
         {
             try
             {
-                using var f = new Font(ff, (float)sz / 2f, fs);
-                var proposedSize = new Size(int.MaxValue, int.MaxValue);
-                var sf = Graphics.Value.MeasureString(text, f, proposedSize);
-                return (int)sf.Width;
+                using (var f = new Font(ff, (float)sz / 2f, fs))
+                {
+                    var proposedSize = new Size(int.MaxValue, int.MaxValue);
+                    var sf = Graphics.Value.MeasureString(text, f, proposedSize);
+                    return (int)sf.Width;
+                }
             }
             catch
             {
@@ -163,7 +176,7 @@ namespace OpenXmlPowerTools
             }
         }
 
-        private static Uri FixUri()
+        private static Uri FixUri(string brokenUri)
         {
             return new Uri("http://broken-link/");
         }
@@ -217,28 +230,30 @@ namespace OpenXmlPowerTools
             var uniqueNamespaces = new HashSet<string>();
             foreach (var xp in xmlParts)
             {
-                using var st = xp.GetStream();
-                try
+                using (var st = xp.GetStream())
                 {
-                    var xdoc = XDocument.Load(st);
-                    var namespaces = xdoc
-                        .Descendants()
-                        .Attributes()
-                        .Where(a => a.IsNamespaceDeclaration)
-                        .Select(a => string.Format("{0}|{1}", a.Name.LocalName, a.Value))
-                        .OrderBy(t => t)
-                        .Distinct()
-                        .ToList();
-                    foreach (var item in namespaces)
+                    try
                     {
-                        uniqueNamespaces.Add(item);
+                        var xdoc = XDocument.Load(st);
+                        var namespaces = xdoc
+                            .Descendants()
+                            .Attributes()
+                            .Where(a => a.IsNamespaceDeclaration)
+                            .Select(a => string.Format("{0}|{1}", a.Name.LocalName, a.Value))
+                            .OrderBy(t => t)
+                            .Distinct()
+                            .ToList();
+                        foreach (var item in namespaces)
+                        {
+                            uniqueNamespaces.Add(item);
+                        }
                     }
-                }
-                // if catch exception, forget about it.  Just trying to get a most complete survey possible of all namespaces in all documents.
-                // if caught exception, chances are the document is bad anyway.
-                catch (Exception)
-                {
-                    continue;
+                    // if catch exception, forget about it.  Just trying to get a most complete survey possible of all namespaces in all documents.
+                    // if caught exception, chances are the document is bad anyway.
+                    catch (Exception)
+                    {
+                        continue;
+                    }
                 }
             }
             var xe = new XElement(H.Namespaces,
@@ -266,6 +281,7 @@ namespace OpenXmlPowerTools
             var valid = ValidateWordprocessingDocument(document, metrics, notes, elementCountDictionary);
             if (invalidHyperlink)
             {
+                valid = false;
             }
 
             return metrics;
@@ -275,7 +291,9 @@ namespace OpenXmlPowerTools
         {
             var valid = ValidateAgainstSpecificVersion(wDoc, metrics, DocumentFormat.OpenXml.FileFormatVersions.Office2007, H.SdkValidationError2007);
             valid |= ValidateAgainstSpecificVersion(wDoc, metrics, DocumentFormat.OpenXml.FileFormatVersions.Office2010, H.SdkValidationError2010);
+#if !NET35
             valid |= ValidateAgainstSpecificVersion(wDoc, metrics, DocumentFormat.OpenXml.FileFormatVersions.Office2013, H.SdkValidationError2013);
+#endif
 
             var elementCount = 0;
             var paragraphCount = 0;
@@ -420,7 +438,7 @@ namespace OpenXmlPowerTools
         {
             var validator = new OpenXmlValidator(versionToValidateAgainst);
             var errors = validator.Validate(wDoc);
-            var valid = !errors.Any();
+            var valid = errors.Count() == 0;
             if (!valid)
             {
                 if (!metrics.Any(e => e.Name == H.SdkValidationError))
@@ -453,7 +471,7 @@ namespace OpenXmlPowerTools
         {
             var validator = new OpenXmlValidator(versionToValidateAgainst);
             var errors = validator.Validate(sDoc);
-            var valid = !errors.Any();
+            var valid = errors.Count() == 0;
             if (!valid)
             {
                 if (!metrics.Any(e => e.Name == H.SdkValidationError))
@@ -486,7 +504,7 @@ namespace OpenXmlPowerTools
         {
             var validator = new OpenXmlValidator(versionToValidateAgainst);
             var errors = validator.Validate(pDoc);
-            var valid = !errors.Any();
+            var valid = errors.Count() == 0;
             if (!valid)
             {
                 if (!metrics.Any(e => e.Name == H.SdkValidationError))
@@ -617,7 +635,7 @@ namespace OpenXmlPowerTools
                 foreach (var run in xDoc.Descendants(W.r))
                 {
                     formattingMetrics.RunCount++;
-                    AnalyzeRun(run, notes, formattingMetrics, part.Uri.ToString());
+                    AnalyzeRun(run, metrics, notes, formattingMetrics, part.Uri.ToString());
                 }
             }
 
@@ -684,7 +702,7 @@ namespace OpenXmlPowerTools
             }
         }
 
-        private static void AnalyzeRun(XElement run, List<string> notes, FormattingMetrics formattingMetrics, string uri)
+        private static void AnalyzeRun(XElement run, List<XElement> attList, List<string> notes, FormattingMetrics formattingMetrics, string uri)
         {
             var runText = run.Elements()
                 .Where(e => e.Name == W.t || e.Name == W.delText)
@@ -811,21 +829,27 @@ namespace OpenXmlPowerTools
 
         public static XElement GetXlsxMetrics(SmlDocument smlDoc, MetricsGetterSettings settings)
         {
-            using var streamDoc = new OpenXmlMemoryStreamDocument(smlDoc);
-            using var sDoc = streamDoc.GetSpreadsheetDocument();
-            var metrics = new List<XElement>();
+            using (var streamDoc = new OpenXmlMemoryStreamDocument(smlDoc))
+            {
+                using (var sDoc = streamDoc.GetSpreadsheetDocument())
+                {
+                    var metrics = new List<XElement>();
 
-            var valid = ValidateAgainstSpecificVersion(sDoc, metrics, DocumentFormat.OpenXml.FileFormatVersions.Office2007, H.SdkValidationError2007);
-            valid |= ValidateAgainstSpecificVersion(sDoc, metrics, DocumentFormat.OpenXml.FileFormatVersions.Office2010, H.SdkValidationError2010);
-            valid |= ValidateAgainstSpecificVersion(sDoc, metrics, DocumentFormat.OpenXml.FileFormatVersions.Office2013, H.SdkValidationError2013);
+                    var valid = ValidateAgainstSpecificVersion(sDoc, metrics, DocumentFormat.OpenXml.FileFormatVersions.Office2007, H.SdkValidationError2007);
+                    valid |= ValidateAgainstSpecificVersion(sDoc, metrics, DocumentFormat.OpenXml.FileFormatVersions.Office2010, H.SdkValidationError2010);
+#if !NET35
+                    valid |= ValidateAgainstSpecificVersion(sDoc, metrics, DocumentFormat.OpenXml.FileFormatVersions.Office2013, H.SdkValidationError2013);
+#endif
 
-            return new XElement(H.Metrics,
-                new XAttribute(H.FileName, smlDoc.FileName),
-                new XAttribute(H.FileType, "SpreadsheetML"),
-                metrics,
-                GetTableInfoForWorkbook(sDoc, settings),
-                settings.RetrieveNamespaceList ? RetrieveNamespaceList(sDoc) : null,
-                settings.RetrieveContentTypeList ? RetrieveContentTypeList(sDoc) : null);
+                    return new XElement(H.Metrics,
+                        new XAttribute(H.FileName, smlDoc.FileName),
+                        new XAttribute(H.FileType, "SpreadsheetML"),
+                        metrics,
+                        GetTableInfoForWorkbook(sDoc, settings),
+                        settings.RetrieveNamespaceList ? RetrieveNamespaceList(sDoc) : null,
+                        settings.RetrieveContentTypeList ? RetrieveContentTypeList(sDoc) : null);
+                }
+            }
         }
 
         private static XElement GetTableInfoForWorkbook(SpreadsheetDocument spreadsheet, MetricsGetterSettings settings)
@@ -900,19 +924,25 @@ namespace OpenXmlPowerTools
 
         public static XElement GetPptxMetrics(PmlDocument pmlDoc, MetricsGetterSettings settings)
         {
-            using var streamDoc = new OpenXmlMemoryStreamDocument(pmlDoc);
-            using var pDoc = streamDoc.GetPresentationDocument();
-            var metrics = new List<XElement>();
+            using (var streamDoc = new OpenXmlMemoryStreamDocument(pmlDoc))
+            {
+                using (var pDoc = streamDoc.GetPresentationDocument())
+                {
+                    var metrics = new List<XElement>();
 
-            var valid = ValidateAgainstSpecificVersion(pDoc, metrics, DocumentFormat.OpenXml.FileFormatVersions.Office2007, H.SdkValidationError2007);
-            valid |= ValidateAgainstSpecificVersion(pDoc, metrics, DocumentFormat.OpenXml.FileFormatVersions.Office2010, H.SdkValidationError2010);
-            valid |= ValidateAgainstSpecificVersion(pDoc, metrics, DocumentFormat.OpenXml.FileFormatVersions.Office2013, H.SdkValidationError2013);
-            return new XElement(H.Metrics,
-                new XAttribute(H.FileName, pmlDoc.FileName),
-                new XAttribute(H.FileType, "PresentationML"),
-                metrics,
-                settings.RetrieveNamespaceList ? RetrieveNamespaceList(pDoc) : null,
-                settings.RetrieveContentTypeList ? RetrieveContentTypeList(pDoc) : null);
+                    var valid = ValidateAgainstSpecificVersion(pDoc, metrics, DocumentFormat.OpenXml.FileFormatVersions.Office2007, H.SdkValidationError2007);
+                    valid |= ValidateAgainstSpecificVersion(pDoc, metrics, DocumentFormat.OpenXml.FileFormatVersions.Office2010, H.SdkValidationError2010);
+#if !NET35
+                    valid |= ValidateAgainstSpecificVersion(pDoc, metrics, DocumentFormat.OpenXml.FileFormatVersions.Office2013, H.SdkValidationError2013);
+#endif
+                    return new XElement(H.Metrics,
+                        new XAttribute(H.FileName, pmlDoc.FileName),
+                        new XAttribute(H.FileType, "PresentationML"),
+                        metrics,
+                        settings.RetrieveNamespaceList ? RetrieveNamespaceList(pDoc) : null,
+                        settings.RetrieveContentTypeList ? RetrieveContentTypeList(pDoc) : null);
+                }
+            }
         }
 
         private static object GetStyleHierarchy(WordprocessingDocument document)
@@ -954,7 +984,7 @@ namespace OpenXmlPowerTools
             {
                 var styleChain = item.Split('/');
                 var elementToAddTo = styleHierarchy;
-                foreach (var inChain in styleChain.SkipLast(1))
+                foreach (var inChain in styleChain.PtSkipLast(1))
                 {
                     elementToAddTo = elementToAddTo.Elements(H.Style).FirstOrDefault(z => z.Attribute(H.Id).Value == inChain);
                 }
@@ -1124,142 +1154,142 @@ namespace OpenXmlPowerTools
 
     public static class H
     {
-        public static readonly XName ActiveX = "ActiveX";
-        public static readonly XName Alias = "Alias";
-        public static readonly XName AltChunk = "AltChunk";
-        public static readonly XName Arguments = "Arguments";
-        public static readonly XName AsciiCharCount = "AsciiCharCount";
-        public static readonly XName AsciiRunCount = "AsciiRunCount";
-        public static readonly XName AverageParagraphLength = "AverageParagraphLength";
-        public static readonly XName BaselineReport = "BaselineReport";
-        public static readonly XName Batch = "Batch";
-        public static readonly XName BatchName = "BatchName";
-        public static readonly XName BatchSelector = "BatchSelector";
-        public static readonly XName CSCharCount = "CSCharCount";
-        public static readonly XName CSRunCount = "CSRunCount";
-        public static readonly XName Catalog = "Catalog";
-        public static readonly XName CatalogList = "CatalogList";
-        public static readonly XName CatalogListFile = "CatalogListFile";
-        public static readonly XName CaughtException = "CaughtException";
-        public static readonly XName Cell = "Cell";
-        public static readonly XName Column = "Column";
-        public static readonly XName Columns = "Columns";
-        public static readonly XName ComplexField = "ComplexField";
-        public static readonly XName Computer = "Computer";
-        public static readonly XName Computers = "Computers";
-        public static readonly XName ContentControl = "ContentControl";
-        public static readonly XName ContentControls = "ContentControls";
-        public static readonly XName ContentType = "ContentType";
-        public static readonly XName ContentTypes = "ContentTypes";
-        public static readonly XName CustomXmlMarkup = "CustomXmlMarkup";
-        public static readonly XName DLL = "DLL";
-        public static readonly XName DefaultDialogValuesFile = "DefaultDialogValuesFile";
-        public static readonly XName DefaultValues = "DefaultValues";
-        public static readonly XName Dependencies = "Dependencies";
-        public static readonly XName DestinationDir = "DestinationDir";
-        public static readonly XName Directory = "Directory";
-        public static readonly XName DirectoryPattern = "DirectoryPattern";
-        public static readonly XName DisplayName = "DisplayName";
-        public static readonly XName DoJobQueueName = "DoJobQueueName";
-        public static readonly XName Document = "Document";
-        public static readonly XName DocumentProtection = "DocumentProtection";
-        public static readonly XName DocumentSelector = "DocumentSelector";
-        public static readonly XName DocumentType = "DocumentType";
-        public static readonly XName Documents = "Documents";
-        public static readonly XName EastAsiaCharCount = "EastAsiaCharCount";
-        public static readonly XName EastAsiaRunCount = "EastAsiaRunCount";
-        public static readonly XName ElementCount = "ElementCount";
-        public static readonly XName EmbeddedXlsx = "EmbeddedXlsx";
-        public static readonly XName Error = "Error";
-        public static readonly XName Exception = "Exception";
-        public static readonly XName Exe = "Exe";
-        public static readonly XName ExeRoot = "ExeRoot";
-        public static readonly XName Extension = "Extension";
-        public static readonly XName File = "File";
-        public static readonly XName FileLength = "FileLength";
-        public static readonly XName FileName = "FileName";
-        public static readonly XName FilePattern = "FilePattern";
-        public static readonly XName FileType = "FileType";
-        public static readonly XName Guid = "Guid";
-        public static readonly XName HAnsiCharCount = "HAnsiCharCount";
-        public static readonly XName HAnsiRunCount = "HAnsiRunCount";
-        public static readonly XName RevisionTracking = "RevisionTracking";
-        public static readonly XName Hyperlink = "Hyperlink";
-        public static readonly XName IPAddress = "IPAddress";
-        public static readonly XName Id = "Id";
-        public static readonly XName Invalid = "Invalid";
-        public static readonly XName InvalidHyperlink = "InvalidHyperlink";
-        public static readonly XName InvalidHyperlinkException = "InvalidHyperlinkException";
-        public static readonly XName InvalidSaveThroughXslt = "InvalidSaveThroughXslt";
-        public static readonly XName JobComplete = "JobComplete";
-        public static readonly XName JobExe = "JobExe";
-        public static readonly XName JobName = "JobName";
-        public static readonly XName JobSpec = "JobSpec";
-        public static readonly XName Languages = "Languages";
-        public static readonly XName LegacyFrame = "LegacyFrame";
-        public static readonly XName LocalDoJobQueue = "LocalDoJobQueue";
-        public static readonly XName MachineName = "MachineName";
-        public static readonly XName MaxConcurrentJobs = "MaxConcurrentJobs";
-        public static readonly XName MaxDocumentsInJob = "MaxDocumentsInJob";
-        public static readonly XName MaxParagraphLength = "MaxParagraphLength";
-        public static readonly XName Message = "Message";
-        public static readonly XName Metrics = "Metrics";
-        public static readonly XName MultiDirectory = "MultiDirectory";
-        public static readonly XName MultiFontRun = "MultiFontRun";
-        public static readonly XName MultiServerQueue = "MultiServerQueue";
-        public static readonly XName Name = "Name";
-        public static readonly XName Namespaces = "Namespaces";
-        public static readonly XName Namespace = "Namespace";
-        public static readonly XName NamespaceName = "NamespaceName";
-        public static readonly XName NamespacePrefix = "NamespacePrefix";
-        public static readonly XName Note = "Note";
-        public static readonly XName NumberingFormatList = "NumberingFormatList";
-        public static readonly XName ObjectDisposedException = "ObjectDisposedException";
-        public static readonly XName ParagraphCount = "ParagraphCount";
-        public static readonly XName Part = "Part";
-        public static readonly XName Parts = "Parts";
-        public static readonly XName PassedDocuments = "PassedDocuments";
-        public static readonly XName Path = "Path";
-        public static readonly XName ProduceCatalog = "ProduceCatalog";
-        public static readonly XName ReferenceToNullImage = "ReferenceToNullImage";
-        public static readonly XName Report = "Report";
-        public static readonly XName Root = "Root";
-        public static readonly XName RootDirectory = "RootDirectory";
-        public static readonly XName Row = "Row";
-        public static readonly XName RunCount = "RunCount";
-        public static readonly XName RunWithoutRprCount = "RunWithoutRprCount";
-        public static readonly XName SdkValidationError = "SdkValidationError";
-        public static readonly XName SdkValidationError2007 = "SdkValidationError2007";
-        public static readonly XName SdkValidationError2010 = "SdkValidationError2010";
-        public static readonly XName SdkValidationError2013 = "SdkValidationError2013";
-        public static readonly XName Sheet = "Sheet";
-        public static readonly XName Sheets = "Sheets";
-        public static readonly XName SimpleField = "SimpleField";
-        public static readonly XName Skip = "Skip";
-        public static readonly XName SmartTag = "SmartTag";
-        public static readonly XName SourceRootDir = "SourceRootDir";
-        public static readonly XName SpawnerJobExeLocation = "SpawnerJobExeLocation";
-        public static readonly XName SpawnerReady = "SpawnerReady";
-        public static readonly XName Style = "Style";
-        public static readonly XName StyleHierarchy = "StyleHierarchy";
-        public static readonly XName SubDocument = "SubDocument";
-        public static readonly XName Table = "Table";
-        public static readonly XName TableData = "TableData";
-        public static readonly XName Tag = "Tag";
-        public static readonly XName Take = "Take";
-        public static readonly XName TextBox = "TextBox";
-        public static readonly XName TrackRevisionsEnabled = "TrackRevisionsEnabled";
-        public static readonly XName Type = "Type";
-        public static readonly XName Uri = "Uri";
-        public static readonly XName Val = "Val";
-        public static readonly XName Valid = "Valid";
-        public static readonly XName WindowStyle = "WindowStyle";
-        public static readonly XName XPath = "XPath";
-        public static readonly XName ZeroLengthText = "ZeroLengthText";
-        public static readonly XName custDataLst = "custDataLst";
-        public static readonly XName custShowLst = "custShowLst";
-        public static readonly XName kinsoku = "kinsoku";
-        public static readonly XName modifyVerifier = "modifyVerifier";
-        public static readonly XName photoAlbum = "photoAlbum";
+        public static XName ActiveX = "ActiveX";
+        public static XName Alias = "Alias";
+        public static XName AltChunk = "AltChunk";
+        public static XName Arguments = "Arguments";
+        public static XName AsciiCharCount = "AsciiCharCount";
+        public static XName AsciiRunCount = "AsciiRunCount";
+        public static XName AverageParagraphLength = "AverageParagraphLength";
+        public static XName BaselineReport = "BaselineReport";
+        public static XName Batch = "Batch";
+        public static XName BatchName = "BatchName";
+        public static XName BatchSelector = "BatchSelector";
+        public static XName CSCharCount = "CSCharCount";
+        public static XName CSRunCount = "CSRunCount";
+        public static XName Catalog = "Catalog";
+        public static XName CatalogList = "CatalogList";
+        public static XName CatalogListFile = "CatalogListFile";
+        public static XName CaughtException = "CaughtException";
+        public static XName Cell = "Cell";
+        public static XName Column = "Column";
+        public static XName Columns = "Columns";
+        public static XName ComplexField = "ComplexField";
+        public static XName Computer = "Computer";
+        public static XName Computers = "Computers";
+        public static XName ContentControl = "ContentControl";
+        public static XName ContentControls = "ContentControls";
+        public static XName ContentType = "ContentType";
+        public static XName ContentTypes = "ContentTypes";
+        public static XName CustomXmlMarkup = "CustomXmlMarkup";
+        public static XName DLL = "DLL";
+        public static XName DefaultDialogValuesFile = "DefaultDialogValuesFile";
+        public static XName DefaultValues = "DefaultValues";
+        public static XName Dependencies = "Dependencies";
+        public static XName DestinationDir = "DestinationDir";
+        public static XName Directory = "Directory";
+        public static XName DirectoryPattern = "DirectoryPattern";
+        public static XName DisplayName = "DisplayName";
+        public static XName DoJobQueueName = "DoJobQueueName";
+        public static XName Document = "Document";
+        public static XName DocumentProtection = "DocumentProtection";
+        public static XName DocumentSelector = "DocumentSelector";
+        public static XName DocumentType = "DocumentType";
+        public static XName Documents = "Documents";
+        public static XName EastAsiaCharCount = "EastAsiaCharCount";
+        public static XName EastAsiaRunCount = "EastAsiaRunCount";
+        public static XName ElementCount = "ElementCount";
+        public static XName EmbeddedXlsx = "EmbeddedXlsx";
+        public static XName Error = "Error";
+        public static XName Exception = "Exception";
+        public static XName Exe = "Exe";
+        public static XName ExeRoot = "ExeRoot";
+        public static XName Extension = "Extension";
+        public static XName File = "File";
+        public static XName FileLength = "FileLength";
+        public static XName FileName = "FileName";
+        public static XName FilePattern = "FilePattern";
+        public static XName FileType = "FileType";
+        public static XName Guid = "Guid";
+        public static XName HAnsiCharCount = "HAnsiCharCount";
+        public static XName HAnsiRunCount = "HAnsiRunCount";
+        public static XName RevisionTracking = "RevisionTracking";
+        public static XName Hyperlink = "Hyperlink";
+        public static XName IPAddress = "IPAddress";
+        public static XName Id = "Id";
+        public static XName Invalid = "Invalid";
+        public static XName InvalidHyperlink = "InvalidHyperlink";
+        public static XName InvalidHyperlinkException = "InvalidHyperlinkException";
+        public static XName InvalidSaveThroughXslt = "InvalidSaveThroughXslt";
+        public static XName JobComplete = "JobComplete";
+        public static XName JobExe = "JobExe";
+        public static XName JobName = "JobName";
+        public static XName JobSpec = "JobSpec";
+        public static XName Languages = "Languages";
+        public static XName LegacyFrame = "LegacyFrame";
+        public static XName LocalDoJobQueue = "LocalDoJobQueue";
+        public static XName MachineName = "MachineName";
+        public static XName MaxConcurrentJobs = "MaxConcurrentJobs";
+        public static XName MaxDocumentsInJob = "MaxDocumentsInJob";
+        public static XName MaxParagraphLength = "MaxParagraphLength";
+        public static XName Message = "Message";
+        public static XName Metrics = "Metrics";
+        public static XName MultiDirectory = "MultiDirectory";
+        public static XName MultiFontRun = "MultiFontRun";
+        public static XName MultiServerQueue = "MultiServerQueue";
+        public static XName Name = "Name";
+        public static XName Namespaces = "Namespaces";
+        public static XName Namespace = "Namespace";
+        public static XName NamespaceName = "NamespaceName";
+        public static XName NamespacePrefix = "NamespacePrefix";
+        public static XName Note = "Note";
+        public static XName NumberingFormatList = "NumberingFormatList";
+        public static XName ObjectDisposedException = "ObjectDisposedException";
+        public static XName ParagraphCount = "ParagraphCount";
+        public static XName Part = "Part";
+        public static XName Parts = "Parts";
+        public static XName PassedDocuments = "PassedDocuments";
+        public static XName Path = "Path";
+        public static XName ProduceCatalog = "ProduceCatalog";
+        public static XName ReferenceToNullImage = "ReferenceToNullImage";
+        public static XName Report = "Report";
+        public static XName Root = "Root";
+        public static XName RootDirectory = "RootDirectory";
+        public static XName Row = "Row";
+        public static XName RunCount = "RunCount";
+        public static XName RunWithoutRprCount = "RunWithoutRprCount";
+        public static XName SdkValidationError = "SdkValidationError";
+        public static XName SdkValidationError2007 = "SdkValidationError2007";
+        public static XName SdkValidationError2010 = "SdkValidationError2010";
+        public static XName SdkValidationError2013 = "SdkValidationError2013";
+        public static XName Sheet = "Sheet";
+        public static XName Sheets = "Sheets";
+        public static XName SimpleField = "SimpleField";
+        public static XName Skip = "Skip";
+        public static XName SmartTag = "SmartTag";
+        public static XName SourceRootDir = "SourceRootDir";
+        public static XName SpawnerJobExeLocation = "SpawnerJobExeLocation";
+        public static XName SpawnerReady = "SpawnerReady";
+        public static XName Style = "Style";
+        public static XName StyleHierarchy = "StyleHierarchy";
+        public static XName SubDocument = "SubDocument";
+        public static XName Table = "Table";
+        public static XName TableData = "TableData";
+        public static XName Tag = "Tag";
+        public static XName Take = "Take";
+        public static XName TextBox = "TextBox";
+        public static XName TrackRevisionsEnabled = "TrackRevisionsEnabled";
+        public static XName Type = "Type";
+        public static XName Uri = "Uri";
+        public static XName Val = "Val";
+        public static XName Valid = "Valid";
+        public static XName WindowStyle = "WindowStyle";
+        public static XName XPath = "XPath";
+        public static XName ZeroLengthText = "ZeroLengthText";
+        public static XName custDataLst = "custDataLst";
+        public static XName custShowLst = "custShowLst";
+        public static XName kinsoku = "kinsoku";
+        public static XName modifyVerifier = "modifyVerifier";
+        public static XName photoAlbum = "photoAlbum";
     }
 }

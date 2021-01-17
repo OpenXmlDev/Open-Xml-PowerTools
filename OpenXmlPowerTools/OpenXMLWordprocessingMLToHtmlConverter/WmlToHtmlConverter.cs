@@ -2487,11 +2487,8 @@ namespace OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
         }
 
         // Non-breaking spaces are not required if we use appropriate CSS, i.e., "white-space: pre-wrap;".
-        // We only need to make sure that empty w:p elements are translated into non-empty h:p elements,
-        // because empty h:p elements would be ignored by browsers.
-        // Further, in addition to not being required, non-breaking spaces would change the layout behavior
-        // of spans having consecutive spaces. Therefore, avoiding non-breaking spaces has the additional
-        // benefit of leading to a more faithful representation of the Word document in HTML.
+        // We only need to make sure that empty w:p elements are translated into non-empty h:p elements, because empty h:p elements would be ignored by browsers.
+        // Further, in addition to not being required, non-breaking spaces would change the layout behavior of spans having consecutive spaces. Therefore, avoiding non-breaking spaces has the additional benefit of leading to a more faithful representation of the Word document in HTML.
         private static object InsertAppropriateNonbreakingSpacesTransform(XNode node)
         {
             if (node is XElement element)
