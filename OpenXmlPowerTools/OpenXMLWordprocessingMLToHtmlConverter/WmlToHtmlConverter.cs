@@ -362,16 +362,13 @@ namespace OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
             // Transform every w:t element to a text node.
             if (element.Name == W.t)
             {
-                // We don't need &nbsp; entities for significant whitespace because we are wrapping the text nodes in <span> elements within which all whitespace is significant.
-                return new XText(settings.WordprocessingTextHandler.TransformText(element.Value, styleContext));
+                return settings.WordprocessingTextHandler.TransformText(element.Value, styleContext);
             }
 
             // Transform symbols to spans
             if (element.Name == W.sym)
             {
-                var cs = (string)element.Attribute(W._char);
-                var c = Convert.ToInt32(cs, 16);
-                return new XElement(Xhtml.span, new XEntity(string.Format("#{0}", c)));
+                return settings.WordprocessingSymbolHandler.TransformSymbol(element, styleContext);
             }
 
             // Transform tabs that have the pt:TabWidth attribute set

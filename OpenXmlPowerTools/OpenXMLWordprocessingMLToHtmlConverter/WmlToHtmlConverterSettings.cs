@@ -36,6 +36,8 @@ namespace OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
         /// </summary>
         public IWordprocessingTextHandler WordprocessingTextHandler { get; }
 
+        public IWordprocessingSymbolHandler WordprocessingSymbolHandler { get; }
+
         /// <summary>
         /// Default ctor WmlToHtmlConverterSettings
         /// </summary>
@@ -43,17 +45,20 @@ namespace OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
         {
             ImageHandler = new DefaultImageHandler();
             WordprocessingTextHandler = new WordprocessingTextDummyHandler();
+            WordprocessingSymbolHandler = new DefaultSymbolHandler();
         }
 
         /// <summary>
         /// Ctor WmlToHtmlConverterSettings
         /// </summary>
-        /// <param name="customImageHandler"></param>
-        /// <param name="wordprocessingTextHandler"></param>
-        public WmlToHtmlConverterSettings(IImageHandler customImageHandler, IWordprocessingTextHandler wordprocessingTextHandler)
+        /// <param name="customImageHandler">Handler used to convert open XML images to HTML images</param>
+        /// <param name="wordprocessingTextHandler">Handler used to convert open XML text to HTML compatible text</param>
+        /// <param name="wordprocessingSymbolHandler">Handler used to convert open XML symbols to HTML compatible text</param>
+        public WmlToHtmlConverterSettings(IImageHandler customImageHandler, IWordprocessingTextHandler wordprocessingTextHandler, IWordprocessingSymbolHandler wordprocessingSymbolHandler)
         {
             ImageHandler = customImageHandler;
             WordprocessingTextHandler = wordprocessingTextHandler;
+            WordprocessingSymbolHandler = wordprocessingSymbolHandler;
         }
     }
 }
