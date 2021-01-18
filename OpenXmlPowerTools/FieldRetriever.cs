@@ -1,4 +1,7 @@
-﻿using DocumentFormat.OpenXml.Packaging;
+﻿// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
+using DocumentFormat.OpenXml.Packaging;
 using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Linq;
@@ -11,6 +14,19 @@ namespace OpenXmlPowerTools
         {
             XNamespace w = "http://schemas.openxmlformats.org/wordprocessingml/2006/main";
 
+#if false
+            // This is the old code.  Both versions work - the caching version is significantly faster.
+            var relevantElements = root.Descendants()
+                .Where(e =>
+                {
+                    Stack<FieldElementTypeInfo> s = e.Annotation<Stack<FieldElementTypeInfo>>();
+                    if (s != null)
+                        return s.Any(z => z.Id == id &&
+                            z.FieldElementType == FieldElementTypeEnum.InstrText);
+                    return false;
+                })
+                .ToList();
+#else
             var cachedAnnotationInformation = root.Annotation<Dictionary<int, List<XElement>>>();
             if (cachedAnnotationInformation == null)
             {
@@ -24,6 +40,7 @@ namespace OpenXmlPowerTools
             }
 
             var relevantElements = cachedAnnotationInformation[id];
+#endif
 
             var groupedSubFields = relevantElements
                 .GroupAdjacent(e =>
@@ -38,7 +55,7 @@ namespace OpenXmlPowerTools
             var instrText = groupedSubFields
                 .Select(g =>
                 {
-                    if (!g.Key)
+                    if (g.Key == false)
                     {
                         return g.Select(e =>
                         {
@@ -107,7 +124,7 @@ namespace OpenXmlPowerTools
                                     Id = s.Id + 1,
                                     FiStack = fis,
                                 };
-                            }
+                            };
                             if (e.Attribute(w + "fldCharType").Value == "separate")
                             {
                                 var fis = new Stack<FieldElementTypeInfo>(s.FiStack.Reverse());
@@ -135,7 +152,7 @@ namespace OpenXmlPowerTools
                                 };
                             }
                         }
-                        if (s.FiStack == null || s.FiStack.Count == 0)
+                        if (s.FiStack == null || s.FiStack.Count() == 0)
                         {
                             return s;
                         }
@@ -195,7 +212,7 @@ namespace OpenXmlPowerTools
                 return new
                 {
                     Element = t1,
-                    t2.Id,
+                    Id = t2.Id,
                     WmlFieldInfoStack = t2.FiStack,
                 };
             });
@@ -206,22 +223,6 @@ namespace OpenXmlPowerTools
                     item.Element.AddAnnotation(item.WmlFieldInfoStack);
                 }
             }
-
-            //This code is useful when you want to take a look at the annotations, making sure that they are made correctly.
-            //
-            //foreach (var desc in root.DescendantsAndSelf())
-            //{
-            //    Stack<FieldElementTypeInfo> s = desc.Annotation<Stack<FieldElementTypeInfo>>();
-            //    if (s != null)
-            //    {
-            //        Console.WriteLine(desc.Name.LocalName.PadRight(20));
-            //        foreach (var item in s)
-            //        {
-            //            Console.WriteLine("    {0:0000} {1}", item.Id, item.FieldElementType.ToString());
-            //            Console.ReadKey();
-            //        }
-            //    }
-            //}
 
             var cachedAnnotationInformation = new Dictionary<int, List<XElement>>();
             foreach (var desc in root.DescendantsTrimmed(d => d.Name == W.rPr || d.Name == W.pPr))
@@ -366,8 +367,8 @@ namespace OpenXmlPowerTools
             var emptyField = new FieldInfo
             {
                 FieldType = "",
-                Arguments = System.Array.Empty<string>(),
-                Switches = System.Array.Empty<string>(),
+                Arguments = new string[] { },
+                Switches = new string[] { },
             };
 
             if (field.Length == 0)
@@ -384,7 +385,9 @@ namespace OpenXmlPowerTools
             if (fieldType.ToUpper() != "HYPERLINK" &&
                 fieldType.ToUpper() != "REF" &&
                 fieldType.ToUpper() != "SEQ" &&
-                fieldType.ToUpper() != "STYLEREF")
+                fieldType.ToUpper() != "STYLEREF" &&
+                fieldType.ToUpper() != "LISTNUM" &&
+                fieldType.ToUpper() != "PAGE")
             {
                 return emptyField;
             }
@@ -406,9 +409,9 @@ namespace OpenXmlPowerTools
 
         public class FieldInfo
         {
-            public string FieldType { get; set; }
-            public string[] Switches { get; set; }
-            public string[] Arguments { get; set; }
+            public string FieldType;
+            public string[] Switches;
+            public string[] Arguments;
         }
 
         public enum FieldElementTypeEnum
@@ -422,14 +425,14 @@ namespace OpenXmlPowerTools
 
         public class FieldElementTypeInfo
         {
-            public int Id { get; set; }
-            public FieldElementTypeEnum FieldElementType { get; set; }
+            public int Id;
+            public FieldElementTypeEnum FieldElementType;
         }
 
         public class FieldElementTypeStack
         {
-            public int Id { get; set; }
-            public Stack<FieldElementTypeInfo> FiStack { get; set; }
+            public int Id;
+            public Stack<FieldElementTypeInfo> FiStack;
         }
     }
 }

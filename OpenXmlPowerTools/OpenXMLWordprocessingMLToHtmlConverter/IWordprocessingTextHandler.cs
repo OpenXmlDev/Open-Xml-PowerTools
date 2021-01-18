@@ -3,7 +3,7 @@
 namespace OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
 {
     /// <summary>
-    /// Handler that get transforms every text in w:t
+    /// Handler that transforms every text in w:t
     /// </summary>
     public interface IWordprocessingTextHandler
     {
