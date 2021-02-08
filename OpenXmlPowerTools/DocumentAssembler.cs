@@ -521,6 +521,7 @@ namespace OpenXmlPowerTools
                                       <xs:attribute name='Select' type='xs:string' use='required' />
                                       <xs:attribute name='Match' type='xs:string' use='optional' />
                                       <xs:attribute name='NotMatch' type='xs:string' use='optional' />
+                                      <xs:attribute name='Optional' type='xs:boolean' use='optional' />
                                     </xs:complexType>
                                   </xs:element>
                                 </xs:schema>",
@@ -750,6 +751,8 @@ namespace OpenXmlPowerTools
                     string xPath = (string)element.Attribute(PA.Select);
                     var match = (string)element.Attribute(PA.Match);
                     var notMatch = (string)element.Attribute(PA.NotMatch);
+                    var optionalString = (string)element.Attribute(PA.Optional);
+                    bool optional = (optionalString != null && optionalString.ToLower() == "true");
 
                     if (match == null && notMatch == null)
                         return CreateContextErrorMessage(element, "Conditional: Must specify either Match or NotMatch", templateError);
@@ -760,7 +763,7 @@ namespace OpenXmlPowerTools
                    
                     try
                     {
-                        testValue = EvaluateXPathToString(data, xPath, false);
+                        testValue = EvaluateXPathToString(data, xPath, optional);
                     }
 	                catch (XPathException e)
                     {
@@ -815,7 +818,7 @@ namespace OpenXmlPowerTools
             return errorPara;
         }
 
-        private static string EvaluateXPathToString(XElement element, string xPath, bool optional )
+        private static string EvaluateXPathToString(XElement element, string xPath, bool optional)
         {
             object xPathSelectResult;
             try
