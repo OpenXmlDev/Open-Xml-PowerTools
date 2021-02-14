@@ -7,7 +7,7 @@ namespace OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
     /// <summary>
     /// Default handler that transforms every symbol into some html encoded font specific char
     /// </summary>
-    public class DefaultSymbolHandler : IWordprocessingSymbolHandler
+    public class SymbolHandler : ISymbolHandler
     {
         /// <summary>
         /// Default handler that transforms every symbol into some html encoded font specific char

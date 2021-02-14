@@ -5,7 +5,7 @@ namespace OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
 {    /// <summary>
      /// Handler that transforms every symbol from w:sym
      /// </summary>
-    public interface IWordprocessingSymbolHandler
+    public interface ISymbolHandler
     {
         /// <summary>
         /// Returns some kind of changed symbol, that will be used instead of the original in a w:sym element

@@ -368,14 +368,8 @@ AAsACwDBAgAAbCwAAAAA";
                 pageTitle = fi.FullName;
             }
 
-            var settings = new WmlToHtmlConverterSettings()
-            {
-                PageTitle = pageTitle,
-                FabricateCssClasses = true,
-                CssClassPrefix = "pt-",
-                RestrictToSupportedLanguages = false,
-                RestrictToSupportedNumberingFormats = false
-            };
+            var settings = new WmlToHtmlConverterSettings(pageTitle);
+
             var html = WmlToHtmlConverter.ConvertToHtml(wDoc, settings);
 
             // Note: the xhtml returned by ConvertToHtmlTransform contains objects of type XEntity.  PtOpenXmlUtil.cs define the XEntity class.  See http://blogs.msdn.com/ericwhite/archive/2010/01/21/writing-entity-references-using-linq-to-xml.aspx for detailed explanation.

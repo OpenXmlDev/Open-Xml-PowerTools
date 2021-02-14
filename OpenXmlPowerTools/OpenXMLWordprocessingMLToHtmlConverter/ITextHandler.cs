@@ -5,7 +5,7 @@ namespace OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
     /// <summary>
     /// Handler that transforms every text in w:t
     /// </summary>
-    public interface IWordprocessingTextHandler
+    public interface ITextHandler
     {
         /// <summary>
         /// Returns some kind of changed text, that will be used instead of the original in w:t elements

@@ -69,6 +69,7 @@ namespace OxPt
         [InlineData("HC051-Shaded-Text-02.docx")]
         [InlineData("HC060-Image-with-Hyperlink.docx")]
         [InlineData("HC061-Hyperlink-in-Field.docx")]
+        [InlineData("TwoPages.docx")]
         public void HC001(string name)
         {
             var sourceDir = new DirectoryInfo("../../../../TestFiles/");
@@ -89,53 +90,6 @@ namespace OxPt
             ConvertToHtml(sourceDocx, oxPtConvertedDestHtml, true);
         }
 
-        private static void CopyFormattingAssembledDocx(FileInfo source, FileInfo dest)
-        {
-            var ba = File.ReadAllBytes(source.FullName);
-            using var ms = new MemoryStream();
-            ms.Write(ba, 0, ba.Length);
-            using (var wordDoc = WordprocessingDocument.Open(ms, true))
-            {
-                RevisionAccepter.AcceptRevisions(wordDoc);
-                var simplifyMarkupSettings = new SimplifyMarkupSettings
-                {
-                    RemoveComments = true,
-                    RemoveContentControls = true,
-                    RemoveEndAndFootNotes = true,
-                    RemoveFieldCodes = false,
-                    RemoveLastRenderedPageBreak = true,
-
-                    RemovePermissions = true,
-                    RemoveProof = true,
-                    RemoveRsidInfo = true,
-                    RemoveSmartTags = true,
-                    RemoveSoftHyphens = true,
-                    RemoveGoBackBookmark = true,
-                    ReplaceTabsWithSpaces = false,
-                };
-                MarkupSimplifier.SimplifyMarkup(wordDoc, simplifyMarkupSettings);
-
-                var formattingAssemblerSettings = new FormattingAssemblerSettings
-                {
-                    RemoveStyleNamesFromParagraphAndRunProperties = false,
-                    ClearStyles = false,
-                    RestrictToSupportedLanguages = false,
-                    RestrictToSupportedNumberingFormats = false,
-                    CreateHtmlConverterAnnotationAttributes = true,
-                    OrderElementsPerStandard = false,
-                    ListItemRetrieverSettings =
-                        new ListItemRetrieverSettings()
-                        {
-                            ListItemTextImplementations = ListItemRetrieverSettings.DefaultListItemTextImplementations,
-                        },
-                };
-
-                FormattingAssembler.AssembleFormatting(wordDoc, formattingAssemblerSettings);
-            }
-            var newBa = ms.ToArray();
-            File.WriteAllBytes(dest.FullName, newBa);
-        }
-
         private static void ConvertToHtml(FileInfo sourceDocx, FileInfo destFileName, bool fabricateCssClasses)
         {
             var byteArray = File.ReadAllBytes(sourceDocx.FullName);
@@ -151,15 +105,7 @@ namespace OxPt
                 pageTitle = sourceDocx.FullName;
             }
 
-            var settings = new WmlToHtmlConverterSettings()
-            {
-                PageTitle = pageTitle,
-                FabricateCssClasses = fabricateCssClasses,
-                CssClassPrefix = fabricateCssClasses ? "pt-" : null,
-                RestrictToSupportedLanguages = false,
-                RestrictToSupportedNumberingFormats = false
-            };
-
+            var settings = new WmlToHtmlConverterSettings(pageTitle);
             var html = WmlToHtmlConverter.ConvertToHtml(wDoc, settings);
 
             // Note: the xhtml returned by ConvertToHtmlTransform contains objects of type XEntity.  PtOpenXmlUtil.cs define the XEntity class. See http://blogs.msdn.com/ericwhite/archive/2010/01/21/writing-entity-references-using-linq-to-xml.aspx for detailed explanation.

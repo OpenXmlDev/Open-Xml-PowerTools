@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
+using System.Linq;
 using System.Xml.Linq;
 using Xunit;
 
@@ -45,7 +46,7 @@ namespace OxPt
                 Bitmap = input
             };
 
-            var defaultImageHandler = new DefaultImageHandler();
+            var defaultImageHandler = new ImageHandler();
 
             var actual = defaultImageHandler.TransformImage(imageInfo).ToString();
 
@@ -64,13 +65,28 @@ namespace OxPt
         public void ShouldTranslateSymbolsToUnicodeWithDefaultSymbolHandler()
         {
             Dictionary<string, string> fontFamily = default!;
-            var defaultSymbolHandler = new DefaultSymbolHandler();
+            var defaultSymbolHandler = new SymbolHandler();
 
             var element = new XElement("symbol", new XAttribute(W._char, "A"));
 
             var actual = defaultSymbolHandler.TransformSymbol(element, fontFamily);
 
             Assert.Equal("<span xmlns=\"http://www.w3.org/1999/xhtml\">&#10;</span>", actual.ToString());
+        }
+
+        [Fact]
+        public void ShouldTranslatePageBreaksWithBreakHandler()
+        {
+            var breakHandler = new BreakHandler();
+
+            var element = new XElement("br");
+
+            var actual = breakHandler.TransformBreak(element);
+
+            Assert.Equal(3, actual.Count());
+            Assert.Equal("<br xmlns=\"http://www.w3.org/1999/xhtml\" />", actual.ElementAt(0).ToString());
+            Assert.Equal("&#x200e;", actual.ElementAt(1).ToString());
+            Assert.Null(actual.ElementAt(2));
         }
     }
 }

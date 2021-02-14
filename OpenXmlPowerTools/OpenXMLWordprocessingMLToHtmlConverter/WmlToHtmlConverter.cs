@@ -362,13 +362,13 @@ namespace OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
             // Transform every w:t element to a text node.
             if (element.Name == W.t)
             {
-                return settings.WordprocessingTextHandler.TransformText(element.Value, styleContext);
+                return settings.TextHandler.TransformText(element.Value, styleContext);
             }
 
             // Transform symbols to spans
             if (element.Name == W.sym)
             {
-                return settings.WordprocessingSymbolHandler.TransformSymbol(element, styleContext);
+                return settings.SymbolHandler.TransformSymbol(element, styleContext);
             }
 
             // Transform tabs that have the pt:TabWidth attribute set
@@ -380,7 +380,7 @@ namespace OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
             // Transform w:br to h:br.
             if (element.Name == W.br || element.Name == W.cr)
             {
-                return ProcessBreak(element);
+                return settings.BreakHandler.TransformBreak(element);
             }
 
             // Transform w:noBreakHyphen to '-'
@@ -552,29 +552,6 @@ namespace OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
             }
             span.AddAnnotation(style);
             return span;
-        }
-
-        private static object ProcessBreak(XElement element)
-        {
-            XElement span = default!;
-            var tabWidth = (decimal?)element.Attribute(PtOpenXml.TabWidth);
-            if (tabWidth != null)
-            {
-                span = new XElement(Xhtml.span);
-                span.AddAnnotation(new Dictionary<string, string>
-                {
-                    { "margin", string.Format(NumberFormatInfo.InvariantInfo, "0 0 0 {0:0.00}in", tabWidth) },
-                    { "padding", "0 0 0 0" }
-                });
-            }
-
-            var paragraph = element.Ancestors(W.p).FirstOrDefault();
-            var isBidi = paragraph != null && paragraph.Elements(W.pPr).Elements(W.bidi).Any(b => b.Attribute(W.val) == null || b.Attribute(W.val).ToBoolean() == true);
-            var zeroWidthChar = isBidi ? new XEntity("#x200f") : new XEntity("#x200e");
-
-            return new object[]
-            {
-                new XElement(Xhtml.br), zeroWidthChar, span};
         }
 
         private static object ProcessContentControl(WordprocessingDocument wordDoc, WmlToHtmlConverterSettings settings,
