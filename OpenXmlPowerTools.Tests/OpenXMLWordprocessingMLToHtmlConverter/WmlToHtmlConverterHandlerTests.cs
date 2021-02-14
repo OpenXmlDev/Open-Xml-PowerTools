@@ -22,7 +22,7 @@ namespace OxPt
         {
             var expected = "someValue";
             Dictionary<string, string> fontFamily = default!;
-            var wordprocessingTextDummyHandler = new WordprocessingTextDummyHandler();
+            var wordprocessingTextDummyHandler = new TextDummyHandler();
 
             var actual = wordprocessingTextDummyHandler.TransformText(expected, fontFamily);
 

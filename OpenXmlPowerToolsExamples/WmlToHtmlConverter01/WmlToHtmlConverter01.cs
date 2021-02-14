@@ -53,7 +53,7 @@ internal class WmlToHtmlConverterHelper
         }
 
         // TODO: Determine max-width from size of content area.
-        var settings = new WmlToHtmlConverterSettings(pageTitle, new CustomImageHandler(imageDirectoryName), new WordprocessingTextDummyHandler(), new SymbolHandler(), new BreakHandler());
+        var settings = new WmlToHtmlConverterSettings(pageTitle, new CustomImageHandler(imageDirectoryName), new TextDummyHandler(), new SymbolHandler(), new BreakHandler(), true);
 
         var htmlElement = WmlToHtmlConverter.ConvertToHtml(wDoc, settings);
 

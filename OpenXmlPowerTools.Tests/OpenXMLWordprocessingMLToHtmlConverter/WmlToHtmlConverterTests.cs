@@ -1,9 +1,7 @@
 ﻿using DocumentFormat.OpenXml.Packaging;
-using OpenXmlPowerTools;
 using OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter;
 using OpenXmlPowerTools.Tests;
 using System.IO;
-using System.Linq;
 using System.Text;
 using System.Xml.Linq;
 using Xunit;
@@ -12,7 +10,7 @@ namespace OxPt
 {
     public class WmlToHtmlConverterTests
     {
-        // PowerShell oneliner that generates InlineData for all files in a directory
+        // PowerShell one liner that generates InlineData for all files in a directory
         // dir | % { '[InlineData("' + $_.Name + '")]' } | clip
 
         [Theory]
@@ -74,9 +72,10 @@ namespace OxPt
         {
             var sourceDir = new DirectoryInfo("../../../../TestFiles/");
             var sourceDocx = new FileInfo(Path.Combine(sourceDir.FullName, name));
+            var settings = new WmlToHtmlConverterSettings(sourceDocx.FullName);
 
             var oxPtConvertedDestHtml = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, sourceDocx.Name.Replace(".docx", "-3-OxPt.html")));
-            ConvertToHtml(sourceDocx, oxPtConvertedDestHtml, false);
+            ConvertToHtml(sourceDocx, oxPtConvertedDestHtml, settings);
         }
 
         [Theory]
@@ -85,12 +84,13 @@ namespace OxPt
         {
             var sourceDir = new DirectoryInfo("../../../../TestFiles/");
             var sourceDocx = new FileInfo(Path.Combine(sourceDir.FullName, name));
+            var settings = new WmlToHtmlConverterSettings(sourceDocx.FullName, new ImageHandler(), new TextDummyHandler(), new SymbolHandler(), new BreakHandler(), false);
 
             var oxPtConvertedDestHtml = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, sourceDocx.Name.Replace(".docx", "-5-OxPt-No-CSS-Classes.html")));
-            ConvertToHtml(sourceDocx, oxPtConvertedDestHtml, true);
+            ConvertToHtml(sourceDocx, oxPtConvertedDestHtml, settings);
         }
 
-        private static void ConvertToHtml(FileInfo sourceDocx, FileInfo destFileName, bool fabricateCssClasses)
+        private static void ConvertToHtml(FileInfo sourceDocx, FileInfo destFileName, WmlToHtmlConverterSettings settings)
         {
             var byteArray = File.ReadAllBytes(sourceDocx.FullName);
             using var memoryStream = new MemoryStream();
@@ -99,17 +99,10 @@ namespace OxPt
             var outputDirectory = destFileName.Directory;
             destFileName = new FileInfo(Path.Combine(outputDirectory.FullName, destFileName.Name));
             var imageDirectoryName = destFileName.FullName.Substring(0, destFileName.FullName.Length - 5) + "_files";
-            var pageTitle = (string)wDoc.CoreFilePropertiesPart.GetXDocument().Descendants(DC.title).FirstOrDefault();
-            if (pageTitle == null)
-            {
-                pageTitle = sourceDocx.FullName;
-            }
 
-            var settings = new WmlToHtmlConverterSettings(pageTitle);
             var html = WmlToHtmlConverter.ConvertToHtml(wDoc, settings);
 
-            // Note: the xhtml returned by ConvertToHtmlTransform contains objects of type XEntity.  PtOpenXmlUtil.cs define the XEntity class. See http://blogs.msdn.com/ericwhite/archive/2010/01/21/writing-entity-references-using-linq-to-xml.aspx for detailed explanation.
-            // If you further transform the XML tree returned by ConvertToHtmlTransform, you must do it correctly, or entities will not be serialized properly.
+            // Note: the XHTML returned by ConvertToHtmlTransform contains objects of type XEntity.  PtOpenXmlUtil.cs define the XEntity class. See http://blogs.msdn.com/ericwhite/archive/2010/01/21/writing-entity-references-using-linq-to-xml.aspx for detailed explanation. If you further transform the XML tree returned by ConvertToHtmlTransform, you must do it correctly, or entities will not be serialized properly.
 
             var htmlString = html.ToString(SaveOptions.DisableFormatting);
             File.WriteAllText(destFileName.FullName, htmlString, Encoding.UTF8);

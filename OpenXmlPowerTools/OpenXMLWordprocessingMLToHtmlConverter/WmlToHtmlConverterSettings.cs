@@ -18,7 +18,11 @@ namespace OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
         /// </summary>
         public string CssClassPrefix { get; }
 
+        /// <summary>
+        /// If FabricateCssClasses is true, CSS Classes will be generated instead of using inline styles
+        /// </summary>
         public bool FabricateCssClasses { get; }
+
         public string GeneralCss { get; }
         public string AdditionalCss { get; }
         public bool RestrictToSupportedLanguages { get; }
@@ -58,7 +62,7 @@ namespace OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
             FabricateCssClasses = true;
             CssClassPrefix = "pt-";
             ImageHandler = new ImageHandler();
-            TextHandler = new WordprocessingTextDummyHandler();
+            TextHandler = new TextDummyHandler();
             SymbolHandler = new SymbolHandler();
             BreakHandler = new BreakHandler();
         }
@@ -71,12 +75,13 @@ namespace OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
         /// <param name="textHandler">Handler used to convert open XML text to HTML compatible text</param>
         /// <param name="symbolHandler">Handler used to convert open XML symbols to HTML compatible text</param>
         /// <param name="breakHandler">Handler used to convert open XML breaks to HTML equivalent</param>
-        public WmlToHtmlConverterSettings(string pageTitle, IImageHandler customImageHandler, ITextHandler textHandler, ISymbolHandler symbolHandler, IBreakHandler breakHandler)
+        /// <param name="fabricateCssClasses">Set to true, if CSS style should be stored in classes instead of an inline attribute on each node</param>
+        public WmlToHtmlConverterSettings(string pageTitle, IImageHandler customImageHandler, ITextHandler textHandler, ISymbolHandler symbolHandler, IBreakHandler breakHandler, bool fabricateCssClasses)
         {
             AdditionalCss = "body { margin: 1cm auto; max-width: 20cm; padding: 0; }";
             GeneralCss = "span { white-space: pre-wrap; }";
             PageTitle = pageTitle;
-            FabricateCssClasses = true;
+            FabricateCssClasses = fabricateCssClasses;
             CssClassPrefix = "pt-";
             ImageHandler = customImageHandler;
             TextHandler = textHandler;

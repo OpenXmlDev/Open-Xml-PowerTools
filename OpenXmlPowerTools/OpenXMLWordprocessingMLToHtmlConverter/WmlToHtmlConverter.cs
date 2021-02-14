@@ -170,14 +170,13 @@ namespace OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
             if (htmlConverterSettings.FabricateCssClasses)
             {
                 var usedCssClassNames = new HashSet<string>();
-                var elementsThatNeedClasses = xhtml
-                    .DescendantsAndSelf()
-                    .Select(d => new
-                    {
-                        Element = d,
-                        Styles = d.Annotation<Dictionary<string, string>>(),
-                    })
-                    .Where(z => z.Styles != null);
+
+                var elementsThatNeedClasses = xhtml.DescendantsAndSelf().Select(d => new
+                {
+                    Element = d,
+                    Styles = d.Annotation<Dictionary<string, string>>(),
+                }).Where(z => z.Styles != null);
+
                 var augmented = elementsThatNeedClasses
                     .Select(p => new
                     {
@@ -187,9 +186,11 @@ namespace OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
                     })
                     .GroupBy(p => p.StylesString)
                     .ToList();
+
                 var classCounter = 1000000;
                 var sb = new StringBuilder();
                 sb.Append(Environment.NewLine);
+
                 foreach (var grp in augmented)
                 {
                     string classNameToUse;
@@ -214,6 +215,7 @@ namespace OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
                     }
                     usedCssClassNames.Add(classNameToUse);
                     sb.Append(firstOne.Element.Name.LocalName + "." + classNameToUse + " {" + Environment.NewLine);
+
                     foreach (var st in firstOne.Styles.Where(s => s.Key != "PtStyleName"))
                     {
                         var s = "    " + st.Key + ": " + st.Value + ";" + Environment.NewLine;
@@ -221,19 +223,20 @@ namespace OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
                     }
                     sb.Append("}" + Environment.NewLine);
                     var classAtt = new XAttribute("class", classNameToUse);
+
                     foreach (var gc in grp)
                     {
                         gc.Element.Add(classAtt);
                     }
                 }
+
                 var styleValue = htmlConverterSettings.GeneralCss + sb + htmlConverterSettings.AdditionalCss;
 
                 SetStyleElementValue(xhtml, styleValue);
             }
             else
             {
-                // Previously, the h:style element was not added at this point. However,
-                // at least the General CSS will contain important settings.
+                // Previously, the h:style element was not added at this point. However, at least the General CSS will contain important settings.
                 SetStyleElementValue(xhtml, htmlConverterSettings.GeneralCss + htmlConverterSettings.AdditionalCss);
 
                 foreach (var d in xhtml.DescendantsAndSelf())
@@ -244,12 +247,7 @@ namespace OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
                         continue;
                     }
 
-                    var styleValue =
-                        style
-                        .Where(p => p.Key != "PtStyleName")
-                        .OrderBy(p => p.Key)
-                        .Select(e => $"{e.Key}: {e.Value};")
-                        .StringConcatenate();
+                    var styleValue = style.Where(p => p.Key != "PtStyleName").OrderBy(p => p.Key).Select(e => $"{e.Key}: {e.Value};").StringConcatenate();
                     var st = new XAttribute("style", styleValue);
                     if (d.Attribute("style") != null)
                     {
@@ -1031,14 +1029,14 @@ namespace OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
         private static List<object> TransformElementsPrecedingTab(WordprocessingDocument wordDoc, WmlToHtmlConverterSettings settings,
             List<XElement> elementsPrecedingTab, XElement firstTabRun)
         {
-            var tabWidth = firstTabRun != null
-                ? (decimal?)firstTabRun.Elements(W.tab).Attributes(PtOpenXml.TabWidth).FirstOrDefault() ?? 0m
-                : 0m;
+            var tabWidth = firstTabRun != null ? (decimal?)firstTabRun.Elements(W.tab).Attributes(PtOpenXml.TabWidth).FirstOrDefault() ?? 0m : 0m;
+
             var precedingElementsWidth = elementsPrecedingTab
                 .Elements()
                 .Where(c => c.Attributes(PtOpenXml.TabWidth).Any())
                 .Select(e => (decimal)e.Attribute(PtOpenXml.TabWidth))
                 .Sum();
+
             var totalWidth = precedingElementsWidth + tabWidth;
 
             var txElementsPrecedingTab = elementsPrecedingTab
@@ -2741,7 +2739,7 @@ namespace OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
 
         private class BorderMappingInfo
         {
-            public string CssName;
+            public string CssName = string.Empty;
             public decimal CssSize;
         }
 
