@@ -53,15 +53,7 @@ internal class WmlToHtmlConverterHelper
         }
 
         // TODO: Determine max-width from size of content area.
-        var settings = new WmlToHtmlConverterSettings(new CustomImageHandler(imageDirectoryName), new WordprocessingTextDummyHandler(), new DefaultSymbolHandler())
-        {
-            AdditionalCss = "body { margin: 1cm auto; max-width: 20cm; padding: 0; }",
-            PageTitle = pageTitle,
-            FabricateCssClasses = true,
-            CssClassPrefix = "pt-",
-            RestrictToSupportedLanguages = false,
-            RestrictToSupportedNumberingFormats = false
-        };
+        var settings = new WmlToHtmlConverterSettings(pageTitle, new CustomImageHandler(imageDirectoryName), new TextDummyHandler(), new SymbolHandler(), new BreakHandler(), true);
 
         var htmlElement = WmlToHtmlConverter.ConvertToHtml(wDoc, settings);
 

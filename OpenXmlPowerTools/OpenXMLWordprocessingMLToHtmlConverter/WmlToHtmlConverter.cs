@@ -170,14 +170,13 @@ namespace OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
             if (htmlConverterSettings.FabricateCssClasses)
             {
                 var usedCssClassNames = new HashSet<string>();
-                var elementsThatNeedClasses = xhtml
-                    .DescendantsAndSelf()
-                    .Select(d => new
-                    {
-                        Element = d,
-                        Styles = d.Annotation<Dictionary<string, string>>(),
-                    })
-                    .Where(z => z.Styles != null);
+
+                var elementsThatNeedClasses = xhtml.DescendantsAndSelf().Select(d => new
+                {
+                    Element = d,
+                    Styles = d.Annotation<Dictionary<string, string>>(),
+                }).Where(z => z.Styles != null);
+
                 var augmented = elementsThatNeedClasses
                     .Select(p => new
                     {
@@ -187,9 +186,11 @@ namespace OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
                     })
                     .GroupBy(p => p.StylesString)
                     .ToList();
+
                 var classCounter = 1000000;
                 var sb = new StringBuilder();
                 sb.Append(Environment.NewLine);
+
                 foreach (var grp in augmented)
                 {
                     string classNameToUse;
@@ -214,6 +215,7 @@ namespace OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
                     }
                     usedCssClassNames.Add(classNameToUse);
                     sb.Append(firstOne.Element.Name.LocalName + "." + classNameToUse + " {" + Environment.NewLine);
+
                     foreach (var st in firstOne.Styles.Where(s => s.Key != "PtStyleName"))
                     {
                         var s = "    " + st.Key + ": " + st.Value + ";" + Environment.NewLine;
@@ -221,19 +223,20 @@ namespace OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
                     }
                     sb.Append("}" + Environment.NewLine);
                     var classAtt = new XAttribute("class", classNameToUse);
+
                     foreach (var gc in grp)
                     {
                         gc.Element.Add(classAtt);
                     }
                 }
+
                 var styleValue = htmlConverterSettings.GeneralCss + sb + htmlConverterSettings.AdditionalCss;
 
                 SetStyleElementValue(xhtml, styleValue);
             }
             else
             {
-                // Previously, the h:style element was not added at this point. However,
-                // at least the General CSS will contain important settings.
+                // Previously, the h:style element was not added at this point. However, at least the General CSS will contain important settings.
                 SetStyleElementValue(xhtml, htmlConverterSettings.GeneralCss + htmlConverterSettings.AdditionalCss);
 
                 foreach (var d in xhtml.DescendantsAndSelf())
@@ -244,12 +247,7 @@ namespace OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
                         continue;
                     }
 
-                    var styleValue =
-                        style
-                        .Where(p => p.Key != "PtStyleName")
-                        .OrderBy(p => p.Key)
-                        .Select(e => $"{e.Key}: {e.Value};")
-                        .StringConcatenate();
+                    var styleValue = style.Where(p => p.Key != "PtStyleName").OrderBy(p => p.Key).Select(e => $"{e.Key}: {e.Value};").StringConcatenate();
                     var st = new XAttribute("style", styleValue);
                     if (d.Attribute("style") != null)
                     {
@@ -362,13 +360,13 @@ namespace OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
             // Transform every w:t element to a text node.
             if (element.Name == W.t)
             {
-                return settings.WordprocessingTextHandler.TransformText(element.Value, styleContext);
+                return settings.TextHandler.TransformText(element.Value, styleContext);
             }
 
             // Transform symbols to spans
             if (element.Name == W.sym)
             {
-                return settings.WordprocessingSymbolHandler.TransformSymbol(element, styleContext);
+                return settings.SymbolHandler.TransformSymbol(element, styleContext);
             }
 
             // Transform tabs that have the pt:TabWidth attribute set
@@ -380,7 +378,7 @@ namespace OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
             // Transform w:br to h:br.
             if (element.Name == W.br || element.Name == W.cr)
             {
-                return ProcessBreak(element);
+                return settings.BreakHandler.TransformBreak(element);
             }
 
             // Transform w:noBreakHyphen to '-'
@@ -552,29 +550,6 @@ namespace OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
             }
             span.AddAnnotation(style);
             return span;
-        }
-
-        private static object ProcessBreak(XElement element)
-        {
-            XElement span = default!;
-            var tabWidth = (decimal?)element.Attribute(PtOpenXml.TabWidth);
-            if (tabWidth != null)
-            {
-                span = new XElement(Xhtml.span);
-                span.AddAnnotation(new Dictionary<string, string>
-                {
-                    { "margin", string.Format(NumberFormatInfo.InvariantInfo, "0 0 0 {0:0.00}in", tabWidth) },
-                    { "padding", "0 0 0 0" }
-                });
-            }
-
-            var paragraph = element.Ancestors(W.p).FirstOrDefault();
-            var isBidi = paragraph != null && paragraph.Elements(W.pPr).Elements(W.bidi).Any(b => b.Attribute(W.val) == null || b.Attribute(W.val).ToBoolean() == true);
-            var zeroWidthChar = isBidi ? new XEntity("#x200f") : new XEntity("#x200e");
-
-            return new object[]
-            {
-                new XElement(Xhtml.br), zeroWidthChar, span};
         }
 
         private static object ProcessContentControl(WordprocessingDocument wordDoc, WmlToHtmlConverterSettings settings,
@@ -1054,14 +1029,14 @@ namespace OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
         private static List<object> TransformElementsPrecedingTab(WordprocessingDocument wordDoc, WmlToHtmlConverterSettings settings,
             List<XElement> elementsPrecedingTab, XElement firstTabRun)
         {
-            var tabWidth = firstTabRun != null
-                ? (decimal?)firstTabRun.Elements(W.tab).Attributes(PtOpenXml.TabWidth).FirstOrDefault() ?? 0m
-                : 0m;
+            var tabWidth = firstTabRun != null ? (decimal?)firstTabRun.Elements(W.tab).Attributes(PtOpenXml.TabWidth).FirstOrDefault() ?? 0m : 0m;
+
             var precedingElementsWidth = elementsPrecedingTab
                 .Elements()
                 .Where(c => c.Attributes(PtOpenXml.TabWidth).Any())
                 .Select(e => (decimal)e.Attribute(PtOpenXml.TabWidth))
                 .Sum();
+
             var totalWidth = precedingElementsWidth + tabWidth;
 
             var txElementsPrecedingTab = elementsPrecedingTab
@@ -2764,7 +2739,7 @@ namespace OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
 
         private class BorderMappingInfo
         {
-            public string CssName;
+            public string CssName = string.Empty;
             public decimal CssSize;
         }
 

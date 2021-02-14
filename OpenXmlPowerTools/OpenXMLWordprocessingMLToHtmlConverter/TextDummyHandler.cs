@@ -5,7 +5,7 @@ namespace OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
     /// <summary>
     /// Is a handler that does not temper with value in W.t elements
     /// </summary>
-    public class WordprocessingTextDummyHandler : IWordprocessingTextHandler
+    public class TextDummyHandler : ITextHandler
     {
         /// <summary>
         /// Is a handler that does not temper with values in W.t elements

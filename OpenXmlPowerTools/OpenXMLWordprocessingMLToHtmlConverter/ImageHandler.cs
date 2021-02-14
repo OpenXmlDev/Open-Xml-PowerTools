@@ -9,7 +9,7 @@ namespace OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
     /// <summary>
     /// Default image handler
     /// </summary>
-    public class DefaultImageHandler : IImageHandler
+    public class ImageHandler : IImageHandler
     {
         /// <summary>
         /// Transforms OpenXml Images to HTML embeddable images

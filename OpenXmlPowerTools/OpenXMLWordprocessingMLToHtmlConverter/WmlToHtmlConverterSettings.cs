@@ -11,18 +11,22 @@ namespace OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
         /// <summary>
         /// Page title of HTML
         /// </summary>
-        public string PageTitle { get; set; } = default!;
+        public string PageTitle { get; }
 
         /// <summary>
-        /// Css class name prefix
+        /// CSS class name prefix
         /// </summary>
-        public string CssClassPrefix { get; set; } = "pt-";
+        public string CssClassPrefix { get; }
 
-        public bool FabricateCssClasses { get; set; } = true;
-        public string GeneralCss { get; set; } = "span { white-space: pre-wrap; }";
-        public string AdditionalCss { get; set; } = default!;
-        public bool RestrictToSupportedLanguages { get; set; }
-        public bool RestrictToSupportedNumberingFormats { get; set; }
+        /// <summary>
+        /// If FabricateCssClasses is true, CSS Classes will be generated instead of using inline styles
+        /// </summary>
+        public bool FabricateCssClasses { get; }
+
+        public string GeneralCss { get; }
+        public string AdditionalCss { get; }
+        public bool RestrictToSupportedLanguages { get; }
+        public bool RestrictToSupportedNumberingFormats { get; }
 
         public Dictionary<string, Func<int, string, string>> ListItemImplementations { get; set; } = ListItemRetrieverSettings.DefaultListItemTextImplementations;
 
@@ -32,33 +36,57 @@ namespace OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
         public IImageHandler ImageHandler { get; }
 
         /// <summary>
+        /// Break handler
+        /// </summary>
+        public IBreakHandler BreakHandler { get; }
+
+        /// <summary>
         /// Handler that get applied to w:t
         /// </summary>
-        public IWordprocessingTextHandler WordprocessingTextHandler { get; }
+        public ITextHandler TextHandler { get; }
 
-        public IWordprocessingSymbolHandler WordprocessingSymbolHandler { get; }
+        /// <summary>
+        /// Symbol handler
+        /// </summary>
+        public ISymbolHandler SymbolHandler { get; }
 
         /// <summary>
         /// Default ctor WmlToHtmlConverterSettings
         /// </summary>
-        public WmlToHtmlConverterSettings()
+        /// <param name="pageTitle">Page title</param>
+        public WmlToHtmlConverterSettings(string pageTitle)
         {
-            ImageHandler = new DefaultImageHandler();
-            WordprocessingTextHandler = new WordprocessingTextDummyHandler();
-            WordprocessingSymbolHandler = new DefaultSymbolHandler();
+            AdditionalCss = "body { margin: 1cm auto; max-width: 20cm; padding: 0; }";
+            GeneralCss = "span { white-space: pre-wrap; }";
+            PageTitle = pageTitle;
+            FabricateCssClasses = true;
+            CssClassPrefix = "pt-";
+            ImageHandler = new ImageHandler();
+            TextHandler = new TextDummyHandler();
+            SymbolHandler = new SymbolHandler();
+            BreakHandler = new BreakHandler();
         }
 
         /// <summary>
         /// Ctor WmlToHtmlConverterSettings
         /// </summary>
+        /// <param name="pageTitle">Page title</param>
         /// <param name="customImageHandler">Handler used to convert open XML images to HTML images</param>
-        /// <param name="wordprocessingTextHandler">Handler used to convert open XML text to HTML compatible text</param>
-        /// <param name="wordprocessingSymbolHandler">Handler used to convert open XML symbols to HTML compatible text</param>
-        public WmlToHtmlConverterSettings(IImageHandler customImageHandler, IWordprocessingTextHandler wordprocessingTextHandler, IWordprocessingSymbolHandler wordprocessingSymbolHandler)
+        /// <param name="textHandler">Handler used to convert open XML text to HTML compatible text</param>
+        /// <param name="symbolHandler">Handler used to convert open XML symbols to HTML compatible text</param>
+        /// <param name="breakHandler">Handler used to convert open XML breaks to HTML equivalent</param>
+        /// <param name="fabricateCssClasses">Set to true, if CSS style should be stored in classes instead of an inline attribute on each node</param>
+        public WmlToHtmlConverterSettings(string pageTitle, IImageHandler customImageHandler, ITextHandler textHandler, ISymbolHandler symbolHandler, IBreakHandler breakHandler, bool fabricateCssClasses)
         {
+            AdditionalCss = "body { margin: 1cm auto; max-width: 20cm; padding: 0; }";
+            GeneralCss = "span { white-space: pre-wrap; }";
+            PageTitle = pageTitle;
+            FabricateCssClasses = fabricateCssClasses;
+            CssClassPrefix = "pt-";
             ImageHandler = customImageHandler;
-            WordprocessingTextHandler = wordprocessingTextHandler;
-            WordprocessingSymbolHandler = wordprocessingSymbolHandler;
+            TextHandler = textHandler;
+            SymbolHandler = symbolHandler;
+            BreakHandler = breakHandler;
         }
     }
 }
