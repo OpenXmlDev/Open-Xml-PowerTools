@@ -1,18 +1,14 @@
-﻿# Open-XML-PowerTools
+﻿# OpenXmlPowerTools
 
-[![Build status](https://ci.appveyor.com/api/projects/status/2wq6a4b0q6akvy4n/branch/master?svg=true)](https://ci.appveyor.com/project/stesee/open-xml-powertools/branch/master)
-[![Nuget](https://img.shields.io/nuget/v/OpenXmlPowerToolsStandard.svg)](https://www.nuget.org/packages/OpenXmlPowerToolsStandard/) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/73ab9db4912449f28d961e3ddad189b1)](https://app.codacy.com/gh/Codeuctivity/Open-Xml-PowerTools?utm_source=github.com&utm_medium=referral&utm_content=Codeuctivity/Open-Xml-PowerTools&utm_campaign=Badge_Grade_Dashboard)
+[![Build status](https://ci.appveyor.com/api/projects/status/yvbafg309sfb9syr/branch/main?svg=true)](https://ci.appveyor.com/project/stesee/openxmlpowertools/branch/main)
+[![Nuget](https://img.shields.io/nuget/v/OpenXmlPowerToolsStandard.svg)](https://www.nuget.org/packages/OpenXmlPowerToolsStandard/) [![Codacy Badge](https://app.codacy.com/project/badge/Grade/91883269775a4333aa78d8a911dfbaf5)](https://www.codacy.com/gh/Codeuctivity/OpenXmlPowerTools/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=Codeuctivity/OpenXmlPowerTools&amp;utm_campaign=Badge_Grade)
 
-The Open XML PowerTools provides guidance and example code for programming with Open XML
-Documents (DOCX, XLSX, and PPTX). It is based on, and extends the functionality
-of the [Open XML SDK](https://github.com/OfficeDev/Open-XML-SDK).
+## Features
 
-It supports scenarios such as:
-
+- Conversion of DOCX to HTML/CSS.
 - Splitting DOCX/PPTX files into multiple files.
 - Combining multiple DOCX/PPTX files into a single file.
 - Populating content in template DOCX files with data from XML.
-- Conversion of DOCX to HTML/CSS.
 - Conversion of HTML/CSS to DOCX.
 - Searching and replacing content in DOCX/PPTX using regular expressions.
 - Managing tracked-revisions, including detecting tracked revisions, and accepting tracked revisions.
@@ -23,21 +19,6 @@ It supports scenarios such as:
   enables writing XLSX files with millions of rows.
 - Extracting data (along with formatting) from spreadsheets.
 
-## Build Instructions
-
-### Prerequisites
-
-- Visual Studio 2019 or .NET CLI toolchain
-
-### Build
-
-With Visual Studio:
-
-- Open `OpenXmlPowerTools.sln` in Visual Studio
-- Rebuild the project
-- Build the solution. To validate the build, open the Test Explorer. Click Run All.
-- To run an example, set the example as the startup project, and press F5.
-
-With .NET CLI toolchain:
+## Development
 
 - Run `dotnet build OpenXmlPowerTools.sln`
