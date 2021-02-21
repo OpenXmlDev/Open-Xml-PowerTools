@@ -419,9 +419,6 @@ namespace OpenXmlPowerTools
                             break;
 
                         default:
-                            xw.WriteStartAttribute("t");
-                            xw.WriteValue("str");
-                            xw.WriteEndAttribute();
                             break;
                     }
                     if (cell.Value != null)
@@ -543,7 +540,7 @@ namespace OpenXmlPowerTools
 
         private static int GetNumFmtId(XDocument sXDoc, string formatCode)
         {
-            var xfNumber = 81;
+            var xfNumber = 166;
             while (true)
             {
                 if (!sXDoc

@@ -6,6 +6,9 @@
     <LangVersion>8.0</LangVersion>
     <EnableNETAnalyzers>true</EnableNETAnalyzers>
   </PropertyGroup>
+  <ItemGroup Condition="$(TargetFramework.StartsWith('net4'))" >
+    <PackageReference Include="System.IO.Packaging" Version="5.0.0" />
+  </ItemGroup>
   <ItemGroup>
     <PackageReference Include="BitmapCompare" Version="1.0.8" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.8.3" />

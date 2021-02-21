@@ -280,16 +280,43 @@ namespace OxPt
                                 Cells = new Sw.CellDfn[]
                                 {
                                     new Sw.CellDfn {
-                                        CellDataType = Sw.CellDataType.Date,
-                                        Value = new DateTime(2012, 1, 8),
-                                        FormatCode = "mm-dd-yy",
+                                        CellDataType = Sw.CellDataType.String,
+                                        Value = "date (t:str)",
+                                    },
+                                    new Sw.CellDfn {
+                                        Value = new DateTime(2012, 1, 8).ToOADate(),
+                                        FormatCode= "mm-dd-yy",
+                                        Bold = true,
+                                    },
+                                }
+                            },
+                            new Sw.RowDfn
+                            {
+                                Cells = new Sw.CellDfn[]
+                                {
+                                    new Sw.CellDfn {
+                                        CellDataType = Sw.CellDataType.String,
+                                        Value = "date (t:str)",
+                                    },
+                                    new Sw.CellDfn {
+                                        Value = new DateTime(2012, 1, 9).ToOADate(),
+                                        FormatCode= "mm-dd-yy",
+                                        Bold = true,
+                                        HorizontalCellAlignment = Sw.HorizontalCellAlignment.Center,
+                                    },
+                                }
+                            },
+                            new Sw.RowDfn
+                            {
+                                Cells = new Sw.CellDfn[]
+                                {
+                                    new Sw.CellDfn {
+                                        CellDataType = Sw.CellDataType.String,
+                                        Value = "date (t:d)",
                                     },
                                     new Sw.CellDfn {
                                         CellDataType = Sw.CellDataType.Date,
-                                        Value = new DateTime(2012, 1, 9),
-                                        FormatCode = "mm-dd-yy",
-                                        Bold = true,
-                                        HorizontalCellAlignment = Sw.HorizontalCellAlignment.Center,
+                                        Value = new DateTime(2012, 1, 11).ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fff"),
                                     },
                                 }
                             },
