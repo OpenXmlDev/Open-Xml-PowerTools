@@ -3,8 +3,8 @@
     <TargetFrameworks>netstandard2.0</TargetFrameworks>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <RepositoryUrl>https://github.com/Codeuctivity/Open-Xml-PowerTools</RepositoryUrl>
-    <PackageTags>openxml office docx</PackageTags>
+    <RepositoryUrl>https://github.com/Codeuctivity/OpenXmlPowerTools</RepositoryUrl>
+    <PackageTags>OpenXML DOCX Word XLSX Excel PPTX Powerpoint</PackageTags>
     <Authors>Contributors</Authors>
     <Company>Codeuctivity</Company>
     <AssemblyVersion>5.0.0.0</AssemblyVersion>
@@ -12,10 +12,11 @@
     <Version>5.0.0</Version>
     <PackageVersion>5.0.0</PackageVersion>
     <PackageIcon>NugetIcon.png</PackageIcon>
-    <PackageProjectUrl>https://github.com/Codeuctivity/Open-Xml-PowerTools</PackageProjectUrl>
+    <PackageProjectUrl>https://github.com/Codeuctivity/OpenXmlPowerTools</PackageProjectUrl>
     <Description>The Open XML SDK provides tools for working with Office Word, Excel, and PowerPoint documents. This version is a fork focusing on current .net versions.</Description>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <PackageReleaseNotes>$(APPVEYOR_REPO_COMMIT_MESSAGE)</PackageReleaseNotes>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
@@ -33,7 +34,6 @@
     <EmbeddedResource Remove="Properties\**" />
     <None Remove="Properties\**" />
   </ItemGroup>
-
   <ItemGroup>
     <PackageReference Include="DocumentFormat.OpenXml" Version="2.12.2" />
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0">
@@ -44,12 +44,9 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-   
     <PackageReference Include="System.Drawing.Common" Version="5.0.1" />
   </ItemGroup>
-
   <ItemGroup>
     <None Include="NugetIcon.png" Pack="true" PackagePath="\" />
   </ItemGroup>
-
 </Project>

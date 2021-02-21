@@ -19,7 +19,7 @@ dotnet_csproj:
   patch: true
   file: '**\*.csproj'
   version: "{version}"
-  package_version: "{version}-prerelease"
+  package_version: "{version}"
   assembly_version: "{version}"
   file_version: "{version}"
   informational_version: "{version}"
@@ -28,9 +28,11 @@ deploy:
   - provider: NuGet
     api_key:
       secure: CTISdGCfnpyC7Rh5vs1pgbuISrkWF34sot0SyVgvu0HQxhNNd+V0Gc4MS+rtJttB
+    skip_symbols: false
     on:
       branch: main
   - provider: GitHub
     auth_token:
       secure: 6WIcUQnv2ZAHI7MaJeiopONTvv3TxZiaThY17jVC4tJTnva7F66tPqvCWX2kQRyM
-    prerelease: true
+    on:
+      branch: main
