@@ -1,19 +1,4 @@
-﻿// Licensed under the MIT license. See LICENSE file in the project root for full license information.
-
-/***************************************************************************
- * IMPORTANT NOTE:
- *
- * With versions 4.1 and later, the name of the HtmlConverter class has been
- * changed to WmlToHtmlConverter, to make it orthogonal with HtmlToWmlConverter.
- *
- * There are thin wrapper classes, HtmlConverter, and HtmlConverterSettings,
- * which maintain backwards compat for code that uses the old name.
- *
- * Other than the name change of the classes themselves, the functionality
- * in WmlToHtmlConverter is identical to the old HtmlConverter class.
-***************************************************************************/
-
-using DocumentFormat.OpenXml.Packaging;
+﻿using DocumentFormat.OpenXml.Packaging;
 using OpenXmlPowerTools;
 using OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter;
 using System;
