@@ -587,9 +587,7 @@ namespace OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
             var paragraph = (XElement)ConvertParagraph(wordDoc, settings, element, elementName,
                 suppressTrailingWhiteSpace, currentMarginLeft, isBidi);
 
-            // The paragraph conversion might have created empty spans.
-            // These can and should be removed because empty spans are
-            // invalid in HTML5.
+            // The paragraph conversion might have created empty spans. These can and should be removed because empty spans are invalid in HTML5.
             paragraph.Elements(Xhtml.span).Where(e => e.IsEmpty).Remove();
 
             foreach (var span in paragraph.Elements(Xhtml.span).ToList())
@@ -974,13 +972,12 @@ namespace OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
          * - topLinePunct
          * - widowControl
          * - wordWrap
-         *
          */
 
         private static object ConvertParagraph(WordprocessingDocument wordDoc, WmlToHtmlConverterSettings settings,
             XElement paragraph, XName elementName, bool suppressTrailingWhiteSpace, decimal currentMarginLeft, bool isBidi)
         {
-            var style = DefineParagraphStyle(paragraph, elementName, suppressTrailingWhiteSpace, currentMarginLeft, isBidi);
+            var style = DefineParagraphStyle(paragraph, elementName, suppressTrailingWhiteSpace, currentMarginLeft, isBidi, settings.FontHandler);
             var rtl = isBidi ? new XAttribute("dir", "rtl") : new XAttribute("dir", "ltr");
             var firstMark = isBidi ? new XEntity("#x200f") : null;
 
@@ -1063,18 +1060,18 @@ namespace OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
             return txElementsPrecedingTab;
         }
 
-        private static Dictionary<string, string> DefineParagraphStyle(XElement paragraph, XName elementName,
-            bool suppressTrailingWhiteSpace, decimal currentMarginLeft, bool isBidi)
+        private static Dictionary<string, string> DefineParagraphStyle(XElement paragraph, XName elementName, bool suppressTrailingWhiteSpace, decimal currentMarginLeft, bool isBidi, IFontHandler fontHandler)
         {
             var style = new Dictionary<string, string>();
-
             var styleName = (string)paragraph.Attribute(PtOpenXml.StyleName);
+
             if (styleName != null)
             {
                 style.Add("PtStyleName", styleName);
             }
 
             var pPr = paragraph.Element(W.pPr);
+
             if (pPr == null)
             {
                 return style;
@@ -1096,7 +1093,7 @@ namespace OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
             CreateStyleFromShd(style, pPr.Element(W.shd));
 
             // Pt.FontName
-            var font = (string)paragraph.Attributes(PtOpenXml.FontName).FirstOrDefault();
+            var font = fontHandler.TranslateParagraphStyleFont(paragraph);
             if (font != null)
             {
                 CreateFontCssProperty(font, style);
@@ -1338,7 +1335,7 @@ namespace OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
                 return null;
             }
 
-            var style = DefineRunStyle(run);
+            var style = DefineRunStyle(run, settings.FontHandler);
             object content = run.Elements().Select(e => ConvertToHtmlTransform(wordDoc, settings, e, false, 0m, style));
 
             // Wrap content in h:sup or h:sub elements as necessary.
@@ -1378,7 +1375,7 @@ namespace OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
             return content;
         }
 
-        private static Dictionary<string, string> DefineRunStyle(XElement run)
+        private static Dictionary<string, string> DefineRunStyle(XElement run, IFontHandler fontHandler)
         {
             var style = new Dictionary<string, string>();
 
@@ -1419,10 +1416,8 @@ namespace OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
             }
 
             // Pt.FontName
-            var sym = run.Element(W.sym);
-            var font = sym != null
-                ? (string)sym.Attributes(W.font).FirstOrDefault()
-                : (string)run.Attributes(PtOpenXml.FontName).FirstOrDefault();
+            var font = fontHandler.TranslateRunStyleFont(run);
+
             if (font != null)
             {
                 CreateFontCssProperty(font, style);

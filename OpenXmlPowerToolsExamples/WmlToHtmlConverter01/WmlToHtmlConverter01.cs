@@ -53,18 +53,14 @@ internal class WmlToHtmlConverterHelper
         }
 
         // TODO: Determine max-width from size of content area.
-        var settings = new WmlToHtmlConverterSettings(pageTitle, new CustomImageHandler(imageDirectoryName), new TextDummyHandler(), new SymbolHandler(), new BreakHandler(), true);
+        var settings = new WmlToHtmlConverterSettings(pageTitle, new CustomImageHandler(imageDirectoryName), new TextDummyHandler(), new SymbolHandler(), new BreakHandler(), new FontHandler(), true);
 
         var htmlElement = WmlToHtmlConverter.ConvertToHtml(wDoc, settings);
 
         // Produce HTML document with <!DOCTYPE html > declaration to tell the browser we are using HTML5.
         var html = new XDocument(new XDocumentType("html", null, null, null), htmlElement);
 
-        // Note: the xhtml returned by ConvertToHtmlTransform contains objects of type XEntity.  PtOpenXmlUtil.cs define the XEntity class.  See
-        // http://blogs.msdn.com/ericwhite/archive/2010/01/21/writing-entity-references-using-linq-to-xml.aspx
-        // for detailed explanation.
-        //
-        // If you further transform the XML tree returned by ConvertToHtmlTransform, you must do it correctly, or entities will not be serialized properly.
+        // Note: the xhtml returned by ConvertToHtmlTransform contains objects of type XEntity.  PtOpenXmlUtil.cs define the XEntity class.  See http://blogs.msdn.com/ericwhite/archive/2010/01/21/writing-entity-references-using-linq-to-xml.aspx for detailed explanation. If you further transform the XML tree returned by ConvertToHtmlTransform, you must do it correctly, or entities will not be serialized properly.
 
         var htmlString = html.ToString(SaveOptions.DisableFormatting);
         File.WriteAllText(destFileName.FullName, htmlString, Encoding.UTF8);

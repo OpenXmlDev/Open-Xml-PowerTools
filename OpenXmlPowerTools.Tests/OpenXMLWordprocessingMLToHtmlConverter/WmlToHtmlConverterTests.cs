@@ -84,7 +84,7 @@ namespace OxPt
         {
             var sourceDir = new DirectoryInfo("../../../../TestFiles/");
             var sourceDocx = new FileInfo(Path.Combine(sourceDir.FullName, name));
-            var settings = new WmlToHtmlConverterSettings(sourceDocx.FullName, new ImageHandler(), new TextDummyHandler(), new SymbolHandler(), new BreakHandler(), false);
+            var settings = new WmlToHtmlConverterSettings(sourceDocx.FullName, new ImageHandler(), new TextDummyHandler(), new SymbolHandler(), new BreakHandler(), new FontHandler(), false);
 
             var oxPtConvertedDestHtml = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, sourceDocx.Name.Replace(".docx", "-5-OxPt-No-CSS-Classes.html")));
             ConvertToHtml(sourceDocx, oxPtConvertedDestHtml, settings);
