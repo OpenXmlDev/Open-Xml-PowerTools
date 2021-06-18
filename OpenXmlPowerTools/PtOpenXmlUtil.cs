@@ -1,7 +1,4 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
-// Licensed under the MIT license. See LICENSE file in the project root for full license information.
-
-using DocumentFormat.OpenXml.Packaging;
+﻿using DocumentFormat.OpenXml.Packaging;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -5926,7 +5923,7 @@ listSeparator
 
     public static class W3DIGSIG
     {
-        public static readonly XNamespace w3digsig =            "http://www.w3.org/2000/09/xmldsig#";
+        public static readonly XNamespace w3digsig = "http://www.w3.org/2000/09/xmldsig#";
 
         public static readonly XName CanonicalizationMethod = w3digsig + "CanonicalizationMethod";
         public static readonly XName DigestMethod = w3digsig + "DigestMethod";
@@ -5955,7 +5952,7 @@ listSeparator
 
     public static class WP
     {
-        public static readonly XNamespace wp =            "http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing";
+        public static readonly XNamespace wp = "http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing";
 
         public static readonly XName align = wp + "align";
         public static readonly XName anchor = wp + "anchor";
@@ -5980,7 +5977,7 @@ listSeparator
 
     public static class WP14
     {
-        public static readonly XNamespace wp14 =            "http://schemas.microsoft.com/office/word/2010/wordprocessingDrawing";
+        public static readonly XNamespace wp14 = "http://schemas.microsoft.com/office/word/2010/wordprocessingDrawing";
 
         public static readonly XName anchorId = wp14 + "anchorId";
         public static readonly XName editId = wp14 + "editId";
@@ -5993,7 +5990,7 @@ listSeparator
 
     public static class WPS
     {
-        public static readonly XNamespace wps =            "http://schemas.microsoft.com/office/word/2010/wordprocessingShape";
+        public static readonly XNamespace wps = "http://schemas.microsoft.com/office/word/2010/wordprocessingShape";
 
         public static readonly XName altTxbx = wps + "altTxbx";
         public static readonly XName bodyPr = wps + "bodyPr";
@@ -6007,7 +6004,7 @@ listSeparator
 
     public static class X
     {
-        public static readonly XNamespace x =            "urn:schemas-microsoft-com:office:excel";
+        public static readonly XNamespace x = "urn:schemas-microsoft-com:office:excel";
 
         public static readonly XName Anchor = x + "Anchor";
         public static readonly XName AutoFill = x + "AutoFill";
@@ -6063,7 +6060,7 @@ listSeparator
 
     public static class XDR14
     {
-        public static readonly XNamespace xdr14 =            "http://schemas.microsoft.com/office/excel/2010/spreadsheetDrawing";
+        public static readonly XNamespace xdr14 = "http://schemas.microsoft.com/office/excel/2010/spreadsheetDrawing";
         public static readonly XName cNvContentPartPr = xdr14 + "cNvContentPartPr";
         public static readonly XName cNvPr = xdr14 + "cNvPr";
         public static readonly XName nvContentPartPr = xdr14 + "nvContentPartPr";
@@ -6073,7 +6070,7 @@ listSeparator
 
     public static class XM
     {
-        public static readonly XNamespace xm =            "http://schemas.microsoft.com/office/excel/2006/main";
+        public static readonly XNamespace xm = "http://schemas.microsoft.com/office/excel/2006/main";
         public static readonly XName f = xm + "f";
         public static readonly XName _ref = xm + "ref";
         public static readonly XName sqref = xm + "sqref";
@@ -6081,7 +6078,7 @@ listSeparator
 
     public static class XSI
     {
-        public static readonly XNamespace xsi =            "http://www.w3.org/2001/XMLSchema-instance";
+        public static readonly XNamespace xsi = "http://www.w3.org/2001/XMLSchema-instance";
         public static readonly XName type = xsi + "type";
     }
 
@@ -6223,12 +6220,16 @@ listSeparator
 
     public class InvalidOpenXmlDocumentException : Exception
     {
-        public InvalidOpenXmlDocumentException(string message) : base(message) { }
+        public InvalidOpenXmlDocumentException(string message) : base(message)
+        {
+        }
     }
 
     public class OpenXmlPowerToolsException : Exception
     {
-        public OpenXmlPowerToolsException(string message) : base(message) { }
+        public OpenXmlPowerToolsException(string message) : base(message)
+        {
+        }
     }
 
     public class ColumnReferenceOutOfRange : Exception

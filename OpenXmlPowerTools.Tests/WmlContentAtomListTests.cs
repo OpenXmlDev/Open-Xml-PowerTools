@@ -1,6 +1,4 @@
-﻿// Licensed under the MIT license. See LICENSE file in the project root for full license information.
-
-#define COPY_FILES_FOR_DEBUGGING
+﻿#define COPY_FILES_FOR_DEBUGGING
 
 using DocumentFormat.OpenXml.Packaging;
 using OpenXmlPowerTools;
