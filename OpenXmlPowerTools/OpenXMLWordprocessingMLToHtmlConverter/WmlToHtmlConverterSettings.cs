@@ -55,6 +55,11 @@ namespace OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
         public ISymbolHandler SymbolHandler { get; }
 
         /// <summary>
+        /// Font handler
+        /// </summary>
+        public IFontHandler FontHandler { get; }
+
+        /// <summary>
         /// Default ctor WmlToHtmlConverterSettings
         /// </summary>
         /// <param name="pageTitle">Page title</param>
@@ -62,13 +67,14 @@ namespace OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
         {
             AdditionalCss = defaultAdditionalCss;
             GeneralCss = defaultgeneralCss;
-            PageTitle = pageTitle;
+            PageTitle = pageTitle ?? string.Empty;
             FabricateCssClasses = true;
             CssClassPrefix = defaultCssClassPrefix;
             ImageHandler = new ImageHandler();
             TextHandler = new TextDummyHandler();
             SymbolHandler = new SymbolHandler();
             BreakHandler = new BreakHandler();
+            FontHandler = new FontHandler();
         }
 
         /// <summary>
@@ -79,11 +85,12 @@ namespace OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
         /// <param name="textHandler">Handler used to convert open XML text to HTML compatible text</param>
         /// <param name="symbolHandler">Handler used to convert open XML symbols to HTML compatible text</param>
         /// <param name="breakHandler">Handler used to convert open XML breaks to HTML equivalent</param>
+        /// <param name="fontHandler">Handler used translate open XML fonts to HTML equivalent</param>
         /// <param name="fabricateCssClasses">Set to true, if CSS style should be stored in classes instead of an inline attribute on each node</param>
         /// <param name="generalCss">Optional CSS, default is "span { white-space: pre-wrap; }"</param>
         /// <param name="additionalCss">Optional CSS, default is "body { margin: 1cm auto; max-width: 20cm; padding: 0; }"</param>
         /// <param name="cssClassPrefix">Optional CSS class name prefix, default is "pt-"</param>
-        public WmlToHtmlConverterSettings(string pageTitle, IImageHandler customImageHandler, ITextHandler textHandler, ISymbolHandler symbolHandler, IBreakHandler breakHandler, bool fabricateCssClasses, string generalCss = defaultgeneralCss, string additionalCss = defaultAdditionalCss, string cssClassPrefix = defaultCssClassPrefix)
+        public WmlToHtmlConverterSettings(string pageTitle, IImageHandler customImageHandler, ITextHandler textHandler, ISymbolHandler symbolHandler, IBreakHandler breakHandler, IFontHandler fontHandler, bool fabricateCssClasses, string generalCss = defaultgeneralCss, string additionalCss = defaultAdditionalCss, string cssClassPrefix = defaultCssClassPrefix)
         {
             AdditionalCss = additionalCss;
             GeneralCss = generalCss;
@@ -94,6 +101,7 @@ namespace OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
             TextHandler = textHandler;
             SymbolHandler = symbolHandler;
             BreakHandler = breakHandler;
+            FontHandler = fontHandler;
         }
     }
 }

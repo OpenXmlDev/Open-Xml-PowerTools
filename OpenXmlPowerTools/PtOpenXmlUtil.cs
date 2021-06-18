@@ -890,42 +890,39 @@ namespace OpenXmlPowerTools
                             IEnumerable<IEnumerable<XAttribute>> statusAtt =
                                 g.Select(r => r.Descendants(W.t).Take(1).Attributes(PtOpenXml.Status));
                             return new XElement(W.r,
+                                g.First().Attributes(),
                                 g.First().Elements(W.rPr),
                                 new XElement(W.t, statusAtt, xs, textValue));
                         }
 
                         if (g.First().Element(W.instrText) != null)
                             return new XElement(W.r,
+                                g.First().Attributes(),
                                 g.First().Elements(W.rPr),
                                 new XElement(W.instrText, xs, textValue));
                     }
 
                     if (g.First().Name == W.ins)
                     {
-#if false
-                        if (g.First().Elements(W.del).Any())
-                            return new XElement(W.ins,
-                                g.First().Attributes(),
-                                new XElement(W.del,
-                                    g.First().Elements(W.del).Attributes(),
-                                    new XElement(W.r,
-                                        g.First().Elements(W.del).Elements(W.r).Elements(W.rPr),
-                                        new XElement(W.delText, xs, textValue))));
-#endif
+                        XElement firstR = g.First().Element(W.r);
                         return new XElement(W.ins,
                             g.First().Attributes(),
                             new XElement(W.r,
+                                firstR?.Attributes(),
                                 g.First().Elements(W.r).Elements(W.rPr),
                                 new XElement(W.t, xs, textValue)));
                     }
 
                     if (g.First().Name == W.del)
+                    {
+                        XElement firstR = g.First().Element(W.r);
                         return new XElement(W.del,
                             g.First().Attributes(),
                             new XElement(W.r,
+                                firstR?.Attributes(),
                                 g.First().Elements(W.r).Elements(W.rPr),
                                 new XElement(W.delText, xs, textValue)));
-
+                    }
                     return g;
                 }));
 

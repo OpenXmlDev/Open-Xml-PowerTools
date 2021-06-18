@@ -88,5 +88,41 @@ namespace OxPt
             Assert.Equal("&#x200e;", actual.ElementAt(1).ToString());
             Assert.Null(actual.ElementAt(2));
         }
+
+        [Fact]
+        public void ShouldTranslateFontInRunSymbolWithFontHandler()
+        {
+            var fontHandler = new FontHandler();
+
+            var element = new XElement("run", new XElement(W.sym, new XAttribute(W.font, "SomeSymbolFont")), new XAttribute(PtOpenXml.FontName, "SomeRunFont"));
+
+            var actual = fontHandler.TranslateRunStyleFont(element);
+
+            Assert.Equal("SomeSymbolFont", actual);
+        }
+
+        [Fact]
+        public void ShouldTranslateFontInRunWithFontHandler()
+        {
+            var fontHandler = new FontHandler();
+
+            var element = new XElement("run", new XAttribute(PtOpenXml.FontName, "SomeRunFont"));
+
+            var actual = fontHandler.TranslateRunStyleFont(element);
+
+            Assert.Equal("SomeRunFont", actual);
+        }
+
+        [Fact]
+        public void ShouldTranslateFontInParagraphWithFontHandler()
+        {
+            var fontHandler = new FontHandler();
+
+            var element = new XElement("run", new XAttribute(PtOpenXml.FontName, "SomeRunFont"));
+
+            var actual = fontHandler.TranslateParagraphStyleFont(element);
+
+            Assert.Equal("SomeRunFont", actual);
+        }
     }
 }
