@@ -89,9 +89,7 @@ namespace OpenXmlPowerTools
                     using (var ms = new MemoryStream())
                     {
                         ms.Write(wmlDoc.DocumentByteArray, 0, wmlDoc.DocumentByteArray.Length);
-#if !NET35
                         UriFixer.FixInvalidUri(ms, brokenUri => FixUri(brokenUri));
-#endif
                         wmlDoc = new WmlDocument("dummy.docx", ms.ToArray());
                     }
                     using (var ms = new MemoryStream())
@@ -837,9 +835,7 @@ namespace OpenXmlPowerTools
 
                     var valid = ValidateAgainstSpecificVersion(sDoc, metrics, DocumentFormat.OpenXml.FileFormatVersions.Office2007, H.SdkValidationError2007);
                     valid |= ValidateAgainstSpecificVersion(sDoc, metrics, DocumentFormat.OpenXml.FileFormatVersions.Office2010, H.SdkValidationError2010);
-#if !NET35
                     valid |= ValidateAgainstSpecificVersion(sDoc, metrics, DocumentFormat.OpenXml.FileFormatVersions.Office2013, H.SdkValidationError2013);
-#endif
 
                     return new XElement(H.Metrics,
                         new XAttribute(H.FileName, smlDoc.FileName),
@@ -932,9 +928,7 @@ namespace OpenXmlPowerTools
 
                     var valid = ValidateAgainstSpecificVersion(pDoc, metrics, DocumentFormat.OpenXml.FileFormatVersions.Office2007, H.SdkValidationError2007);
                     valid |= ValidateAgainstSpecificVersion(pDoc, metrics, DocumentFormat.OpenXml.FileFormatVersions.Office2010, H.SdkValidationError2010);
-#if !NET35
                     valid |= ValidateAgainstSpecificVersion(pDoc, metrics, DocumentFormat.OpenXml.FileFormatVersions.Office2013, H.SdkValidationError2013);
-#endif
                     return new XElement(H.Metrics,
                         new XAttribute(H.FileName, pmlDoc.FileName),
                         new XAttribute(H.FileType, "PresentationML"),
