@@ -742,6 +742,35 @@ namespace OpenXmlPowerTools
             return false;
         }
 
+        public static int StringToTwips(string twipsOrPoints)
+        {
+            // if the pos value is in points, not twips
+            if (twipsOrPoints.EndsWith("pt"))
+            {
+                decimal decimalValue = decimal.Parse(twipsOrPoints.Substring(0, twipsOrPoints.Length - 2));
+                return (int)(decimalValue * 20);
+            }
+            return int.Parse(twipsOrPoints);
+        }
+
+        public static int? AttributeToTwips(XAttribute attribute)
+        {
+            if (attribute == null)
+            {
+                return null;
+            }
+
+            string twipsOrPoints = (string)attribute;
+
+            // if the pos value is in points, not twips
+            if (twipsOrPoints.EndsWith("pt"))
+            {
+                decimal decimalValue = decimal.Parse(twipsOrPoints.Substring(0, twipsOrPoints.Length - 2));
+                return (int)(decimalValue * 20);
+            }
+            return int.Parse(twipsOrPoints);
+        }
+
         private static readonly List<XName> AdditionalRunContainerNames = new List<XName>
         {
             W.w + "bdo",
