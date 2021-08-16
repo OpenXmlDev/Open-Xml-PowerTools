@@ -26,8 +26,4 @@
   <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard2.0'">
     <PackageReference Include="System.Drawing.Common" Version="4.5.0" />
   </ItemGroup>
-
-  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="IF NOT &quot;$(ConfigurationName)&quot;==&quot;Release&quot; EXIT /B 0&#xD;&#xA;echo nuget push $(ProjectDir)bin\Release\*.nupkg -ApiKey 123.123a -Source http://nuget.cefcfco.com &gt; NugetPush.bat&#xD;&#xA;echo pause &gt;&gt; NugetPush.bat" />
-  </Target>
 </Project>
