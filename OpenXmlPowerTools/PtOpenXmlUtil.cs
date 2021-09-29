@@ -5894,7 +5894,8 @@ listSeparator
         public static readonly XName img = xhtml + "img";
         public static readonly XName meta = xhtml + "meta";
         public static readonly XName p = xhtml + "p";
-        public static readonly XName s = xhtml + "s";
+        public static readonly XName s = xhtml + "s";        
+        public static readonly XName script = xhtml + "script";
         public static readonly XName span = xhtml + "span";
         public static readonly XName style = xhtml + "style";
         public static readonly XName sub = xhtml + "sub";
