@@ -2292,6 +2292,8 @@ namespace OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
                 if (defaultTabStop == 0)
                 {
                     defaultTabStop = 720;
+                }
+
                 var rangeStart = WordprocessingMLUtil.StringToTwips((string)lastTabElement.Attribute(W.pos)) / defaultTabStop + 1;
                 var tempTabs = new XElement(W.tabs,
                     tabs.Elements().Where(t => (string)t.Attribute(W.val) != "clear" && (string)t.Attribute(W.val) != "bar"),
