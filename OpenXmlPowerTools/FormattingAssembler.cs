@@ -699,7 +699,7 @@ namespace OpenXmlPowerTools
                 tabs = new XElement(W.tabs);
                 pPr.Add(tabs);
             }
-            var tabAtLeft = tabs.Elements(W.tab).FirstOrDefault(t => (int)t.Attribute(W.pos) == left);
+            var tabAtLeft = tabs.Elements(W.tab).FirstOrDefault(t => WordprocessingMLUtil.StringToTwips((string)t.Attribute(W.pos)) == left);
             if (tabAtLeft == null)
             {
                 tabs.Add(
@@ -2243,7 +2243,7 @@ namespace OpenXmlPowerTools
             var hps = higherPriorityElement.Elements().Select(e =>
                 new
                 {
-                    Pos = (int)e.Attribute(W.pos),
+                    Pos = WordprocessingMLUtil.StringToTwips((string)e.Attribute(W.pos)),
                     Pri = 1,
                     Element = e,
                 }
@@ -2251,7 +2251,7 @@ namespace OpenXmlPowerTools
             var lps = lowerPriorityElement.Elements().Select(e =>
                 new
                 {
-                    Pos = (int)e.Attribute(W.pos),
+                    Pos = WordprocessingMLUtil.StringToTwips((string)e.Attribute(W.pos)),
                     Pri = 2,
                     Element = e,
                 }
@@ -2260,7 +2260,7 @@ namespace OpenXmlPowerTools
                 .GroupBy(s => s.Pos)
                 .Select(g => g.OrderBy(s => s.Pri).First().Element)
                 .Where(e => (string)e.Attribute(W.val) != "clear")
-                .OrderBy(e => (int)e.Attribute(W.pos));
+                .OrderBy(e => WordprocessingMLUtil.StringToTwips((string)e.Attribute(W.pos)));
             var newTabs = new XElement(W.tabs, newTabElements);
             return newTabs;
         }
