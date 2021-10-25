@@ -1944,10 +1944,10 @@ listSeparator
 #if !NET35
     public static class UriFixer
     {
-        public static void FixInvalidUri(Stream fs, Func<string, Uri> invalidUriHandler)
+        public static void FixInvalidUri(Stream fs, Func<string, Uri> invalidUriHandler, bool leaveOpen = false)
         {
             XNamespace relNs = "http://schemas.openxmlformats.org/package/2006/relationships";
-            using (ZipArchive za = new ZipArchive(fs, ZipArchiveMode.Update))
+            using (ZipArchive za = new ZipArchive(fs, ZipArchiveMode.Update, leaveOpen))
             {
                 foreach (var entry in za.Entries.ToList())
                 {
