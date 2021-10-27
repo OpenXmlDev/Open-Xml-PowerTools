@@ -768,6 +768,9 @@ namespace OpenXmlPowerTools
                             if (ce.Elements().Count(e => e.Name != W.rPr) != 1)
                                 return dontConsolidate;
 
+                            if (ce.Attribute(PtOpenXml.AbstractNumId) != null)
+                                return dontConsolidate;
+
                             XElement rPr = ce.Element(W.rPr);
                             string rPrString = rPr != null ? rPr.ToString(SaveOptions.None) : string.Empty;
 
@@ -5831,6 +5834,8 @@ listSeparator
         public static XName FontName = pt + "FontName";
         public static XName LanguageType = pt + "LanguageType";
         public static XName AbstractNumId = pt + "AbstractNumId";
+        public static XName HtmlStructure = pt + "HtmlStructure";
+        public static XName HtmlStyle = pt + "HtmlStyle";
         public static XName StyleName = pt + "StyleName";
         public static XName TabWidth = pt + "TabWidth";
         public static XName Leader = pt + "Leader";
@@ -5850,6 +5855,13 @@ listSeparator
         public static readonly XName div = xhtml + "div";
         public static readonly XName h1 = xhtml + "h1";
         public static readonly XName h2 = xhtml + "h2";
+        public static readonly XName h3 = xhtml + "h3";
+        public static readonly XName h4 = xhtml + "h4";
+        public static readonly XName h5 = xhtml + "h5";
+        public static readonly XName h6 = xhtml + "h6";
+        public static readonly XName h7 = xhtml + "h7";
+        public static readonly XName h8 = xhtml + "h8";
+        public static readonly XName h9 = xhtml + "h9";
         public static readonly XName head = xhtml + "head";
         public static readonly XName html = xhtml + "html";
         public static readonly XName i = xhtml + "i";
