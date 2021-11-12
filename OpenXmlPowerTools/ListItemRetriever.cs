@@ -136,6 +136,18 @@ namespace OpenXmlPowerTools
 
             public XElement Lvl(int ilvl)
             {
+                var lvl2 = Main.Lvl(ilvl);
+                if (lvl2 == null)
+                {
+                    for (int i = ilvl - 1; i >= 0; i--)
+                    {
+                        lvl2 = Main.Lvl(i);
+                        if (lvl2 != null)
+                            break;
+                    }
+                }
+                if (lvl2 != null)
+                    return lvl2;
                 if (NumStyleLink != null)
                 {
                     var lvl = NumStyleLink.Lvl(ilvl);
@@ -150,17 +162,7 @@ namespace OpenXmlPowerTools
                     }
                     return lvl;
                 }
-                var lvl2 = Main.Lvl(ilvl);
-                if (lvl2 == null)
-                {
-                    for (int i = ilvl - 1; i >= 0; i--)
-                    {
-                        lvl2 = Main.Lvl(i);
-                        if (lvl2 != null)
-                            break;
-                    }
-                }
-                return lvl2;
+                return null;
             }
 
             public int? StartOverride(int ilvl)
@@ -759,7 +761,8 @@ namespace OpenXmlPowerTools
             var numXDoc = numberingDefinitionsPart.GetXDocument();
             var stylesXDoc = styleDefinitionsPart.GetXDocument();
 
-            var lvl = listItemInfo.Lvl(GetParagraphLevel(paragraph));
+            var paragraphLevel = GetParagraphLevel(paragraph);
+            var lvl = listItemInfo.Lvl(paragraphLevel);
 
             string lvlText = (string)lvl.Elements(W.lvlText).Attributes(W.val).FirstOrDefault();
             if (lvlText == null)
