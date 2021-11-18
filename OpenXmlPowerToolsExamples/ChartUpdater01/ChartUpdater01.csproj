@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFrameworks Condition="'$(OS)' == 'Windows_NT' ">net472;net5.0</TargetFrameworks>
-    <TargetFrameworks Condition="'$(OS)' != 'Windows_NT' ">net5.0</TargetFrameworks>
+    <TargetFrameworks Condition="'$(OS)' == 'Windows_NT' ">net472;net6.0</TargetFrameworks>
+    <TargetFrameworks Condition="'$(OS)' != 'Windows_NT' ">net6.0</TargetFrameworks>
     <LangVersion>8.0</LangVersion>
     <EnableNETAnalyzers>true</EnableNETAnalyzers>
   </PropertyGroup>
