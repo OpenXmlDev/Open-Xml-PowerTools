@@ -5,12 +5,12 @@
    "version": "0.2.0",
    "configurations": [
         {
-            "name": ".NET Core Launch (console)",
+            "name": ".NET Launch (console)",
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build",
             // If you have changed target frameworks, make sure to update the program path.
-            "program": "${workspaceFolder}/OpenXmlPowerToolsExamples/DocumentAssembler/bin/Debug/net5.0/DocumentAssembler.dll",
+            "program": "${workspaceFolder}/OpenXmlPowerToolsExamples/DocumentAssembler/bin/Debug/net6.0/DocumentAssembler.dll",
             "args": [],
             "cwd": "${workspaceFolder}/OpenXmlPowerToolsExamples/DocumentAssembler",
             // For more information about the 'console' field, see https://aka.ms/VSCode-CS-LaunchJson-Console
@@ -18,7 +18,7 @@
             "stopAtEntry": false
         },
         {
-            "name": ".NET Core Attach",
+            "name": ".NET Attach",
             "type": "coreclr",
             "request": "attach",
             "processId": "${command:pickProcess}"
