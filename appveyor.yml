@@ -1,6 +1,6 @@
 version: 5.0.{build}
 image:
-  - Visual Studio 2019
+  - Visual Studio 2022
   - Ubuntu
 skip_tags: true
 configuration: Release
