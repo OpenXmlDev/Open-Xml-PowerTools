@@ -27,29 +27,29 @@ internal class WmlToHtmlConverterHelper
 
     public static void ConvertToHtml(string file, string outputDirectory)
     {
-        var fi = new FileInfo(file);
-        Console.WriteLine(fi.Name);
-        var byteArray = File.ReadAllBytes(fi.FullName);
+        var fileInfo = new FileInfo(file);
+        Console.WriteLine(fileInfo.Name);
+        var byteArray = File.ReadAllBytes(fileInfo.FullName);
         using var memoryStream = new MemoryStream();
         memoryStream.Write(byteArray, 0, byteArray.Length);
         using var wDoc = WordprocessingDocument.Open(memoryStream, true);
-        var destFileName = new FileInfo(fi.Name.Replace(".docx", ".html"));
+        var destFileName = new FileInfo(fileInfo.Name.Replace(".docx", ".html"));
         if (outputDirectory != null && !string.IsNullOrEmpty(outputDirectory))
         {
-            var di = new DirectoryInfo(outputDirectory);
-            if (!di.Exists)
+            var directoryInfo = new DirectoryInfo(outputDirectory);
+            if (!directoryInfo.Exists)
             {
                 throw new OpenXmlPowerToolsException("Output directory does not exist");
             }
-            destFileName = new FileInfo(Path.Combine(di.FullName, destFileName.Name));
+            destFileName = new FileInfo(Path.Combine(directoryInfo.FullName, destFileName.Name));
         }
         var imageDirectoryName = destFileName.FullName.Substring(0, destFileName.FullName.Length - 5) + "_files";
 
-        var pageTitle = fi.FullName;
+        var pageTitle = fileInfo.FullName;
         var part = wDoc.CoreFilePropertiesPart;
         if (part != null)
         {
-            pageTitle = (string)part.GetXDocument().Descendants(DC.title).FirstOrDefault() ?? fi.FullName;
+            pageTitle = (string)part.GetXDocument().Descendants(DC.title).FirstOrDefault() ?? fileInfo.FullName;
         }
 
         // TODO: Determine max-width from size of content area.

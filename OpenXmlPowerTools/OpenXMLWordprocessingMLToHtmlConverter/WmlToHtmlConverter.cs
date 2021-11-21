@@ -3210,8 +3210,7 @@ namespace OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
             "image/png", "image/gif", "image/tiff", "image/jpeg"
         };
 
-        internal static XElement ProcessImage(WordprocessingDocument wordDoc,
-            XElement element, IImageHandler imageHandler)
+        internal static XElement ProcessImage(WordprocessingDocument wordDoc, XElement element, IImageHandler imageHandler)
         {
             if (imageHandler == null)
             {
@@ -3228,8 +3227,7 @@ namespace OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
             return null;
         }
 
-        private static XElement ProcessDrawing(WordprocessingDocument wordDoc,
-            XElement element, IImageHandler imageHandler)
+        private static XElement ProcessDrawing(WordprocessingDocument wordDoc, XElement element, IImageHandler imageHandler)
         {
             var containerElement = element.Elements()
                 .FirstOrDefault(e => e.Name == WP.inline || e.Name == WP.anchor);
