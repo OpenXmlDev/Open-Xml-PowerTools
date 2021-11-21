@@ -35,6 +35,7 @@ namespace OxPt
         [InlineData("jpeg", minimalJpg)]
         public void ShouldTranslateWithDefaultImageHandler(string imageType, string minimalImage)
         {
+            AppContext.SetSwitch("System.Drawing.EnableUnixSupport", true);
             var expectedStart = $"<img src=\"data:image/{imageType};base64,";
             var expectedEnd = "\" xmlns=\"http://www.w3.org/1999/xhtml\" />";
             var binaryBitmap = Convert.FromBase64String(minimalImage);
