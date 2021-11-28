@@ -39,8 +39,6 @@ jobs:
       run: dotnet restore
     - name: Build
       run: dotnet build --configuration Release --no-restore
-    - name: Publish
-      run: dotnet publish --configuration Release --no-restore
     - name: NugetPush
       run: |
           dotnet nuget push ./OpenXmlPowerTools/bin/Release/*.nupkg --skip-duplicate --api-key ${{secrets.NUGET_TEST_TOKEN}} --source https://apiint.nugettest.org/v3/index.json
