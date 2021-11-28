@@ -1,7 +1,7 @@
-﻿using System;
+﻿using SixLabors.ImageSharp;
+using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -618,10 +618,10 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
             var r = ConvertFromHex(hex.Substring(0, 2));
             var g = ConvertFromHex(hex.Substring(2, 2));
             var b = ConvertFromHex(hex.Substring(4));
-            return Color.FromArgb(r, g, b);
+            return Color.FromRgb(r, g, b);
         }
 
-        private int ConvertFromHex(string input)
+        private byte ConvertFromHex(string input)
         {
             int val;
             var result = 0;
@@ -667,7 +667,7 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
                     result += val;
                 }
             }
-            return result;
+            return BitConverter.GetBytes(result)[0];
         }
     }
 
@@ -1113,15 +1113,15 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
             }
         }
 
-        private int GetRGBValue(CssTerm t)
+        private byte GetRGBValue(CssTerm t)
         {
             try
             {
                 if (t.Unit.HasValue && t.Unit.Value == CssUnit.Percent)
                 {
-                    return (int)(255f * float.Parse(t.Value) / 100f);
+                    return BitConverter.GetBytes((int)(255f * float.Parse(t.Value) / 100f))[0];
                 }
-                return int.Parse(t.Value);
+                return BitConverter.GetBytes(int.Parse(t.Value))[0];
             }
             catch { }
             return 0;
@@ -1157,7 +1157,7 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
                     || (Function.Name.ToLower().Equals("rgba") && Function.Expression.Terms.Count == 4)
                     )
                 {
-                    int fr = 0, fg = 0, fb = 0;
+                    byte fr = 0, fg = 0, fb = 0;
                     for (var i = 0; i < Function.Expression.Terms.Count; i++)
                     {
                         if (Function.Expression.Terms[i].Type != CssTermType.Number)
@@ -1179,7 +1179,7 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
                                 break;
                         }
                     }
-                    return Color.FromArgb(fr, fg, fb);
+                    return Color.FromRgb(fr, fg, fb);
                 }
                 else if ((Function.Name.ToLower().Equals("hsl") && Function.Expression.Terms.Count == 3)
                   || (Function.Name.Equals("hsla") && Function.Expression.Terms.Count == 4)
@@ -1227,10 +1227,10 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
             var r = ConvertFromHex(hex.Substring(0, 2));
             var g = ConvertFromHex(hex.Substring(2, 2));
             var b = ConvertFromHex(hex.Substring(4));
-            return Color.FromArgb(r, g, b);
+            return Color.FromRgb(r, g, b);
         }
 
-        private int ConvertFromHex(string input)
+        private byte ConvertFromHex(string input)
         {
             int val;
             var result = 0;
@@ -1276,7 +1276,7 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
                     result += val;
                 }
             }
-            return result;
+            return BitConverter.GetBytes(result)[0];
         }
     }
 
@@ -1417,9 +1417,9 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
         private void ConvertFromRGB(Color color)
         {
             double min; double max; double delta;
-            var r = color.R / 255.0d;
-            var g = color.G / 255.0d;
-            var b = color.B / 255.0d;
+            var r = calcRedConponent(color);
+            var g = calcGreenConponent(color);
+            var b = calcBlueConponent(color);
             double h; double s; double v;
 
             min = Math.Min(Math.Min(r, g), b);
@@ -1455,6 +1455,30 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
             Hue = (int)(h / 360.0d * 255.0d);
             Saturation = (int)(s * 255.0d);
             Value = (int)(v * 255.0d);
+        }
+
+        private double calcRedConponent(Color color)
+        {
+            var hex = color.ToHex();
+            var hexRed = Convert.ToInt32(hex.Substring(0, 2));
+
+            return hexRed / 255.0d;
+        }
+
+        private double calcGreenConponent(Color color)
+        {
+            var hex = color.ToHex();
+            var hexRed = Convert.ToInt32(hex.Substring(0, 2));
+
+            return hexRed / 255.0d;
+        }
+
+        private double calcBlueConponent(Color color)
+        {
+            var hex = color.ToHex();
+            var hexRed = Convert.ToInt32(hex.Substring(0, 2));
+
+            return hexRed / 255.0d;
         }
 
         private Color ConvertToRGB()
@@ -1534,7 +1558,7 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
                         break;
                 }
             }
-            return Color.FromArgb((int)(r * 255.0d), (int)(g * 255.0d), (int)(b * 255.0d));
+            return Color.FromRgb((byte)(r * 255.0d), (byte)(g * 255.0d), (byte)(b * 255.0d));
         }
 
         public static bool operator !=(HueSatVal left, HueSatVal right)

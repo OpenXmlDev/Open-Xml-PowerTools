@@ -2516,8 +2516,7 @@ namespace OpenXmlPowerTools.HtmlToWml
             return null;
         }
 
-        private static XElement GetImageAsInline(XElement element, Bitmap bmp,
-            string rId, int pictureId, string pictureDescription)
+        private static XElement GetImageAsInline(XElement element, Bitmap bmp, string rId, int pictureId, string pictureDescription)
         {
             var inline = new XElement(WP.inline, // 20.4.2.8
                 new XAttribute(XNamespace.Xmlns + "wp", WP.wp.NamespaceName),

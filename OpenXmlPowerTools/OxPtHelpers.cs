@@ -50,8 +50,8 @@ namespace OpenXmlPowerTools
 
                 if (!string.IsNullOrEmpty(foreColor))
                 {
-                    var colorValue = ColorParser.FromName(foreColor).ToArgb();
-                    if (colorValue == 0)
+                    SixLabors.ImageSharp.Color colorValue;
+                    if (!ColorParser.TryFromName(backColor, out colorValue))
                     {
                         throw new OpenXmlPowerToolsException(string.Format("Add-DocxText: The specified color {0} is unsupported, Please specify the valid color. Ex, Red, Green", foreColor));
                     }
@@ -67,8 +67,8 @@ namespace OpenXmlPowerTools
 
                 if (!string.IsNullOrEmpty(backColor))
                 {
-                    var colorShade = ColorParser.FromName(backColor).ToArgb();
-                    if (colorShade == 0)
+                    SixLabors.ImageSharp.Color colorShade;
+                    if (!ColorParser.TryFromName(backColor, out colorShade))
                     {
                         throw new OpenXmlPowerToolsException(string.Format("Add-DocxText: The specified color {0} is unsupported, Please specify the valid color. Ex, Red, Green", foreColor));
                     }

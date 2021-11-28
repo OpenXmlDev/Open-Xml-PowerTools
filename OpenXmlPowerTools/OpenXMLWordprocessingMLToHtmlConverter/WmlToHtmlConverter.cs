@@ -3303,12 +3303,11 @@ namespace OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
             }
 
             using var partStream = imagePart.GetStream();
-            using var bitmap = new Bitmap(partStream);
             if (extentCx != null && extentCy != null)
             {
                 var imageInfo = new ImageInfo
                 {
-                    Bitmap = bitmap,
+                    Image = partStream,
                     ImgStyleAttribute = new XAttribute("style",
                         string.Format(NumberFormatInfo.InvariantInfo,
                             "width: {0}in; height: {1}in",
@@ -3330,7 +3329,7 @@ namespace OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
 
             var imageInfo2 = new ImageInfo
             {
-                Bitmap = bitmap,
+                Image = partStream,
                 ContentType = contentType,
                 DrawingElement = element,
                 AltText = altText,
@@ -3374,10 +3373,9 @@ namespace OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
                 using var partStream = imagePart.GetStream();
                 try
                 {
-                    using var bitmap = new Bitmap(partStream);
                     var imageInfo = new ImageInfo()
                     {
-                        Bitmap = bitmap,
+                        Image = partStream,
                         ContentType = contentType,
                         DrawingElement = element
                     };

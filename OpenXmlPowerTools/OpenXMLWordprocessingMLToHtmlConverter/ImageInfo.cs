@@ -1,11 +1,11 @@
-﻿using System.Drawing;
+﻿using System.IO;
 using System.Xml.Linq;
 
 namespace OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
 {
     public class ImageInfo
     {
-        public Bitmap Bitmap { get; set; }
+        public Stream Image { get; set; }
         public XAttribute ImgStyleAttribute { get; set; }
         public string ContentType { get; set; }
         public XElement DrawingElement { get; set; }

@@ -1,7 +1,7 @@
 ﻿using DocumentFormat.OpenXml.Packaging;
+using SixLabors.ImageSharp;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.IO;
 using System.IO.Packaging;
 using System.Linq;
@@ -594,11 +594,10 @@ namespace OpenXmlPowerTools
                         delta.SaveAs(deltaFi.FullName);
                     }
 
-                    var colorRgb = revisedDocumentInfo.Color.ToArgb();
-                    var colorString = colorRgb.ToString("X");
-                    if (colorString.Length == 8)
+                    var colorRgb = revisedDocumentInfo.Color.ToHex();
+                    if (colorRgb.Length == 8)
                     {
-                        colorString = colorString.Substring(2);
+                        colorRgb = colorRgb.Substring(2);
                     }
 
                     using var msOriginalWithUnids = new MemoryStream();
@@ -1067,11 +1066,10 @@ namespace OpenXmlPowerTools
                         new XElement(W.bCs)),
                     new XElement(W.t, revisor)));
 
-            var colorRgb = groupedCi.First().Color.ToArgb();
-            var colorString = colorRgb.ToString("X");
-            if (colorString.Length == 8)
+            var colorRgb = groupedCi.First().Color.ToHex();
+            if (colorRgb.Length == 8)
             {
-                colorString = colorString.Substring(2);
+                colorRgb = colorRgb.Substring(2);
             }
 
             if (consolidateSettings.ConsolidateWithTable)
@@ -1085,7 +1083,7 @@ namespace OpenXmlPowerTools
                         new XElement(W.shd,
                             new XAttribute(W.val, "clear"),
                             new XAttribute(W.color, "auto"),
-                            new XAttribute(W.fill, colorString)),
+                            new XAttribute(W.fill, colorRgb)),
                         new XElement(W.tblLook,
                             new XAttribute(W.firstRow, "0"),
                             new XAttribute(W.lastRow, "0"),
@@ -1101,7 +1099,7 @@ namespace OpenXmlPowerTools
                             new XElement(W.shd,
                                 new XAttribute(W.val, "clear"),
                                 new XAttribute(W.color, "auto"),
-                                new XAttribute(W.fill, colorString))),
+                                new XAttribute(W.fill, colorRgb))),
                             captionParagraph,
                             groupedCi.Select(ci =>
                             {
@@ -1210,10 +1208,7 @@ namespace OpenXmlPowerTools
                         paraAfter = emptyParagraph;
                     }
 
-                    var revisionInTable = new[] {
-                                    ci.RevisionElement,
-                                    paraAfter,
-                                    };
+                    var revisionInTable = new[] { ci.RevisionElement, paraAfter, };
 
                     // At this point, content might contain a footnote or endnote reference.
                     // Need to add the footnote / endnote into the consolidated document (with the same guid id)

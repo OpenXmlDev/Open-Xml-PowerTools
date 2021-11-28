@@ -1,9 +1,8 @@
-﻿using Codeuctivity.BitmapCompare;
+﻿using Codeuctivity;
 using OpenXmlPowerTools;
 using OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Xml.Linq;
@@ -33,18 +32,17 @@ namespace OxPt
         [InlineData("png", minimalPng)]
         [InlineData("bmp", minimalBmp)]
         [InlineData("jpeg", minimalJpg)]
-        public void ShouldTranslateWithDefaultImageHandler(string imageType, string minimalImage)
+        public async void ShouldTranslateWithDefaultImageHandler(string imageType, string minimalImage)
         {
-            AppContext.SetSwitch("System.Drawing.EnableUnixSupport", true);
             var expectedStart = $"<img src=\"data:image/{imageType};base64,";
             var expectedEnd = "\" xmlns=\"http://www.w3.org/1999/xhtml\" />";
             var binaryBitmap = Convert.FromBase64String(minimalImage);
 
-            using var memeoryStream = new MemoryStream(binaryBitmap);
-            var input = new Bitmap(memeoryStream);
+            using var expectedImage = new MemoryStream(binaryBitmap);
+
             var imageInfo = new ImageInfo
             {
-                Bitmap = input
+                Image = expectedImage
             };
 
             var defaultImageHandler = new ImageHandler();
@@ -56,10 +54,12 @@ namespace OxPt
 
             var actualBase64Part = actual.Substring(expectedStart.Length, actual.Length - expectedEnd.Length - expectedStart.Length);
             var binaryActualBitmap = Convert.FromBase64String(actualBase64Part);
-            using var memeoryStreamBinaryBitmap = new MemoryStream(binaryActualBitmap);
-            var actualBitmap = new Bitmap(memeoryStreamBinaryBitmap);
+            using var actualImage = new MemoryStream(binaryActualBitmap);
 
-            Assert.True(Compare.ImageAreEqual(input, input));
+            expectedImage.Position = 0;
+            actualImage.Position = 0;
+
+            Assert.True(ImageSharpCompare.ImageAreEqual(expectedImage, actualImage));
         }
 
         [Fact]
