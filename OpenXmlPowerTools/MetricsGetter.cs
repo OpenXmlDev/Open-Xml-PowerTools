@@ -2,7 +2,6 @@
 using DocumentFormat.OpenXml.Validation;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Globalization;
 using System.IO;
 using System.IO.Packaging;
@@ -22,11 +21,7 @@ namespace OpenXmlPowerTools
 
     public class MetricsGetter
     {
-        private static Lazy<Graphics> Graphics { get; } = new Lazy<Graphics>(() =>
-        {
-            Image image = new Bitmap(1, 1);
-            return System.Drawing.Graphics.FromImage(image);
-        });
+
 
         public static XElement GetMetrics(string fileName, MetricsGetterSettings settings)
         {
@@ -118,16 +113,14 @@ namespace OpenXmlPowerTools
             return metrics;
         }
 
-        private static int _getTextWidth(FontFamily ff, FontStyle fs, decimal sz, string text)
+        private static int _getTextWidth(SixLabors.Fonts.FontFamily ff, SixLabors.Fonts.FontStyle fs, decimal sz, string text)
         {
             try
             {
-                using (var f = new Font(ff, (float)sz / 2f, fs))
-                {
-                    var proposedSize = new Size(int.MaxValue, int.MaxValue);
-                    var sf = Graphics.Value.MeasureString(text, f, proposedSize);
-                    return (int)sf.Width;
-                }
+                var font = new SixLabors.Fonts.Font(ff, (float)sz / 2f, fs);
+                SixLabors.Fonts.FontRectangle size = SixLabors.Fonts.TextMeasurer.Measure(text, new SixLabors.Fonts.RendererOptions(font));
+
+                return (int)size.Width;
             }
             catch
             {
@@ -135,7 +128,7 @@ namespace OpenXmlPowerTools
             }
         }
 
-        public static int GetTextWidth(FontFamily ff, FontStyle fs, decimal sz, string text)
+        public static int GetTextWidth(SixLabors.Fonts.FontFamily ff, SixLabors.Fonts.FontStyle fs, decimal sz, string text)
         {
             try
             {
@@ -145,12 +138,12 @@ namespace OpenXmlPowerTools
             {
                 try
                 {
-                    const FontStyle fs2 = FontStyle.Regular;
+                    const SixLabors.Fonts.FontStyle fs2 = SixLabors.Fonts.FontStyle.Regular;
                     return _getTextWidth(ff, fs2, sz, text);
                 }
                 catch (ArgumentException)
                 {
-                    const FontStyle fs2 = FontStyle.Bold;
+                    const SixLabors.Fonts.FontStyle fs2 = SixLabors.Fonts.FontStyle.Bold;
                     try
                     {
                         return _getTextWidth(ff, fs2, sz, text);
@@ -158,7 +151,7 @@ namespace OpenXmlPowerTools
                     catch (ArgumentException)
                     {
                         // if both regular and bold fail, then get metrics for Times New Roman the original FontStyle (in fs)
-                        var ff2 = new FontFamily("Times New Roman");
+                        var ff2 = SixLabors.Fonts.SystemFonts.Families.Single(font => font.Name == "Times New Roman");
                         return _getTextWidth(ff2, fs, sz, text);
                     }
                 }
@@ -284,9 +277,7 @@ namespace OpenXmlPowerTools
         {
             var valid = ValidateAgainstSpecificVersion(wDoc, metrics, DocumentFormat.OpenXml.FileFormatVersions.Office2007, H.SdkValidationError2007);
             valid |= ValidateAgainstSpecificVersion(wDoc, metrics, DocumentFormat.OpenXml.FileFormatVersions.Office2010, H.SdkValidationError2010);
-#if !NET35
             valid |= ValidateAgainstSpecificVersion(wDoc, metrics, DocumentFormat.OpenXml.FileFormatVersions.Office2013, H.SdkValidationError2013);
-#endif
 
             var elementCount = 0;
             var paragraphCount = 0;

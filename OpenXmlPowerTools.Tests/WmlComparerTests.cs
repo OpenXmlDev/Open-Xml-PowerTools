@@ -2,9 +2,9 @@
 using DocumentFormat.OpenXml.Validation;
 using OpenXmlPowerTools;
 using OpenXmlPowerTools.Tests;
+using SixLabors.ImageSharp;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text;

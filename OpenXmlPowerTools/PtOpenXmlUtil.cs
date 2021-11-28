@@ -1,7 +1,6 @@
 ﻿using DocumentFormat.OpenXml.Packaging;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.IO;
 using System.IO.Packaging;
 using System.Linq;
@@ -9,9 +8,6 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml;
 using System.Xml.Linq;
-using FontFamily = System.Drawing.FontFamily;
-
-// ReSharper disable InconsistentNaming
 
 namespace OpenXmlPowerTools
 {
@@ -113,17 +109,11 @@ namespace OpenXmlPowerTools
             var partXDocument = part.GetXDocument();
             if (partXDocument != null)
             {
-#if true
                 using (var partStream = part.GetStream(FileMode.Create, FileAccess.Write))
                 using (var partXmlWriter = XmlWriter.Create(partStream))
                 {
                     partXDocument.Save(partXmlWriter);
                 }
-#else
-                byte[] array = Encoding.UTF8.GetBytes(partXDocument.ToString(SaveOptions.DisableFormatting));
-                using (MemoryStream ms = new MemoryStream(array))
-                    part.FeedData(ms);
-#endif
             }
         }
 
@@ -729,7 +719,7 @@ namespace OpenXmlPowerTools
 
     public static class WordprocessingMLUtil
     {
-        private static HashSet<string> UnknownFonts = new HashSet<string>();
+        private static readonly HashSet<string> UnknownFonts = new HashSet<string>();
         private static HashSet<string> KnownFamilies = null;
 
         public static int CalcWidthOfRunInTwips(XElement r)
@@ -737,7 +727,7 @@ namespace OpenXmlPowerTools
             if (KnownFamilies == null)
             {
                 KnownFamilies = new HashSet<string>();
-                var families = FontFamily.Families;
+                var families = SixLabors.Fonts.SystemFonts.Families;
                 foreach (var fam in families)
                 {
                     KnownFamilies.Add(fam.Name);
@@ -790,10 +780,10 @@ namespace OpenXmlPowerTools
                 return 0;
             }
             // in theory, all unknown fonts are found by the above test, but if not...
-            FontFamily ff;
+            SixLabors.Fonts.FontFamily ff;
             try
             {
-                ff = new FontFamily(fontName);
+                ff = SixLabors.Fonts.SystemFonts.Families.Single(font => font.Name == fontName);
             }
             catch (ArgumentException)
             {
@@ -801,22 +791,22 @@ namespace OpenXmlPowerTools
 
                 return 0;
             }
-            var fs = FontStyle.Regular;
+            var fs = SixLabors.Fonts.FontStyle.Regular;
             var bold = GetBoolProp(rPr, W.b) || GetBoolProp(rPr, W.bCs);
             var italic = GetBoolProp(rPr, W.i) || GetBoolProp(rPr, W.iCs);
             if (bold && !italic)
             {
-                fs = FontStyle.Bold;
+                fs = SixLabors.Fonts.FontStyle.Bold;
             }
 
             if (italic && !bold)
             {
-                fs = FontStyle.Italic;
+                fs = SixLabors.Fonts.FontStyle.Italic;
             }
 
             if (bold && italic)
             {
-                fs = FontStyle.Bold | FontStyle.Italic;
+                fs = SixLabors.Fonts.FontStyle.Bold | SixLabors.Fonts.FontStyle.Italic;
             }
 
             var runText = r.DescendantsTrimmed(W.txbxContent)
@@ -983,36 +973,6 @@ namespace OpenXmlPowerTools
                             if (ce.Elements(W.del).Any())
                             {
                                 return dontConsolidate;
-#if false
-                                // for w:ins/w:del/w:r/w:delText
-                                if ((ce.Elements(W.del).Elements(W.r).Elements().Count(e => e.Name != W.rPr) != 1) ||
-                                    !ce.Elements().Elements().Elements(W.delText).Any())
-                                    return dontConsolidate;
-
-                                XAttribute dateIns = ce.Attribute(W.date);
-                                XElement del = ce.Element(W.del);
-                                XAttribute dateDel = del.Attribute(W.date);
-
-                                string authorIns = (string) ce.Attribute(W.author) ?? string.Empty;
-                                string dateInsString = dateIns != null
-                                    ? ((DateTime) dateIns).ToString("s")
-                                    : string.Empty;
-                                string authorDel = (string) del.Attribute(W.author) ?? string.Empty;
-                                string dateDelString = dateDel != null
-                                    ? ((DateTime) dateDel).ToString("s")
-                                    : string.Empty;
-
-                                return "Wins" +
-                                       authorIns +
-                                       dateInsString +
-                                       authorDel +
-                                       dateDelString +
-                                       ce.Elements(W.del)
-                                           .Elements(W.r)
-                                           .Elements(W.rPr)
-                                           .Select(rPr => rPr.ToString(SaveOptions.None))
-                                           .StringConcatenate();
-#endif
                             }
 
                             // w:ins/w:r/w:t
@@ -1153,7 +1113,7 @@ namespace OpenXmlPowerTools
             return runContainerWithConsolidatedRuns;
         }
 
-        private static Dictionary<XName, int> Order_settings = new Dictionary<XName, int>
+        private static readonly Dictionary<XName, int> Order_settings = new Dictionary<XName, int>
         {
             { W.writeProtection, 10},
             { W.view, 20},
@@ -1354,7 +1314,7 @@ decimalSymbol
 listSeparator
 #endif
 
-        private static Dictionary<XName, int> Order_pPr = new Dictionary<XName, int>
+        private static readonly Dictionary<XName, int> Order_pPr = new Dictionary<XName, int>
         {
             { W.pStyle, 10 },
             { W.keepNext, 20 },
@@ -1394,7 +1354,7 @@ listSeparator
             { W.pPrChange, 370 },
         };
 
-        private static Dictionary<XName, int> Order_rPr = new Dictionary<XName, int>
+        private static readonly Dictionary<XName, int> Order_rPr = new Dictionary<XName, int>
         {
             { W.moveFrom, 5 },
             { W.moveTo, 7 },
@@ -1446,7 +1406,7 @@ listSeparator
             { W.oMath, 460 },
         };
 
-        private static Dictionary<XName, int> Order_tblPr = new Dictionary<XName, int>
+        private static readonly Dictionary<XName, int> Order_tblPr = new Dictionary<XName, int>
         {
             { W.tblStyle, 10 },
             { W.tblpPr, 20 },
@@ -1467,7 +1427,7 @@ listSeparator
             { W.tblDescription, 170 },
         };
 
-        private static Dictionary<XName, int> Order_tblBorders = new Dictionary<XName, int>
+        private static readonly Dictionary<XName, int> Order_tblBorders = new Dictionary<XName, int>
         {
             { W.top, 10 },
             { W.left, 20 },
@@ -1479,7 +1439,7 @@ listSeparator
             { W.insideV, 80 },
         };
 
-        private static Dictionary<XName, int> Order_tcPr = new Dictionary<XName, int>
+        private static readonly Dictionary<XName, int> Order_tcPr = new Dictionary<XName, int>
         {
             { W.cnfStyle, 10 },
             { W.tcW, 20 },
@@ -1497,7 +1457,7 @@ listSeparator
             { W.headers, 140 },
         };
 
-        private static Dictionary<XName, int> Order_tcBorders = new Dictionary<XName, int>
+        private static readonly Dictionary<XName, int> Order_tcBorders = new Dictionary<XName, int>
         {
             { W.top, 10 },
             { W.start, 20 },
@@ -1511,7 +1471,7 @@ listSeparator
             { W.tr2bl, 100 },
         };
 
-        private static Dictionary<XName, int> Order_pBdr = new Dictionary<XName, int>
+        private static readonly Dictionary<XName, int> Order_pBdr = new Dictionary<XName, int>
         {
             { W.top, 10 },
             { W.left, 20 },

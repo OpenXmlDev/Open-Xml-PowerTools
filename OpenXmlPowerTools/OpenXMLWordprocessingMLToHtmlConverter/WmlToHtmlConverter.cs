@@ -1,7 +1,6 @@
 ﻿using DocumentFormat.OpenXml.Packaging;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -2326,7 +2325,7 @@ namespace OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
                 if (_knownFamilies == null)
                 {
                     _knownFamilies = new HashSet<string>();
-                    var families = FontFamily.Families;
+                    var families = SixLabors.Fonts.SystemFonts.Families;
                     foreach (var fam in families)
                     {
                         _knownFamilies.Add(fam.Name);
@@ -2365,11 +2364,11 @@ namespace OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
             }
 
             // in theory, all unknown fonts are found by the above test, but if not...
-            FontFamily ff;
+            SixLabors.Fonts.FontFamily ff;
 
             try
             {
-                ff = new FontFamily(fontName);
+                ff = SixLabors.Fonts.SystemFonts.Families.Single(font => font.Name == fontName);
             }
             catch (ArgumentException)
             {
@@ -2378,15 +2377,15 @@ namespace OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
                 return 0;
             }
 
-            var fs = FontStyle.Regular;
+            var fs = SixLabors.Fonts.FontStyle.Regular;
             if (GetBoolProp(rPr, W.b) || GetBoolProp(rPr, W.bCs))
             {
-                fs |= FontStyle.Bold;
+                fs |= SixLabors.Fonts.FontStyle.Bold;
             }
 
             if (GetBoolProp(rPr, W.i) || GetBoolProp(rPr, W.iCs))
             {
-                fs |= FontStyle.Italic;
+                fs |= SixLabors.Fonts.FontStyle.Italic;
             }
 
             // Appended blank as a quick fix to accommodate &nbsp; that will get appended to some layout-critical runs such as list item numbers. In some cases, this might not be required or even wrong, so this must be revisited.
@@ -3303,12 +3302,11 @@ namespace OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
             }
 
             using var partStream = imagePart.GetStream();
-            using var bitmap = new Bitmap(partStream);
             if (extentCx != null && extentCy != null)
             {
                 var imageInfo = new ImageInfo
                 {
-                    Bitmap = bitmap,
+                    Image = partStream,
                     ImgStyleAttribute = new XAttribute("style",
                         string.Format(NumberFormatInfo.InvariantInfo,
                             "width: {0}in; height: {1}in",
@@ -3330,7 +3328,7 @@ namespace OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
 
             var imageInfo2 = new ImageInfo
             {
-                Bitmap = bitmap,
+                Image = partStream,
                 ContentType = contentType,
                 DrawingElement = element,
                 AltText = altText,
@@ -3374,10 +3372,9 @@ namespace OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
                 using var partStream = imagePart.GetStream();
                 try
                 {
-                    using var bitmap = new Bitmap(partStream);
                     var imageInfo = new ImageInfo()
                     {
-                        Bitmap = bitmap,
+                        Image = partStream,
                         ContentType = contentType,
                         DrawingElement = element
                     };

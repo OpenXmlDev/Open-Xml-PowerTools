@@ -1,4 +1,4 @@
-﻿using System.Drawing;
+﻿using SixLabors.ImageSharp;
 
 namespace OpenXmlPowerTools
 {
@@ -6,16 +6,16 @@ namespace OpenXmlPowerTools
     {
         public static Color FromName(string name)
         {
-            return Color.FromName(name);
+            return Color.Parse(name);
         }
 
         public static bool TryFromName(string name, out Color color)
         {
             try
             {
-                color = Color.FromName(name);
+                color = Color.Parse(name);
 
-                return color.IsNamedColor;
+                return true;
             }
             catch
             {
