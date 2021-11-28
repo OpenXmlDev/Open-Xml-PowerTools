@@ -75,7 +75,7 @@ jobs:
           dotnet nuget push ./OpenXmlPowerTools/bin/Release/*.nupkg --skip-duplicate --api-key ${{secrets.NUGET_TEST_TOKEN}} --source https://apiint.nugettest.org/v3/index.json
     - uses: papeloto/action-zip@v1
       with:
-          files: ./OpenXmlPowerTools/bin/Release/net6.0/publish/
+          files: ./OpenXmlPowerTools/bin/Release/
           dest: OpenXmlPowerTools.zip
     - uses: "marvinpinto/action-automatic-releases@latest"
       with:
@@ -84,5 +84,4 @@ jobs:
         prerelease: true
         title: "Prerelease Build"
         files: |
-          LICENSE
           OpenXmlPowerTools.zip

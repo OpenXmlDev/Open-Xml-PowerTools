@@ -8,7 +8,7 @@
     <Authors>Contributors</Authors>
     <Company>Codeuctivity</Company>
 
-    <Version Condition="'$(GITHUB_RUN_NUMBER)' != ''">1.0.$(GITHUB_RUN_NUMBER)</Version>
+    <Version Condition="'$(GITHUB_RUN_NUMBER)' != ''">5.1.$(GITHUB_RUN_NUMBER)</Version>
     <Version Condition="'$(GITHUB_RUN_NUMBER)' == ''">5.1.0</Version>
     <AssemblyVersion>$(Version)</AssemblyVersion>
     <FileVersion>$(Version)</FileVersion>
