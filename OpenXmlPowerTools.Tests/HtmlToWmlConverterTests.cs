@@ -271,9 +271,6 @@ namespace OxPt
             var sourceDir = new DirectoryInfo("../../../../TestFiles/");
             var sourceHtmlFi = new FileInfo(Path.Combine(sourceDir.FullName, name));
             var sourceImageDi = new DirectoryInfo(Path.Combine(sourceDir.FullName, sourceHtmlFi.Name.Replace(".html", "_files")));
-            var sourceImageFi1 = new DirectoryInfo(Path.Combine(sourceDir.FullName, "img.png"));
-            var sourceImageFi2 = new DirectoryInfo(Path.Combine(sourceDir.FullName, "img2.png"));
-
             var destCssFi = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, sourceHtmlFi.Name.Replace(".html", "-2.css")));
             var destDocxFi = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, sourceHtmlFi.Name.Replace(".html", "-3-ConvertedByHtmlToWml.docx")));
             var annotatedHtmlFi = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, sourceHtmlFi.Name.Replace(".html", "-4-Annotated.txt")));
