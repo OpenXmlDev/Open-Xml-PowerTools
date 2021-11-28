@@ -12,7 +12,7 @@
     <Version Condition="'$(GITHUB_RUN_NUMBER)' == ''">5.1.0</Version>
     <AssemblyVersion>$(Version)</AssemblyVersion>
     <FileVersion>$(Version)</FileVersion>
-    <PackageVersion>$(Version)</PackageVersion>
+    <PackageVersion>$(Version)-beta1</PackageVersion>
     <PackageIcon>NugetIcon.png</PackageIcon>
     <PackageProjectUrl>https://github.com/Codeuctivity/OpenXmlPowerTools</PackageProjectUrl>
     <Description>The Open XML SDK provides tools for working with Office Word, Excel, and PowerPoint documents. This fork supports current .net versions.</Description>

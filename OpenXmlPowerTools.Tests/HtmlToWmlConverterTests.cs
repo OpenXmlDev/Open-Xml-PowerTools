@@ -268,86 +268,23 @@ namespace OxPt
         [InlineData("T1850.html")]
         public void HW001(string name)
         {
-            string[] cssFilter = null;
-            string[] htmlFilter = null;
-
             var sourceDir = new DirectoryInfo("../../../../TestFiles/");
             var sourceHtmlFi = new FileInfo(Path.Combine(sourceDir.FullName, name));
             var sourceImageDi = new DirectoryInfo(Path.Combine(sourceDir.FullName, sourceHtmlFi.Name.Replace(".html", "_files")));
             var sourceImageFi1 = new DirectoryInfo(Path.Combine(sourceDir.FullName, "img.png"));
             var sourceImageFi2 = new DirectoryInfo(Path.Combine(sourceDir.FullName, "img2.png"));
 
-            var destImageDi = new DirectoryInfo(Path.Combine(TestUtil.TempDir.FullName, sourceImageDi.Name));
-            var sourceCopiedToDestHtmlFi = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, sourceHtmlFi.Name.Replace(".html", "-1-Source.html")));
             var destCssFi = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, sourceHtmlFi.Name.Replace(".html", "-2.css")));
             var destDocxFi = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, sourceHtmlFi.Name.Replace(".html", "-3-ConvertedByHtmlToWml.docx")));
             var annotatedHtmlFi = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, sourceHtmlFi.Name.Replace(".html", "-4-Annotated.txt")));
-            var destImageFi1 = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, "img.png"));
-            var destImageFi2 = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, "img2.png"));
 
-            if (!sourceCopiedToDestHtmlFi.Exists)
-            {
-                File.Copy(sourceHtmlFi.FullName, sourceCopiedToDestHtmlFi.FullName);
-            }
-
-            File.Copy(sourceImageFi1.FullName, destImageFi1.FullName, true);
-            File.Copy(sourceImageFi2.FullName, destImageFi2.FullName, true);
-
-            var html = HtmlToWmlReadAsXElement.ReadAsXElement(sourceCopiedToDestHtmlFi);
-
-            var htmlString = html.ToString();
-            if (htmlFilter != null && htmlFilter.Any())
-            {
-                var found = false;
-                foreach (var item in htmlFilter)
-                {
-                    if (htmlString.Contains(item))
-                    {
-                        found = true;
-                        break;
-                    }
-                }
-                if (!found)
-                {
-                    sourceCopiedToDestHtmlFi.Delete();
-                    return;
-                }
-            }
-
+            var html = HtmlToWmlReadAsXElement.ReadAsXElement(sourceHtmlFi);
             var usedAuthorCss = HtmlToWmlConverter.CleanUpCss((string)html.Descendants().FirstOrDefault(d => d.Name.LocalName.ToLower() == "style"));
             File.WriteAllText(destCssFi.FullName, usedAuthorCss);
 
-            if (cssFilter != null && cssFilter.Any())
-            {
-                var found = false;
-                foreach (var item in cssFilter)
-                {
-                    if (usedAuthorCss.Contains(item))
-                    {
-                        found = true;
-                        break;
-                    }
-                }
-                if (!found)
-                {
-                    sourceCopiedToDestHtmlFi.Delete();
-                    destCssFi.Delete();
-                    return;
-                }
-            }
-
-            if (sourceImageDi.Exists)
-            {
-                destImageDi.Create();
-                foreach (var file in sourceImageDi.GetFiles())
-                {
-                    File.Copy(file.FullName, destImageDi.FullName + "/" + file.Name);
-                }
-            }
-
             var settings = HtmlToWmlConverter.GetDefaultSettings();
             // image references in HTML files contain the path to the subdir that contains the images, so base URI is the name of the directory that contains the HTML files
-            settings.BaseUriForImages = Path.Combine(TestUtil.TempDir.FullName);
+            settings.BaseUriForImages = sourceDir.FullName;
 
             var doc = HtmlToWmlConverter.ConvertHtmlToWml(defaultCss, usedAuthorCss, userCss, html, settings, null, s_ProduceAnnotatedHtml ? annotatedHtmlFi.FullName : null);
             Assert.NotNull(doc);
