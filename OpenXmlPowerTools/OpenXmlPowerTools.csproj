@@ -7,16 +7,19 @@
     <PackageTags>OpenXML DOCX Word XLSX Excel PPTX Powerpoint</PackageTags>
     <Authors>Contributors</Authors>
     <Company>Codeuctivity</Company>
-    <AssemblyVersion>5.0.0.0</AssemblyVersion>
-    <FileVersion>5.0.0.0</FileVersion>
-    <Version>5.0.0</Version>
-    <PackageVersion>5.0.0</PackageVersion>
+
+    <Version Condition="'$(GITHUB_RUN_NUMBER)' != ''">1.0.$(GITHUB_RUN_NUMBER)</Version>
+    <Version Condition="'$(GITHUB_RUN_NUMBER)' == ''">5.1.0</Version>
+    <AssemblyVersion>$(Version)</AssemblyVersion>
+    <FileVersion>$(Version)</FileVersion>
+    <PackageVersion>$(Version)</PackageVersion>
     <PackageIcon>NugetIcon.png</PackageIcon>
     <PackageProjectUrl>https://github.com/Codeuctivity/OpenXmlPowerTools</PackageProjectUrl>
-    <Description>The Open XML SDK provides tools for working with Office Word, Excel, and PowerPoint documents. This version is a fork focusing on current .net versions.</Description>
+    <Description>The Open XML SDK provides tools for working with Office Word, Excel, and PowerPoint documents. This fork supports current .net versions.</Description>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-    <PackageReleaseNotes>$(APPVEYOR_REPO_COMMIT_MESSAGE)</PackageReleaseNotes>
+    <PackageReleaseNotes Condition="'$(LAST_COMMIT_MESSAGE)' != ''">$(LAST_COMMIT_MESSAGE)</PackageReleaseNotes>
+    <PackageReleaseNotes Condition="'$(APPVEYOR_REPO_COMMIT_MESSAGE)' != ''">$(APPVEYOR_REPO_COMMIT_MESSAGE)</PackageReleaseNotes>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
@@ -41,11 +44,11 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="SixLabors.ImageSharp" Version="1.0.4" />
+    <PackageReference Include="SixLabors.ImageSharp.Drawing" Version="1.0.0-beta13" />
     <PackageReference Include="SonarAnalyzer.CSharp" Version="8.32.0.39516">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="System.Drawing.Common" Version="6.0.0" />
   </ItemGroup>
   <ItemGroup>
     <None Include="NugetIcon.png" Pack="true" PackagePath="\" />

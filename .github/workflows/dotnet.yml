@@ -1,0 +1,93 @@
+name: .NET build and test
+env:
+  LAST_COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 6.0.x
+    - name: Restore dependencies
+      run: dotnet restore
+    - name: Build
+      run: dotnet build --configuration Release --no-restore
+    - name: Test
+      run: dotnet test --no-build --verbosity normal --configuration Release
+
+  deployMain:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    needs: build 
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 6.0.x
+    - name: Restore dependencies
+      run: dotnet restore
+    - name: Build
+      run: dotnet build --configuration Release --no-restore
+    - name: Publish
+      run: dotnet publish --configuration Release --no-restore
+    - name: NugetPush
+      run: |
+          dotnet nuget push ./OpenXmlPowerTools/bin/Release/*.nupkg --skip-duplicate --api-key ${{secrets.NUGET_TEST_TOKEN}} --source https://apiint.nugettest.org/v3/index.json
+          # dotnet nuget push ./OpenXmlPowerTools/bin/Release/*.nupkg --skip-duplicate --api-key ${{secrets.NUGET_TOKEN}} --source https://api.nuget.org/v3/index.json
+    - uses: papeloto/action-zip@v1
+      with:
+          files: ./OpenXmlPowerTools/bin/Release/net6.0/publish/
+          dest: OpenXmlPowerTools.zip
+    - uses: "marvinpinto/action-automatic-releases@latest"
+      with:
+        repo_token: "${{ secrets.GITHUB_TOKEN }}"
+        automatic_release_tag: "latest"
+        title: "Release Build"
+        files: |
+          LICENSE
+          OpenXmlPowerTools.zip
+
+  deployTest:
+    if: github.ref != 'refs/heads/main'
+    runs-on: ubuntu-latest
+    needs: build 
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 6.0.x
+    - name: Restore dependencies
+      run: dotnet restore
+    - name: Build
+      run: dotnet build --configuration Release --no-restore
+    - name: Publish
+      run: dotnet publish --configuration Release --no-restore
+    - name: NugetPush
+      run: |
+          ls ./OpenXmlPowerTools/bin/Release
+          dotnet nuget push ./OpenXmlPowerTools/bin/Release/*.nupkg --skip-duplicate --api-key ${{secrets.NUGET_TEST_TOKEN}} --source https://apiint.nugettest.org/v3/index.json
+    - uses: papeloto/action-zip@v1
+      with:
+          files: ./OpenXmlPowerTools/bin/Release/net6.0/publish/
+          dest: OpenXmlPowerTools.zip
+    - uses: "marvinpinto/action-automatic-releases@latest"
+      with:
+        repo_token: "${{ secrets.GITHUB_TOKEN }}"
+        automatic_release_tag: "latest-prerelease"
+        prerelease: true
+        title: "Prerelease Build"
+        files: |
+          LICENSE
+          OpenXmlPowerTools.zip

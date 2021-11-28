@@ -268,40 +268,30 @@ namespace OxPt
         [InlineData("T1850.html")]
         public void HW001(string name)
         {
-#if false
-            string[] cssFilter = new[] {
-                "text-indent",
-                "margin-left",
-                "margin-right",
-                "padding-left",
-                "padding-right",
-            };
-#else
             string[] cssFilter = null;
-#endif
-
-#if false
-            string[] htmlFilter = new[] {
-                "img",
-            };
-#else
             string[] htmlFilter = null;
-#endif
 
             var sourceDir = new DirectoryInfo("../../../../TestFiles/");
             var sourceHtmlFi = new FileInfo(Path.Combine(sourceDir.FullName, name));
             var sourceImageDi = new DirectoryInfo(Path.Combine(sourceDir.FullName, sourceHtmlFi.Name.Replace(".html", "_files")));
+            var sourceImageFi1 = new DirectoryInfo(Path.Combine(sourceDir.FullName, "img.png"));
+            var sourceImageFi2 = new DirectoryInfo(Path.Combine(sourceDir.FullName, "img2.png"));
 
             var destImageDi = new DirectoryInfo(Path.Combine(TestUtil.TempDir.FullName, sourceImageDi.Name));
             var sourceCopiedToDestHtmlFi = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, sourceHtmlFi.Name.Replace(".html", "-1-Source.html")));
             var destCssFi = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, sourceHtmlFi.Name.Replace(".html", "-2.css")));
             var destDocxFi = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, sourceHtmlFi.Name.Replace(".html", "-3-ConvertedByHtmlToWml.docx")));
             var annotatedHtmlFi = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, sourceHtmlFi.Name.Replace(".html", "-4-Annotated.txt")));
+            var destImageFi1 = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, "img.png"));
+            var destImageFi2 = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, "img2.png"));
 
             if (!sourceCopiedToDestHtmlFi.Exists)
             {
                 File.Copy(sourceHtmlFi.FullName, sourceCopiedToDestHtmlFi.FullName);
             }
+
+            File.Copy(sourceImageFi1.FullName, destImageFi1.FullName, true);
+            File.Copy(sourceImageFi2.FullName, destImageFi2.FullName, true);
 
             var html = HtmlToWmlReadAsXElement.ReadAsXElement(sourceCopiedToDestHtmlFi);
 
