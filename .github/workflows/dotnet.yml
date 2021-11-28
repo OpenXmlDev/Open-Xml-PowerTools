@@ -41,8 +41,7 @@ jobs:
       run: dotnet build --configuration Release --no-restore
     - name: NugetPush
       run: |
-          dotnet nuget push ./OpenXmlPowerTools/bin/Release/*.nupkg --skip-duplicate --api-key ${{secrets.NUGET_TEST_TOKEN}} --source https://apiint.nugettest.org/v3/index.json
-          # dotnet nuget push ./OpenXmlPowerTools/bin/Release/*.nupkg --skip-duplicate --api-key ${{secrets.NUGET_TOKEN}} --source https://api.nuget.org/v3/index.json
+          dotnet nuget push ./OpenXmlPowerTools/bin/Release/*.nupkg --skip-duplicate --api-key ${{secrets.NUGET_TOKEN}} --source https://api.nuget.org/v3/index.json
     - uses: papeloto/action-zip@v1
       with:
           files: ./OpenXmlPowerTools/bin/Release/net6.0/publish/
@@ -70,8 +69,6 @@ jobs:
       run: dotnet restore
     - name: Build
       run: dotnet build --configuration Release --no-restore
-    - name: Publish
-      run: dotnet publish --configuration Release --no-restore
     - name: NugetPush
       run: |
           ls ./OpenXmlPowerTools/bin/Release
