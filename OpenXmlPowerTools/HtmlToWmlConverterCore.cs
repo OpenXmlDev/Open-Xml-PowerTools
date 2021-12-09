@@ -320,7 +320,7 @@ namespace OpenXmlPowerTools.HtmlToWml
             foreach (var d in body.Descendants())
                 d.Attributes().Where(a => a.Name.Namespace == PtOpenXml.pt).Remove();
             xDoc.Root.Add(body);
-            wDoc.MainDocumentPart.PutXDocument(xDoc);
+            wDoc.MainDocumentPart.SetXDocument(xDoc);
         }
 
         private static object TransformWhiteSpaceInPreCodeTtKbdSamp(XNode node, bool inPre, bool inOther)
@@ -728,7 +728,7 @@ namespace OpenXmlPowerTools.HtmlToWml
             XDocument mainXDoc = wDoc.MainDocumentPart.GetXDocument();
             XElement newRoot = (XElement)NormalizeTransform(mainXDoc.Root);
             mainXDoc.Root.ReplaceWith(newRoot);
-            wDoc.MainDocumentPart.PutXDocument();
+            wDoc.MainDocumentPart.SaveXDocument();
         }
 
         private static object NormalizeTransform(XNode node)
@@ -981,7 +981,7 @@ namespace OpenXmlPowerTools.HtmlToWml
                             var styleDefPart = wDoc.MainDocumentPart.StyleDefinitionsPart;
                             if (styleDefPart != null)
                             {
-                                rFontsGlobal = styleDefPart.GetXDocument().Root.Elements(W.docDefaults).Elements(W.rPrDefault).Elements(W.rPr).Elements(W.rFonts).FirstOrDefault();
+                                rFontsGlobal = styleDefPart.GetXElement().Elements(W.docDefaults).Elements(W.rPrDefault).Elements(W.rPr).Elements(W.rFonts).FirstOrDefault();
                             }
                             var rFontsNew = FontMerge(rFontsLocal, rFontsGlobal);
                             var rPr = run.Element(W.rPr);
@@ -4201,23 +4201,27 @@ namespace OpenXmlPowerTools.HtmlToWml
           w:csb1='00000000'/>
 </w:font>");
 
-            wDoc.MainDocumentPart.FontTablePart.PutXDocument();
+            wDoc.MainDocumentPart.FontTablePart.SaveXDocument();
         }
     }
 
-    class NumberingUpdater
+    internal class NumberingUpdater
     {
         public static void InitializeNumberingPart(WordprocessingDocument wDoc)
         {
-            NumberingDefinitionsPart numberingPart = wDoc.MainDocumentPart.NumberingDefinitionsPart;
-            if (numberingPart == null)
+            NumberingDefinitionsPart numberingDefinitionsPart = wDoc.MainDocumentPart!.NumberingDefinitionsPart;
+            if (numberingDefinitionsPart != null)
             {
-                wDoc.MainDocumentPart.AddNewPart<NumberingDefinitionsPart>();
-                XDocument npXDoc = new XDocument(
-                    new XElement(W.numbering,
-                        new XAttribute(XNamespace.Xmlns + "w", W.w)));
-                wDoc.MainDocumentPart.NumberingDefinitionsPart.PutXDocument(npXDoc);
+                return;
             }
+
+            numberingDefinitionsPart = wDoc.MainDocumentPart.AddNewPart<NumberingDefinitionsPart>();
+
+            var npXDoc = new XDocument(
+                new XElement(W.numbering,
+                    new XAttribute(XNamespace.Xmlns + "w", W.w)));
+
+            numberingDefinitionsPart.SetXDocument(npXDoc);
         }
 
         public static void GetNextNumId(WordprocessingDocument wDoc, out int nextNumId)
@@ -4607,7 +4611,7 @@ namespace OpenXmlPowerTools.HtmlToWml
                     new XElement(W.abstractNumId, new XAttribute(W.val, list.Value))));
             }
 
-            wDoc.MainDocumentPart.NumberingDefinitionsPart.PutXDocument();
+            wDoc.MainDocumentPart.NumberingDefinitionsPart.SaveXDocument();
 #if false
   <w:num w:numId='1'>
     <w:abstractNumId w:val='0'/>
@@ -5301,7 +5305,7 @@ namespace OpenXmlPowerTools.HtmlToWml
   </w:rPr>
 </w:style>");
 
-            wDoc.MainDocumentPart.StyleDefinitionsPart.PutXDocument();
+            wDoc.MainDocumentPart.StyleDefinitionsPart.SaveXDocument();
         }
     }
 
@@ -5355,7 +5359,7 @@ namespace OpenXmlPowerTools.HtmlToWml
                     minorTypeface.Value = term.Value;
             }
 
-            wDoc.MainDocumentPart.ThemePart.PutXDocument();
+            wDoc.MainDocumentPart.ThemePart.SaveXDocument();
         }
     }
 }

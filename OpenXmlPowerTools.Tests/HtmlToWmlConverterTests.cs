@@ -3,19 +3,14 @@
 
 using System;
 using System.Collections.Generic;
-using System.Drawing;
-using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Validation;
 using OpenXmlPowerTools;
 using Xunit;
-using System.Text.RegularExpressions;
 
 /*******************************************************************************************
  * HtmlToWmlConverter expects the HTML to be passed as an XElement, i.e. as XML.  While the HTML test files that
@@ -41,6 +36,8 @@ using Word = Microsoft.Office.Interop.Word;
 #endif
 
 #if !ELIDE_XUNIT_TESTS
+
+// ReSharper disable once CheckNamespace
 
 namespace OxPt
 {
@@ -285,27 +282,7 @@ namespace OxPt
 
         public void HW001(string name)
         {
-#if false
-            string[] cssFilter = new[] {
-                "text-indent",
-                "margin-left",
-                "margin-right",
-                "padding-left",
-                "padding-right",
-            };
-#else
-            string[] cssFilter = null;
-#endif
-
-#if false
-            string[] htmlFilter = new[] {
-                "img",
-            };
-#else
-            string[] htmlFilter = null;
-#endif
-
-            DirectoryInfo sourceDir = new DirectoryInfo("../../../../TestFiles/");
+            var sourceDir = new DirectoryInfo("../../../../TestFiles/");
             var sourceHtmlFi = new FileInfo(Path.Combine(sourceDir.FullName, name));
             var sourceImageDi = new DirectoryInfo(Path.Combine(sourceDir.FullName, sourceHtmlFi.Name.Replace(".html", "_files")));
 
@@ -316,54 +293,49 @@ namespace OxPt
             var annotatedHtmlFi = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, sourceHtmlFi.Name.Replace(".html", "-4-Annotated.txt")));
 
             if (!sourceCopiedToDestHtmlFi.Exists)
+            {
                 File.Copy(sourceHtmlFi.FullName, sourceCopiedToDestHtmlFi.FullName);
+            }
+
             XElement html = HtmlToWmlReadAsXElement.ReadAsXElement(sourceCopiedToDestHtmlFi);
 
-            string htmlString = html.ToString();
-            if (htmlFilter != null && htmlFilter.Any())
+#if false
+            var htmlFilter = new[] { "img" };
+            var htmlString = html.ToString();
+            bool htmlFilterFound = htmlFilter.Any(item => htmlString.Contains(item));
+
+            if (!htmlFilterFound)
             {
-                bool found = false;
-                foreach (var item in htmlFilter)
-                {
-                    if (htmlString.Contains(item))
-                    {
-                        found = true;
-                        break;
-                    }
-                }
-                if (!found)
-                {
-                    sourceCopiedToDestHtmlFi.Delete();
-                    return;
-                }
+                sourceCopiedToDestHtmlFi.Delete();
+                return;
             }
+#endif
 
             string usedAuthorCss = HtmlToWmlConverter.CleanUpCss((string)html.Descendants().FirstOrDefault(d => d.Name.LocalName.ToLower() == "style"));
             File.WriteAllText(destCssFi.FullName, usedAuthorCss);
 
-            if (cssFilter != null && cssFilter.Any())
-            {
-                bool found = false;
-                foreach (var item in cssFilter)
-                {
-                    if (usedAuthorCss.Contains(item))
-                    {
-                        found = true;
-                        break;
-                    }
-                }
-                if (!found)
-                {
-                    sourceCopiedToDestHtmlFi.Delete();
-                    destCssFi.Delete();
-                    return;
-                }
-            }
+#if false
+            var cssFilter = new[] {
+                "text-indent",
+                "margin-left",
+                "margin-right",
+                "padding-left",
+                "padding-right",
+            };
 
+            bool cssFilterFound = cssFilter.Any(item => usedAuthorCss.Contains(item));
+
+            if (!cssFilterFound)
+            {
+                sourceCopiedToDestHtmlFi.Delete();
+                destCssFi.Delete();
+                return;
+            }
+#endif
             if (sourceImageDi.Exists)
             {
                 destImageDi.Create();
-                foreach (var file in sourceImageDi.GetFiles())
+                foreach (FileInfo file in sourceImageDi.GetFiles())
                 {
                     File.Copy(file.FullName, destImageDi.FullName + "/" + file.Name);
                 }
@@ -376,8 +348,7 @@ namespace OxPt
 
             WmlDocument doc = HtmlToWmlConverter.ConvertHtmlToWml(defaultCss, usedAuthorCss, userCss, html, settings, null, s_ProduceAnnotatedHtml ? annotatedHtmlFi.FullName : null);
             Assert.NotNull(doc);
-            if (doc != null)
-                SaveValidateAndFormatMainDocPart(destDocxFi, doc);
+            SaveValidateAndFormatMainDocPart(destDocxFi, doc);
 
 #if DO_CONVERSION_VIA_WORD
             var newAltChunkBeforeFi = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, name.Replace(".html", "-5-AltChunkBefore.docx")));
@@ -419,25 +390,59 @@ namespace OxPt
             WmlDocument formattedDoc;
 
             doc.SaveAs(destDocxFi.FullName);
-            using (MemoryStream ms = new MemoryStream())
+
+            using (var ms = new MemoryStream())
             {
                 ms.Write(doc.DocumentByteArray, 0, doc.DocumentByteArray.Length);
+
                 using (WordprocessingDocument document = WordprocessingDocument.Open(ms, true))
                 {
-                    XDocument xDoc = document.MainDocumentPart.GetXDocument();
-                    document.MainDocumentPart.PutXDocumentWithFormatting();
-                    OpenXmlValidator validator = new OpenXmlValidator();
-                    var errors = validator.Validate(document);
-                    var errorsString = errors
+                    PutXDocumentWithFormatting(document.MainDocumentPart);
+                    document.MainDocumentPart!.SaveXDocument();
+
+                    var validator = new OpenXmlValidator();
+                    IEnumerable<ValidationErrorInfo> errors = validator.Validate(document);
+
+                    string errorsString = errors
                         .Select(e => e.Description + Environment.NewLine)
                         .StringConcatenate();
 
                     // Assert that there were no errors in the generated document.
                     Assert.Equal("", errorsString);
                 }
+
                 formattedDoc = new WmlDocument(destDocxFi.FullName, ms.ToArray());
             }
+
             formattedDoc.SaveAs(destDocxFi.FullName);
+        }
+
+        /// <summary>
+        /// Saves the cached <see cref="XDocument"/> to the the given <see cref="OpenXmlPart"/>,
+        /// indending the XML markup and creating new lines for attributes.
+        /// </summary>
+        /// <param name="part">The <see cref="OpenXmlPart"/>.</param>
+        private static void PutXDocumentWithFormatting(OpenXmlPart part)
+        {
+            if (part == null) throw new ArgumentNullException(nameof(part));
+
+            XDocument partXDocument = part.GetXDocument();
+            if (partXDocument == null) return;
+
+            using (Stream partStream = part.GetStream(FileMode.Create, FileAccess.Write))
+            {
+                var settings = new XmlWriterSettings
+                {
+                    Indent = true,
+                    OmitXmlDeclaration = true,
+                    NewLineOnAttributes = true
+                };
+
+                using (var partXmlWriter = XmlWriter.Create(partStream, settings))
+                {
+                    partXDocument.Save(partXmlWriter);
+                }
+            }
         }
 
         static string defaultCss =

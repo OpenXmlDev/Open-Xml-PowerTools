@@ -2,12 +2,10 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
-using System.Text;
 using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Linq;
 using DocumentFormat.OpenXml.Packaging;
-using System.Xml;
 using ExcelFormula;
 
 namespace OpenXmlPowerTools
@@ -167,7 +165,7 @@ namespace OpenXmlPowerTools
         {
             // Create the empty sheet
             WorksheetPart worksheetPart = document.WorkbookPart.AddNewPart<WorksheetPart>();
-            worksheetPart.PutXDocument(new XDocument(
+            worksheetPart.SetXDocument(new XDocument(
                 new XElement(S.worksheet, new XAttribute("xmlns", S.s), new XAttribute(XNamespace.Xmlns + "r", R.r),
                     new XElement(S.sheetData))));
             XDocument wb = document.WorkbookPart.GetXDocument();
@@ -186,7 +184,7 @@ namespace OpenXmlPowerTools
                 new XAttribute(NoNamespace.name, worksheetName),
                 new XAttribute(NoNamespace.sheetId, sheetId),
                 new XAttribute(R.id, document.WorkbookPart.GetIdOfPart(worksheetPart))));
-            document.WorkbookPart.PutXDocument();
+            document.WorkbookPart.SaveXDocument();
             return worksheetPart;
         }
 
@@ -195,7 +193,7 @@ namespace OpenXmlPowerTools
         {
             XDocument worksheetXDocument = worksheet.GetXDocument();
             worksheetXDocument.Root.Element(S.sheetData).ReplaceWith(contents.GetElements());
-            worksheet.PutXDocument();
+            worksheet.SaveXDocument();
         }
 
         // Translates the column number to the column reference string (e.g. 1 -> A, 2-> B)
@@ -347,7 +345,7 @@ namespace OpenXmlPowerTools
                         columnAfterXElement.AddBeforeSelf(newCell);
                     }
                     else
-                    {   //There is no inmediate right cell 
+                    {   //There is no inmediate right cell
                         //Add the new cell as the last element for the row
                         rowElement.Add(newCell);
                     }
@@ -440,7 +438,7 @@ namespace OpenXmlPowerTools
                 book.Root.Element(S.definedNames).Add(element);
             }
             element.SetValue(String.Format("{0}!${1}${2}:${3}${4}", sheetName, GetColumnId(startColumn), startRow, GetColumnId(endColumn), endRow));
-            doc.WorkbookPart.PutXDocument();
+            doc.WorkbookPart.SaveXDocument();
         }
 
         // Sets the end row for the named range
@@ -455,7 +453,7 @@ namespace OpenXmlPowerTools
                 string original = element.Value;
                 element.SetValue(original.Substring(0, original.Length - 1) + lastRow.ToString());
             }
-            doc.WorkbookPart.PutXDocument();
+            doc.WorkbookPart.SaveXDocument();
         }
 
         // Creates an empty row element (r) with the specified row number
@@ -473,7 +471,7 @@ namespace OpenXmlPowerTools
                 book.Root.Add(new XElement(S.calcPr));
             }
             element.SetAttributeValue(NoNamespace.fullCalcOnLoad, "1");
-            document.WorkbookPart.PutXDocument();
+            document.WorkbookPart.SaveXDocument();
         }
 
         public static void FormulaReplaceSheetName(SpreadsheetDocument document, string oldName, string newName)
@@ -494,7 +492,7 @@ namespace OpenXmlPowerTools
                 }
                 if (changed)
                 {
-                    sheetPart.PutXDocument();
+                    sheetPart.SaveXDocument();
                     ForceCalculateOnLoad(document);
                 }
             }
@@ -524,7 +522,7 @@ namespace OpenXmlPowerTools
                         SetCell(worksheetXDocument, newCell);
                     }
                 }
-            worksheet.PutXDocument();
+            worksheet.SaveXDocument();
             ForceCalculateOnLoad(document);
         }
 
@@ -599,8 +597,8 @@ namespace OpenXmlPowerTools
             document.WorkbookPart.AddPart<PivotTableCacheDefinitionPart>(cacheDef);
 
             // Set content for the PivotTableCacheRecordsPart and PivotTableCacheDefinitionPart
-            records.PutXDocument(new XDocument(pivotCacheRecords));
-            cacheDef.PutXDocument(new XDocument(new XElement(S.pivotCacheDefinition, new XAttribute("xmlns", S.s),
+            records.SetXDocument(new XDocument(pivotCacheRecords));
+            cacheDef.SetXDocument(new XDocument(new XElement(S.pivotCacheDefinition, new XAttribute("xmlns", S.s),
                 new XAttribute(XNamespace.Xmlns + "r", R.r), new XAttribute(R.id, cacheDef.GetIdOfPart(records)),
                 new XAttribute(NoNamespace.recordCount, (endRow - startRow).ToString()),
                     new XElement(S.cacheSource, new XAttribute(NoNamespace.type, "worksheet"),
@@ -620,10 +618,10 @@ namespace OpenXmlPowerTools
             wb.Root.Element(S.pivotCaches).Add(new XElement(S.pivotCache,
                 new XAttribute(NoNamespace.cacheId, cacheId),
                 new XAttribute(R.id, document.WorkbookPart.GetIdOfPart(cacheDef))));
-            document.WorkbookPart.PutXDocument();
+            document.WorkbookPart.SaveXDocument();
 
             // Set the content for the PivotTablePart
-            pivotTable.PutXDocument(new XDocument(new XElement(S.pivotTableDefinition, new XAttribute("xmlns", S.s),
+            pivotTable.SetXDocument(new XDocument(new XElement(S.pivotTableDefinition, new XAttribute("xmlns", S.s),
                 new XAttribute(NoNamespace.name, "PivotTable1"), new XAttribute(NoNamespace.cacheId, cacheId.ToString()),
                 new XAttribute(NoNamespace.dataCaption, "Values"),
                 new XElement(S.location, new XAttribute(NoNamespace._ref, "A3:C20"),
@@ -658,8 +656,8 @@ namespace OpenXmlPowerTools
             }
             XElement sharedItems = cacheDef.Descendants(S.cacheField).Skip(index).First().Element(S.sharedItems);
             sharedItems.Add(new XAttribute(NoNamespace.count, values.Count()), values);
-            recordsPart.PutXDocument();
-            cacheDefPart.PutXDocument();
+            recordsPart.SaveXDocument();
+            cacheDefPart.SaveXDocument();
 
             // Add axis definition to pivot table field
             XDocument pivotTable = pivotTablePart.GetXDocument();
@@ -724,7 +722,7 @@ namespace OpenXmlPowerTools
                     }
                     break;
             }
-            pivotTablePart.PutXDocument();
+            pivotTablePart.SaveXDocument();
             ForcePivotRefresh(cacheDefPart);
         }
 
@@ -784,7 +782,7 @@ namespace OpenXmlPowerTools
                     }
                     break;
             }
-            pivotTablePart.PutXDocument();
+            pivotTablePart.SaveXDocument();
             PivotTableCacheDefinitionPart cacheDefPart = pivotTablePart.GetPartsOfType<PivotTableCacheDefinitionPart>().First();
             ForcePivotRefresh(cacheDefPart);
         }
@@ -821,7 +819,7 @@ namespace OpenXmlPowerTools
             {   // Only when data field count goes from 1 to 2 do we add a special column to label the data fields
                 AddDataValueLabel(document, sheet, PivotAxis.Column);
             }
-            pivotTablePart.PutXDocument();
+            pivotTablePart.SaveXDocument();
             ForcePivotRefresh(cacheDefPart);
         }
 
@@ -833,7 +831,7 @@ namespace OpenXmlPowerTools
                 def.Add(new XAttribute(NoNamespace.refreshOnLoad, 1));
             else
                 def.Attribute(NoNamespace.refreshOnLoad).Value = "1";
-            cacheDef.PutXDocument();
+            cacheDef.SaveXDocument();
         }
 
         public static void CheckNumberFormat(SpreadsheetDocument document, int fmtID, string formatCode)
@@ -853,7 +851,7 @@ namespace OpenXmlPowerTools
             {
                 numFmts.Add(numFmt);
                 numFmts.Attribute(NoNamespace.count).Value = numFmts.Elements(S.numFmt).Count().ToString();
-                document.WorkbookPart.WorkbookStylesPart.PutXDocument();
+                document.WorkbookPart.WorkbookStylesPart.SaveXDocument();
             }
         }
 
@@ -974,7 +972,7 @@ namespace OpenXmlPowerTools
                 return index;
             fonts.Add(font);
             fonts.Attribute(NoNamespace.count).Value = fonts.Elements(S.font).Count().ToString();
-            document.WorkbookPart.WorkbookStylesPart.PutXDocument();
+            document.WorkbookPart.WorkbookStylesPart.SaveXDocument();
             return fonts.Elements(S.font).Count() - 1;
         }
 
@@ -1156,7 +1154,7 @@ namespace OpenXmlPowerTools
                 return index;
             fills.Add(fill);
             fills.Attribute(NoNamespace.count).Value = fills.Elements(S.fill).Count().ToString();
-            document.WorkbookPart.WorkbookStylesPart.PutXDocument();
+            document.WorkbookPart.WorkbookStylesPart.SaveXDocument();
             return fills.Elements(S.fill).Count() - 1;
         }
 
@@ -1287,7 +1285,7 @@ namespace OpenXmlPowerTools
                 return index;
             borders.Add(border);
             borders.Attribute(NoNamespace.count).Value = borders.Elements(S.border).Count().ToString();
-            document.WorkbookPart.WorkbookStylesPart.PutXDocument();
+            document.WorkbookPart.WorkbookStylesPart.SaveXDocument();
             return borders.Elements(S.border).Count() - 1;
         }
 
@@ -1311,7 +1309,7 @@ namespace OpenXmlPowerTools
                     new XAttribute(NoNamespace.borderId, cellStyleXf.Attribute(NoNamespace.borderId).Value),
                     new XAttribute(NoNamespace.xfId, xfId)));
                 cellXfs.Attribute(NoNamespace.count).Value = cellXfs.Elements(S.xf).Count().ToString();
-                document.WorkbookPart.WorkbookStylesPart.PutXDocument();
+                document.WorkbookPart.WorkbookStylesPart.SaveXDocument();
                 return cellXfs.Elements(S.xf).Count() - 1;
             }
 
@@ -1439,7 +1437,7 @@ namespace OpenXmlPowerTools
                 return index;
             cellXfs.Add(xf);
             cellXfs.Attribute(NoNamespace.count).Value = cellXfs.Elements(S.xf).Count().ToString();
-            document.WorkbookPart.WorkbookStylesPart.PutXDocument();
+            document.WorkbookPart.WorkbookStylesPart.SaveXDocument();
             return cellXfs.Elements(S.xf).Count() - 1;
         }
 
@@ -1447,7 +1445,7 @@ namespace OpenXmlPowerTools
         {
             // Create the style part
             WorkbookStylesPart stylesPart = document.WorkbookPart.AddNewPart<WorkbookStylesPart>();
-            stylesPart.PutXDocument(new XDocument(XElement.Parse(
+            stylesPart.SetXDocument(new XDocument(XElement.Parse(
 @"<?xml version='1.0' encoding='UTF-8' standalone='yes'?>
 <styleSheet xmlns='http://schemas.openxmlformats.org/spreadsheetml/2006/main'>
   <fonts count='18'>
@@ -1990,7 +1988,7 @@ namespace OpenXmlPowerTools
         internal static WorksheetPart Create(SpreadsheetDocument document, List<string> headerList, string[][] valueTable, int headerRow)
         {
             XDocument xDocument = CreateEmptyWorksheet();
-            
+
             for (int i = 0; i < headerList.Count; i++)
             {
                 AddValue(xDocument, headerRow, i + 1, headerList[i]);
@@ -2124,7 +2122,7 @@ namespace OpenXmlPowerTools
                         columnAfterXElement.AddBeforeSelf(newCellXElement);
                     }
                     else
-                    {   //There is no inmediate right cell 
+                    {   //There is no inmediate right cell
                         //Add the new cell as the last element for the row
                         rowElement.Add(newCellXElement);
                     }
@@ -2148,7 +2146,7 @@ namespace OpenXmlPowerTools
             // Associates base content to a new worksheet part
             WorkbookPart workbook = doc.WorkbookPart;
             WorksheetPart worksheetPart = workbook.AddNewPart<WorksheetPart>();
-            worksheetPart.PutXDocument(worksheet);
+            worksheetPart.SetXDocument(worksheet);
 
             // Associates the worksheet part to the workbook part
             XDocument document = doc.WorkbookPart.GetXDocument();
@@ -2178,7 +2176,7 @@ namespace OpenXmlPowerTools
                         new XAttribute(relationshipsns + "id", workbook.GetIdOfPart(worksheetPart))
                     )
                 );
-            doc.WorkbookPart.PutXDocument();
+            doc.WorkbookPart.SaveXDocument();
             return worksheetPart;
         }
     }

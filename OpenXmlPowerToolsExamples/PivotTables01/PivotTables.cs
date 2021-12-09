@@ -54,7 +54,7 @@ namespace ExamplePivotTables
                             row++;
                         }
                     }
-                    sheet.PutXDocument();
+                    sheet.SaveXDocument();
 
                     WorksheetAccessor.UpdateRangeEndRow(doc, "Sales", row - 1);
                 }

@@ -869,7 +869,7 @@ listSeparator
                         XElement template = xd.Descendants(EP.Template).FirstOrDefault();
                         if (template != null)
                             template.Value = "";
-                        efpp.PutXDocument();
+                        efpp.SaveXDocument();
                     }
                 }
 

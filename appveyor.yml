@@ -7,7 +7,7 @@ environment:
     SOLUTION: 'OpenXmlPowerTools.sln'
     CONFIGURATION: 'Release'
     PROJECT_LOAD_STYLE: 'netstandard2_0'
-  # Use Visual Studio 2019 on Windows to build, test, and pack all target frameworks (later)
+  # Use Visual Studio 2019 on Windows to build, test, and pack all target frameworks
   - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
     SOLUTION: 'OpenXmlPowerTools.sln'
     CONFIGURATION: 'Release'
@@ -23,10 +23,27 @@ before_build:
 - pwsh: dotnet-gitversion /l console /config GitVersion.yml /output buildserver /updateprojectfiles
 
 build_script:
-- pwsh: dotnet build $env:SOLUTION --configfile NuGet.config -c $env:CONFIGURATION -p:ProjectLoadStyle=$env:PROJECT_LOAD_STYLE
+- pwsh: |
+    # Fail the build in case the script produces non-terminating errors
+    $ErrorActionPreference = "Stop"
 
-test_script:
+    dotnet build $env:SOLUTION --configfile NuGet.config -c $env:CONFIGURATION -p:ProjectLoadStyle=$env:PROJECT_LOAD_STYLE
+
+    if ($isWindows)
+    {
+      dotnet pack $env:SOLUTION `
+        --no-build `
+        -c $env:CONFIGURATION `
+        -p:ProjectLoadStyle=$env:PROJECT_LOAD_STYLE `
+        -p:IncludeSymbols=true `
+        -p:SymbolPackageFormat=snupkg `
+        -o .\nupkgs
+    }
+
+#test_script:
 - pwsh: dotnet test $env:SOLUTION --no-build -c $env:CONFIGURATION -p:ProjectLoadStyle=$env:PROJECT_LOAD_STYLE
+
+test: off
 
 for:
 - # Windows image
@@ -34,5 +51,18 @@ for:
     only:
     - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
 
-  deploy_script:
-  - pwsh: Write-Host "Will pack and publish NuGet package later"
+  artifacts:
+  - path: '.\nupkgs\*.nupkg'
+    name: 'NuGet Packages'
+  - path: '.\nupkgs\*.snupkg'
+    name: 'Symbol Packages'
+
+  # The following should be moved to a deployment stage that we can trigger manually.
+  #deploy_script:
+  #- pwsh: |
+  #    # Push NuGet packages
+  #    dotnet nuget push .\nupkgs\* `
+  #      --source $env:accountNuGetServer `
+  #      --api-key $env:accountNuGetApiKey `
+  #      --symbol-source $env:accountSymbolServer `
+  #      --symbol-api-key $env:accountSymbolApiKey

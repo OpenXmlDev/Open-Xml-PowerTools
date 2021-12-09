@@ -189,7 +189,7 @@ namespace OpenXmlPowerTools
             CalculateSpanWidthForTabs(wordDoc);
             ReverseTableBordersForRtlTables(wordDoc);
             AdjustTableBorders(wordDoc);
-            XElement rootElement = wordDoc.MainDocumentPart.GetXDocument().Root;
+            XElement rootElement = wordDoc.MainDocumentPart.GetXElement();
             FieldRetriever.AnnotateWithFieldInfo(wordDoc.MainDocumentPart);
             AnnotateForSections(wordDoc);
 
@@ -946,7 +946,7 @@ namespace OpenXmlPowerTools
             var stylesPart = wordDoc.MainDocumentPart.StyleDefinitionsPart;
             if (stylesPart == null) return null;
 
-            var styles = stylesPart.GetXDocument().Root;
+            var styles = stylesPart.GetXElement();
             return styles != null
                 ? styles.Elements(W.style).FirstOrDefault(s => (string) s.Attribute(W.styleId) == styleId)
                 : null;
@@ -1592,7 +1592,7 @@ namespace OpenXmlPowerTools
             var xd = wordDoc.MainDocumentPart.GetXDocument();
             foreach (var tbl in xd.Descendants(W.tbl))
                 AdjustTableBorders(tbl);
-            wordDoc.MainDocumentPart.PutXDocument();
+            wordDoc.MainDocumentPart.SaveXDocument();
         }
 
         private static void AdjustTableBorders(XElement tbl)
@@ -1846,7 +1846,7 @@ namespace OpenXmlPowerTools
 
             var newRoot = (XElement)CalculateSpanWidthTransform(root, defaultTabStop);
             root.ReplaceWith(newRoot);
-            wordDoc.MainDocumentPart.PutXDocument();
+            wordDoc.MainDocumentPart.SaveXDocument();
         }
 
         // TODO: Refactor. This method is way too long.
@@ -2346,7 +2346,7 @@ namespace OpenXmlPowerTools
 
                 var newRoot = (XElement)InsertAppropriateNonbreakingSpacesTransform(root);
                 root.ReplaceWith(newRoot);
-                part.PutXDocument();
+                part.SaveXDocument();
             }
         }
 

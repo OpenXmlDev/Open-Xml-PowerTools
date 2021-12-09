@@ -232,7 +232,7 @@ namespace OpenXmlPowerTools.Tests
             using (WordprocessingDocument wordDocument = WordprocessingDocument.Create(stream, DocumentType))
             {
                 MainDocumentPart part = wordDocument.AddMainDocumentPart();
-                part.PutXDocument(partDocument);
+                part.SetXDocument(partDocument);
 
                 IEnumerable<XElement> content = partDocument.Descendants(W.p);
                 var regex = new Regex(string.Format("{0}(?<words>{1}){2}", LeftDoubleQuotationMarks, Words,
@@ -264,7 +264,7 @@ namespace OpenXmlPowerTools.Tests
             using (WordprocessingDocument wordDocument = WordprocessingDocument.Create(stream, DocumentType))
             {
                 MainDocumentPart part = wordDocument.AddMainDocumentPart();
-                part.PutXDocument(partDocument);
+                part.SetXDocument(partDocument);
 
                 IEnumerable<XElement> content = partDocument.Descendants(W.p);
                 var regex = new Regex(string.Format("{0}(?<words>{1}){2}", LeftDoubleQuotationMarks, Words,
@@ -302,7 +302,7 @@ namespace OpenXmlPowerTools.Tests
             using (WordprocessingDocument wordDocument = WordprocessingDocument.Create(stream, DocumentType))
             {
                 MainDocumentPart part = wordDocument.AddMainDocumentPart();
-                part.PutXDocument(partDocument);
+                part.SetXDocument(partDocument);
 
                 IEnumerable<XElement> content = partDocument.Descendants(W.p);
                 var regex = new Regex(string.Format("{0}(?<words>{1}){2}", LeftDoubleQuotationMarks, Words,
@@ -335,7 +335,7 @@ namespace OpenXmlPowerTools.Tests
             using (WordprocessingDocument wordDocument = WordprocessingDocument.Create(stream, DocumentType))
             {
                 MainDocumentPart part = wordDocument.AddMainDocumentPart();
-                part.PutXDocument(partDocument);
+                part.SetXDocument(partDocument);
 
                 IEnumerable<XElement> content = partDocument.Descendants(W.p);
                 var regex = new Regex(@"[\uF021]");
@@ -348,7 +348,7 @@ namespace OpenXmlPowerTools.Tests
                 Assert.Equal("We can also use symbols such as \uF028 or \uF028.", innerText);
 
                 Assert.Contains(p.Descendants(W.ins), ins => ins.Descendants(W.sym).Any(
-                        sym => sym.Attribute(W.font).Value == "Wingdings" && 
+                        sym => sym.Attribute(W.font).Value == "Wingdings" &&
                                sym.Attribute(W._char).Value == "F028"));
             }
         }
@@ -367,7 +367,7 @@ namespace OpenXmlPowerTools.Tests
             using (WordprocessingDocument wordDocument = WordprocessingDocument.Create(stream, DocumentType))
             {
                 MainDocumentPart part = wordDocument.AddMainDocumentPart();
-                part.PutXDocument(partDocument);
+                part.SetXDocument(partDocument);
 
                 IEnumerable<XElement> content = partDocument.Descendants(W.p);
                 var regex = new Regex(@"Schedule C \(Performance Framework\)");

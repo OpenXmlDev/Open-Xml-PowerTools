@@ -77,7 +77,7 @@ namespace OpenXmlPowerTools
                     UpdateChart(chartPart, chartData);
                     var newContent = cc.Elements(W.sdtContent).Elements().Select(e => new XElement(e));
                     cc.ReplaceWith(newContent);
-                    mainDocumentPart.PutXDocument();
+                    mainDocumentPart.SaveXDocument();
                     return true;
                 }
             }
@@ -380,7 +380,7 @@ namespace OpenXmlPowerTools
                     return newSer;
                 });
             firstSeries.ReplaceWith(newSetOfSeries);
-            chartPart.PutXDocument();
+            chartPart.SaveXDocument();
         }
 
         private static void UpdateEmbeddedWorkbook(ChartPart chartPart, ChartData chartData)
@@ -403,7 +403,7 @@ namespace OpenXmlPowerTools
                 using (SpreadsheetDocument sDoc = SpreadsheetDocument.Open(embeddedSpreadsheet.GetStream(), true))
                 {
                     var workbookPart = sDoc.WorkbookPart;
-                    var wbRoot = workbookPart.GetXDocument().Root;
+                    var wbRoot = workbookPart.GetXElement();
                     var sheetRid = (string)wbRoot
                         .Elements(S.sheets)
                         .Elements(S.sheet)
@@ -422,7 +422,7 @@ namespace OpenXmlPowerTools
                         int categoryStyleId = 0;
                         if (chartData.CategoryFormatCode != 0)
                             categoryStyleId = AddDxfToDxfs(xdSheet, xdStyle, chartData.CategoryFormatCode);
-                        stylePart.PutXDocument();
+                        stylePart.SaveXDocument();
 
                         var firstRow = new XElement(S.row,
                             new XAttribute("r", "1"),
@@ -469,7 +469,7 @@ namespace OpenXmlPowerTools
                         var newSheetData = new XElement(S.sheetData,
                             allRows);
                         sheetData.ReplaceWith(newSheetData);
-                        sheetPart.PutXDocument();
+                        sheetPart.SaveXDocument();
 
                         var tablePartRid = (string)xdSheet
                             .Root
@@ -497,7 +497,7 @@ namespace OpenXmlPowerTools
                             var xeExistingTableColumns = xdTablePart.Root.Element(S.tableColumns);
                             if (xeExistingTableColumns != null)
                                 xeExistingTableColumns.ReplaceWith(xeNewTableColumns);
-                            partTable.PutXDocument();
+                            partTable.SaveXDocument();
                         }
                     }
                 }

@@ -156,10 +156,10 @@ namespace OpenXmlPowerTools.Tests
             WordprocessingDocument wordDocument = WordprocessingDocument.Create(stream, DocumentType);
 
             MainDocumentPart mainDocumentPart = wordDocument.AddMainDocumentPart();
-            mainDocumentPart.PutXDocument(document);
+            mainDocumentPart.SetXDocument(document);
 
             var styleDefinitionsPart = mainDocumentPart.AddNewPart<StyleDefinitionsPart>();
-            styleDefinitionsPart.PutXDocument(XDocument.Parse(StylesXml));
+            styleDefinitionsPart.SetXDocument(XDocument.Parse(StylesXml));
 
             return wordDocument;
         }

@@ -75,8 +75,7 @@ namespace OpenXmlPowerTools
             xDocRoot = (XElement)ContentReplacementTransform(xDocRoot, data, te);
 
             xDoc.Elements().First().ReplaceWith(xDocRoot);
-            part.PutXDocument();
-            return;
+            part.SaveXDocument();
         }
 
         private static XName[] s_MetaToForceToBlock = new XName[] {
@@ -756,8 +755,8 @@ namespace OpenXmlPowerTools
                     if (match != null && notMatch != null)
                         return CreateContextErrorMessage(element, "Conditional: Cannot specify both Match and NotMatch", templateError);
 
-                    string testValue = null; 
-                   
+                    string testValue = null;
+
                     try
                     {
                         testValue = EvaluateXPathToString(data, xPath, false);
@@ -766,7 +765,7 @@ namespace OpenXmlPowerTools
                     {
                         return CreateContextErrorMessage(element, e.Message, templateError);
                     }
-                  
+
                     if ((match != null && testValue == match) || (notMatch != null && testValue != notMatch))
                     {
                         var content = element.Elements().Select(e => ContentReplacementTransform(e, data, templateError));
@@ -822,7 +821,7 @@ namespace OpenXmlPowerTools
             {
                 //support some cells in the table may not have an xpath expression.
                 if (String.IsNullOrWhiteSpace(xPath)) return String.Empty;
-                
+
                 xPathSelectResult = element.XPathEvaluate(xPath);
             }
             catch (XPathException e)
@@ -843,8 +842,8 @@ namespace OpenXmlPowerTools
                     throw new XPathException(string.Format("XPath expression ({0}) returned more than one node", xPath));
                 }
 
-                XObject selectedDatum = selectedData.First(); 
-                
+                XObject selectedDatum = selectedData.First();
+
                 if (selectedDatum is XElement) return ((XElement) selectedDatum).Value;
 
                 if (selectedDatum is XAttribute) return ((XAttribute) selectedDatum).Value;

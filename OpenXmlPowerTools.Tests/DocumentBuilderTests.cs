@@ -3,16 +3,12 @@
 
 using System;
 using System.Collections.Generic;
-using System.Drawing;
-using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using System.Xml.Linq;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Validation;
-using DocumentFormat.OpenXml.Wordprocessing;
 using OpenXmlPowerTools;
 using Xunit;
 
@@ -171,7 +167,7 @@ namespace OxPt
             };
             WmlDocument wmlOut5 = DocumentBuilder.BuildDocument(sources);
             var out5 = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, "DB006-Out5.docx"));
-            
+
             wmlOut5.SaveAs(out5.FullName);  // save it to the file system, but we could just as easily done something
                                             // else with it.
             Validate(out5);
@@ -571,7 +567,7 @@ namespace OxPt
                     secondCell.ReplaceWith(
                         new XElement(PtOpenXml.Insert,
                             new XAttribute("Id", "Eric")));
-                    doc.MainDocumentPart.PutXDocument();
+                    doc.MainDocumentPart.SaveXDocument();
                 }
                 doc1.DocumentByteArray = mem.ToArray();
             }
@@ -732,7 +728,7 @@ namespace OxPt
             DirectoryInfo sourceDir = new DirectoryInfo("../../../../TestFiles/");
             FileInfo source = new FileInfo(Path.Combine(sourceDir.FullName, "DB015-LatentStyles.docx"));
             List<Source> sources = null;
-            
+
             sources = new List<Source>()
             {
                 new Source(new WmlDocument(source.FullName)),
@@ -767,6 +763,10 @@ namespace OxPt
 
             using (WordprocessingDocument wDoc = WordprocessingDocument.Open(processedDestDocx.FullName, true))
             {
+                StyleDefinitionsPart part = wDoc.MainDocumentPart?.StyleDefinitionsPart;
+                XDocument document = part?.GetXDocument();
+                XElement root = document?.Root;
+
                 var styles = wDoc.MainDocumentPart.StyleDefinitionsPart.GetXDocument().Root.Elements(W.docDefaults).ToArray();
                 Assert.Single(styles);
             }

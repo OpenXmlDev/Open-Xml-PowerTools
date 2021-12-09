@@ -97,7 +97,7 @@ namespace OpenXmlPowerTools
             XElement root = part.GetXElement();
             object newRoot = RejectRevisionsForPartTransform(root);
             root.ReplaceWith(newRoot);
-            part.PutXElement();
+            part.SaveXElement();
         }
 
         private static object RejectRevisionsForPartTransform(XNode node)
@@ -420,7 +420,7 @@ namespace OpenXmlPowerTools
             XElement root = stylesDefinitionsPart.GetXElement();
             object newRoot = RejectRevisionsForStylesTransform(root);
             root.ReplaceWith(newRoot);
-            stylesDefinitionsPart.PutXElement();
+            stylesDefinitionsPart.SaveXElement();
         }
 
         private static object RejectRevisionsForStylesTransform(XNode node)
@@ -480,7 +480,7 @@ namespace OpenXmlPowerTools
             var newRoot = (XElement) ReverseRevisionsTransform(root, rri);
             newRoot = (XElement) RemoveRsidTransform(newRoot);
             root.ReplaceWith(newRoot);
-            part.PutXElement();
+            part.SaveXElement();
         }
 
         private static object RemoveRsidTransform(XNode node)
@@ -1381,7 +1381,7 @@ namespace OpenXmlPowerTools
             XElement root = stylesDefinitionsPart.GetXElement();
             object newRoot = AcceptRevisionsForStylesTransform(root);
             root.ReplaceWith(newRoot);
-            stylesDefinitionsPart.PutXElement();
+            stylesDefinitionsPart.SaveXElement();
         }
 
         private static object AcceptRevisionsForStylesTransform(XNode node)
@@ -1400,7 +1400,7 @@ namespace OpenXmlPowerTools
 
         public static void AcceptRevisionsForPart(OpenXmlPart part)
         {
-            XElement documentElement = part.GetXDocument().Root;
+            XElement documentElement = part.GetXElement();
             documentElement = (XElement) RemoveRsidTransform(documentElement);
             documentElement = (XElement) FixUpDeletedOrInsertedFieldCodesTransform(documentElement);
             bool containsMoveFromMoveTo = documentElement.Descendants(W.moveFrom).Any();
@@ -1424,7 +1424,7 @@ namespace OpenXmlPowerTools
             documentElement.Descendants().Attributes().Where(a => a.Name == PT.UniqueId || a.Name == PT.RunIds).Remove();
             documentElement.Descendants(W.numPr).Where(np => !np.HasElements).Remove();
             var newXDoc = new XDocument(documentElement);
-            part.PutXDocument(newXDoc);
+            part.SetXDocument(newXDoc);
         }
 
         // Note that AcceptRevisionsForElement is an incomplete implementation.  It is not possible to accept all varieties of revisions
@@ -1937,6 +1937,7 @@ namespace OpenXmlPowerTools
             return node;
         }
 
+        /// <summary>
         /// Accept deleted paragraphs.
         ///
         /// Group together all paragraphs that contain w:p/w:pPr/w:rPr/w:del elements.  Make a
@@ -1949,6 +1950,7 @@ namespace OpenXmlPowerTools
         /// paragraph following.  When assembling the new paragraph, use a transform that collapses
         /// the paragraph nodes when adding content, thereby preserving custom XML and content
         /// controls.
+        /// </summary>
         private static void AnnotateBlockContentElements(XElement contentContainer)
         {
             // For convenience, there is a ParagraphInfo annotation on the contentContainer.

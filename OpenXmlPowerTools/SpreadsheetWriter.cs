@@ -11,14 +11,13 @@ using System.Text.RegularExpressions;
 using System.Xml;
 using System.Xml.Linq;
 using DocumentFormat.OpenXml.Packaging;
-using OpenXmlPowerTools;
 
 namespace OpenXmlPowerTools
 {
     // The classes in SpreadsheetWriter are still a work-in-progress.  While they are useful in their current state, I will be enhancing and
     // changing them in the future.  In particular, I will be augmenting the various definition classes (WorkbookDfn, WorksheetDfn,
     // RowDfn, and CellDfn.
-    
+
     // They are robust enough in their current form to be used in enterprise, mission critical.
 
     public class WorkbookDfn
@@ -127,17 +126,20 @@ namespace OpenXmlPowerTools
                 {
                     WorkbookPart workbookPart = sDoc.WorkbookPart;
                     XDocument wXDoc = workbookPart.GetXDocument();
+
                     XElement sheetElement = wXDoc
                         .Root
                         .Elements(S.sheets)
                         .Elements(S.sheet)
                         .Where(s => (string)s.Attribute(SSNoNamespace.name) == "Sheet1")
                         .FirstOrDefault();
+
                     if (sheetElement == null)
                         throw new SpreadsheetWriterInternalException();
+
                     string id = (string)sheetElement.Attribute(R.id);
                     sheetElement.Remove();
-                    workbookPart.PutXDocument();
+                    workbookPart.SaveXDocument();
 
                     WorksheetPart sPart = (WorksheetPart)workbookPart.GetPartById(id);
                     workbookPart.DeletePart(sPart);
@@ -145,41 +147,46 @@ namespace OpenXmlPowerTools
                     XDocument appXDoc = sDoc
                         .ExtendedFilePropertiesPart
                         .GetXDocument();
+
                     XElement vector = appXDoc
                         .Root
                         .Elements(EP.TitlesOfParts)
                         .Elements(VT.vector)
                         .FirstOrDefault();
+
                     if (vector != null)
                     {
                         vector.SetAttributeValue(SSNoNamespace.size, 0);
                         XElement lpstr = vector.Element(VT.lpstr);
                         lpstr.Remove();
                     }
+
                     XElement vector2 = appXDoc
                         .Root
                         .Elements(EP.HeadingPairs)
                         .Elements(VT.vector)
                         .FirstOrDefault();
+
                     XElement variant = vector2
                         .Descendants(VT.i4)
                         .FirstOrDefault();
+
                     if (variant != null)
                         variant.Value = "1";
-                    sDoc.ExtendedFilePropertiesPart.PutXDocument();
+
+                    sDoc.ExtendedFilePropertiesPart.SaveXDocument();
 
                     if (workbook.Worksheets != null)
                         foreach (var worksheet in workbook.Worksheets)
                             AddWorksheet(sDoc, worksheet);
 
-                    workbookPart.WorkbookStylesPart.PutXDocument();
+                    workbookPart.WorkbookStylesPart?.SaveXDocument();
                 }
             }
             catch (Exception e)
             {
-                Console.WriteLine("Unhandled exception: {0} in {1}",
-                    e.ToString(), e.Source);
-                throw e;
+                Console.WriteLine("Unhandled exception: {0} in {1}", e, e.Source);
+                throw;
             }
         }
 
@@ -229,7 +236,7 @@ namespace OpenXmlPowerTools
                     .FirstOrDefault();
                 if (i4 != null)
                     i4.Value = ((int)i4 + 1).ToString();
-                sDoc.ExtendedFilePropertiesPart.PutXDocument();
+                sDoc.ExtendedFilePropertiesPart.SaveXDocument();
             }
 
             WorkbookPart workbook = sDoc.WorkbookPart;
@@ -243,7 +250,7 @@ namespace OpenXmlPowerTools
                     new XAttribute(SSNoNamespace.name, worksheetData.Name.ToString()),
                     new XAttribute(SSNoNamespace.sheetId, sheets.Elements(S.sheet).Count() + 1),
                     new XAttribute(R.id, rId)));
-            workbook.PutXDocument();
+            workbook.SaveXDocument();
 
             string ws = S.s.ToString();
             string relns = R.r.ToString();
@@ -306,11 +313,11 @@ namespace OpenXmlPowerTools
                                 new XAttribute(SSNoNamespace.showRowStripes, 1),
                                 new XAttribute(SSNoNamespace.showColumnStripes, 0)));
                         tXDoc.Add(table);
-                        tdp.PutXDocument();
+                        tdp.SaveXDocument();
                     }
                 }
             }
-            sDoc.WorkbookPart.WorkbookStylesPart.PutXDocument();
+            sDoc.WorkbookPart.WorkbookStylesPart.SaveXDocument();
             sDoc.WorkbookPart.WorkbookStylesPart.Stylesheet.Save();
         }
 

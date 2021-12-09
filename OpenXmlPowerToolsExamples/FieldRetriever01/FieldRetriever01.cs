@@ -43,7 +43,7 @@ internal class FieldRetriever01
             FieldRetriever.AnnotateWithFieldInfo(footer);
             XElement root = footer.GetXDocument().Root;
             RemoveAllButSpecificFields(root, fieldTypesToKeep);
-            footer.PutXDocument();
+            footer.SaveXDocument();
         }
     }
 

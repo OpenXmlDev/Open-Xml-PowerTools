@@ -93,7 +93,7 @@ namespace OpenXmlPowerTools.Tests
             using (WordprocessingDocument wordDocument = WordprocessingDocument.Create(stream, DocumentType))
             {
                 MainDocumentPart part = wordDocument.AddMainDocumentPart();
-                part.PutXDocument(partDocument);
+                part.SetXDocument(partDocument);
 
                 var settings = new SimplifyMarkupSettings { RemoveSmartTags = true };
                 MarkupSimplifier.SimplifyMarkup(wordDocument, settings);
@@ -116,7 +116,7 @@ namespace OpenXmlPowerTools.Tests
             using (WordprocessingDocument wordDocument = WordprocessingDocument.Create(stream, DocumentType))
             {
                 MainDocumentPart part = wordDocument.AddMainDocumentPart();
-                part.PutXDocument(partDocument);
+                part.SetXDocument(partDocument);
 
                 var settings = new SimplifyMarkupSettings { RemoveContentControls = true };
                 MarkupSimplifier.SimplifyMarkup(wordDocument, settings);
@@ -147,7 +147,7 @@ namespace OpenXmlPowerTools.Tests
             using (WordprocessingDocument wordDocument = WordprocessingDocument.Create(stream, DocumentType))
             {
                 MainDocumentPart part = wordDocument.AddMainDocumentPart();
-                part.PutXDocument(partDocument);
+                part.SetXDocument(partDocument);
 
                 var settings = new SimplifyMarkupSettings { RemoveGoBackBookmark = true };
                 MarkupSimplifier.SimplifyMarkup(wordDocument, settings);

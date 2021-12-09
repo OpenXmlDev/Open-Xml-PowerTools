@@ -116,7 +116,7 @@ namespace OxPt
         [InlineData("DA264-InvalidRunLevelRepeat.docx", "DA-Data.xml", true)]
         [InlineData("DA265-RunLevelRepeatWithWhiteSpaceBefore.docx", "DA-Data.xml", false)]
         [InlineData("DA266-RunLevelRepeat-NoData.docx", "DA-Data.xml", true)]
-        
+
         public void DA101(string name, string data, bool err)
         {
             DirectoryInfo sourceDir = new DirectoryInfo("../../../../TestFiles/");
@@ -161,13 +161,20 @@ namespace OxPt
         public void DA259(string name, string data, bool err)
         {
             DA101(name, data, err);
+
             var assembledDocx = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, name.Replace(".docx", "-processed-by-DocumentAssembler.docx")));
-            WmlDocument afterAssembling = new WmlDocument(assembledDocx.FullName);
-            int brCount = afterAssembling.MainDocumentPart
-                            .Element(W.body)
-                            .Elements(W.p).ElementAt(1)
-                            .Elements(W.r)
-                            .Elements(W.br).Count();
+            var afterAssembling = new WmlDocument(assembledDocx.FullName);
+
+            XElement paragraph = afterAssembling.MainDocumentPart
+                .Elements(W.body)
+                .Elements(W.p)
+                .ElementAt(1);
+
+            int brCount = paragraph
+                .Elements(W.r)
+                .Elements(W.br)
+                .Count();
+
             Assert.Equal(4, brCount);
         }
 

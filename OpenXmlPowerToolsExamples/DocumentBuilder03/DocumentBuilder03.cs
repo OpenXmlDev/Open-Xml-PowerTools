@@ -27,7 +27,7 @@ internal class Program
 
             using (WordprocessingDocument doc = WordprocessingDocument.Open(mem, true))
             {
-                XElement root = doc.MainDocumentPart.GetXElement() ?? throw new ArgumentException();
+                XElement root = doc.MainDocumentPart!.GetXElement() ?? throw new ArgumentException();
 
                 XElement frontMatterPara = root.Descendants(W.txbxContent).Elements(W.p).First();
                 frontMatterPara.ReplaceWith(
@@ -46,7 +46,7 @@ internal class Program
                     new XElement(PtOpenXml.Insert,
                         new XAttribute("Id", "Eric")));
 
-                doc.MainDocumentPart.PutXElement();
+                doc.MainDocumentPart.SaveXDocument();
             }
 
             doc1.DocumentByteArray = mem.ToArray();

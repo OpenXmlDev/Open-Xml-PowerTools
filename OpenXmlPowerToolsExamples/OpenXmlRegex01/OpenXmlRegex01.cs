@@ -210,7 +210,7 @@ namespace OpenXmlRegex01
                 count += OpenXmlRegex.Replace(paras, new Regex($"({spider})"), "$1 (same spider)", null);
                 Console.WriteLine("Example #25 Replaced: {0}", count);
 
-                wDoc.MainDocumentPart.PutXDocument();
+                wDoc.MainDocumentPart.SaveXDocument();
             }
 
             var sourcePres = new FileInfo("../../TestPresentation.pptx");
@@ -233,7 +233,7 @@ namespace OpenXmlRegex01
                     // The side-effect of this is that if a run has space at the beginning or end of it, the space will be stripped upon loading, and content/layout will be affected.
                     xDoc.Descendants().Attributes(XNamespace.Xml + "space").Remove();
 
-                    slidePart.PutXDocument();
+                    slidePart.SaveXDocument();
                 }
             }
         }

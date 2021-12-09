@@ -608,7 +608,7 @@ namespace OpenXmlPowerTools
             using (WordprocessingDocument doc = WordprocessingDocument.Create(stream, WordprocessingDocumentType.Document))
             {
                 doc.AddMainDocumentPart();
-                doc.MainDocumentPart.PutXDocument(new XDocument(
+                doc.MainDocumentPart.SetXDocument(new XDocument(
                     new XElement(W.document,
                         new XAttribute(XNamespace.Xmlns + "w", W.w),
                         new XAttribute(XNamespace.Xmlns + "r", R.r),
@@ -626,7 +626,7 @@ namespace OpenXmlPowerTools
                 doc.AddWorkbookPart();
                 XNamespace ns = "http://schemas.openxmlformats.org/spreadsheetml/2006/main";
                 XNamespace relationshipsns = "http://schemas.openxmlformats.org/officeDocument/2006/relationships";
-                doc.WorkbookPart.PutXDocument(new XDocument(
+                doc.WorkbookPart.SetXDocument(new XDocument(
                     new XElement(ns + "workbook",
                         new XAttribute("xmlns", ns),
                         new XAttribute(XNamespace.Xmlns + "r", relationshipsns),
@@ -645,7 +645,7 @@ namespace OpenXmlPowerTools
                 XNamespace ns = "http://schemas.openxmlformats.org/presentationml/2006/main";
                 XNamespace relationshipsns = "http://schemas.openxmlformats.org/officeDocument/2006/relationships";
                 XNamespace drawingns = "http://schemas.openxmlformats.org/drawingml/2006/main";
-                doc.PresentationPart.PutXDocument(new XDocument(
+                doc.PresentationPart.SetXDocument(new XDocument(
                     new XElement(ns + "presentation",
                         new XAttribute(XNamespace.Xmlns + "a", drawingns),
                         new XAttribute(XNamespace.Xmlns + "r", relationshipsns),

@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Xml.Linq;
-using System.Text;
 using DocumentFormat.OpenXml.Packaging;
 
 namespace OpenXmlPowerTools
@@ -22,7 +21,7 @@ namespace OpenXmlPowerTools
         {
             PmlDocument = source;
             Start = 0;
-            Count = Int32.MaxValue;
+            Count = int.MaxValue;
             KeepMaster = keepMaster;
         }
 
@@ -30,7 +29,7 @@ namespace OpenXmlPowerTools
         {
             PmlDocument = new PmlDocument(fileName);
             Start = 0;
-            Count = Int32.MaxValue;
+            Count = int.MaxValue;
             KeepMaster = keepMaster;
         }
 
@@ -46,7 +45,7 @@ namespace OpenXmlPowerTools
         {
             PmlDocument = new PmlDocument(fileName);
             Start = start;
-            Count = Int32.MaxValue;
+            Count = int.MaxValue;
             KeepMaster = keepMaster;
         }
 
@@ -98,6 +97,7 @@ namespace OpenXmlPowerTools
         private static void BuildPresentation(List<SlideSource> sources, PresentationDocument output)
         {
             if (RelationshipMarkup == null)
+            {
                 RelationshipMarkup = new Dictionary<XName, XName[]>()
                 {
                     { A.audioFile,        new [] { R.link }},
@@ -128,44 +128,54 @@ namespace OpenXmlPowerTools
                     { WNE.toolbarData,    new [] { R.id }},
                     { Plegacy.textdata,   new [] { XName.Get("id") }},
                 };
+            }
 
-            List<ImageData> images = new List<ImageData>();
-            List<MediaData> mediaList = new List<MediaData>();
-            XDocument mainPart = output.PresentationPart.GetXDocument();
-            mainPart.Declaration.Standalone = "yes";
-            mainPart.Declaration.Encoding = "UTF-8";
-            output.PresentationPart.PutXDocument();
+            var images = new List<ImageData>();
+            var mediaList = new List<MediaData>();
 
-            using (OpenXmlMemoryStreamDocument streamDoc = new OpenXmlMemoryStreamDocument(sources[0].PmlDocument))
+            // TODO: Revisit. Did we ensure the part exists and has the minimum XML content?
+            // Why do we read and save at this point?
+            output.PresentationPart?.GetXDocument();
+            output.PresentationPart?.SaveXDocument();
+
+            using (var streamDoc = new OpenXmlMemoryStreamDocument(sources[0].PmlDocument))
             using (PresentationDocument doc = streamDoc.GetPresentationDocument())
             {
                 CopyStartingParts(doc, output);
             }
 
-            int sourceNum = 0;
+            var sourceNum = 0;
             SlideMasterPart currentMasterPart = null;
+
             foreach (SlideSource source in sources)
             {
-                using (OpenXmlMemoryStreamDocument streamDoc = new OpenXmlMemoryStreamDocument(source.PmlDocument))
+                using (var streamDoc = new OpenXmlMemoryStreamDocument(source.PmlDocument))
                 using (PresentationDocument doc = streamDoc.GetPresentationDocument())
                 {
                     try
                     {
                         if (sourceNum == 0)
+                        {
                             CopyPresentationParts(doc, output, images, mediaList);
+                        }
+
                         currentMasterPart = AppendSlides(doc, output, source.Start, source.Count, source.KeepMaster, images, currentMasterPart, mediaList);
                     }
                     catch (PresentationBuilderInternalException dbie)
                     {
                         if (dbie.Message.Contains("{0}"))
+                        {
                             throw new PresentationBuilderException(string.Format(dbie.Message, sourceNum));
-                        else
-                            throw dbie;
+                        }
+
+                        throw;
                     }
                 }
+
                 sourceNum++;
             }
-            foreach (var part in output.GetAllParts())
+
+            foreach (OpenXmlPart part in output.GetAllParts())
             {
                 if (part.ContentType == "application/vnd.openxmlformats-officedocument.presentationml.slide+xml" ||
                     part.ContentType == "application/vnd.openxmlformats-officedocument.presentationml.slideMaster+xml" ||
@@ -181,48 +191,36 @@ namespace OpenXmlPowerTools
                 {
                     XDocument xd = part.GetXDocument();
                     xd.Descendants().Attributes("smtClean").Remove();
-                    part.PutXDocument();
+                    part.SaveXDocument();
                 }
-                else if (part.Annotation<XDocument>() != null)
-                    part.PutXDocument();
+                else
+                {
+                    part.SaveXDocument();
+                }
             }
         }
 
-        private static void CopyStartingParts(PresentationDocument sourceDocument, PresentationDocument newDocument)
+        private static void CopyStartingParts(OpenXmlPartContainer sourceDocument, OpenXmlPartContainer newDocument)
         {
-            // A Core File Properties part does not have implicit or explicit relationships to other parts.
-            CoreFilePropertiesPart corePart = sourceDocument.CoreFilePropertiesPart;
-            if (corePart != null && corePart.GetXDocument().Root != null)
+            CopyPart<CoreFilePropertiesPart>(sourceDocument, newDocument);
+            CopyPart<ExtendedFilePropertiesPart>(sourceDocument, newDocument);
+            CopyPart<CustomFilePropertiesPart>(sourceDocument, newDocument);
+        }
+
+        private static void CopyPart<TFixedContentTypePart>(OpenXmlPartContainer sourceDocument, OpenXmlPartContainer newDocument)
+            where TFixedContentTypePart : OpenXmlPart, IFixedContentTypePart
+        {
+            TFixedContentTypePart sourcePart = sourceDocument.GetPartsOfType<TFixedContentTypePart>().SingleOrDefault();
+            XElement sourceXElement = sourcePart?.GetXElement();
+
+            if (sourceXElement is null)
             {
-                newDocument.AddCoreFilePropertiesPart();
-                XDocument newXDoc = newDocument.CoreFilePropertiesPart.GetXDocument();
-                newXDoc.Declaration.Standalone = "yes";
-                newXDoc.Declaration.Encoding = "UTF-8";
-                XDocument sourceXDoc = corePart.GetXDocument();
-                newXDoc.Add(sourceXDoc.Root);
+                return;
             }
 
-            // An application attributes part does not have implicit or explicit relationships to other parts.
-            ExtendedFilePropertiesPart extPart = sourceDocument.ExtendedFilePropertiesPart;
-            if (extPart != null)
-            {
-                OpenXmlPart newPart = newDocument.AddExtendedFilePropertiesPart();
-                XDocument newXDoc = newDocument.ExtendedFilePropertiesPart.GetXDocument();
-                newXDoc.Declaration.Standalone = "yes";
-                newXDoc.Declaration.Encoding = "UTF-8";
-                newXDoc.Add(extPart.GetXDocument().Root);
-            }
-
-            // An custom file properties part does not have implicit or explicit relationships to other parts.
-            CustomFilePropertiesPart customPart = sourceDocument.CustomFilePropertiesPart;
-            if (customPart != null)
-            {
-                newDocument.AddCustomFilePropertiesPart();
-                XDocument newXDoc = newDocument.CustomFilePropertiesPart.GetXDocument();
-                newXDoc.Declaration.Standalone = "yes";
-                newXDoc.Declaration.Encoding = "UTF-8";
-                newXDoc.Add(customPart.GetXDocument().Root);
-            }
+            var newPart = newDocument.AddNewPart<TFixedContentTypePart>();
+            XDocument newXDocument = newPart.GetXDocument();
+            newXDocument.Add(sourceXElement);
         }
 
 #if false
@@ -299,13 +297,13 @@ namespace OpenXmlPowerTools
 
                 // Copy theme for master
                 ThemePart newThemePart = newMaster.AddNewPart<ThemePart>();
-                newThemePart.PutXDocument(oldMaster.ThemePart.GetXDocument());
-                CopyRelatedPartsForContentParts(newDocument, oldMaster.ThemePart, newThemePart, new[] { newThemePart.GetXDocument().Root }, images, mediaList);
+                newThemePart.SetXDocument(oldMaster.ThemePart.GetXDocument());
+                CopyRelatedPartsForContentParts(newDocument, oldMaster.ThemePart, newThemePart, new[] { newThemePart.GetXElement() }, images, mediaList);
 
                 // Copy master
-                newMaster.PutXDocument(oldMaster.GetXDocument());
-                AddRelationships(oldMaster, newMaster, new[] { newMaster.GetXDocument().Root });
-                CopyRelatedPartsForContentParts(newDocument, oldMaster, newMaster, new[] { newMaster.GetXDocument().Root }, images, mediaList);
+                newMaster.SetXDocument(oldMaster.GetXDocument());
+                AddRelationships(oldMaster, newMaster, new[] { newMaster.GetXElement() });
+                CopyRelatedPartsForContentParts(newDocument, oldMaster, newMaster, new[] { newMaster.GetXElement() }, images, mediaList);
 
                 newPresentation.Root.Add(
                     new XElement(P.handoutMasterIdLst, new XElement(P.handoutMasterId,
@@ -321,7 +319,7 @@ namespace OpenXmlPowerTools
                 PresentationPropertiesPart newPart = newDocument.PresentationPart.AddNewPart<PresentationPropertiesPart>();
                 XDocument xd1 = sourceDocument.PresentationPart.PresentationPropertiesPart.GetXDocument();
                 xd1.Descendants(P.custShow).Remove();
-                newPart.PutXDocument(xd1);
+                newPart.SetXDocument(xd1);
             }
 
             // Copy View Properties
@@ -330,7 +328,7 @@ namespace OpenXmlPowerTools
                 ViewPropertiesPart newPart = newDocument.PresentationPart.AddNewPart<ViewPropertiesPart>();
                 XDocument xd = sourceDocument.PresentationPart.ViewPropertiesPart.GetXDocument();
                 xd.Descendants(P.outlineViewPr).Elements(P.sldLst).Remove();
-                newPart.PutXDocument(xd);
+                newPart.SetXDocument(xd);
             }
 
             foreach (var legacyDocTextInfo in sourceDocument.PresentationPart.Parts.Where(p => p.OpenXmlPart.RelationshipType == "http://schemas.microsoft.com/office/2006/relationships/legacyDocTextInfo"))
@@ -399,7 +397,7 @@ namespace OpenXmlPowerTools
             var ids = newPresentation.Root.Descendants(P.sldId).Select(f => (uint)f.Attribute(NoNamespace.id));
             if (ids.Any())
                 newID = ids.Max() + 1;
-            var slideList = sourceDocument.PresentationPart.GetXDocument().Root.Descendants(P.sldId);
+            var slideList = sourceDocument.PresentationPart.GetXElement().Descendants(P.sldId);
             if (slideList.Count() == 0 && (currentMasterPart == null || keepMaster))
             {
                 var slideMasterPart = sourceDocument.PresentationPart.SlideMasterParts.FirstOrDefault();
@@ -413,25 +411,25 @@ namespace OpenXmlPowerTools
                 if (currentMasterPart == null || keepMaster)
                     currentMasterPart = CopyMasterSlide(sourceDocument, slide.SlideLayoutPart.SlideMasterPart, newDocument, newPresentation, images, mediaList);
                 SlidePart newSlide = newDocument.PresentationPart.AddNewPart<SlidePart>();
-                newSlide.PutXDocument(slide.GetXDocument());
-                AddRelationships(slide, newSlide, new[] { newSlide.GetXDocument().Root });
-                CopyRelatedPartsForContentParts(newDocument, slide, newSlide, new[] { newSlide.GetXDocument().Root }, images, mediaList);
+                newSlide.SetXDocument(slide.GetXDocument());
+                AddRelationships(slide, newSlide, new[] { newSlide.GetXElement() });
+                CopyRelatedPartsForContentParts(newDocument, slide, newSlide, new[] { newSlide.GetXElement() }, images, mediaList);
                 CopyTableStyles(sourceDocument, newDocument, slide, newSlide);
                 if (slide.NotesSlidePart != null)
                 {
                     if (newDocument.PresentationPart.NotesMasterPart == null)
                         CopyNotesMaster(sourceDocument, newDocument, images, mediaList);
                     NotesSlidePart newPart = newSlide.AddNewPart<NotesSlidePart>();
-                    newPart.PutXDocument(slide.NotesSlidePart.GetXDocument());
+                    newPart.SetXDocument(slide.NotesSlidePart.GetXDocument());
                     newPart.AddPart(newSlide);
                     newPart.AddPart(newDocument.PresentationPart.NotesMasterPart);
-                    AddRelationships(slide.NotesSlidePart, newPart, new[] { newPart.GetXDocument().Root });
-                    CopyRelatedPartsForContentParts(newDocument, slide.NotesSlidePart, newPart, new[] { newPart.GetXDocument().Root }, images, mediaList);
+                    AddRelationships(slide.NotesSlidePart, newPart, new[] { newPart.GetXElement() });
+                    CopyRelatedPartsForContentParts(newDocument, slide.NotesSlidePart, newPart, new[] { newPart.GetXElement() }, images, mediaList);
                 }
 
-                string layoutName = slide.SlideLayoutPart.GetXDocument().Root.Element(P.cSld).Attribute(NoNamespace.name).Value;
+                string layoutName = slide.SlideLayoutPart.GetXElement().Element(P.cSld).Attribute(NoNamespace.name).Value;
                 foreach (SlideLayoutPart layoutPart in currentMasterPart.SlideLayoutParts)
-                    if (layoutPart.GetXDocument().Root.Element(P.cSld).Attribute(NoNamespace.name).Value == layoutName)
+                    if (layoutPart.GetXElement().Element(P.cSld).Attribute(NoNamespace.name).Value == layoutName)
                     {
                         newSlide.AddPart(layoutPart);
                         break;
@@ -476,7 +474,7 @@ namespace OpenXmlPowerTools
                 newID = ids.Max();
                 XElement maxMaster = newPresentation.Root.Descendants(P.sldMasterId).Where(f => (uint)f.Attribute(NoNamespace.id) == newID).FirstOrDefault();
                 SlideMasterPart maxMasterPart = (SlideMasterPart)newDocument.PresentationPart.GetPartById(maxMaster.Attribute(R.id).Value);
-                newID += (uint)maxMasterPart.GetXDocument().Root.Descendants(P.sldLayoutId).Count() + 1;
+                newID += (uint)maxMasterPart.GetXElement().Descendants(P.sldLayoutId).Count() + 1;
             }
             newPresentation.Root.Element(P.sldMasterIdLst).Add(new XElement(P.sldMasterId,
                 new XAttribute(NoNamespace.id, newID.ToString()),
@@ -486,14 +484,14 @@ namespace OpenXmlPowerTools
             ThemePart newThemePart = newMaster.AddNewPart<ThemePart>();
             if (newDocument.PresentationPart.ThemePart == null)
                 newThemePart = newDocument.PresentationPart.AddPart(newThemePart);
-            newThemePart.PutXDocument(oldTheme);
-            CopyRelatedPartsForContentParts(newDocument, sourceMasterPart.ThemePart, newThemePart, new[] { newThemePart.GetXDocument().Root }, images, mediaList);
+            newThemePart.SetXDocument(oldTheme);
+            CopyRelatedPartsForContentParts(newDocument, sourceMasterPart.ThemePart, newThemePart, new[] { newThemePart.GetXElement() }, images, mediaList);
             foreach (SlideLayoutPart layoutPart in sourceMasterPart.SlideLayoutParts)
             {
                 SlideLayoutPart newLayout = newMaster.AddNewPart<SlideLayoutPart>();
-                newLayout.PutXDocument(layoutPart.GetXDocument());
-                AddRelationships(layoutPart, newLayout, new[] { newLayout.GetXDocument().Root });
-                CopyRelatedPartsForContentParts(newDocument, layoutPart, newLayout, new[] { newLayout.GetXDocument().Root }, images, mediaList);
+                newLayout.SetXDocument(layoutPart.GetXDocument());
+                AddRelationships(layoutPart, newLayout, new[] { newLayout.GetXElement() });
+                CopyRelatedPartsForContentParts(newDocument, layoutPart, newLayout, new[] { newLayout.GetXElement() }, images, mediaList);
                 newLayout.AddPart(newMaster);
                 string resID = sourceMasterPart.GetIdOfPart(layoutPart);
                 XElement entry = sourceMaster.Root.Descendants(P.sldLayoutId).Where(f => f.Attribute(R.id).Value == resID).FirstOrDefault();
@@ -501,9 +499,9 @@ namespace OpenXmlPowerTools
                 entry.SetAttributeValue(NoNamespace.id, newID.ToString());
                 newID++;
             }
-            newMaster.PutXDocument(sourceMaster);
-            AddRelationships(sourceMasterPart, newMaster, new[] { newMaster.GetXDocument().Root });
-            CopyRelatedPartsForContentParts(newDocument, sourceMasterPart, newMaster, new[] { newMaster.GetXDocument().Root }, images, mediaList);
+            newMaster.SetXDocument(sourceMaster);
+            AddRelationships(sourceMasterPart, newMaster, new[] { newMaster.GetXElement() });
+            CopyRelatedPartsForContentParts(newDocument, sourceMasterPart, newMaster, new[] { newMaster.GetXElement() }, images, mediaList);
 
             return newMaster;
         }
@@ -527,14 +525,14 @@ namespace OpenXmlPowerTools
                 if (oldMaster.ThemePart != null)
                 {
                     ThemePart newThemePart = newMaster.AddNewPart<ThemePart>();
-                    newThemePart.PutXDocument(oldMaster.ThemePart.GetXDocument());
-                    CopyRelatedPartsForContentParts(newDocument, oldMaster.ThemePart, newThemePart, new[] { newThemePart.GetXDocument().Root }, images, mediaList);
+                    newThemePart.SetXDocument(oldMaster.ThemePart.GetXDocument());
+                    CopyRelatedPartsForContentParts(newDocument, oldMaster.ThemePart, newThemePart, new[] { newThemePart.GetXElement() }, images, mediaList);
                 }
 
                 // Copy master
-                newMaster.PutXDocument(oldMaster.GetXDocument());
-                AddRelationships(oldMaster, newMaster, new[] { newMaster.GetXDocument().Root });
-                CopyRelatedPartsForContentParts(newDocument, oldMaster, newMaster, new[] { newMaster.GetXDocument().Root }, images, mediaList);
+                newMaster.SetXDocument(oldMaster.GetXDocument());
+                AddRelationships(oldMaster, newMaster, new[] { newMaster.GetXElement() });
+                CopyRelatedPartsForContentParts(newDocument, oldMaster, newMaster, new[] { newMaster.GetXElement() }, images, mediaList);
 
                 newPresentation.Root.Add(
                     new XElement(P.notesMasterIdLst, new XElement(P.notesMasterId,
@@ -545,7 +543,7 @@ namespace OpenXmlPowerTools
         private static void CopyComments(PresentationDocument oldDocument, PresentationDocument newDocument, SlidePart oldSlide, SlidePart newSlide)
         {
             newSlide.AddNewPart<SlideCommentsPart>();
-            newSlide.SlideCommentsPart.PutXDocument(oldSlide.SlideCommentsPart.GetXDocument());
+            newSlide.SlideCommentsPart.SetXDocument(oldSlide.SlideCommentsPart.GetXDocument());
             XDocument newSlideComments = newSlide.SlideCommentsPart.GetXDocument();
             XDocument oldAuthors = oldDocument.PresentationPart.CommentAuthorsPart.GetXDocument();
             foreach (XElement comment in newSlideComments.Root.Elements(P.cm))
@@ -567,10 +565,12 @@ namespace OpenXmlPowerTools
             if (newDocument.PresentationPart.CommentAuthorsPart == null)
             {
                 newDocument.PresentationPart.AddNewPart<CommentAuthorsPart>();
-                newDocument.PresentationPart.CommentAuthorsPart.PutXDocument(new XDocument(new XElement(P.cmAuthorLst,
-                    new XAttribute(XNamespace.Xmlns + "a", A.a),
-                    new XAttribute(XNamespace.Xmlns + "r", R.r),
-                    new XAttribute(XNamespace.Xmlns + "p", P.p))));
+                newDocument.PresentationPart.CommentAuthorsPart.SetXDocument(
+                    new XDocument(
+                        new XElement(P.cmAuthorLst,
+                            new XAttribute(XNamespace.Xmlns + "a", A.a),
+                            new XAttribute(XNamespace.Xmlns + "r", R.r),
+                            new XAttribute(XNamespace.Xmlns + "p", P.p))));
             }
             XDocument authors = newDocument.PresentationPart.CommentAuthorsPart.GetXDocument();
             newAuthor = authors.Root.Elements(P.cmAuthor).Where(
@@ -616,7 +616,7 @@ namespace OpenXmlPowerTools
                     tableStyles = new XDocument(new XElement(A.tblStyleLst,
                         new XAttribute(XNamespace.Xmlns + "a", A.a),
                         new XAttribute(NoNamespace.def, styleId)));
-                    newStylesPart.PutXDocument(tableStyles);
+                    newStylesPart.SetXDocument(tableStyles);
                 }
                 else
                     tableStyles = newDocument.PresentationPart.TableStylesPart.GetXDocument();
@@ -696,10 +696,10 @@ namespace OpenXmlPowerTools
 
                 OpenXmlPart oldPart = oldContentPart.GetPartById(relId);
                 OpenXmlPart newPart = newContentPart.AddNewPart<DiagramDataPart>();
-                newPart.GetXDocument().Add(oldPart.GetXDocument().Root);
+                newPart.GetXDocument().Add(oldPart.GetXElement());
                 diagramReference.Attribute(R.dm).Value = newContentPart.GetIdOfPart(newPart);
-                AddRelationships(oldPart, newPart, new[] { newPart.GetXDocument().Root });
-                CopyRelatedPartsForContentParts(newDocument, oldPart, newPart, new[] { newPart.GetXDocument().Root }, images, mediaList);
+                AddRelationships(oldPart, newPart, new[] { newPart.GetXElement() });
+                CopyRelatedPartsForContentParts(newDocument, oldPart, newPart, new[] { newPart.GetXElement() }, images, mediaList);
 
                 // lo attribute
                 relId = diagramReference.Attribute(R.lo).Value;
@@ -710,13 +710,13 @@ namespace OpenXmlPowerTools
                 ExternalRelationship tempEr2 = newContentPart.ExternalRelationships.FirstOrDefault(er => er.Id == relId);
                 if (tempEr2 != null)
                     continue;
-                
+
                 oldPart = oldContentPart.GetPartById(relId);
                 newPart = newContentPart.AddNewPart<DiagramLayoutDefinitionPart>();
-                newPart.GetXDocument().Add(oldPart.GetXDocument().Root);
+                newPart.GetXDocument().Add(oldPart.GetXElement());
                 diagramReference.Attribute(R.lo).Value = newContentPart.GetIdOfPart(newPart);
-                AddRelationships(oldPart, newPart, new[] { newPart.GetXDocument().Root });
-                CopyRelatedPartsForContentParts(newDocument, oldPart, newPart, new[] { newPart.GetXDocument().Root }, images, mediaList);
+                AddRelationships(oldPart, newPart, new[] { newPart.GetXElement() });
+                CopyRelatedPartsForContentParts(newDocument, oldPart, newPart, new[] { newPart.GetXElement() }, images, mediaList);
 
                 // qs attribute
                 relId = diagramReference.Attribute(R.qs).Value;
@@ -730,10 +730,10 @@ namespace OpenXmlPowerTools
 
                 oldPart = oldContentPart.GetPartById(relId);
                 newPart = newContentPart.AddNewPart<DiagramStylePart>();
-                newPart.GetXDocument().Add(oldPart.GetXDocument().Root);
+                newPart.GetXDocument().Add(oldPart.GetXElement());
                 diagramReference.Attribute(R.qs).Value = newContentPart.GetIdOfPart(newPart);
-                AddRelationships(oldPart, newPart, new[] { newPart.GetXDocument().Root });
-                CopyRelatedPartsForContentParts(newDocument, oldPart, newPart, new[] { newPart.GetXDocument().Root }, images, mediaList);
+                AddRelationships(oldPart, newPart, new[] { newPart.GetXElement() });
+                CopyRelatedPartsForContentParts(newDocument, oldPart, newPart, new[] { newPart.GetXElement() }, images, mediaList);
 
                 // cs attribute
                 relId = diagramReference.Attribute(R.cs).Value;
@@ -747,10 +747,10 @@ namespace OpenXmlPowerTools
 
                 oldPart = oldContentPart.GetPartById(relId);
                 newPart = newContentPart.AddNewPart<DiagramColorsPart>();
-                newPart.GetXDocument().Add(oldPart.GetXDocument().Root);
+                newPart.GetXDocument().Add(oldPart.GetXElement());
                 diagramReference.Attribute(R.cs).Value = newContentPart.GetIdOfPart(newPart);
-                AddRelationships(oldPart, newPart, new[] { newPart.GetXDocument().Root });
-                CopyRelatedPartsForContentParts(newDocument, oldPart, newPart, new[] { newPart.GetXDocument().Root }, images, mediaList);
+                AddRelationships(oldPart, newPart, new[] { newPart.GetXElement() });
+                CopyRelatedPartsForContentParts(newDocument, oldPart, newPart, new[] { newPart.GetXElement() }, images, mediaList);
             }
 
             foreach (XElement oleReference in newContent.DescendantsAndSelf().Where(d => d.Name == P.oleObj || d.Name == P.externalData))
@@ -1025,9 +1025,9 @@ namespace OpenXmlPowerTools
                                 item.Attribute("i").Value = i;
                             }
                         }
-                        newVmlPart.PutXDocument(xd);
-                        AddRelationships(vmlPart, newVmlPart, new[] { newVmlPart.GetXDocument().Root });
-                        CopyRelatedPartsForContentParts(newDocument, vmlPart, newVmlPart, new[] { newVmlPart.GetXDocument().Root }, images, mediaList);
+                        newVmlPart.SetXDocument(xd);
+                        AddRelationships(vmlPart, newVmlPart, new[] { newVmlPart.GetXElement() });
+                        CopyRelatedPartsForContentParts(newDocument, vmlPart, newVmlPart, new[] { newVmlPart.GetXElement() }, images, mediaList);
                     }
                 }
             }
@@ -1308,7 +1308,7 @@ namespace OpenXmlPowerTools
                         temp.AddContentPartRelTypeResourceIdTupple(newContentPart, imagePart.RelationshipType, newId);
                         imageReference.Attribute(attributeName).Value = newId;
                     }
-                    
+
                 }
             }
             else
@@ -1508,7 +1508,7 @@ namespace OpenXmlPowerTools
 
             var newId = "R" + Guid.NewGuid().ToString().Replace("-", "").Substring(0, 16);
             EmbeddedControlPersistencePart newPart = newContentPart.AddNewPart<EmbeddedControlPersistencePart>("application/vnd.ms-office.activeX+xml", newId);
-            
+
             newPart.FeedData(oldPart.GetStream());
             activeXPartReference.Attribute(attributeName).Value = newId;
 
@@ -1524,7 +1524,7 @@ namespace OpenXmlPowerTools
 
                     newPersistencePart.FeedData(oldPersistencePart.GetStream());
                     axc.Root.Attribute(R.id).Value = newId2;
-                    newPart.PutXDocument();
+                    newPart.SaveXDocument();
                 }
             }
         }

@@ -105,7 +105,7 @@ namespace OpenXmlPowerTools
 
             XDocument settingsXDoc = part.GetXDocument();
             settingsXDoc.Descendants(W.rsids).Remove();
-            part.PutXDocument();
+            part.SaveXDocument();
         }
 
         private static void RemoveElementsForDocumentComparison(WordprocessingDocument doc)
@@ -115,7 +115,7 @@ namespace OpenXmlPowerTools
             {
                 XDocument appPropsXDoc = part.GetXDocument();
                 appPropsXDoc.Descendants(EP.TotalTime).Remove();
-                part.PutXDocument();
+                part.SaveXDocument();
             }
 
             part = doc.CoreFilePropertiesPart;
@@ -125,7 +125,7 @@ namespace OpenXmlPowerTools
                 corePropsXDoc.Descendants(CP.revision).Remove();
                 corePropsXDoc.Descendants(DCTERMS.created).Remove();
                 corePropsXDoc.Descendants(DCTERMS.modified).Remove();
-                part.PutXDocument();
+                part.SaveXDocument();
             }
 
             XDocument mainXDoc = doc.MainDocumentPart.GetXDocument();
@@ -144,7 +144,7 @@ namespace OpenXmlPowerTools
             }
 
             bookmarkStart.Remove();
-            doc.MainDocumentPart.PutXDocument();
+            doc.MainDocumentPart.SaveXDocument();
         }
 
         public static XElement MergeAdjacentSuperfluousRuns(XElement element)
@@ -165,7 +165,7 @@ namespace OpenXmlPowerTools
             var newRoot = (XElement) RemoveRsidTransform(root);
             newRoot = (XElement) SingleCharacterRunTransform(newRoot);
             root.ReplaceWith(newRoot);
-            part.PutXElement();
+            part.SaveXElement();
         }
 
         public static void TransformToSingleCharacterRuns(WordprocessingDocument doc)
@@ -679,11 +679,11 @@ namespace OpenXmlPowerTools
                     }
                 }
 
-                part.PutXDocument(newXDoc);
+                part.SetXDocument(newXDoc);
             }
             else
             {
-                part.PutXDocument(new XDocument(newRoot));
+                part.SetXDocument(new XDocument(newRoot));
             }
         }
 

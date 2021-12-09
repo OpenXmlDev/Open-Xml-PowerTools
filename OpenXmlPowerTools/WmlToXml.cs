@@ -362,7 +362,7 @@ namespace OpenXmlPowerTools
             var newRoot = (XElement)AnnotateRunsThatUseFldSimple(mainXDoc.Root);
             mainXDoc.Root.ReplaceWith(newRoot);
 
-            wDoc.MainDocumentPart.PutXDocument();
+            wDoc.MainDocumentPart.SaveXDocument();
 
             // Annotate runs associated with fields, so that can retrieve hyperlinks that are stored as fields.
             FieldRetriever.AnnotateWithFieldInfo(wDoc.MainDocumentPart);
@@ -1385,7 +1385,7 @@ namespace OpenXmlPowerTools
                 }
             }
 
-            var root = part.GetXDocument().Root;
+            var root = part.GetXElement();
             if (root == null)
                 throw new ContentApplierException("Internal error");
             var ptNamespace = root.Attribute(XNamespace.Xmlns + "pt");
@@ -1420,12 +1420,12 @@ namespace OpenXmlPowerTools
                 settings.ProgressFunction(pi);
             }
 
-            part.PutXDocument();
+            part.SaveXDocument();
             var mainPart = part as MainDocumentPart;
             if (mainPart != null)
             {
                 if (mainPart.WordprocessingCommentsPart != null)
-                    mainPart.WordprocessingCommentsPart.PutXDocument();
+                    mainPart.WordprocessingCommentsPart.SaveXDocument();
             }
         }
 
@@ -1693,7 +1693,7 @@ namespace OpenXmlPowerTools
   </w:style>
 ";
                     AddIfMissing(stylesXDoc, style);
-                    mainPart.StyleDefinitionsPart.PutXDocument();
+                    mainPart.StyleDefinitionsPart.SaveXDocument();
                 }
             }
 
@@ -1832,7 +1832,7 @@ namespace OpenXmlPowerTools
   </w:style>
 ";
                     AddIfMissing(stylesXDoc, style);
-                    mainPart.StyleDefinitionsPart.PutXDocument();
+                    mainPart.StyleDefinitionsPart.SaveXDocument();
                 }
             }
         }
@@ -2045,7 +2045,7 @@ namespace OpenXmlPowerTools
                 unid++;
             }
             IgnorePt14Namespace(xDoc.Root);
-            wDoc.MainDocumentPart.PutXDocument();
+            wDoc.MainDocumentPart.SaveXDocument();
         }
 
         private static void DetermineElementOrder(XElement element, List<XElement> elementList)

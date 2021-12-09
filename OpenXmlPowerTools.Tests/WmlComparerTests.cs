@@ -685,25 +685,31 @@ namespace OxPt
                 ms.Write(comparedWml.DocumentByteArray, 0, comparedWml.DocumentByteArray.Length);
                 using (WordprocessingDocument wDoc = WordprocessingDocument.Open(ms, true))
                 {
-                    OpenXmlValidator validator = new OpenXmlValidator();
-                    var errors = validator.Validate(wDoc).Where(e => !ExpectedErrors.Contains(e.Description));
-                    if (errors.Count() > 0)
+                    var validator = new OpenXmlValidator();
+                    List<ValidationErrorInfo> errors = validator
+                        .Validate(wDoc)
+                        .Where(e => !ExpectedErrors.Contains(e.Description))
+                        .ToList();
+
+                    if (errors.Any())
                     {
 
-                        var ind = "  ";
+                        const string ind = "  ";
                         var sb = new StringBuilder();
-                        foreach (var err in errors)
+
+                        foreach (ValidationErrorInfo err in errors)
                         {
 #if true
-                            sb.Append("Error" + Environment.NewLine);
-                            sb.Append(ind + "ErrorType: " + err.ErrorType.ToString() + Environment.NewLine);
-                            sb.Append(ind + "Description: " + err.Description + Environment.NewLine);
-                            sb.Append(ind + "Part: " + err.Part.Uri.ToString() + Environment.NewLine);
-                            sb.Append(ind + "XPath: " + err.Path.XPath + Environment.NewLine);
+                            sb.AppendLine("Error");
+                            sb.AppendLine(ind + "ErrorType: " + err.ErrorType);
+                            sb.AppendLine(ind + "Description: " + err.Description);
+                            sb.AppendLine(ind + "Part: " + err.Part?.Uri);
+                            sb.AppendLine(ind + "XPath: " + err.Path?.XPath);
 #else
-                        sb.Append("            \"" + err.Description + "\"," + Environment.NewLine);
+                            sb.AppendLine("            \"" + err.Description + "\",");
 #endif
                         }
+
                         validationErrors = sb.ToString();
                     }
                 }

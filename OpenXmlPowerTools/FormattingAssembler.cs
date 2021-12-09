@@ -93,7 +93,7 @@ namespace OpenXmlPowerTools
                 FormattingAssembler.NormalizePropsForPart(pxd, settings);
                 var newRoot = (XElement)CleanupTransform(pxd.Root);
                 pxd.Root.ReplaceWith(newRoot);
-                part.PutXDocument();
+                part.SaveXDocument();
             }
         }
 
@@ -198,7 +198,7 @@ namespace OpenXmlPowerTools
 
             sXDoc.Root.ReplaceWith(newRoot);
 
-            stylePart.PutXDocument();
+            stylePart.SaveXDocument();
         }
 
         private static void NormalizeListItems(FormattingAssemblerInfo fai, WordprocessingDocument wDoc, FormattingAssemblerSettings settings)

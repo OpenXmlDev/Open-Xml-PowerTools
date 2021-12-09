@@ -27,7 +27,7 @@ namespace OpenXmlPowerTools
                     XDocument xd = part.GetXDocument();
                     xd.Descendants().Attributes("smtClean").Remove();
                     xd.Descendants().Attributes("smtId").Remove();
-                    part.PutXDocument();
+                    part.SaveXDocument();
                 }
 
                 if (part.ContentType == "application/vnd.openxmlformats-officedocument.vmlDrawing")

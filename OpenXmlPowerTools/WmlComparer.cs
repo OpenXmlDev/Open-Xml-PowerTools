@@ -24,11 +24,11 @@ using OpenXmlPowerTools;
 /// Currently, the unid is set at the beginning of the algorithm.  It is used by the code that establishes correlation based on first rejecting
 /// tracked revisions, then correlating paragraphs/tables.  It is requred for this algorithm - after finding a correlated sequence in the document with rejected
 /// revisions, it uses the unid to find the same paragraph in the document without rejected revisions, then sets the correlated sha1 hash in that document.
-/// 
+///
 /// But then when accepting tracked revisions, for certain paragraphs (where there are deleted paragraph marks) it is going to lose the unids.  But this isn't a
 /// problem because when paragraph marks are deleted, the correlation is definitely no longer possible.  Any paragraphs that are in a range of paragraphs that
 /// are coalesced can't be correlated to paragraphs in the other document via their hash.  At that point we no longer care what their unids are.
-/// 
+///
 /// But after that it is only used to reconstruct the tree.  It is also used in the debugging code that
 /// prints the various correlated sequences and comparison units - this is display for debugging purposes only.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -38,9 +38,9 @@ using OpenXmlPowerTools;
 /// inserted into the new document, or set as equal.  At this point, we identify a paragraph as a sequential list of content atoms, terminated by a paragraph mark.
 /// This entire list will for a single paragraph, regardless of whether the paragraph is a child of the body, or if the paragraph is in a cell in a table, or if
 /// the paragraph is in a text box.  The list of ancestors, from the paragraph to the root of the XML tree will be the same for all content atoms in the paragraph.
-/// 
+///
 /// Therefore:
-/// 
+///
 /// Iterate through the list of content atoms backwards.  When the loop sees a paragraph mark, it gets the ancestor unids from the paragraph mark to the top of the
 /// tree, and sets this as the same for all content atoms in the paragraph.  For descendants of the paragraph mark, it doesn't really matter if content is put into
 /// separate runs or what not.  We don't need to be concerned about what the unids are for descendants of the paragraph.
@@ -253,7 +253,7 @@ namespace OpenXmlPowerTools
                         var xd = cp.GetXDocument();
                         var newRoot = CleanPartTransform(xd.Root);
                         xd.Root.ReplaceWith(newRoot);
-                        cp.PutXDocument();
+                        cp.SaveXDocument();
                     }
                 }
                 var cleaned = new WmlDocument("cleaned.docx", ms.ToArray());
@@ -303,7 +303,7 @@ namespace OpenXmlPowerTools
                         }
                     }
 
-                    wDocSource.MainDocumentPart.PutXDocument();
+                    wDocSource.MainDocumentPart.SaveXDocument();
                 }
                 WmlDocument sourceWithCorrelatedSHA1Hash = new WmlDocument(source.FileName, msSource.ToArray());
                 return sourceWithCorrelatedSHA1Hash;
@@ -382,7 +382,7 @@ namespace OpenXmlPowerTools
             {
                 var cxd = chart.GetXDocument();
                 cxd.Descendants(C.externalData).Remove();
-                chart.PutXDocument();
+                chart.SaveXDocument();
             }
         }
 
@@ -426,7 +426,7 @@ namespace OpenXmlPowerTools
                     if (!fn.HasElements)
                         fn.Add(emptyFootnote);
                 }
-                footnotePart.PutXDocument();
+                footnotePart.SaveXDocument();
             }
 
             var endnotePart = wDoc.MainDocumentPart.EndnotesPart;
@@ -438,7 +438,7 @@ namespace OpenXmlPowerTools
                     if (!fn.HasElements)
                         fn.Add(emptyEndnote);
                 }
-                endnotePart.PutXDocument();
+                endnotePart.SaveXDocument();
             }
         }
 
@@ -446,33 +446,44 @@ namespace OpenXmlPowerTools
         {
             var footnoteEndnoteReferences = element.Descendants().Where(d => d.Name == W.footnoteReference || d.Name == W.endnoteReference);
             if (!footnoteEndnoteReferences.Any())
+            {
                 return false;
-            var footnoteXDoc = wDocDelta.MainDocumentPart.FootnotesPart.GetXDocument();
-            var endnoteXDoc = wDocDelta.MainDocumentPart.EndnotesPart.GetXDocument();
+            }
+
+            var footnoteXDoc = wDocDelta.MainDocumentPart.FootnotesPart.GetXElement();
+            var endnoteXDoc = wDocDelta.MainDocumentPart.EndnotesPart.GetXElement();
+
             foreach (var note in footnoteEndnoteReferences)
             {
                 XElement fnen = null;
+
                 if (note.Name == W.footnoteReference)
                 {
                     var id = (int)note.Attribute(W.id);
                     fnen = footnoteXDoc
-                        .Root
                         .Elements(W.footnote)
                         .FirstOrDefault(n => (int)n.Attribute(W.id) == id);
-                    if (fnen.Descendants().Where(d => d.Name == W.ins || d.Name == W.del).Any())
+
+                    if (fnen != null && fnen.Descendants().Where(d => d.Name == W.ins || d.Name == W.del).Any())
+                    {
                         return true;
+                    }
                 }
+
                 if (note.Name == W.endnoteReference)
                 {
                     var id = (int)note.Attribute(W.id);
                     fnen = endnoteXDoc
-                        .Root
                         .Elements(W.endnote)
                         .FirstOrDefault(n => (int)n.Attribute(W.id) == id);
-                    if (fnen.Descendants().Where(d => d.Name == W.ins || d.Name == W.del).Any())
+
+                    if (fnen != null && fnen.Descendants().Where(d => d.Name == W.ins || d.Name == W.del).Any())
+                    {
                         return true;
+                    }
                 }
             }
+
             return false;
         }
 
@@ -481,14 +492,14 @@ namespace OpenXmlPowerTools
             var mdp = wDoc.MainDocumentPart.GetXDocument();
             AssignUnidToAllElements(mdp.Root);
             IgnorePt14Namespace(mdp.Root);
-            wDoc.MainDocumentPart.PutXDocument();
+            wDoc.MainDocumentPart.SaveXDocument();
 
             if (wDoc.MainDocumentPart.FootnotesPart != null)
             {
                 var p = wDoc.MainDocumentPart.FootnotesPart.GetXDocument();
                 AssignUnidToAllElements(p.Root);
                 IgnorePt14Namespace(p.Root);
-                wDoc.MainDocumentPart.FootnotesPart.PutXDocument();
+                wDoc.MainDocumentPart.FootnotesPart.SaveXDocument();
             }
 
             if (wDoc.MainDocumentPart.EndnotesPart != null)
@@ -496,7 +507,7 @@ namespace OpenXmlPowerTools
                 var p = wDoc.MainDocumentPart.EndnotesPart.GetXDocument();
                 AssignUnidToAllElements(p.Root);
                 IgnorePt14Namespace(p.Root);
-                wDoc.MainDocumentPart.EndnotesPart.PutXDocument();
+                wDoc.MainDocumentPart.EndnotesPart.SaveXDocument();
             }
         }
 
@@ -974,7 +985,7 @@ namespace OpenXmlPowerTools
                     FixUpShapeTypeIds(consolidatedWDoc);
                     RemoveCustomMarkFollows(consolidatedWDoc);
                     WmlComparer.IgnorePt14Namespace(consolidatedMainDocPartXDoc.Root);
-                    consolidatedWDoc.MainDocumentPart.PutXDocument();
+                    consolidatedWDoc.MainDocumentPart.SaveXDocument();
                     AddFootnotesEndnotesStyles(consolidatedWDoc);
                 }
 
@@ -987,7 +998,7 @@ namespace OpenXmlPowerTools
         {
             var mxDoc = consolidatedWDoc.MainDocumentPart.GetXDocument();
             mxDoc.Root.Descendants().Attributes(W.customMarkFollows).Remove();
-            consolidatedWDoc.MainDocumentPart.PutXDocument();
+            consolidatedWDoc.MainDocumentPart.SaveXDocument();
         }
 
         private static void MoveFootnotesEndnotesForConsolidatedRevisions(ConsolidationInfo ci, WordprocessingDocument wDocConsolidated)
@@ -1020,7 +1031,7 @@ namespace OpenXmlPowerTools
                     clonedFootnote.Attribute(W.id).Value = newId.ToString();
                     footnoteXDoc.Root.Add(clonedFootnote);
                 }
-                wDocConsolidated.MainDocumentPart.FootnotesPart.PutXDocument();
+                wDocConsolidated.MainDocumentPart.FootnotesPart.SaveXDocument();
             }
 
             if (ci.RevisionElement.Descendants(W.endnoteReference).Any())
@@ -1037,7 +1048,7 @@ namespace OpenXmlPowerTools
                     clonedEndnote.Attribute(W.id).Value = newId.ToString();
                     endnoteXDoc.Root.Add(clonedEndnote);
                 }
-                wDocConsolidated.MainDocumentPart.EndnotesPart.PutXDocument();
+                wDocConsolidated.MainDocumentPart.EndnotesPart.SaveXDocument();
             }
         }
 
@@ -1106,10 +1117,10 @@ namespace OpenXmlPowerTools
             }
 
             if (footnotesPart != null)
-                footnotesPart.PutXDocument();
+                footnotesPart.SaveXDocument();
 
             if (endnotesPart != null)
-                endnotesPart.PutXDocument();
+                endnotesPart.SaveXDocument();
         }
 
         private static XElement[] AssembledConjoinedRevisionContent(XElement emptyParagraph, IGrouping<string, ConsolidationInfo> groupedCi, int idx, WordprocessingDocument wDocConsolidated,
@@ -1193,7 +1204,7 @@ namespace OpenXmlPowerTools
                                         clonedEndnote.Attribute(W.id).Value = newId.ToString();
                                         endnoteXDoc.Root.Add(clonedEndnote);
                                     }
-                                    wDocConsolidated.MainDocumentPart.EndnotesPart.PutXDocument();
+                                    wDocConsolidated.MainDocumentPart.EndnotesPart.SaveXDocument();
                                 }
 
                                 if (ci.RevisionElement.Descendants(W.footnoteReference).Any())
@@ -1210,7 +1221,7 @@ namespace OpenXmlPowerTools
                                         clonedFootnote.Attribute(W.id).Value = newId.ToString();
                                         footnoteXDoc.Root.Add(clonedFootnote);
                                     }
-                                    wDocConsolidated.MainDocumentPart.FootnotesPart.PutXDocument();
+                                    wDocConsolidated.MainDocumentPart.FootnotesPart.SaveXDocument();
                                 }
 
                                 // it is important that this code follows the code above, because the code above updates ci.RevisionElement (using DML)
@@ -1254,7 +1265,7 @@ namespace OpenXmlPowerTools
                                     table,
                                     emptyParagraph,
                                 };
-								
+
                 var dummyElement = new XElement("dummy", content);
 
                 foreach (var rev in dummyElement.Descendants().Where(d => d.Attribute(W.author) != null))
@@ -1295,7 +1306,7 @@ namespace OpenXmlPowerTools
                             clonedFootnote.Attribute(W.id).Value = newId.ToString();
                             footnoteXDoc.Root.Add(clonedFootnote);
                         }
-                        wDocConsolidated.MainDocumentPart.FootnotesPart.PutXDocument();
+                        wDocConsolidated.MainDocumentPart.FootnotesPart.SaveXDocument();
                     }
 
                     if (ci.RevisionElement.Descendants(W.endnoteReference).Any())
@@ -1312,7 +1323,7 @@ namespace OpenXmlPowerTools
                             clonedEndnote.Attribute(W.id).Value = newId.ToString();
                             endnoteXDoc.Root.Add(clonedEndnote);
                         }
-                        wDocConsolidated.MainDocumentPart.EndnotesPart.PutXDocument();
+                        wDocConsolidated.MainDocumentPart.EndnotesPart.SaveXDocument();
                     }
 
                     return revisionInTable;
@@ -1450,7 +1461,7 @@ namespace OpenXmlPowerTools
                 var tnsElement = XElement.Parse(tableNormalStyleMarkup);
                 sXDoc.Root.Add(tnsElement);
             }
-            styleDefinitionsPart.PutXDocument();
+            styleDefinitionsPart.SaveXDocument();
         }
 
         private static XAttribute[] NamespaceAttributes =
@@ -1483,7 +1494,7 @@ namespace OpenXmlPowerTools
                 newFootnotes.Declaration.Standalone = "yes";
                 newFootnotes.Declaration.Encoding = "UTF-8";
                 newFootnotes.Add(new XElement(W.footnotes, NamespaceAttributes));
-                mdp.FootnotesPart.PutXDocument();
+                mdp.FootnotesPart.SaveXDocument();
             }
             if (mdp.EndnotesPart == null)
             {
@@ -1492,7 +1503,7 @@ namespace OpenXmlPowerTools
                 newEndnotes.Declaration.Standalone = "yes";
                 newEndnotes.Declaration.Encoding = "UTF-8";
                 newEndnotes.Add(new XElement(W.endnotes, NamespaceAttributes));
-                mdp.EndnotesPart.PutXDocument();
+                mdp.EndnotesPart.SaveXDocument();
             }
         }
 
@@ -1544,11 +1555,11 @@ namespace OpenXmlPowerTools
                 }
             }
 
-            mainDocPart.PutXDocument();
+            mainDocPart.SaveXDocument();
             if (footnotesPart != null)
-                footnotesPart.PutXDocument();
+                footnotesPart.SaveXDocument();
             if (endnotesPart != null)
-                endnotesPart.PutXDocument();
+                endnotesPart.SaveXDocument();
         }
 
         private static WmlDocument ProduceDocumentWithTrackedRevisions(WmlComparerSettings settings, WmlDocument wmlResult, WordprocessingDocument wDoc1, WordprocessingDocument wDoc2)
@@ -1561,12 +1572,12 @@ namespace OpenXmlPowerTools
                 .Element(W.body)
                 .Element(W.sectPr);
 
-            var contentParent1 = wDoc1.MainDocumentPart.GetXDocument().Root.Element(W.body);
+            var contentParent1 = wDoc1.MainDocumentPart.GetXElement().Element(W.body);
             AddSha1HashToBlockLevelContent(wDoc1.MainDocumentPart, contentParent1, settings);
-            var contentParent2 = wDoc2.MainDocumentPart.GetXDocument().Root.Element(W.body);
+            var contentParent2 = wDoc2.MainDocumentPart.GetXElement().Element(W.body);
             AddSha1HashToBlockLevelContent(wDoc2.MainDocumentPart, contentParent2, settings);
 
-            var cal1 = WmlComparer.CreateComparisonUnitAtomList(wDoc1.MainDocumentPart, wDoc1.MainDocumentPart.GetXDocument().Root.Element(W.body), settings);
+            var cal1 = WmlComparer.CreateComparisonUnitAtomList(wDoc1.MainDocumentPart, wDoc1.MainDocumentPart.GetXElement().Element(W.body), settings);
 
             if (s_False)
             {
@@ -1585,7 +1596,7 @@ namespace OpenXmlPowerTools
                 DocxComparerUtil.NotePad(sbs);
             }
 
-            var cal2 = WmlComparer.CreateComparisonUnitAtomList(wDoc2.MainDocumentPart, wDoc2.MainDocumentPart.GetXDocument().Root.Element(W.body), settings);
+            var cal2 = WmlComparer.CreateComparisonUnitAtomList(wDoc2.MainDocumentPart, wDoc2.MainDocumentPart.GetXElement().Element(W.body), settings);
 
             if (s_False)
             {
@@ -1735,7 +1746,7 @@ namespace OpenXmlPowerTools
                     }
                     /**********************************************************************************************/
 
-                    wDocWithRevisions.MainDocumentPart.PutXDocument();
+                    wDocWithRevisions.MainDocumentPart.SaveXDocument();
                     FixUpFootnotesEndnotesWithCustomMarkers(wDocWithRevisions);
                     FixUpRevMarkIds(wDocWithRevisions);
                     FixUpDocPrIds(wDocWithRevisions);
@@ -1746,9 +1757,9 @@ namespace OpenXmlPowerTools
                     DeleteFootnotePropertiesInSettings(wDocWithRevisions);
                 }
                 foreach (var part in wDoc1.ContentParts())
-                    part.PutXDocument();
+                    part.SaveXDocument();
                 foreach (var part in wDoc2.ContentParts())
-                    part.PutXDocument();
+                    part.SaveXDocument();
                 var updatedWmlResult = new WmlDocument("Dummy.docx", ms.ToArray());
                 return updatedWmlResult;
             }
@@ -1761,7 +1772,7 @@ namespace OpenXmlPowerTools
             {
                 var sxDoc = settingsPart.GetXDocument();
                 sxDoc.Root.Elements().Where(e => e.Name == W.footnotePr || e.Name == W.endnotePr).Remove();
-                settingsPart.PutXDocument();
+                settingsPart.SaveXDocument();
             }
         }
 
@@ -1841,7 +1852,7 @@ namespace OpenXmlPowerTools
             var mainXDoc = wDocWithRevisions.MainDocumentPart.GetXDocument();
             var newRoot = (XElement)FootnoteEndnoteReferenceCleanupTransform(mainXDoc.Root);
             mainXDoc.Root.ReplaceWith(newRoot);
-            wDocWithRevisions.MainDocumentPart.PutXDocument();
+            wDocWithRevisions.MainDocumentPart.SaveXDocument();
         }
 
         private static object FootnoteEndnoteReferenceCleanupTransform(XNode node)
@@ -1938,7 +1949,7 @@ namespace OpenXmlPowerTools
                     cloned.Attribute(W._default).Remove();
                 revisionsStylesXDoc.Root.Add(cloned);
             }
-            wDocTo.MainDocumentPart.StyleDefinitionsPart.PutXDocument();
+            wDocTo.MainDocumentPart.StyleDefinitionsPart.SaveXDocument();
         }
 
         private static void AddFootnotesEndnotesStyles(WordprocessingDocument wDocWithRevisions)
@@ -2106,13 +2117,13 @@ namespace OpenXmlPowerTools
             }
             if (hasFootnotes || hasEndnotes)
             {
-                styleDefinitionsPart.PutXDocument();
+                styleDefinitionsPart.SaveXDocument();
             }
         }
 
         // it is possible, per the algorithm, for the algorithm to find that the paragraph mark for a single paragraph has been
         // inserted and deleted.  If the algorithm sets them to equal, then sometimes it will equate paragraph marks that should
-        // not be equated.  
+        // not be equated.
         private static void ConjoinDeletedInsertedParagraphMarks(MainDocumentPart mainDocumentPart, XDocument newXDoc)
         {
             ConjoinMultipleParagraphMarks(newXDoc);
@@ -2120,13 +2131,13 @@ namespace OpenXmlPowerTools
             {
                 var fnXDoc = mainDocumentPart.FootnotesPart.GetXDocument();
                 ConjoinMultipleParagraphMarks(fnXDoc);
-                mainDocumentPart.FootnotesPart.PutXDocument();
+                mainDocumentPart.FootnotesPart.SaveXDocument();
             }
             if (mainDocumentPart.EndnotesPart != null)
             {
                 var fnXDoc = mainDocumentPart.EndnotesPart.GetXDocument();
                 ConjoinMultipleParagraphMarks(fnXDoc);
-                mainDocumentPart.EndnotesPart.PutXDocument();
+                mainDocumentPart.EndnotesPart.SaveXDocument();
             }
         }
 
@@ -2291,9 +2302,9 @@ namespace OpenXmlPowerTools
             foreach (var item in allRevisions)
                 item.Rev.Attribute(W.id).Value = item.Idx.ToString();
             if (wDocWithRevisions.MainDocumentPart.FootnotesPart != null)
-                wDocWithRevisions.MainDocumentPart.FootnotesPart.PutXDocument();
+                wDocWithRevisions.MainDocumentPart.FootnotesPart.SaveXDocument();
             if (wDocWithRevisions.MainDocumentPart.EndnotesPart != null)
-                wDocWithRevisions.MainDocumentPart.EndnotesPart.PutXDocument();
+                wDocWithRevisions.MainDocumentPart.EndnotesPart.SaveXDocument();
         }
 
         private static void IgnorePt14Namespace(XElement root)
@@ -2824,7 +2835,7 @@ namespace OpenXmlPowerTools
                 XElement newXDocRoot = (XElement)WordprocessingMLUtil.WmlOrderElementsPerStandard(footnotesPartWithRevisionsXDoc.Root);
                 footnotesPartWithRevisionsXDoc.Root.ReplaceWith(newXDocRoot);
                 IgnorePt14Namespace(footnotesPartWithRevisionsXDoc.Root);
-                footnotesPartWithRevisions.PutXDocument();
+                footnotesPartWithRevisions.SaveXDocument();
             }
             if (endnotesPartWithRevisionsXDoc != null)
             {
@@ -2833,7 +2844,7 @@ namespace OpenXmlPowerTools
                 XElement newXDocRoot = (XElement)WordprocessingMLUtil.WmlOrderElementsPerStandard(endnotesPartWithRevisionsXDoc.Root);
                 endnotesPartWithRevisionsXDoc.Root.ReplaceWith(newXDocRoot);
                 IgnorePt14Namespace(endnotesPartWithRevisionsXDoc.Root);
-                endnotesPartWithRevisions.PutXDocument();
+                endnotesPartWithRevisions.SaveXDocument();
             }
         }
 
@@ -2845,32 +2856,32 @@ namespace OpenXmlPowerTools
         /// - For atoms within a text box, the depth will be 3: Paragraph / txbxContent / Paragraph
         /// - For atoms within a table in a text box, the depth will be 5:  Paragraph / txbxContent / Table / Row / Cell / Paragraph
         /// In any case, we figure out the maximum depth.
-        /// 
+        ///
         /// Then we iterate through the list of content atoms backwards.  We do this n times, where n is the maximum depth.
-        /// 
+        ///
         /// At each level, we find a paragraph mark, and working backwards, we set the guids in the hierarchy so that the content will be assembled together correctly.
-        /// 
+        ///
         /// For each iteration, we only set unids at the level that we are working at.
-        /// 
+        ///
         /// So first we will set all unids at level 1.  When we find a paragraph mark, we get the unid for that level, and then working backwards, until we find another
         /// paragraph mark, we set all unids at level 1 to the same unid as level 1 of the paragraph mark.
-        /// 
+        ///
         /// Then we set all unids at level 2.  When we find a paragraph mark, we get the unid for that level, and then working backwards, until we find another paragraph
         /// mark, we set all unids at level 2 to the same unid as level 2 of the paragraph mark.  At some point, we will find a paragraph mark with no level 2.  This is
         /// not a problem.  We stop setting anything until we find another paragraph mark that has a level 2, at which point we resume setting values at level 2.
-        /// 
+        ///
         /// Same process for level 3, and so on, until we have processed to the maximum depth of the hierarchy.
-        /// 
+        ///
         /// At the end of this process, we will be able to do the coalsce recurse algorithm, and the content atom list will be put back together into a beautiful tree,
         /// where every element is correctly positioned in the hierarchy.
-        /// 
+        ///
         /// This should also properly assemble the test where just the paragraph marks have been deleted for a range of paragraphs.
         ///
         /// There is an interesting thought - it is possible that I have set two runs of text that were initially in the same paragraph, but then after
         /// processing, they match up to text in different paragraphs.  Therefore this will not work.  We need to actually keep a list of reconstructed ancestor
         /// Unids, because the same paragraph would get set to two different IDs - two ComparisonUnitAtoms need to be in separate paragraphs in the reconstructed
         /// document, but their ancestors actually point to the same paragraph.
-        /// 
+        ///
         /// Fix this in the algorithm, and also keep the appropriate list in ComparisonUnitAtom class.
 
         private static void AssembleAncestorUnidsInOrderToRebuildXmlTreeProperly(List<ComparisonUnitAtom> comparisonUnitAtomList)
@@ -3281,7 +3292,7 @@ namespace OpenXmlPowerTools
                     TestForInvalidContent(wDoc);
                     RemoveExistingPowerToolsMarkup(wDoc);
 
-                    var contentParent = wDoc.MainDocumentPart.GetXDocument().Root.Element(W.body);
+                    var contentParent = wDoc.MainDocumentPart.GetXElement().Element(W.body);
                     var atomList = WmlComparer.CreateComparisonUnitAtomList(wDoc.MainDocumentPart, contentParent, settings).ToArray();
 
                     if (s_False)
@@ -3464,7 +3475,7 @@ namespace OpenXmlPowerTools
                 .Where(a => a.Name.Namespace == PtOpenXml.pt)
                 .Where(a => a.Name != PtOpenXml.Unid)
                 .Remove();
-            wDoc.MainDocumentPart.PutXDocument();
+            wDoc.MainDocumentPart.SaveXDocument();
 
             var fnPart = wDoc.MainDocumentPart.FootnotesPart;
             if (fnPart != null)
@@ -3477,7 +3488,7 @@ namespace OpenXmlPowerTools
                     .Where(a => a.Name.Namespace == PtOpenXml.pt)
                     .Where(a => a.Name != PtOpenXml.Unid)
                     .Remove();
-                fnPart.PutXDocument();
+                fnPart.SaveXDocument();
             }
 
             var enPart = wDoc.MainDocumentPart.EndnotesPart;
@@ -3491,7 +3502,7 @@ namespace OpenXmlPowerTools
                     .Where(a => a.Name.Namespace == PtOpenXml.pt)
                     .Where(a => a.Name != PtOpenXml.Unid)
                     .Remove();
-                enPart.PutXDocument();
+                enPart.SaveXDocument();
             }
         }
 
@@ -4343,7 +4354,7 @@ namespace OpenXmlPowerTools
                     idAtt.Value = (nextId++).ToString();
             }
             foreach (var cp in wDoc.ContentParts())
-                cp.PutXDocument();
+                cp.SaveXDocument();
         }
 
         private static void FixUpRevMarkIds(WordprocessingDocument wDoc)
@@ -4361,7 +4372,7 @@ namespace OpenXmlPowerTools
                     idAtt.Value = (nextId++).ToString();
             }
             foreach (var cp in wDoc.ContentParts())
-                cp.PutXDocument();
+                cp.SaveXDocument();
         }
 
         private static void FixUpShapeIds(WordprocessingDocument wDoc)
@@ -4390,7 +4401,7 @@ namespace OpenXmlPowerTools
                 }
             }
             foreach (var cp in wDoc.ContentParts())
-                cp.PutXDocument();
+                cp.SaveXDocument();
         }
 
         private static void FixUpGroupIds(WordprocessingDocument wDoc)
@@ -4411,7 +4422,7 @@ namespace OpenXmlPowerTools
                     idAtt.Value = thisId.ToString();
             }
             foreach (var cp in wDoc.ContentParts())
-                cp.PutXDocument();
+                cp.SaveXDocument();
         }
 
         private static void FixUpShapeTypeIds(WordprocessingDocument wDoc)
@@ -4440,7 +4451,7 @@ namespace OpenXmlPowerTools
                 }
             }
             foreach (var cp in wDoc.ContentParts())
-                cp.PutXDocument();
+                cp.SaveXDocument();
         }
 
         private static object CoalesceRecurse(OpenXmlPart part, IEnumerable<ComparisonUnitAtom> list, int level, WmlComparerSettings settings)
@@ -5258,7 +5269,7 @@ namespace OpenXmlPowerTools
             var cul1 = unknown.ComparisonUnitArray1;
             var cul2 = unknown.ComparisonUnitArray2;
 
-            // first thing to do - if we have an unknown with zero length on left or right side, create appropriate 
+            // first thing to do - if we have an unknown with zero length on left or right side, create appropriate
             // this is a code optimization that enables easier processing of cases elsewhere.
             if (cul1.Length > 0 && cul2.Length == 0)
             {

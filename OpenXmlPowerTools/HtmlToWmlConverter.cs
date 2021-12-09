@@ -364,12 +364,12 @@ AAAAAAAAAAAAAAAANi8AAGRvY1Byb3BzL2FwcC54bWxQSwUGAAAAAAwADAAJAwAA3DEAAAAA";
         {
             if (wDoc.MainDocumentPart.ThemePart != null)
             {
-                XElement fontScheme = wDoc.MainDocumentPart.ThemePart.GetXDocument().Root.Elements(A.themeElements).Elements(A.fontScheme).FirstOrDefault();
+                XElement fontScheme = wDoc.MainDocumentPart.ThemePart.GetXElement().Elements(A.themeElements).Elements(A.fontScheme).FirstOrDefault();
                 if (fontScheme != null)
                 {
                     majorLatinFont = (string)fontScheme.Elements(A.majorFont).Elements(A.latin).Attributes(NoNamespace.typeface).FirstOrDefault();
                     minorLatinFont = (string)fontScheme.Elements(A.minorFont).Elements(A.latin).Attributes(NoNamespace.typeface).FirstOrDefault();
-                    string defaultFontSizeString = (string)wDoc.MainDocumentPart.StyleDefinitionsPart.GetXDocument().Root.Elements(W.docDefaults)
+                    string defaultFontSizeString = (string)wDoc.MainDocumentPart.StyleDefinitionsPart.GetXElement().Elements(W.docDefaults)
                         .Elements(W.rPrDefault).Elements(W.rPr).Elements(W.sz).Attributes(W.val).FirstOrDefault();
                     if (defaultFontSizeString != null)
                     {

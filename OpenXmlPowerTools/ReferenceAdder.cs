@@ -115,18 +115,20 @@ namespace OpenXmlPowerTools
   </w:sdtContent>
 </w:sdt>";
 
-            XmlReader sdtReader = XmlReader.Create(new StringReader(String.Format(xmlString, title, rightTabPos, switches)));
+            var sdtReader = XmlReader.Create(new StringReader(String.Format(xmlString, title, rightTabPos, switches)));
             XElement sdt = XElement.Load(sdtReader);
 
-            XmlNamespaceManager namespaceManager;
-            XDocument mainXDoc = doc.MainDocumentPart.GetXDocument(out namespaceManager);
+            XDocument mainXDoc = doc.MainDocumentPart.GetXDocument(out XmlNamespaceManager namespaceManager);
             namespaceManager.AddNamespace("w", "http://schemas.openxmlformats.org/wordprocessingml/2006/main");
+
             XElement addBefore = mainXDoc.XPathSelectElement(xPath, namespaceManager);
             if (addBefore == null)
+            {
                 throw new OpenXmlPowerToolsException("XPath expression did not select an element");
+            }
 
             addBefore.AddBeforeSelf(sdt);
-            doc.MainDocumentPart.PutXDocument();
+            doc.MainDocumentPart.SaveXDocument();
 
             XDocument settingsXDoc = doc.MainDocumentPart.DocumentSettingsPart.GetXDocument();
             XElement updateFields = settingsXDoc.Descendants(W.updateFields).FirstOrDefault();
@@ -138,7 +140,7 @@ namespace OpenXmlPowerTools
                     new XAttribute(W.val, "true"));
                 settingsXDoc.Root.Add(updateFields);
             }
-            doc.MainDocumentPart.DocumentSettingsPart.PutXDocument();
+            doc.MainDocumentPart.DocumentSettingsPart.SaveXDocument();
         }
 
         public static WmlDocument AddTof(WmlDocument document, string xPath, string switches, int? rightTabPos)
@@ -201,7 +203,7 @@ namespace OpenXmlPowerTools
                 throw new OpenXmlPowerToolsException("XPath expression did not select an element");
 
             addBefore.AddBeforeSelf(paragraph);
-            doc.MainDocumentPart.PutXDocument();
+            doc.MainDocumentPart.SaveXDocument();
 
             XDocument settingsXDoc = doc.MainDocumentPart.DocumentSettingsPart.GetXDocument();
             XElement updateFields = settingsXDoc.Descendants(W.updateFields).FirstOrDefault();
@@ -213,7 +215,7 @@ namespace OpenXmlPowerTools
                     new XAttribute(W.val, "true"));
                 settingsXDoc.Root.Add(updateFields);
             }
-            doc.MainDocumentPart.DocumentSettingsPart.PutXDocument();
+            doc.MainDocumentPart.DocumentSettingsPart.SaveXDocument();
         }
 
         public static WmlDocument AddToa(WmlDocument document, string xPath, string switches, int? rightTabPos)
@@ -287,7 +289,7 @@ namespace OpenXmlPowerTools
                 throw new OpenXmlPowerToolsException("XPath expression did not select an element");
 
             addBefore.AddBeforeSelf(paragraph);
-            doc.MainDocumentPart.PutXDocument();
+            doc.MainDocumentPart.SaveXDocument();
 
             XDocument settingsXDoc = doc.MainDocumentPart.DocumentSettingsPart.GetXDocument();
             XElement updateFields = settingsXDoc.Descendants(W.updateFields).FirstOrDefault();
@@ -299,7 +301,7 @@ namespace OpenXmlPowerTools
                     new XAttribute(W.val, "true"));
                 settingsXDoc.Root.Add(updateFields);
             }
-            doc.MainDocumentPart.DocumentSettingsPart.PutXDocument();
+            doc.MainDocumentPart.DocumentSettingsPart.SaveXDocument();
         }
 
         private static void AddElementIfMissing(XDocument partXDoc, XElement existing, string newElement)
@@ -332,7 +334,7 @@ namespace OpenXmlPowerTools
                      <w:sig w:usb0='E1002EFF' w:usb1='C000605B' w:usb2='00000029' w:usb3='00000000' w:csb0='000101FF' w:csb1='00000000'/>
                    </w:font>");
 
-            fontTablePart.PutXDocument();
+            fontTablePart.SaveXDocument();
         }
 
         private static void UpdatePartForToc(OpenXmlPart part)
@@ -488,7 +490,7 @@ namespace OpenXmlPowerTools
                     </w:rPr>
                   </w:style>");
 
-            part.PutXDocument();
+            part.SaveXDocument();
         }
 
         private static void UpdateStylesPartForToc(WordprocessingDocument doc)
@@ -542,7 +544,7 @@ namespace OpenXmlPowerTools
                        <w:u w:val='single'/>
                      </w:rPr>
                    </w:style>");
-            part.PutXDocument();
+            part.SaveXDocument();
         }
 
         private static void UpdateStylesPartForTof(WordprocessingDocument doc)
@@ -617,7 +619,7 @@ namespace OpenXmlPowerTools
                     </w:rPr>
                   </w:style>");
 
-            part.PutXDocument();
+            part.SaveXDocument();
         }
 
         private static void UpdateStylesPartForToa(WordprocessingDocument doc)

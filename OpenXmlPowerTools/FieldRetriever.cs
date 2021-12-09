@@ -84,7 +84,7 @@ namespace OpenXmlPowerTools
         {
             XNamespace w = "http://schemas.openxmlformats.org/wordprocessingml/2006/main";
 
-            XElement root = part.GetXDocument().Root;
+            XElement root = part.GetXElement();
             var r = root.DescendantsAndSelf()
                 .Rollup(
                     new FieldElementTypeStack

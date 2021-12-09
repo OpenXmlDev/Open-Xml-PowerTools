@@ -232,30 +232,30 @@ namespace OpenXmlPowerTools
 
             xDoc = wordDoc.MainDocumentPart.GetXDocument();
             WmlSearchAndReplaceInXDocument(xDoc, search, replace, matchCase);
-            wordDoc.MainDocumentPart.PutXDocument();
+            wordDoc.MainDocumentPart.SaveXDocument();
             foreach (var part in wordDoc.MainDocumentPart.HeaderParts)
             {
                 xDoc = part.GetXDocument();
                 WmlSearchAndReplaceInXDocument(xDoc, search, replace, matchCase);
-                part.PutXDocument();
+                part.SaveXDocument();
             }
             foreach (var part in wordDoc.MainDocumentPart.FooterParts)
             {
                 xDoc = part.GetXDocument();
                 WmlSearchAndReplaceInXDocument(xDoc, search, replace, matchCase);
-                part.PutXDocument();
+                part.SaveXDocument();
             }
             if (wordDoc.MainDocumentPart.EndnotesPart != null)
             {
                 xDoc = wordDoc.MainDocumentPart.EndnotesPart.GetXDocument();
                 WmlSearchAndReplaceInXDocument(xDoc, search, replace, matchCase);
-                wordDoc.MainDocumentPart.EndnotesPart.PutXDocument();
+                wordDoc.MainDocumentPart.EndnotesPart.SaveXDocument();
             }
             if (wordDoc.MainDocumentPart.FootnotesPart != null)
             {
                 xDoc = wordDoc.MainDocumentPart.FootnotesPart.GetXDocument();
                 WmlSearchAndReplaceInXDocument(xDoc, search, replace, matchCase);
-                wordDoc.MainDocumentPart.FootnotesPart.PutXDocument();
+                wordDoc.MainDocumentPart.FootnotesPart.SaveXDocument();
             }
         }
 
@@ -421,7 +421,7 @@ namespace OpenXmlPowerTools
                 XDocument slideXDoc = slidePart.GetXDocument();
                 XElement root = slideXDoc.Root;
                 XElement newRoot = (XElement)PmlReplaceTextTransform(root, search, replace, matchCase);
-                slidePart.PutXDocument(new XDocument(newRoot));
+                slidePart.SetXDocument(new XDocument(newRoot));
             }
         }
     }
