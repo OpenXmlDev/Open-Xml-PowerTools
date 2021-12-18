@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "isRoot": true,
+  "tools": {
+    "jetbrains.resharper.globaltools": {
+      "version": "2021.3.1",
+      "commands": [
+        "jb"
+      ]
+    },
+    "regitlint": {
+      "version": "6.0.6",
+      "commands": [
+        "regitlint"
+      ]
+    }
+  }
+}
