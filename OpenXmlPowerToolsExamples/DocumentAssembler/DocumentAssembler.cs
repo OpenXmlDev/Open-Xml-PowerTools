@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
+// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
@@ -7,7 +7,7 @@ using System.Xml.Linq;
 
 namespace OpenXmlPowerTools
 {
-    internal class Program
+    internal static class Program
     {
         private static void Main(string[] args)
         {
@@ -18,6 +18,7 @@ namespace OpenXmlPowerTools
             }
 
             var templateDoc = new FileInfo(args[0]);
+
             if (!templateDoc.Exists)
             {
                 Console.WriteLine("Error, {0} does not exist.", args[0]);
@@ -26,6 +27,7 @@ namespace OpenXmlPowerTools
             }
 
             var dataFile = new FileInfo(args[1]);
+
             if (!dataFile.Exists)
             {
                 Console.WriteLine("Error, {0} does not exist.", args[1]);
@@ -34,6 +36,7 @@ namespace OpenXmlPowerTools
             }
 
             var assembledDoc = new FileInfo(args[2]);
+
             if (assembledDoc.Exists)
             {
                 Console.WriteLine("Error, {0} exists.", args[2]);
@@ -44,6 +47,7 @@ namespace OpenXmlPowerTools
             var wmlDoc = new WmlDocument(templateDoc.FullName);
             XElement data = XElement.Load(dataFile.FullName);
             WmlDocument wmlAssembledDoc = DocumentAssembler.AssembleDocument(wmlDoc, data, out bool templateError);
+
             if (templateError)
             {
                 Console.WriteLine("Errors in template.");

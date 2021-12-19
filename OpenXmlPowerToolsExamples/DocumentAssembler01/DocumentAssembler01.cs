@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
+// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
@@ -7,11 +7,12 @@ using System.Xml.Linq;
 
 namespace OpenXmlPowerTools
 {
-    internal class Program
+    internal static class Program
     {
         private static void Main()
         {
             DateTime n = DateTime.Now;
+
             var tempDi = new DirectoryInfo(
                 $"ExampleOutput-{n.Year - 2000:00}-{n.Month:00}-{n.Day:00}-{n.Hour:00}{n.Minute:00}{n.Second:00}");
 
@@ -23,6 +24,7 @@ namespace OpenXmlPowerTools
             var wmlDoc = new WmlDocument(templateDoc.FullName);
             XElement data = XElement.Load(dataFile.FullName);
             WmlDocument wmlAssembledDoc = DocumentAssembler.AssembleDocument(wmlDoc, data, out bool templateError);
+
             if (templateError)
             {
                 Console.WriteLine("Errors in template.");

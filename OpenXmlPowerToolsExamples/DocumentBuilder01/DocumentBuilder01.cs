@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
+// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
@@ -8,11 +8,12 @@ using OpenXmlPowerTools;
 
 namespace DocumentBuilderExample
 {
-    internal class DocumentBuilderExample
+    internal static class DocumentBuilderExample
     {
         private static void Main()
         {
             DateTime n = DateTime.Now;
+
             var tempDi = new DirectoryInfo(
                 $"ExampleOutput-{n.Year - 2000:00}-{n.Month:00}-{n.Day:00}-{n.Hour:00}{n.Minute:00}{n.Second:00}");
 
@@ -25,7 +26,7 @@ namespace DocumentBuilderExample
             // Create new document from 10 paragraphs starting at paragraph 5 of Source1.docx
             var sources = new List<Source>
             {
-                new(new WmlDocument(source1), 5, 10, true)
+                new(new WmlDocument(source1), 5, 10, true),
             };
 
             DocumentBuilder.BuildDocument(sources, Path.Combine(tempDi.FullName, "Out1.docx"));
@@ -35,7 +36,7 @@ namespace DocumentBuilderExample
             sources = new List<Source>
             {
                 new(new WmlDocument(source3), 0, 1, false),
-                new(new WmlDocument(source3), 4, false)
+                new(new WmlDocument(source3), 4, false),
             };
 
             DocumentBuilder.BuildDocument(sources, Path.Combine(tempDi.FullName, "Out2.docx"));
@@ -45,7 +46,7 @@ namespace DocumentBuilderExample
             sources = new List<Source>
             {
                 new(new WmlDocument(source1), true),
-                new(new WmlDocument(source2), false)
+                new(new WmlDocument(source2), false),
             };
 
             DocumentBuilder.BuildDocument(sources, Path.Combine(tempDi.FullName, "Out3.docx"));
@@ -55,7 +56,7 @@ namespace DocumentBuilderExample
             sources = new List<Source>
             {
                 new(new WmlDocument(source1), false),
-                new(new WmlDocument(source2), true)
+                new(new WmlDocument(source2), true),
             };
 
             DocumentBuilder.BuildDocument(sources, Path.Combine(tempDi.FullName, "Out4.docx"));
@@ -66,7 +67,7 @@ namespace DocumentBuilderExample
             sources = new List<Source>
             {
                 new(new WmlDocument(source1), 0, 5, false),
-                new(new WmlDocument(source2), 0, 5, true)
+                new(new WmlDocument(source2), 0, 5, true),
             };
 
             WmlDocument out5 = DocumentBuilder.BuildDocument(sources);

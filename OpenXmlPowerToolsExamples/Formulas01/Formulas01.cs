@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
+// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
@@ -8,18 +8,20 @@ using OpenXmlPowerTools;
 
 namespace ExampleFormulas
 {
-    internal class ExampleFormulas
+    internal static class ExampleFormulas
     {
-        private static void Main(string[] args)
+        private static void Main()
         {
             DateTime n = DateTime.Now;
-            var tempDi = new DirectoryInfo(string.Format("ExampleOutput-{0:00}-{1:00}-{2:00}-{3:00}{4:00}{5:00}", n.Year - 2000,
-                n.Month, n.Day, n.Hour, n.Minute, n.Second));
+
+            var tempDi = new DirectoryInfo(
+                $"ExampleOutput-{n.Year - 2000:00}-{n.Month:00}-{n.Day:00}-{n.Hour:00}{n.Minute:00}{n.Second:00}");
+
             tempDi.Create();
 
             // Change sheet name in formulas
             using (var streamDoc = new OpenXmlMemoryStreamDocument(
-                OpenXmlPowerToolsDocument.FromFileName("../../../Formulas.xlsx")))
+                       OpenXmlPowerToolsDocument.FromFileName("../../../Formulas.xlsx")))
             {
                 using (SpreadsheetDocument doc = streamDoc.GetSpreadsheetDocument())
                 {
@@ -31,7 +33,7 @@ namespace ExampleFormulas
 
             // Change sheet name in formulas
             using (var streamDoc = new OpenXmlMemoryStreamDocument(
-                OpenXmlPowerToolsDocument.FromFileName("../../../Formulas.xlsx")))
+                       OpenXmlPowerToolsDocument.FromFileName("../../../Formulas.xlsx")))
             {
                 using (SpreadsheetDocument doc = streamDoc.GetSpreadsheetDocument())
                 {

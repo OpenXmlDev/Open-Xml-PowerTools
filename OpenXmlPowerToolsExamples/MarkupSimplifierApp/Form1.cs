@@ -2,12 +2,6 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
 using System.Windows.Forms;
 using DocumentFormat.OpenXml.Packaging;
 using OpenXmlPowerTools;
@@ -23,15 +17,16 @@ namespace MarkupSimplifierApp
 
         private void btnApply_Click(object sender, EventArgs e)
         {
-            OpenFileDialog ofd = new OpenFileDialog();
+            var ofd = new OpenFileDialog();
             ofd.Multiselect = true;
             DialogResult dr = ofd.ShowDialog();
-            foreach (var item in ofd.FileNames)
+
+            foreach (string item in ofd.FileNames)
             {
                 using (WordprocessingDocument doc =
-                    WordprocessingDocument.Open(item, true))
+                       WordprocessingDocument.Open(item, true))
                 {
-                    SimplifyMarkupSettings settings = new SimplifyMarkupSettings
+                    var settings = new SimplifyMarkupSettings
                     {
                         RemoveContentControls = cbRemoveContentControls.Checked,
                         RemoveSmartTags = cbRemoveSmartTags.Checked,
@@ -48,7 +43,8 @@ namespace MarkupSimplifierApp
                         RemoveWebHidden = cbRemoveWebHidden.Checked,
                         NormalizeXml = cbNormalize.Checked,
                     };
-                    OpenXmlPowerTools.MarkupSimplifier.SimplifyMarkup(doc, settings);
+
+                    MarkupSimplifier.SimplifyMarkup(doc, settings);
                 }
             }
         }

@@ -1,37 +1,27 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
+// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Xml.Linq;
-using OpenXmlPowerTools;
 using Xunit;
 
 #if !ELIDE_XUNIT_TESTS
 
-namespace OxPt
+namespace OpenXmlPowerTools.Tests
 {
-    public class MgTests
+    public sealed class MetricsGetterTests
     {
         [Theory]
+        [InlineData("DA001-TemplateDocument.docx")]
         [InlineData("Presentation.pptx")]
         [InlineData("Spreadsheet.xlsx")]
-        [InlineData("DA001-TemplateDocument.docx")]
-        [InlineData("DA002-TemplateDocument.docx")]
-        [InlineData("DA003-Select-XPathFindsNoData.docx")]
-        [InlineData("DA004-Select-XPathFindsNoDataOptional.docx")]
-        [InlineData("DA005-SelectRowData-NoData.docx")]
-        [InlineData("DA006-SelectTestValue-NoData.docx")]
-        public void MG001(string name)
+        public void GetMetrics_OfficeDocuments_MetricsReturned(string fileName)
         {
-            DirectoryInfo sourceDir = new DirectoryInfo("../../../../TestFiles/");
-            FileInfo fi = new FileInfo(Path.Combine(sourceDir.FullName, name));
+            // Arrange
+            var testFilesDirectory = new DirectoryInfo("../../../../TestFiles/");
+            var file = new FileInfo(Path.Combine(testFilesDirectory.FullName, fileName));
 
-            MetricsGetterSettings settings = new MetricsGetterSettings()
+            var settings = new MetricsGetterSettings
             {
                 IncludeTextInContentControls = false,
                 IncludeXlsxTableCellData = false,
@@ -39,24 +29,87 @@ namespace OxPt
                 RetrieveContentTypeList = true,
             };
 
-            var extension = fi.Extension.ToLower();
-            XElement metrics = null;
-            if (Util.IsWordprocessingML(extension))
-            {
-                WmlDocument wmlDocument = new WmlDocument(fi.FullName);
-                metrics = MetricsGetter.GetDocxMetrics(wmlDocument, settings);
-            }
-            else if (Util.IsSpreadsheetML(extension))
-            {
-                SmlDocument smlDocument = new SmlDocument(fi.FullName);
-                metrics = MetricsGetter.GetXlsxMetrics(smlDocument, settings);
-            }
-            else if (Util.IsPresentationML(extension))
-            {
-                PmlDocument pmlDocument = new PmlDocument(fi.FullName);
-                metrics = MetricsGetter.GetPptxMetrics(pmlDocument, settings);
-            }
+            // Act
+            XElement metrics = MetricsGetter.GetMetrics(file.FullName, settings);
 
+            // Assert
+            Assert.NotNull(metrics);
+        }
+
+        [Theory]
+        [InlineData("DA001-TemplateDocument.docx")]
+        [InlineData("DA002-TemplateDocument.docx")]
+        [InlineData("DA003-Select-XPathFindsNoData.docx")]
+        [InlineData("DA004-Select-XPathFindsNoDataOptional.docx")]
+        [InlineData("DA005-SelectRowData-NoData.docx")]
+        [InlineData("DA006-SelectTestValue-NoData.docx")]
+        public void GetDocxMetrics_WordDocument_MetricsReturned(string fileName)
+        {
+            // Arrange
+            var testFilesDirectory = new DirectoryInfo("../../../../TestFiles/");
+            var file = new FileInfo(Path.Combine(testFilesDirectory.FullName, fileName));
+            var wmlDocument = new WmlDocument(file.FullName);
+
+            var settings = new MetricsGetterSettings
+            {
+                IncludeTextInContentControls = false,
+                IncludeXlsxTableCellData = false,
+                RetrieveNamespaceList = true,
+                RetrieveContentTypeList = true,
+            };
+
+            // Act
+            XElement metrics = MetricsGetter.GetDocxMetrics(wmlDocument, settings);
+
+            // Assert
+            Assert.NotNull(metrics);
+        }
+
+        [Theory]
+        [InlineData("Presentation.pptx")]
+        public void GetPptxMetrics_PowerPointPresentation_MetricsReturned(string fileName)
+        {
+            // Arrange
+            var testFilesDirectory = new DirectoryInfo("../../../../TestFiles/");
+            var file = new FileInfo(Path.Combine(testFilesDirectory.FullName, fileName));
+            var pmlDocument = new PmlDocument(file.FullName);
+
+            var settings = new MetricsGetterSettings
+            {
+                IncludeTextInContentControls = false,
+                IncludeXlsxTableCellData = false,
+                RetrieveNamespaceList = true,
+                RetrieveContentTypeList = true,
+            };
+
+            // Act
+            XElement metrics = MetricsGetter.GetPptxMetrics(pmlDocument, settings);
+
+            // Assert
+            Assert.NotNull(metrics);
+        }
+
+        [Theory]
+        [InlineData("Spreadsheet.xlsx")]
+        public void GetXlsxMetrics_ExcelWorkbook_MetricsReturned(string fileName)
+        {
+            // Arrange
+            var testFilesDirectory = new DirectoryInfo("../../../../TestFiles/");
+            var file = new FileInfo(Path.Combine(testFilesDirectory.FullName, fileName));
+            var smlDocument = new SmlDocument(file.FullName);
+
+            var settings = new MetricsGetterSettings
+            {
+                IncludeTextInContentControls = false,
+                IncludeXlsxTableCellData = false,
+                RetrieveNamespaceList = true,
+                RetrieveContentTypeList = true,
+            };
+
+            // Act
+            XElement metrics = MetricsGetter.GetXlsxMetrics(smlDocument, settings);
+
+            // Assert
             Assert.NotNull(metrics);
         }
     }

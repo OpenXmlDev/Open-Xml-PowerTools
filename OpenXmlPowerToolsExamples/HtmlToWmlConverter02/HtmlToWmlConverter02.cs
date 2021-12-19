@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
+// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
@@ -12,18 +12,8 @@ using DocumentFormat.OpenXml.Packaging;
 
 namespace OpenXmlPowerTools
 {
-    internal class Program
+    internal static class Program
     {
-        private static readonly string[] ProductNames =
-        {
-            "Unicycle",
-            "Bicycle",
-            "Tricycle",
-            "Skateboard",
-            "Roller Blades",
-            "Hang Glider"
-        };
-
         private const string DefaultCss = @"html, address,
 blockquote,
 body, dd, div,
@@ -99,9 +89,20 @@ BDO[DIR=""rtl""] { direction: rtl; unicode-bidi: bidi-override }
 
         private const string UserCss = @"";
 
+        private static readonly string[] ProductNames =
+        {
+            "Unicycle",
+            "Bicycle",
+            "Tricycle",
+            "Skateboard",
+            "Roller Blades",
+            "Hang Glider",
+        };
+
         private static void Main()
         {
             DateTime n = DateTime.Now;
+
             var tempDi = new DirectoryInfo(
                 $"ExampleOutput-{n.Year - 2000:00}-{n.Month:00}-{n.Day:00}-{n.Hour:00}{n.Minute:00}{n.Second:00}");
 
@@ -123,6 +124,7 @@ BDO[DIR=""rtl""] { direction: rtl; unicode-bidi: bidi-override }
                 var assembledDoc = new FileInfo(Path.Combine(tempDi.FullName, $"Letter-{count++:0000}.docx"));
                 Console.WriteLine("Generating {0}", assembledDoc.Name);
                 WmlDocument wmlAssembledDoc = DocumentAssembler.AssembleDocument(wmlDoc, customer, out bool templateError);
+
                 if (templateError)
                 {
                     Console.WriteLine("Errors in template.");
@@ -184,9 +186,11 @@ BDO[DIR=""rtl""] { direction: rtl; unicode-bidi: bidi-override }
             using WordprocessingDocument wDoc = WordprocessingDocument.Open(memoryStream, true);
 
             var destFileName = new FileInfo(fi.Name.Replace(".docx", ".html"));
+
             if (!string.IsNullOrEmpty(outputDirectory))
             {
                 var di = new DirectoryInfo(outputDirectory);
+
                 if (!di.Exists)
                 {
                     throw new OpenXmlPowerToolsException("Output directory does not exist");
@@ -200,9 +204,10 @@ BDO[DIR=""rtl""] { direction: rtl; unicode-bidi: bidi-override }
 
             string pageTitle = fi.FullName;
             CoreFilePropertiesPart part = wDoc.CoreFilePropertiesPart;
+
             if (part != null)
             {
-                pageTitle = (string)part.GetXDocument().Descendants(DC.title).FirstOrDefault() ?? fi.FullName;
+                pageTitle = (string) part.GetXDocument().Descendants(DC.title).FirstOrDefault() ?? fi.FullName;
             }
 
             // TODO: Determine max-width from size of content area.
@@ -217,6 +222,7 @@ BDO[DIR=""rtl""] { direction: rtl; unicode-bidi: bidi-override }
                 ImageHandler = imageInfo =>
                 {
                     var localDirInfo = new DirectoryInfo(imageDirectoryName);
+
                     if (!localDirInfo.Exists)
                     {
                         localDirInfo.Create();
@@ -262,6 +268,7 @@ BDO[DIR=""rtl""] { direction: rtl; unicode-bidi: bidi-override }
                     }
 
                     string imageFileName = imageDirectoryName + "/image" + imageCounter + "." + extension;
+
                     try
                     {
                         imageInfo.Bitmap.Save(imageFileName, imageFormat);
@@ -271,8 +278,11 @@ BDO[DIR=""rtl""] { direction: rtl; unicode-bidi: bidi-override }
                         return null;
                     }
 
-                    string imageSource = localDirInfo.Name + "/image" +
-                                         imageCounter + "." + extension;
+                    string imageSource = localDirInfo.Name +
+                        "/image" +
+                        imageCounter +
+                        "." +
+                        extension;
 
                     var img = new XElement(Xhtml.img,
                         new XAttribute(NoNamespace.src, imageSource),
@@ -280,15 +290,14 @@ BDO[DIR=""rtl""] { direction: rtl; unicode-bidi: bidi-override }
                         imageInfo.AltText != null ? new XAttribute(NoNamespace.alt, imageInfo.AltText) : null);
 
                     return img;
-                }
+                },
             };
 
             XElement htmlElement = WmlToHtmlConverter.ConvertToHtml(wDoc, settings);
 
             // Produce HTML document with <!DOCTYPE html > declaration to tell the browser
             // we are using HTML5.
-            var html = new XDocument(
-                new XDocumentType("html", null, null, null),
+            var html = new XDocument(new XDocumentType("html", null, null, null),
                 htmlElement);
 
             // Note: the xhtml returned by ConvertToHtmlTransform contains objects of type
@@ -308,13 +317,14 @@ BDO[DIR=""rtl""] { direction: rtl; unicode-bidi: bidi-override }
         private static void ConvertToDocx(string file, string destinationDir)
         {
             var sourceHtmlFi = new FileInfo(file);
+
             var destDocxFi =
                 new FileInfo(Path.Combine(destinationDir, sourceHtmlFi.Name.Replace(".html", "-ConvertedByHtmlToWml.docx")));
 
             XElement html = HtmlToWmlReadAsXElement.ReadAsXElement(sourceHtmlFi);
 
             string usedAuthorCss =
-                HtmlToWmlConverter.CleanUpCss((string)html.Descendants()
+                HtmlToWmlConverter.CleanUpCss((string) html.Descendants()
                     .FirstOrDefault(d => d.Name.LocalName.ToLower() == "style"));
 
             HtmlToWmlConverterSettings settings = HtmlToWmlConverter.GetDefaultSettings();
@@ -364,7 +374,7 @@ BDO[DIR=""rtl""] { direction: rtl; unicode-bidi: bidi-override }
                 XElement html = XElement.Parse(htmlString);
 #endif
                 // HtmlToWmlConverter expects the HTML elements to be in no namespace, so convert all elements to no namespace.
-                html = (XElement)ConvertToNoNamespace(html);
+                html = (XElement) ConvertToNoNamespace(html);
                 return html;
             }
 

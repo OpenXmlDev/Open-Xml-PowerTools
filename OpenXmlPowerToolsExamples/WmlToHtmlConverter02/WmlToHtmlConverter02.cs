@@ -1,16 +1,5 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
+// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
-
-/***************************************************************************
-
-Copyright (c) Microsoft Corporation 2010.
-
-This code is licensed using the Microsoft Public License (Ms-PL).  The text of the license
-can be found here:
-
-http://www.microsoft.com/resources/sharedsource/licensingbasics/publiclicense.mspx
-
-***************************************************************************/
 
 using System;
 using System.Drawing.Imaging;
@@ -21,143 +10,151 @@ using System.Text;
 using System.Xml.Linq;
 using DocumentFormat.OpenXml.Packaging;
 using OpenXmlPowerTools;
-using System.Collections.Generic;
 
-class WmlToHtmlConverterHelper
+/// <summary>
+/// Converts Word Opem XML markup into HTML.
+/// Images are included into the HTML document as Base64 strings.
+/// </summary>
+internal static class WmlToHtmlConverter02
 {
-    static void Main(string[] args)
+    private static void Main()
     {
-        var n = DateTime.Now;
-        var tempDi = new DirectoryInfo(string.Format("ExampleOutput-{0:00}-{1:00}-{2:00}-{3:00}{4:00}{5:00}", n.Year - 2000, n.Month, n.Day, n.Hour, n.Minute, n.Second));
-        tempDi.Create();
+        DirectoryInfo outputDirectory = CreateOutputDirectory();
 
-        /*
-         * This example loads each document into a byte array, then into a memory stream, so that the document can be opened for writing without
-         * modifying the source document.
-         */
-        foreach (var file in Directory.GetFiles("../../", "*.docx"))
+        foreach (FileInfo docxFile in Directory.GetFiles("../../../", "*.docx").Select(path => new FileInfo(path)))
         {
-            ConvertToHtml(file, tempDi.FullName);
+            Console.WriteLine(docxFile.Name);
+            ConvertToHtml(docxFile, outputDirectory);
         }
     }
 
-    public static void ConvertToHtml(string file, string outputDirectory)
+    private static DirectoryInfo CreateOutputDirectory()
     {
-        var fi = new FileInfo(file);
-        Console.WriteLine(fi.Name);
-        byte[] byteArray = File.ReadAllBytes(fi.FullName);
-        using (MemoryStream memoryStream = new MemoryStream())
+        DateTime n = DateTime.Now;
+
+        var outputDirectory = new DirectoryInfo(
+            $"ExampleOutput-{n.Year - 2000:00}-{n.Month:00}-{n.Day:00}-{n.Hour:00}{n.Minute:00}{n.Second:00}");
+
+        outputDirectory.Create();
+
+        return outputDirectory;
+    }
+
+    private static void ConvertToHtml(FileInfo docxFile, DirectoryInfo outputDirectory)
+    {
+        using var memoryStream = new MemoryStream();
+        byte[] byteArray = File.ReadAllBytes(docxFile.FullName);
+        memoryStream.Write(byteArray, 0, byteArray.Length);
+
+        using WordprocessingDocument wordDocument = WordprocessingDocument.Open(memoryStream, true);
+
+        string pageTitle = GetPageTitle(wordDocument, docxFile.Name);
+
+        var htmlFile = new FileInfo(docxFile.Name.Replace(".docx", ".html"));
+        htmlFile = new FileInfo(Path.Combine(outputDirectory.FullName, htmlFile.Name));
+
+        var settings = new WmlToHtmlConverterSettings
         {
-            memoryStream.Write(byteArray, 0, byteArray.Length);
-            using (WordprocessingDocument wDoc = WordprocessingDocument.Open(memoryStream, true))
-            {
-                var destFileName = new FileInfo(fi.Name.Replace(".docx", ".html"));
-                if (outputDirectory != null && outputDirectory != string.Empty)
-                {
-                    DirectoryInfo di = new DirectoryInfo(outputDirectory);
-                    if (!di.Exists)
-                    {
-                        throw new OpenXmlPowerToolsException("Output directory does not exist");
-                    }
-                    destFileName = new FileInfo(Path.Combine(di.FullName, destFileName.Name));
-                }
-                var imageDirectoryName = destFileName.FullName.Substring(0, destFileName.FullName.Length - 5) + "_files";
-                int imageCounter = 0;
+            // TODO: Determine max-width from size of content area.
+            AdditionalCss = "body { margin: 1cm auto; max-width: 20cm; padding: 0; }",
+            PageTitle = pageTitle,
+            FabricateCssClasses = true,
+            CssClassPrefix = "pt-",
+            RestrictToSupportedLanguages = false,
+            RestrictToSupportedNumberingFormats = false,
+            ImageHandler = GetImgageElement,
+        };
 
-                var pageTitle = fi.FullName;
-                var part = wDoc.CoreFilePropertiesPart;
-                if (part != null)
-                {
-                    pageTitle = (string)part.GetXDocument().Descendants(DC.title).FirstOrDefault() ?? fi.FullName;
-                }
+        XElement htmlElement = WmlToHtmlConverter.ConvertToHtml(wordDocument, settings);
 
-                // TODO: Determine max-width from size of content area.
-                WmlToHtmlConverterSettings settings = new WmlToHtmlConverterSettings()
-                {
-                    AdditionalCss = "body { margin: 1cm auto; max-width: 20cm; padding: 0; }",
-                    PageTitle = pageTitle,
-                    FabricateCssClasses = true,
-                    CssClassPrefix = "pt-",
-                    RestrictToSupportedLanguages = false,
-                    RestrictToSupportedNumberingFormats = false,
-                    ImageHandler = imageInfo =>
-                    {
-                        ++imageCounter;
-                        string extension = imageInfo.ContentType.Split('/')[1].ToLower();
-                        ImageFormat imageFormat = null;
-                        if (extension == "png")
-                            imageFormat = ImageFormat.Png;
-                        else if (extension == "gif")
-                            imageFormat = ImageFormat.Gif;
-                        else if (extension == "bmp")
-                            imageFormat = ImageFormat.Bmp;
-                        else if (extension == "jpeg")
-                            imageFormat = ImageFormat.Jpeg;
-                        else if (extension == "tiff")
-                        {
-                            // Convert tiff to gif.
-                            extension = "gif";
-                            imageFormat = ImageFormat.Gif;
-                        }
-                        else if (extension == "x-wmf")
-                        {
-                            extension = "wmf";
-                            imageFormat = ImageFormat.Wmf;
-                        }
+        // Produce HTML document with <!DOCTYPE html > declaration to tell the browser
+        // we are using HTML5.
+        var html = new XDocument(new XDocumentType("html", null, null, null), htmlElement);
 
-                        // If the image format isn't one that we expect, ignore it,
-                        // and don't return markup for the link.
-                        if (imageFormat == null)
-                            return null;
+        // Note: the xhtml returned by ConvertToHtmlTransform contains objects of type
+        // XEntity.  PtOpenXmlUtil.cs define the XEntity class.  See
+        // http://blogs.msdn.com/ericwhite/archive/2010/01/21/writing-entity-references-using-linq-to-xml.aspx
+        // for detailed explanation.
+        //
+        // If you further transform the XML tree returned by ConvertToHtmlTransform, you
+        // must do it correctly, or entities will not be serialized properly.
 
-                        string base64 = null;
-                        try
-                        {
-                            using (MemoryStream ms = new MemoryStream())
-                            {
-                                imageInfo.Bitmap.Save(ms, imageFormat);
-                                var ba = ms.ToArray();
-                                base64 = System.Convert.ToBase64String(ba);
-                            }
-                        }
-                        catch (System.Runtime.InteropServices.ExternalException)
-                        {
-                            return null;
-                        }
+        var htmlString = html.ToString(SaveOptions.DisableFormatting);
+        File.WriteAllText(htmlFile.FullName, htmlString, Encoding.UTF8);
+    }
 
-                        ImageFormat format = imageInfo.Bitmap.RawFormat;
-                        ImageCodecInfo codec = ImageCodecInfo.GetImageDecoders().First(c => c.FormatID == format.Guid);
-                        string mimeType = codec.MimeType;
+    private static string GetPageTitle(WordprocessingDocument wordDocument, string defaultPageTitle)
+    {
+        var title = (string)wordDocument.CoreFilePropertiesPart?.GetXDocument().Descendants(DC.title).FirstOrDefault();
 
-                        string imageSource = string.Format("data:{0};base64,{1}", mimeType, base64);
+        return title ?? defaultPageTitle;
+    }
 
-                        XElement img = new XElement(Xhtml.img,
-                            new XAttribute(NoNamespace.src, imageSource),
-                            imageInfo.ImgStyleAttribute,
-                            imageInfo.AltText != null ?
-                                new XAttribute(NoNamespace.alt, imageInfo.AltText) : null);
-                        return img;
-                    }
-                };
-                XElement htmlElement = WmlToHtmlConverter.ConvertToHtml(wDoc, settings);
+    private static XElement GetImgageElement(ImageInfo imageInfo)
+    {
+        string imageSource = GetImageSource(imageInfo);
 
-                // Produce HTML document with <!DOCTYPE html > declaration to tell the browser
-                // we are using HTML5.
-                var html = new XDocument(
-                    new XDocumentType("html", null, null, null),
-                    htmlElement);
+        return imageSource is null
+            ? null
+            : new XElement(Xhtml.img,
+                new XAttribute(NoNamespace.src, imageSource),
+                imageInfo.ImgStyleAttribute,
+                imageInfo.AltText != null ? new XAttribute(NoNamespace.alt, imageInfo.AltText) : null);
+    }
 
-                // Note: the xhtml returned by ConvertToHtmlTransform contains objects of type
-                // XEntity.  PtOpenXmlUtil.cs define the XEntity class.  See
-                // http://blogs.msdn.com/ericwhite/archive/2010/01/21/writing-entity-references-using-linq-to-xml.aspx
-                // for detailed explanation.
-                //
-                // If you further transform the XML tree returned by ConvertToHtmlTransform, you
-                // must do it correctly, or entities will not be serialized properly.
+    private static string GetImageSource(ImageInfo imageInfo)
+    {
+        string mimeType = GetMimeType(imageInfo);
+        string base64 = GetBase64String(imageInfo);
 
-                var htmlString = html.ToString(SaveOptions.DisableFormatting);
-                File.WriteAllText(destFileName.FullName, htmlString, Encoding.UTF8);
-            }
+        return base64 is not null ? $"data:{mimeType};base64,{base64}" : null;
+    }
+
+    private static string GetMimeType(ImageInfo imageInfo)
+    {
+        ImageFormat format = imageInfo.Bitmap.RawFormat;
+        ImageCodecInfo codec = ImageCodecInfo.GetImageDecoders().First(c => c.FormatID == format.Guid);
+        return codec.MimeType;
+    }
+
+    private static string GetBase64String(ImageInfo imageInfo)
+    {
+        ImageFormat imageFormat = GetImageFormat(imageInfo);
+
+        if (imageFormat == null)
+        {
+            return null;
         }
+
+        try
+        {
+            using var ms = new MemoryStream();
+            imageInfo.Bitmap.Save(ms, imageFormat);
+            byte[] ba = ms.ToArray();
+
+            return Convert.ToBase64String(ba);
+        }
+        catch (ExternalException)
+        {
+            return null;
+        }
+    }
+
+    private static ImageFormat GetImageFormat(ImageInfo imageInfo)
+    {
+        string extension = imageInfo.ContentType.Split('/')[1].ToLower();
+
+        // Map tiff to gif and x-wmf to wmf.
+        // Map unsupported image types to null.
+        return extension switch
+        {
+            "png" => ImageFormat.Png,
+            "gif" => ImageFormat.Gif,
+            "bmp" => ImageFormat.Bmp,
+            "jpeg" => ImageFormat.Jpeg,
+            "tiff" => ImageFormat.Gif,
+            "x-wmf" => ImageFormat.Wmf,
+            _ => null,
+        };
     }
 }

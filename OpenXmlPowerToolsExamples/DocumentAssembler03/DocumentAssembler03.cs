@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
+// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
@@ -8,7 +8,7 @@ using System.Xml.Linq;
 
 namespace OpenXmlPowerTools
 {
-    internal class Program
+    internal static class Program
     {
         private static readonly string[] ProductNames =
         {
@@ -17,12 +17,13 @@ namespace OpenXmlPowerTools
             "Tricycle",
             "Skateboard",
             "Roller Blades",
-            "Hang Glider"
+            "Hang Glider",
         };
 
         private static void Main()
         {
             DateTime n = DateTime.Now;
+
             var tempDi = new DirectoryInfo(
                 $"ExampleOutput-{n.Year - 2000:00}-{n.Month:00}-{n.Day:00}-{n.Hour:00}{n.Minute:00}{n.Second:00}");
 
@@ -43,6 +44,7 @@ namespace OpenXmlPowerTools
                 var assembledDoc = new FileInfo(Path.Combine(tempDi.FullName, $"Letter-{count++:0000}.docx"));
                 Console.WriteLine(assembledDoc.Name);
                 WmlDocument wmlAssembledDoc = DocumentAssembler.AssembleDocument(wmlDoc, customer, out bool templateError);
+
                 if (templateError)
                 {
                     Console.WriteLine("Errors in template.");

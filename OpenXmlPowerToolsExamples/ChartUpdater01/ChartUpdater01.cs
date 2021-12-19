@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
+// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
@@ -8,17 +8,19 @@ using DocumentFormat.OpenXml.Packaging;
 
 namespace OpenXmlPowerTools
 {
-    internal class Program
+    internal static class Program
     {
         private static void Main()
         {
             DateTime n = DateTime.Now;
+
             var tempDi = new DirectoryInfo(
                 $"ExampleOutput-{n.Year - 2000:00}-{n.Month:00}-{n.Day:00}-{n.Hour:00}{n.Minute:00}{n.Second:00}");
 
             tempDi.Create();
 
             var sourceDi = new DirectoryInfo("../../..");
+
             foreach (FileInfo file in sourceDi.GetFiles("*.docx"))
             {
                 File.Copy(file.FullName, Path.Combine(tempDi.FullName, file.Name));
@@ -30,6 +32,7 @@ namespace OpenXmlPowerTools
             }
 
             string[] fileList = Directory.GetFiles(tempDi.FullName, "*.docx");
+
             foreach (string file in fileList)
             {
                 var fi = new FileInfo(file);
@@ -49,7 +52,7 @@ namespace OpenXmlPowerTools
                         "Truck",
                         "Van",
                         "Bike",
-                        "Boat"
+                        "Boat",
                     },
                     CategoryDataType = ChartDataType.String,
                     CategoryNames = new[]
@@ -57,31 +60,31 @@ namespace OpenXmlPowerTools
                         "Q1",
                         "Q2",
                         "Q3",
-                        "Q4"
+                        "Q4",
                     },
                     Values = new[]
                     {
                         new double[]
                         {
-                            100, 310, 220, 450
+                            100, 310, 220, 450,
                         },
                         new double[]
                         {
-                            200, 300, 350, 411
+                            200, 300, 350, 411,
                         },
                         new double[]
                         {
-                            80, 120, 140, 600
+                            80, 120, 140, 600,
                         },
                         new double[]
                         {
-                            120, 100, 140, 400
+                            120, 100, 140, 400,
                         },
                         new double[]
                         {
-                            200, 210, 210, 480
-                        }
-                    }
+                            200, 210, 210, 480,
+                        },
+                    },
                 };
 
                 ChartUpdater.UpdateChart(wDoc, "Chart1", chart1Data);
@@ -90,7 +93,7 @@ namespace OpenXmlPowerTools
                 {
                     SeriesNames = new[]
                     {
-                        "Series"
+                        "Series",
                     },
                     CategoryDataType = ChartDataType.String,
                     CategoryNames = new[]
@@ -98,15 +101,15 @@ namespace OpenXmlPowerTools
                         "Cars",
                         "Trucks",
                         "Vans",
-                        "Boats"
+                        "Boats",
                     },
                     Values = new[]
                     {
                         new double[]
                         {
-                            320, 112, 64, 80
-                        }
-                    }
+                            320, 112, 64, 80,
+                        },
+                    },
                 };
 
                 ChartUpdater.UpdateChart(wDoc, "Chart2", chart2Data);
@@ -120,7 +123,7 @@ namespace OpenXmlPowerTools
                         "X3",
                         "X4",
                         "X5",
-                        "X6"
+                        "X6",
                     },
                     CategoryDataType = ChartDataType.String,
                     CategoryNames = new[]
@@ -130,7 +133,7 @@ namespace OpenXmlPowerTools
                         "Y3",
                         "Y4",
                         "Y5",
-                        "Y6"
+                        "Y6",
                     },
                     Values = new[]
                     {
@@ -139,8 +142,8 @@ namespace OpenXmlPowerTools
                         new[] { 3.0, 2.4, 1.2, 1.2, 2.4, 3.0 },
                         new[] { 3.0, 2.7, 1.7, 1.7, 2.7, 3.0 },
                         new[] { 3.0, 2.9, 2.5, 2.5, 2.9, 3.0 },
-                        new[] { 3.0, 3.0, 3.0, 3.0, 3.0, 3.0 }
-                    }
+                        new[] { 3.0, 3.0, 3.0, 3.0, 3.0, 3.0 },
+                    },
                 };
 
                 ChartUpdater.UpdateChart(wDoc, "Chart3", chart3Data);
@@ -151,7 +154,7 @@ namespace OpenXmlPowerTools
                     {
                         "Car",
                         "Truck",
-                        "Van"
+                        "Van",
                     },
                     CategoryDataType = ChartDataType.DateTime,
                     CategoryFormatCode = 14,
@@ -176,29 +179,30 @@ namespace OpenXmlPowerTools
                         ToExcelInteger(new DateTime(2013, 9, 17)),
                         ToExcelInteger(new DateTime(2013, 9, 18)),
                         ToExcelInteger(new DateTime(2013, 9, 19)),
-                        ToExcelInteger(new DateTime(2013, 9, 20))
+                        ToExcelInteger(new DateTime(2013, 9, 20)),
                     },
                     Values = new[]
                     {
                         new double[]
                         {
-                            1, 2, 3, 2, 3, 4, 5, 4, 5, 6, 5, 4, 5, 6, 7, 8, 7, 8, 8, 9
+                            1, 2, 3, 2, 3, 4, 5, 4, 5, 6, 5, 4, 5, 6, 7, 8, 7, 8, 8, 9,
                         },
                         new double[]
                         {
-                            2, 3, 3, 4, 4, 5, 6, 7, 8, 7, 8, 9, 9, 9, 7, 8, 9, 9, 10, 11
+                            2, 3, 3, 4, 4, 5, 6, 7, 8, 7, 8, 9, 9, 9, 7, 8, 9, 9, 10, 11,
                         },
                         new double[]
                         {
-                            2, 3, 3, 3, 3, 2, 2, 2, 3, 2, 3, 3, 4, 4, 4, 3, 4, 5, 5, 4
-                        }
-                    }
+                            2, 3, 3, 3, 3, 2, 2, 2, 3, 2, 3, 3, 4, 4, 4, 3, 4, 5, 5, 4,
+                        },
+                    },
                 };
 
                 ChartUpdater.UpdateChart(wDoc, "Chart4", chart4Data);
             }
 
             fileList = Directory.GetFiles(tempDi.FullName, "*.pptx");
+
             foreach (string file in fileList)
             {
                 var fi = new FileInfo(file);
@@ -216,7 +220,7 @@ namespace OpenXmlPowerTools
                     {
                         "Car",
                         "Truck",
-                        "Van"
+                        "Van",
                     },
                     CategoryDataType = ChartDataType.String,
                     CategoryNames = new[]
@@ -224,23 +228,23 @@ namespace OpenXmlPowerTools
                         "Q1",
                         "Q2",
                         "Q3",
-                        "Q4"
+                        "Q4",
                     },
                     Values = new[]
                     {
                         new double[]
                         {
-                            320, 310, 320, 330
+                            320, 310, 320, 330,
                         },
                         new double[]
                         {
-                            201, 224, 230, 221
+                            201, 224, 230, 221,
                         },
                         new double[]
                         {
-                            180, 200, 220, 230
-                        }
-                    }
+                            180, 200, 220, 230,
+                        },
+                    },
                 };
 
                 ChartUpdater.UpdateChart(pDoc, 1, chart1Data);

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
+// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
@@ -26,7 +26,7 @@ using OpenXmlPowerTools;
  * in this module do not require HtmlAgilityPack to run.
 *******************************************************************************************/
 
-internal class HtmlToWmlConverterExample
+internal static class HtmlToWmlConverterExample
 {
     private const string DefaultCss = @"html, address,
 blockquote,
@@ -106,6 +106,7 @@ BDO[DIR=""rtl""] { direction: rtl; unicode-bidi: bidi-override }
     private static void Main()
     {
         DateTime n = DateTime.Now;
+
         var tempDi = new DirectoryInfo(
             $"ExampleOutput-{n.Year - 2000:00}-{n.Month:00}-{n.Day:00}-{n.Hour:00}{n.Minute:00}{n.Second:00}");
 
@@ -119,36 +120,37 @@ BDO[DIR=""rtl""] { direction: rtl; unicode-bidi: bidi-override }
 
     private static void ConvertToDocx(string file, string destinationDir)
     {
-        const bool produceAnnotatedHtml = true;
+        var sourceHtmlFile = new FileInfo(file);
+        Console.WriteLine("Converting " + sourceHtmlFile.Name);
 
-        var sourceHtmlFi = new FileInfo(file);
-        Console.WriteLine("Converting " + sourceHtmlFi.Name);
-        var sourceImageDi = new DirectoryInfo(destinationDir);
+        var destCssFi = new FileInfo(Path.Combine(destinationDir, sourceHtmlFile.Name.Replace(".html", "-2.css")));
 
-        var destCssFi = new FileInfo(Path.Combine(destinationDir, sourceHtmlFi.Name.Replace(".html", "-2.css")));
         var destDocxFi =
-            new FileInfo(Path.Combine(destinationDir, sourceHtmlFi.Name.Replace(".html", "-3-ConvertedByHtmlToWml.docx")));
-        var annotatedHtmlFi = new FileInfo(Path.Combine(destinationDir, sourceHtmlFi.Name.Replace(".html", "-4-Annotated.txt")));
+            new FileInfo(Path.Combine(destinationDir, sourceHtmlFile.Name.Replace(".html", "-3-ConvertedByHtmlToWml.docx")));
 
-        XElement html = HtmlToWmlReadAsXElement.ReadAsXElement(sourceHtmlFi);
+        var annotatedHtmlFi =
+            new FileInfo(Path.Combine(destinationDir, sourceHtmlFile.Name.Replace(".html", "-4-Annotated.txt")));
+
+        XElement html = HtmlToWmlReadAsXElement.ReadAsXElement(sourceHtmlFile);
 
         string usedAuthorCss =
-            HtmlToWmlConverter.CleanUpCss((string)html.Descendants().FirstOrDefault(d => d.Name.LocalName.ToLower() == "style"));
+            HtmlToWmlConverter.CleanUpCss((string) html.Descendants().FirstOrDefault(d => d.Name.LocalName.ToLower() == "style"));
+
         File.WriteAllText(destCssFi.FullName, usedAuthorCss);
 
         HtmlToWmlConverterSettings settings = HtmlToWmlConverter.GetDefaultSettings();
 
-        // image references in HTML files contain the path to the subdir that contains the images, so base URI is the name of the directory
-        // that contains the HTML files
-        settings.BaseUriForImages = sourceHtmlFi.DirectoryName;
+        // image references in HTML files contain the path to the subdir that contains the images,
+        // so base URI is the name of the directory that contains the HTML files
+        settings.BaseUriForImages = sourceHtmlFile.DirectoryName;
 
         WmlDocument doc = HtmlToWmlConverter.ConvertHtmlToWml(DefaultCss, usedAuthorCss, UserCss, html, settings, null,
-            produceAnnotatedHtml ? annotatedHtmlFi.FullName : null);
+            annotatedHtmlFi.FullName);
 
         doc.SaveAs(destDocxFi.FullName);
     }
 
-    public class HtmlToWmlReadAsXElement
+    private static class HtmlToWmlReadAsXElement
     {
         public static XElement ReadAsXElement(FileInfo sourceHtmlFi)
         {
@@ -185,20 +187,17 @@ BDO[DIR=""rtl""] { direction: rtl; unicode-bidi: bidi-override }
             XElement html = XElement.Parse(htmlString);
 #endif
             // HtmlToWmlConverter expects the HTML elements to be in no namespace, so convert all elements to no namespace.
-            html = (XElement)ConvertToNoNamespace(html);
+            html = (XElement) ConvertToNoNamespace(html);
             return html;
         }
 
         private static object ConvertToNoNamespace(XNode node)
         {
-            if (node is XElement element)
-            {
-                return new XElement(element.Name.LocalName,
+            return node is XElement element
+                ? new XElement(element.Name.LocalName,
                     element.Attributes().Where(a => !a.IsNamespaceDeclaration),
-                    element.Nodes().Select(ConvertToNoNamespace));
-            }
-
-            return node;
+                    element.Nodes().Select(ConvertToNoNamespace))
+                : node;
         }
     }
 }

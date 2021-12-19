@@ -1,67 +1,72 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
+// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.IO;
 using OpenXmlPowerTools;
 
 namespace ExamplePresentatonBuilder01
 {
-    class ExamplePresentationBuilder01
+    internal static class ExamplePresentationBuilder01
     {
-        static void Main(string[] args)
+        private static void Main()
         {
-            var n = DateTime.Now;
-            var tempDi = new DirectoryInfo(string.Format("ExampleOutput-{0:00}-{1:00}-{2:00}-{3:00}{4:00}{5:00}", n.Year - 2000, n.Month, n.Day, n.Hour, n.Minute, n.Second));
-            tempDi.Create();
+            DateTime n = DateTime.Now;
 
-            string source1 = "../../Contoso.pptx";
-            string source2 = "../../Companies.pptx";
-            string source3 = "../../Customer Content.pptx";
-            string source4 = "../../Presentation One.pptx";
-            string source5 = "../../Presentation Two.pptx";
-            string source6 = "../../Presentation Three.pptx";
-            string contoso1 = "../../Contoso One.pptx";
-            string contoso2 = "../../Contoso Two.pptx";
-            string contoso3 = "../../Contoso Three.pptx";
-            List<SlideSource> sources = null;
+            var outputDirectory = new DirectoryInfo(
+                $"ExampleOutput-{n.Year - 2000:00}-{n.Month:00}-{n.Day:00}-{n.Hour:00}{n.Minute:00}{n.Second:00}");
+
+            outputDirectory.Create();
+
+            const string source1 = "../../../Contoso.pptx";
+            const string source2 = "../../../Companies.pptx";
+            const string source3 = "../../../Customer Content.pptx";
+            const string source4 = "../../../Presentation One.pptx";
+            const string source5 = "../../../Presentation Two.pptx";
+            const string source6 = "../../../Presentation Three.pptx";
+            const string contoso1 = "../../../Contoso One.pptx";
+            const string contoso2 = "../../../Contoso Two.pptx";
+            const string contoso3 = "../../../Contoso Three.pptx";
 
             var sourceDoc = new PmlDocument(source1);
-            sources = new List<SlideSource>()
-            {
-                new SlideSource(sourceDoc, 0, 1, false),  // Title
-                new SlideSource(sourceDoc, 1, 1, false),  // First intro (of 3)
-                new SlideSource(sourceDoc, 4, 2, false),  // Sales bios
-                new SlideSource(sourceDoc, 9, 3, false),  // Content slides
-                new SlideSource(sourceDoc, 13, 1, false),  // Closing summary
-            };
-            PresentationBuilder.BuildPresentation(sources, Path.Combine(tempDi.FullName, "Out1.pptx"));
 
-            sources = new List<SlideSource>()
+            var sources = new List<SlideSource>
             {
-                new SlideSource(new PmlDocument(source2), 2, 1, true),  // Choose company
-                new SlideSource(new PmlDocument(source3), false),       // Content
+                new(sourceDoc, 0, 1, false), // Title
+                new(sourceDoc, 1, 1, false), // First intro (of 3)
+                new(sourceDoc, 4, 2, false), // Sales bios
+                new(sourceDoc, 9, 3, false), // Content slides
+                new(sourceDoc, 13, 1, false), // Closing summary
             };
-            PresentationBuilder.BuildPresentation(sources, Path.Combine(tempDi.FullName, "Out2.pptx"));
 
-            sources = new List<SlideSource>()
-            {
-                new SlideSource(new PmlDocument(source4), true),
-                new SlideSource(new PmlDocument(source5), true),
-                new SlideSource(new PmlDocument(source6), true),
-            };
-            PresentationBuilder.BuildPresentation(sources, Path.Combine(tempDi.FullName, "Out3.pptx"));
+            PresentationBuilder.BuildPresentation(sources, Path.Combine(outputDirectory.FullName, "Out1.pptx"));
 
-            sources = new List<SlideSource>()
+            sources = new List<SlideSource>
             {
-                new SlideSource(new PmlDocument(contoso1), true),
-                new SlideSource(new PmlDocument(contoso2), true),
-                new SlideSource(new PmlDocument(contoso3), true),
+                new(new PmlDocument(source2), 2, 1, true), // Choose company
+                new(new PmlDocument(source3), false), // Content
             };
-            PresentationBuilder.BuildPresentation(sources, Path.Combine(tempDi.FullName, "Out4.pptx"));
+
+            PresentationBuilder.BuildPresentation(sources, Path.Combine(outputDirectory.FullName, "Out2.pptx"));
+
+            sources = new List<SlideSource>
+            {
+                new(new PmlDocument(source4), true),
+                new(new PmlDocument(source5), true),
+                new(new PmlDocument(source6), true),
+            };
+
+            PresentationBuilder.BuildPresentation(sources, Path.Combine(outputDirectory.FullName, "Out3.pptx"));
+
+            sources = new List<SlideSource>
+            {
+                new(new PmlDocument(contoso1), true),
+                new(new PmlDocument(contoso2), true),
+                new(new PmlDocument(contoso3), true),
+            };
+
+            PresentationBuilder.BuildPresentation(sources, Path.Combine(outputDirectory.FullName, "Out4.pptx"));
         }
     }
 }

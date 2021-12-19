@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
+// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
@@ -12,11 +12,12 @@ using OpenXmlPowerTools;
 
 namespace PresentationBuilder02
 {
-    internal class PresentationBuilder02
+    internal static class PresentationBuilder02
     {
         private static void Main()
         {
             DateTime n = DateTime.Now;
+
             var tempDi = new DirectoryInfo(
                 $"ExampleOutput-{n.Year - 2000:00}-{n.Month:00}-{n.Day:00}-{n.Hour:00}{n.Minute:00}{n.Second:00}");
 
@@ -39,9 +40,10 @@ namespace PresentationBuilder02
                 using (PresentationDocument document = streamDoc.GetPresentationDocument())
                 {
                     XDocument pXDoc = document.PresentationPart!.GetXDocument();
+
                     foreach (XElement slideId in pXDoc.Root!.Elements(P.sldIdLst).Elements(P.sldId))
                     {
-                        var slideRelId = (string)slideId.Attribute(R.id);
+                        var slideRelId = (string) slideId.Attribute(R.id);
                         OpenXmlPart slidePart = document.PresentationPart.GetPartById(slideRelId);
                         XDocument slideXDoc = slidePart.GetXDocument();
                         List<XElement> paragraphs = slideXDoc.Descendants(A.p).ToList();
@@ -58,7 +60,7 @@ namespace PresentationBuilder02
             {
                 new(modifiedMainPresentation, 0, 1, true),
                 new(new PmlDocument("Hidden.pptx", baHiddenPresentation), true),
-                new(modifiedMainPresentation, 1, true)
+                new(modifiedMainPresentation, 1, true),
             };
 
             PmlDocument combinedPresentation = PresentationBuilder.BuildPresentation(slideSources);
@@ -71,9 +73,10 @@ namespace PresentationBuilder02
                 using (PresentationDocument document = streamDoc.GetPresentationDocument())
                 {
                     XDocument pXDoc = document.PresentationPart!.GetXDocument();
+
                     foreach (XElement slideId in pXDoc.Root!.Elements(P.sldIdLst).Elements(P.sldId).Skip(1).Take(1))
                     {
-                        var slideRelId = (string)slideId.Attribute(R.id);
+                        var slideRelId = (string) slideId.Attribute(R.id);
                         OpenXmlPart slidePart = document.PresentationPart.GetPartById(slideRelId);
                         XDocument slideXDoc = slidePart.GetXDocument();
                         List<XElement> paragraphs = slideXDoc.Descendants(A.p).ToList();
