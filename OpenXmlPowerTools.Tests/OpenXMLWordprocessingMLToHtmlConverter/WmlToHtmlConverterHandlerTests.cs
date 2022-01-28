@@ -59,7 +59,7 @@ namespace OxPt
             expectedImage.Position = 0;
             actualImage.Position = 0;
 
-            Assert.True(ImageSharpCompare.ImageAreEqual(expectedImage, actualImage));
+            Assert.True(ImageSharpCompare.ImagesAreEqual(expectedImage, actualImage));
         }
 
         [Fact]

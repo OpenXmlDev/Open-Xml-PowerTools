@@ -1,5 +1,6 @@
 name: .NET build and test
 env:
+  CURRENT_VERSION: 5.1.${{ github.run_number }}
   LAST_COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
 
 on:
@@ -42,18 +43,15 @@ jobs:
     - name: NugetPush
       run: |
           dotnet nuget push ./OpenXmlPowerTools/bin/Release/*.nupkg --skip-duplicate --api-key ${{secrets.NUGET_TOKEN}} --source https://api.nuget.org/v3/index.json
-    - uses: papeloto/action-zip@v1
-      with:
-          files: ./OpenXmlPowerTools/bin/Release/net6.0/publish/
-          dest: OpenXmlPowerTools.zip
     - uses: "marvinpinto/action-automatic-releases@latest"
       with:
         repo_token: "${{ secrets.GITHUB_TOKEN }}"
-        automatic_release_tag: "latest"
+        automatic_release_tag: ${{ env.CURRENT_VERSION }}
+        prerelease: false
         title: "Release Build"
         files: |
-          LICENSE
-          OpenXmlPowerTools.zip
+          ./OpenXmlPowerTools/bin/Release/*.nupkg
+          ./OpenXmlPowerTools/bin/Release/*.snupkg
 
   deployTest:
     if: github.ref != 'refs/heads/main'
@@ -73,10 +71,6 @@ jobs:
       run: |
           ls ./OpenXmlPowerTools/bin/Release
           dotnet nuget push ./OpenXmlPowerTools/bin/Release/*.nupkg --skip-duplicate --api-key ${{secrets.NUGET_TEST_TOKEN}} --source https://apiint.nugettest.org/v3/index.json
-    - uses: papeloto/action-zip@v1
-      with:
-          files: ./OpenXmlPowerTools/bin/Release/
-          dest: OpenXmlPowerTools.zip
     - uses: "marvinpinto/action-automatic-releases@latest"
       with:
         repo_token: "${{ secrets.GITHUB_TOKEN }}"
@@ -84,4 +78,5 @@ jobs:
         prerelease: true
         title: "Prerelease Build"
         files: |
-          OpenXmlPowerTools.zip
+          ./OpenXmlPowerTools/bin/Release/*.nupkg
+          ./OpenXmlPowerTools/bin/Release/*.snupkg
