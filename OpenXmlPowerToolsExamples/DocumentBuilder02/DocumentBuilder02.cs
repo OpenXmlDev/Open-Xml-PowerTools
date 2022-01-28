@@ -1,5 +1,6 @@
-﻿using DocumentFormat.OpenXml.Packaging;
-using OpenXmlPowerTools;
+﻿using Codeuctivity;
+using Codeuctivity.DocumentBuilder;
+using DocumentFormat.OpenXml.Packaging;
 using System;
 using System.Collections.Generic;
 using System.IO;

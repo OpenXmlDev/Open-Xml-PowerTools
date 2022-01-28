@@ -1,9 +1,7 @@
-
-
 #define TestForUnsupportedDocuments
 #define MergeStylesWithSameNames
 
-namespace OpenXmlPowerTools
+namespace Codeuctivity.DocumentBuilder
 {
     public class Source
     {

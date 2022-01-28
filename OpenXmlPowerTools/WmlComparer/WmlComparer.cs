@@ -32,7 +32,7 @@ using System.Xml.Linq;
 // tree, and sets this as the same for all content atoms in the paragraph.  For descendants of the paragraph mark, it doesn't really matter if content is put into
 // separate runs or what not.  We don't need to be concerned about what the unids are for descendants of the paragraph.
 
-namespace OpenXmlPowerTools
+namespace Codeuctivity.WmlComparer
 {
     public class WmlComparerConsolidateSettings
     {
@@ -422,7 +422,7 @@ namespace OpenXmlPowerTools
                         .Root
                         .Elements(W.footnote)
                         .FirstOrDefault(n => (int)n.Attribute(W.id) == id);
-                    if (fnen.Descendants().Where(d => d.Name == W.ins || d.Name == W.del).Any())
+                    if (fnen.Descendants().Any(d => d.Name == W.ins || d.Name == W.del))
                     {
                         return true;
                     }
@@ -434,7 +434,7 @@ namespace OpenXmlPowerTools
                         .Root
                         .Elements(W.endnote)
                         .FirstOrDefault(n => (int)n.Attribute(W.id) == id);
-                    if (fnen.Descendants().Where(d => d.Name == W.ins || d.Name == W.del).Any())
+                    if (fnen.Descendants().Any(d => d.Name == W.ins || d.Name == W.del))
                     {
                         return true;
                     }
@@ -584,8 +584,8 @@ namespace OpenXmlPowerTools
                 var deltaNbr = 1;
                 foreach (var revisedDocumentInfo in revisedDocumentInfoList)
                 {
-                    settings.StartingIdForFootnotesEndnotes = (deltaNbr * 2000) + 3000;
-                    var delta = WmlComparer.CompareInternal(originalWithUnids, revisedDocumentInfo.RevisedDocument, settings, false);
+                    settings.StartingIdForFootnotesEndnotes = deltaNbr * 2000 + 3000;
+                    var delta = CompareInternal(originalWithUnids, revisedDocumentInfo.RevisedDocument, settings, false);
 
                     if (s_SaveIntermediateFilesForDebugging && settings.DebugTempFileDi != null)
                     {
@@ -862,7 +862,7 @@ namespace OpenXmlPowerTools
                 FixUpGroupIds(consolidatedWDoc);
                 FixUpShapeTypeIds(consolidatedWDoc);
                 RemoveCustomMarkFollows(consolidatedWDoc);
-                WmlComparer.IgnorePt14Namespace(consolidatedMainDocPartXDoc.Root);
+                IgnorePt14Namespace(consolidatedMainDocPartXDoc.Root);
                 consolidatedWDoc.MainDocumentPart.PutXDocument();
                 AddFootnotesEndnotesStyles(consolidatedWDoc);
             }
@@ -1013,14 +1013,14 @@ namespace OpenXmlPowerTools
             if (footnotesPart != null)
             {
                 footnotesPartXDoc = footnotesPart.GetXDocument();
-                WmlComparer.IgnorePt14Namespace(footnotesPartXDoc.Root);
+                IgnorePt14Namespace(footnotesPartXDoc.Root);
             }
 
             XDocument endnotesPartXDoc = null;
             if (endnotesPart != null)
             {
                 endnotesPartXDoc = endnotesPart.GetXDocument();
-                WmlComparer.IgnorePt14Namespace(endnotesPartXDoc.Root);
+                IgnorePt14Namespace(endnotesPartXDoc.Root);
             }
 
             if (footnotesPart != null)
@@ -2362,10 +2362,10 @@ namespace OpenXmlPowerTools
                     AddSha1HashToBlockLevelContent(partToUseBefore, footnoteEndnoteBefore, settings);
                     AddSha1HashToBlockLevelContent(partToUseAfter, footnoteEndnoteAfter, settings);
 
-                    var fncal1 = WmlComparer.CreateComparisonUnitAtomList(partToUseBefore, footnoteEndnoteBefore, settings);
+                    var fncal1 = CreateComparisonUnitAtomList(partToUseBefore, footnoteEndnoteBefore, settings);
                     var fncus1 = GetComparisonUnitList(fncal1, settings);
 
-                    var fncal2 = WmlComparer.CreateComparisonUnitAtomList(partToUseAfter, footnoteEndnoteAfter, settings);
+                    var fncal2 = CreateComparisonUnitAtomList(partToUseAfter, footnoteEndnoteAfter, settings);
                     var fncus2 = GetComparisonUnitList(fncal2, settings);
 
                     if (!(fncus1.Length == 0 && fncus2.Length == 0))
@@ -2492,7 +2492,7 @@ namespace OpenXmlPowerTools
 
                     AddSha1HashToBlockLevelContent(partToUseAfter, footnoteEndnoteAfter, settings);
 
-                    var fncal2 = WmlComparer.CreateComparisonUnitAtomList(partToUseAfter, footnoteEndnoteAfter, settings);
+                    var fncal2 = CreateComparisonUnitAtomList(partToUseAfter, footnoteEndnoteAfter, settings);
                     var fncus2 = GetComparisonUnitList(fncal2, settings);
 
                     var insertedCorrSequ = new List<CorrelatedSequence>() {
@@ -2601,7 +2601,7 @@ namespace OpenXmlPowerTools
 
                     AddSha1HashToBlockLevelContent(partToUseBefore, footnoteEndnoteBefore, settings);
 
-                    var fncal2 = WmlComparer.CreateComparisonUnitAtomList(partToUseBefore, footnoteEndnoteBefore, settings);
+                    var fncal2 = CreateComparisonUnitAtomList(partToUseBefore, footnoteEndnoteBefore, settings);
                     var fncus2 = GetComparisonUnitList(fncal2, settings);
 
                     var deletedCorrSequ = new List<CorrelatedSequence>() {
@@ -3330,7 +3330,7 @@ namespace OpenXmlPowerTools
             RemoveExistingPowerToolsMarkup(wDoc);
 
             var contentParent = wDoc.MainDocumentPart.GetXDocument().Root.Element(W.body);
-            var atomList = WmlComparer.CreateComparisonUnitAtomList(wDoc.MainDocumentPart, contentParent, settings).ToArray();
+            var atomList = CreateComparisonUnitAtomList(wDoc.MainDocumentPart, contentParent, settings).ToArray();
 
             if (s_False)
             {
@@ -3433,7 +3433,7 @@ namespace OpenXmlPowerTools
             var revisionsForPart = new List<WmlComparerRevision>();
             foreach (var fn in footnotesEndnotes)
             {
-                var atomList = WmlComparer.CreateComparisonUnitAtomList(footnotesEndnotesPart, fn, settings).ToArray();
+                var atomList = CreateComparisonUnitAtomList(footnotesEndnotesPart, fn, settings).ToArray();
 
                 if (s_False)
                 {
@@ -3916,7 +3916,7 @@ namespace OpenXmlPowerTools
                     .TakeWhile(pair => pair.Pu1.SHA1Hash == pair.Pu2.SHA1Hash)
                     .Count();
 
-            if (countCommonAtBeginning != 0 && (countCommonAtBeginning / (double)lengthToCompare) < settings.DetailThreshold)
+            if (countCommonAtBeginning != 0 && countCommonAtBeginning / (double)lengthToCompare < settings.DetailThreshold)
             {
                 countCommonAtBeginning = 0;
             }
@@ -4166,7 +4166,7 @@ namespace OpenXmlPowerTools
                 }
             }
 
-            if (!isOnlyParagraphMark && countCommonAtEnd != 0 && (countCommonAtEnd / (double)lengthToCompare) < settings.DetailThreshold)
+            if (!isOnlyParagraphMark && countCommonAtEnd != 0 && countCommonAtEnd / (double)lengthToCompare < settings.DetailThreshold)
             {
                 countCommonAtEnd = 0;
             }
@@ -4377,8 +4377,7 @@ namespace OpenXmlPowerTools
                 .Root
                 .Elements(W.body)
                 .Elements(W.p)
-                .Where(p => p.Elements(W.pPr).Elements(W.sectPr).Any())
-                .LastOrDefault();
+.LastOrDefault(p => p.Elements(W.pPr).Elements(W.sectPr).Any());
             if (lastParaWithSectPr != null)
             {
                 newXDoc.Root.Element(W.body).Add(lastParaWithSectPr.Elements(W.pPr).Elements(W.sectPr));
@@ -4412,7 +4411,7 @@ namespace OpenXmlPowerTools
                 var idAtt = item.Attribute("id");
                 if (idAtt != null)
                 {
-                    idAtt.Value = (nextId++).ToString();
+                    idAtt.Value = nextId++.ToString();
                 }
             }
             foreach (var cp in wDoc.ContentParts())
@@ -4434,7 +4433,7 @@ namespace OpenXmlPowerTools
                 var idAtt = item.Attribute(W.id);
                 if (idAtt != null)
                 {
-                    idAtt.Value = (nextId++).ToString();
+                    idAtt.Value = nextId++.ToString();
                 }
             }
             foreach (var cp in wDoc.ContentParts())
@@ -4586,7 +4585,7 @@ namespace OpenXmlPowerTools
                         .GroupAdjacent(gc =>
                         {
                             var key = "";
-                            if (level < (gc.AncestorElements.Length - 1))
+                            if (level < gc.AncestorElements.Length - 1)
                             {
                                 key = gc.AncestorUnids[level + 1];
                             }
@@ -4923,7 +4922,7 @@ namespace OpenXmlPowerTools
                                 new Uri(partOfDeletedContent.Uri.ToString(), UriKind.RelativeOrAbsolute),
                                     new Uri(tartString, UriKind.RelativeOrAbsolute));
                     }
-                    catch (System.ArgumentException)
+                    catch (ArgumentException)
                     {
                         targetUri = null;
                     }
@@ -5068,7 +5067,7 @@ namespace OpenXmlPowerTools
             // set up initial state - one CorrelatedSequence, UnKnown, contents == entire sequences (both)
             var cs = new CorrelatedSequence()
             {
-                CorrelationStatus = OpenXmlPowerTools.CorrelationStatus.Unknown,
+                CorrelationStatus = CorrelationStatus.Unknown,
                 ComparisonUnitArray1 = cu1,
                 ComparisonUnitArray2 = cu2,
             };
@@ -5652,7 +5651,7 @@ namespace OpenXmlPowerTools
                                 .Any(dca =>
                                 {
                                     var charValue = dca.ContentElement.Value;
-                                    var isWordSplit = (charValue[0] >= 0x4e00 && charValue[0] <= 0x9fff);
+                                    var isWordSplit = charValue[0] >= 0x4e00 && charValue[0] <= 0x9fff;
                                     if (!isWordSplit)
                                     {
                                         isWordSplit = settings.WordSeparators.Contains(charValue[0]);
@@ -5680,12 +5679,12 @@ namespace OpenXmlPowerTools
             // don't find that LCS.
             if (!isOnlyParagraphMark && currentLongestCommonSequenceLength > 0)
             {
-                var anyButWord1 = cul1.Any(cu => (cu as ComparisonUnitWord) == null);
-                var anyButWord2 = cul2.Any(cu => (cu as ComparisonUnitWord) == null);
+                var anyButWord1 = cul1.Any(cu => cu as ComparisonUnitWord == null);
+                var anyButWord2 = cul2.Any(cu => cu as ComparisonUnitWord == null);
                 if (!anyButWord1 && !anyButWord2)
                 {
                     var maxLen = Math.Max(cul1.Length, cul2.Length);
-                    if ((currentLongestCommonSequenceLength / (double)maxLen) < settings.DetailThreshold)
+                    if (currentLongestCommonSequenceLength / (double)maxLen < settings.DetailThreshold)
                     {
                         currentI1 = -1;
                         currentI2 = -1;
@@ -5697,19 +5696,19 @@ namespace OpenXmlPowerTools
             if (currentI1 == -1 && currentI2 == -1)
             {
                 var leftLength = unknown.ComparisonUnitArray1.Length;
-                var leftTables = unknown.ComparisonUnitArray1.OfType<ComparisonUnitGroup>().Where(l => l.ComparisonUnitGroupType == ComparisonUnitGroupType.Table).Count();
-                var leftRows = unknown.ComparisonUnitArray1.OfType<ComparisonUnitGroup>().Where(l => l.ComparisonUnitGroupType == ComparisonUnitGroupType.Row).Count();
-                var leftCells = unknown.ComparisonUnitArray1.OfType<ComparisonUnitGroup>().Where(l => l.ComparisonUnitGroupType == ComparisonUnitGroupType.Cell).Count();
-                var leftParagraphs = unknown.ComparisonUnitArray1.OfType<ComparisonUnitGroup>().Where(l => l.ComparisonUnitGroupType == ComparisonUnitGroupType.Paragraph).Count();
-                var leftTextboxes = unknown.ComparisonUnitArray1.OfType<ComparisonUnitGroup>().Where(l => l.ComparisonUnitGroupType == ComparisonUnitGroupType.Textbox).Count();
+                var leftTables = unknown.ComparisonUnitArray1.OfType<ComparisonUnitGroup>().Count(l => l.ComparisonUnitGroupType == ComparisonUnitGroupType.Table);
+                var leftRows = unknown.ComparisonUnitArray1.OfType<ComparisonUnitGroup>().Count(l => l.ComparisonUnitGroupType == ComparisonUnitGroupType.Row);
+                var leftCells = unknown.ComparisonUnitArray1.OfType<ComparisonUnitGroup>().Count(l => l.ComparisonUnitGroupType == ComparisonUnitGroupType.Cell);
+                var leftParagraphs = unknown.ComparisonUnitArray1.OfType<ComparisonUnitGroup>().Count(l => l.ComparisonUnitGroupType == ComparisonUnitGroupType.Paragraph);
+                var leftTextboxes = unknown.ComparisonUnitArray1.OfType<ComparisonUnitGroup>().Count(l => l.ComparisonUnitGroupType == ComparisonUnitGroupType.Textbox);
                 var leftWords = unknown.ComparisonUnitArray1.OfType<ComparisonUnitWord>().Count();
 
                 var rightLength = unknown.ComparisonUnitArray2.Length;
-                var rightTables = unknown.ComparisonUnitArray2.OfType<ComparisonUnitGroup>().Where(l => l.ComparisonUnitGroupType == ComparisonUnitGroupType.Table).Count();
-                var rightRows = unknown.ComparisonUnitArray2.OfType<ComparisonUnitGroup>().Where(l => l.ComparisonUnitGroupType == ComparisonUnitGroupType.Row).Count();
-                var rightCells = unknown.ComparisonUnitArray2.OfType<ComparisonUnitGroup>().Where(l => l.ComparisonUnitGroupType == ComparisonUnitGroupType.Cell).Count();
-                var rightParagraphs = unknown.ComparisonUnitArray2.OfType<ComparisonUnitGroup>().Where(l => l.ComparisonUnitGroupType == ComparisonUnitGroupType.Paragraph).Count();
-                var rightTextboxes = unknown.ComparisonUnitArray2.OfType<ComparisonUnitGroup>().Where(l => l.ComparisonUnitGroupType == ComparisonUnitGroupType.Textbox).Count();
+                var rightTables = unknown.ComparisonUnitArray2.OfType<ComparisonUnitGroup>().Count(l => l.ComparisonUnitGroupType == ComparisonUnitGroupType.Table);
+                var rightRows = unknown.ComparisonUnitArray2.OfType<ComparisonUnitGroup>().Count(l => l.ComparisonUnitGroupType == ComparisonUnitGroupType.Row);
+                var rightCells = unknown.ComparisonUnitArray2.OfType<ComparisonUnitGroup>().Count(l => l.ComparisonUnitGroupType == ComparisonUnitGroupType.Cell);
+                var rightParagraphs = unknown.ComparisonUnitArray2.OfType<ComparisonUnitGroup>().Count(l => l.ComparisonUnitGroupType == ComparisonUnitGroupType.Paragraph);
+                var rightTextboxes = unknown.ComparisonUnitArray2.OfType<ComparisonUnitGroup>().Count(l => l.ComparisonUnitGroupType == ComparisonUnitGroupType.Textbox);
                 var rightWords = unknown.ComparisonUnitArray2.OfType<ComparisonUnitWord>().Count();
 
                 // if either side has both words, rows and text boxes, then we need to separate out into separate unknown correlated sequences
@@ -5727,7 +5726,7 @@ namespace OpenXmlPowerTools
                 var rightOnlyWordsRowsTextboxes = rightLength == rightWords + rightRows + rightTextboxes;
                 if ((leftWords > 0 || rightWords > 0) &&
                     (leftRows > 0 || rightRows > 0 || leftTextboxes > 0 || rightTextboxes > 0) &&
-                    (leftOnlyWordsRowsTextboxes && rightOnlyWordsRowsTextboxes))
+                    leftOnlyWordsRowsTextboxes && rightOnlyWordsRowsTextboxes)
                 {
                     var leftGrouped = unknown
                         .ComparisonUnitArray1
@@ -5939,8 +5938,8 @@ namespace OpenXmlPowerTools
 
                     while (true)
                     {
-                        if ((leftGrouped[iLeft].Key == "Table" && rightGrouped[iRight].Key == "Table") ||
-                            (leftGrouped[iLeft].Key == "Para" && rightGrouped[iRight].Key == "Para"))
+                        if (leftGrouped[iLeft].Key == "Table" && rightGrouped[iRight].Key == "Table" ||
+                            leftGrouped[iLeft].Key == "Para" && rightGrouped[iRight].Key == "Para")
                         {
                             var unknownCorrelatedSequence = new CorrelatedSequence
                             {
@@ -6832,7 +6831,7 @@ namespace OpenXmlPowerTools
                                 nextIndex++;
                             }
                         }
-                        else if ((ch >= 0x4e00 && ch <= 0x9fff) || settings.WordSeparators.Contains(ch))
+                        else if (ch >= 0x4e00 && ch <= 0x9fff || settings.WordSeparators.Contains(ch))
                         {
                             nextIndex++;
                             key = nextIndex;
@@ -7301,9 +7300,9 @@ namespace OpenXmlPowerTools
                                 if (name == W.t || name == W.delText)
                                 {
                                     var textOfTextElement = gc.Select(gce => gce.ContentElement.Value).StringConcatenate();
-                                    return (object)(new XElement(name,
+                                    return (object)new XElement(name,
                                         GetXmlSpaceAttribute(textOfTextElement),
-                                        textOfTextElement));
+                                        textOfTextElement);
                                 }
                                 else
                                 {

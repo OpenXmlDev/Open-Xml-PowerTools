@@ -1,10 +1,11 @@
-﻿using DocumentFormat.OpenXml.Packaging;
+﻿using Codeuctivity.Exceptions;
+using DocumentFormat.OpenXml.Packaging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Linq;
 
-namespace OpenXmlPowerTools
+namespace Codeuctivity
 {
     internal class ReverseRevisionsInfo
     {
@@ -1603,8 +1604,7 @@ namespace OpenXmlPowerTools
                                 .Elements(W.pPr)
                                 .Elements(W.rPr)
                                 .Elements()
-                                .Where(e => e.Name == W.del || e.Name == W.moveFrom)
-                                .Any();
+.Any(e => e.Name == W.del || e.Name == W.moveFrom);
 
                             if (paragraphMarkIsDeletedOrMovedFrom)
                             {
@@ -2224,7 +2224,7 @@ namespace OpenXmlPowerTools
                             var newGridSpan = gridSpan + g.Count() - 1;
                             var currentTcPr = g.First().Elements(W.tcPr).FirstOrDefault();
                             var newTcPr = new XElement(W.tcPr,
-                                currentTcPr != null ? currentTcPr.Attributes() : null,
+                                currentTcPr?.Attributes(),
                                 new XElement(W.gridSpan,
                                     new XAttribute(W.val, newGridSpan)),
                                 currentTcPr.Elements().Where(e => e.Name != W.gridSpan));

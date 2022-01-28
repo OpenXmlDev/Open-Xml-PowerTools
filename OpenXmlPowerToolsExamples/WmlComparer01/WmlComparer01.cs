@@ -1,7 +1,9 @@
-﻿using System;
+﻿using Codeuctivity;
+using Codeuctivity.WmlComparer;
+using System;
 using System.IO;
 
-namespace OpenXmlPowerTools
+namespace WmlComparer01
 {
     internal class WmlComparer01
     {

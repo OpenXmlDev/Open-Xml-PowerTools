@@ -1,6 +1,4 @@
-﻿
-
-namespace OpenXmlPowerTools
+﻿namespace Codeuctivity
 {
     public class ListItemTextGetter_ru_RU
     {
@@ -52,7 +50,7 @@ namespace OpenXmlPowerTools
                     result += " ";
                 }
 
-                var h1 = (levelNumber % 1000) / 100;
+                var h1 = levelNumber % 1000 / 100;
                 var h2 = levelNumber % 100;
                 if (h1 >= 1)
                 {
@@ -109,7 +107,7 @@ namespace OpenXmlPowerTools
                     result += " ";
                 }
 
-                var h1 = (levelNumber % 1000) / 100;
+                var h1 = levelNumber % 1000 / 100;
                 var h2 = levelNumber % 100;
                 if (h1 >= 1 && h2 != 0)
                 {

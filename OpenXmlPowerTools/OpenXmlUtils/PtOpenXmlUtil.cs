@@ -1,6 +1,6 @@
 ﻿using System.Xml.Linq;
 
-namespace OpenXmlPowerTools
+namespace Codeuctivity.OpenXmlUtils
 {
     public static class PtOpenXmlUtil
     {

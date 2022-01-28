@@ -1,10 +1,7 @@
-﻿
-
-using OpenXmlPowerTools;
-using System.IO;
+﻿using System.IO;
 using Xunit;
 
-namespace OxPt
+namespace Codeuctivity.Tests
 {
     public class PtUtilTests
     {

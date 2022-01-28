@@ -1,5 +1,6 @@
-﻿using DocumentFormat.OpenXml.Packaging;
-using OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter;
+﻿using Codeuctivity;
+using Codeuctivity.OpenXMLWordprocessingMLToHtmlConverter;
+using DocumentFormat.OpenXml.Packaging;
 using System;
 using System.IO;
 using System.Linq;
@@ -7,7 +8,7 @@ using System.Text;
 using System.Xml;
 using System.Xml.Linq;
 
-namespace OpenXmlPowerTools
+namespace HtmlToWmlConverter02
 {
     internal class Program
     {

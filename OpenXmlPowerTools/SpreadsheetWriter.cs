@@ -9,7 +9,7 @@ using System.Text.RegularExpressions;
 using System.Xml;
 using System.Xml.Linq;
 
-namespace OpenXmlPowerTools
+namespace Codeuctivity
 {
     // The classes in SpreadsheetWriter are still a work-in-progress.  While they are useful in their current state, I will be enhancing and
     // changing them in the future.  In particular, I will be augmenting the various definition classes (WorkbookDfn, WorksheetDfn,
@@ -124,7 +124,7 @@ namespace OpenXmlPowerTools
                 var base64CharArray = _EmptyXlsx
                     .Where(c => c != '\r' && c != '\n').ToArray();
                 var byteArray =
-                    System.Convert.FromBase64CharArray(base64CharArray,
+                    Convert.FromBase64CharArray(base64CharArray,
                     0, base64CharArray.Length);
                 File.WriteAllBytes(fi.FullName, byteArray);
 
@@ -136,8 +136,7 @@ namespace OpenXmlPowerTools
                     .Root
                     .Elements(S.sheets)
                     .Elements(S.sheet)
-                    .Where(s => (string)s.Attribute(SSNoNamespace.name) == "Sheet1")
-                    .FirstOrDefault();
+.FirstOrDefault(s => (string)s.Attribute(SSNoNamespace.name) == "Sheet1");
                 if (sheetElement == null)
                 {
                     throw new SpreadsheetWriterInternalException();
@@ -577,7 +576,7 @@ namespace OpenXmlPowerTools
             var matchFont = MatchFont(sXDoc, xf, cell);
             var matchAlignment = MatchAlignment(xf, cell);
             var matchFormat = MatchFormat(sXDoc, xf, cell);
-            return (matchFont && matchAlignment && matchFormat);
+            return matchFont && matchAlignment && matchFormat;
         }
 
         private static bool MatchFont(XDocument sXDoc, XElement xf, CellDfn cell)
@@ -614,7 +613,7 @@ namespace OpenXmlPowerTools
         private static bool MatchAlignment(XElement xf, CellDfn cell)
         {
             if ((int?)xf.Attribute(SSNoNamespace.applyAlignment) == 0 ||
-                (xf.Attribute(SSNoNamespace.applyAlignment) == null) &&
+                xf.Attribute(SSNoNamespace.applyAlignment) == null &&
                 cell.HorizontalCellAlignment == null)
             {
                 return true;

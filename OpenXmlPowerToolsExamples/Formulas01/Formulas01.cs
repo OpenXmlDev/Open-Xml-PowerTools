@@ -1,8 +1,8 @@
-﻿using OpenXmlPowerTools;
+﻿using Codeuctivity;
 using System;
 using System.IO;
 
-namespace ExampleFormulas
+namespace Formulas01
 {
     internal class ExampleFormulas
     {
@@ -14,7 +14,7 @@ namespace ExampleFormulas
 
             // Change sheet name in formulas
             using (var streamDoc = new OpenXmlMemoryStreamDocument(
-                SmlDocument.FromFileName("../../Formulas.xlsx")))
+                OpenXmlPowerToolsDocument.FromFileName("../../Formulas.xlsx")))
             {
                 using (var doc = streamDoc.GetSpreadsheetDocument())
                 {
@@ -25,7 +25,7 @@ namespace ExampleFormulas
 
             // Change sheet name in formulas
             using (var streamDoc = new OpenXmlMemoryStreamDocument(
-                SmlDocument.FromFileName("../../Formulas.xlsx")))
+                OpenXmlPowerToolsDocument.FromFileName("../../Formulas.xlsx")))
             {
                 using (var doc = streamDoc.GetSpreadsheetDocument())
                 {

@@ -1,10 +1,11 @@
-﻿using DocumentFormat.OpenXml.Packaging;
+﻿using Codeuctivity.Exceptions;
+using DocumentFormat.OpenXml.Packaging;
 using System;
 using System.IO;
 using System.IO.Packaging;
 using System.Linq;
 
-namespace OpenXmlPowerTools
+namespace Codeuctivity
 {
     public class OpenXmlPowerToolsDocument
     {

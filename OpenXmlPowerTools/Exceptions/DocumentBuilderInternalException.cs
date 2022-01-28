@@ -3,7 +3,7 @@
 
 using System;
 
-namespace OpenXmlPowerTools
+namespace Codeuctivity.Exceptions
 {
     public class DocumentBuilderInternalException : Exception
     {

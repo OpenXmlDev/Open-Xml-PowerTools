@@ -1,8 +1,9 @@
-﻿using DocumentFormat.OpenXml.Packaging;
+﻿using Codeuctivity.Chart;
+using DocumentFormat.OpenXml.Packaging;
 using System;
 using System.IO;
 
-namespace OpenXmlPowerTools
+namespace ChartUpdater01
 {
     internal class Program
     {

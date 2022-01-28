@@ -2,11 +2,10 @@
 
 /* created on 9/8/2012 9:28:14 AM from peg generator V1.0 using 'ExcelFormula.txt' as input*/
 
-using Peg.Base;
 using System;
 using System.IO;
 
-namespace ExcelFormula
+namespace Codeuctivity
 {
     internal enum EExcelFormula
     {
@@ -477,7 +476,7 @@ namespace ExcelFormula
         /// <returns></returns>
         public bool SheetNameCharacter()
         {
-            return (In('A', 'Z', 'a', 'z', '0', '9') || OneOf("._")) || HighCharacter();
+            return In('A', 'Z', 'a', 'z', '0', '9') || OneOf("._") || HighCharacter();
         }
 
         /// <summary>
@@ -739,7 +738,7 @@ namespace ExcelFormula
         /// <returns></returns>
         public bool NameStartCharacter()
         {
-            return (In('A', 'Z', 'a', 'z') || OneOf("_\\")) || HighCharacter();
+            return In('A', 'Z', 'a', 'z') || OneOf("_\\") || HighCharacter();
         }
 
         /// <summary>

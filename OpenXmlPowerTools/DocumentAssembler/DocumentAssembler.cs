@@ -10,7 +10,7 @@ using System.Xml.Linq;
 using System.Xml.Schema;
 using System.Xml.XPath;
 
-namespace OpenXmlPowerTools
+namespace Codeuctivity
 {
     public partial class DocumentAssembler
     {
@@ -95,7 +95,7 @@ namespace OpenXmlPowerTools
                         if (otherTextInParagraph != "")
                         {
                             var newPara = new XElement(element);
-                            var newMeta = newPara.Elements().Where(n => s_MetaToForceToBlock.Contains(n.Name)).First();
+                            var newMeta = newPara.Elements().First(n => s_MetaToForceToBlock.Contains(n.Name));
                             newMeta.ReplaceWith(CreateRunErrorMessage("Error: Unmatched metadata can't be in paragraph with other text", te));
                             return newPara;
                         }
@@ -201,7 +201,7 @@ namespace OpenXmlPowerTools
             var tables = xDoc.Descendants(PA.Table).ToList();
             foreach (var table in tables)
             {
-                var followingElement = table.ElementsAfterSelf().Where(e => e.Name == W.tbl || e.Name == W.p).FirstOrDefault();
+                var followingElement = table.ElementsAfterSelf().FirstOrDefault(e => e.Name == W.tbl || e.Name == W.p);
                 if (followingElement == null || followingElement.Name != W.tbl)
                 {
                     table.ReplaceWith(CreateParaErrorMessage("Table metadata is not immediately followed by a table", te));

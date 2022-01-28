@@ -1,6 +1,4 @@
-﻿using Codeuctivity;
-using OpenXmlPowerTools;
-using OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter;
+﻿using Codeuctivity.OpenXMLWordprocessingMLToHtmlConverter;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -8,7 +6,7 @@ using System.Linq;
 using System.Xml.Linq;
 using Xunit;
 
-namespace OxPt
+namespace Codeuctivity.Tests.OpenXMLWordprocessingMLToHtmlConverter
 {
     public class WmlToHtmlConverterHandlerTests
     {

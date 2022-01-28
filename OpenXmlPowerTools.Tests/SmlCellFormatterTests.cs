@@ -1,11 +1,9 @@
 ﻿using DocumentFormat.OpenXml.Packaging;
-using OpenXmlPowerTools;
-using OpenXmlPowerTools.Tests;
 using System.IO;
 using System.Linq;
 using Xunit;
 
-namespace OxPt
+namespace Codeuctivity.Tests
 {
     public class CfTests
     {

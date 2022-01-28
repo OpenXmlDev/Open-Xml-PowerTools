@@ -6,7 +6,7 @@ using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using Xunit;
 
-namespace OpenXmlPowerTools.Tests
+namespace Codeuctivity.Tests
 {
     public class OpenXmlRegexTests
     {

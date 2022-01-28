@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
+namespace Codeuctivity.OpenXMLWordprocessingMLToHtmlConverter
 {
     internal static class HtmlConverterExtensions
     {

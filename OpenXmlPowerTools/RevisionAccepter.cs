@@ -1,6 +1,6 @@
 ﻿using DocumentFormat.OpenXml.Packaging;
 
-namespace OpenXmlPowerTools
+namespace Codeuctivity
 {
     public class RevisionAccepter
     {

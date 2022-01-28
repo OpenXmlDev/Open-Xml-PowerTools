@@ -1,8 +1,8 @@
-﻿using DocumentFormat.OpenXml;
+﻿using Codeuctivity.OpenXMLWordprocessingMLToHtmlConverter;
+using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Validation;
 using DocumentFormat.OpenXml.Wordprocessing;
-using OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -11,7 +11,7 @@ using System.Text;
 using System.Xml;
 using System.Xml.Linq;
 
-namespace OpenXmlPowerTools
+namespace Codeuctivity
 {
     public static class AddDocxTextHelper
     {
@@ -57,7 +57,7 @@ namespace OpenXmlPowerTools
                     }
 
                     var ColorHex = string.Format("{0:x6}", colorValue);
-                    runProperties.AppendChild(new DocumentFormat.OpenXml.Wordprocessing.Color() { Val = ColorHex.Substring(2) });
+                    runProperties.AppendChild(new Color() { Val = ColorHex.Substring(2) });
                 }
 
                 if (isUnderline)
@@ -79,7 +79,7 @@ namespace OpenXmlPowerTools
 
                 if (!string.IsNullOrEmpty(styleName))
                 {
-                    var style = part.Styles.Elements<Style>().Where(s => s.StyleId == styleName).FirstOrDefault();
+                    var style = part.Styles.Elements<Style>().FirstOrDefault(s => s.StyleId == styleName);
                     //if the specified style is not present in word document add it
                     if (style == null)
                     {
@@ -305,12 +305,12 @@ AAsACwDBAgAAbCwAAAAA";
                         #endregion Default.dotx Template has been used to get all the paragraph styles
 
                         var base64CharArray = base64.Where(c => c != '\r' && c != '\n').ToArray();
-                        var byteArray = System.Convert.FromBase64CharArray(base64CharArray, 0, base64CharArray.Length);
+                        var byteArray = Convert.FromBase64CharArray(base64CharArray, 0, base64CharArray.Length);
                         memoryStream.Write(byteArray, 0, byteArray.Length);
 
                         using var defaultDotx = WordprocessingDocument.Open(memoryStream, true);
                         //Get the specified style from Default.dotx template for paragraph
-                        var templateStyle = defaultDotx.MainDocumentPart.StyleDefinitionsPart.Styles.Elements<Style>().Where(s => s.StyleId == styleName && s.Type == StyleValues.Paragraph).FirstOrDefault();
+                        var templateStyle = defaultDotx.MainDocumentPart.StyleDefinitionsPart.Styles.Elements<Style>().FirstOrDefault(s => s.StyleId == styleName && s.Type == StyleValues.Paragraph);
 
                         //Check if the style is proper style. Ex, Heading1, Heading2
                         if (templateStyle == null)
@@ -319,7 +319,7 @@ AAsACwDBAgAAbCwAAAAA";
                         }
                         else
                         {
-                            part.Styles.Append((templateStyle.CloneNode(true)));
+                            part.Styles.Append(templateStyle.CloneNode(true));
                         }
                     }
 
@@ -601,7 +601,7 @@ AAsACwDBAgAAbCwAAAAA";
                 return null;
             }
 
-            return (new XDocument(metricsXml.Element(xName))).GetXmlDocument();
+            return new XDocument(metricsXml.Element(xName)).GetXmlDocument();
         }
     }
 }

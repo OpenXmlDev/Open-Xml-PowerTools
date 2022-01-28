@@ -10,7 +10,7 @@ using System.Xml.Linq;
 // Content-Language: en-US
 // Content-Language: fr-FR
 
-namespace OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
+namespace Codeuctivity.OpenXMLWordprocessingMLToHtmlConverter
 {
     /// <summary>
     /// Converts a wordDoc to a self contained HTML
@@ -510,7 +510,7 @@ namespace OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
 
                 if (widthOfLeaderChar != 0)
                 {
-                    var numberOfLeaderChars = (int)(Math.Floor((tabWidth * 1440) / widthOfLeaderChar));
+                    var numberOfLeaderChars = (int)Math.Floor(tabWidth * 1440 / widthOfLeaderChar);
                     if (numberOfLeaderChars < 0)
                     {
                         numberOfLeaderChars = 0;
@@ -635,7 +635,7 @@ namespace OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
                 if (type != null && type == "pct")
                 {
                     var w = (int)tblW.Attribute(W._w);
-                    style.AddIfMissing("width", (w / 50) + "%");
+                    style.AddIfMissing("width", w / 50 + "%");
                 }
             }
             var tblInd = element.Elements(W.tblPr).Elements(W.tblInd).FirstOrDefault();
@@ -1204,7 +1204,7 @@ namespace OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
                 var line = (decimal)spacing.Attribute(W.line);
                 if (line != 240m)
                 {
-                    var pct = (line / 240m) * 100m;
+                    var pct = line / 240m * 100m;
                     style.Add("line-height", string.Format(NumberFormatInfo.InvariantInfo, "{0:0.0}%", pct));
                 }
             }
@@ -2196,7 +2196,7 @@ namespace OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
                             new XElement(W.t, textAfterTab));
 
                         var widthOfText = CalcWidthOfRunInTwips(dummyRun4);
-                        var delta2 = WordprocessingMLUtil.StringToTwips((string)tabAfterText.Attribute(W.pos)) - (widthOfText / 2) - twipCounter;
+                        var delta2 = WordprocessingMLUtil.StringToTwips((string)tabAfterText.Attribute(W.pos)) - widthOfText / 2 - twipCounter;
                         if (delta2 < 0)
                         {
                             delta2 = 0;
@@ -3256,7 +3256,7 @@ namespace OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
 
             var extentCx = (int?)containerElement.Elements(WP.extent).Attributes(NoNamespace.cx).FirstOrDefault();
             var extentCy = (int?)containerElement.Elements(WP.extent).Attributes(NoNamespace.cy).FirstOrDefault();
-            var altText = (string)containerElement.Elements(WP.docPr).Attributes(NoNamespace.descr).FirstOrDefault() ?? ((string)containerElement.Elements(WP.docPr).Attributes(NoNamespace.name).FirstOrDefault() ?? "");
+            var altText = (string)containerElement.Elements(WP.docPr).Attributes(NoNamespace.descr).FirstOrDefault() ?? (string)containerElement.Elements(WP.docPr).Attributes(NoNamespace.name).FirstOrDefault() ?? "";
             var blipFill = containerElement.Elements(A.graphic).Elements(A.graphicData).Elements(Pic._pic).Elements(Pic.blipFill).FirstOrDefault();
 
             if (blipFill == null)

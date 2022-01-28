@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Linq;
 
-namespace OpenXmlPowerTools
+namespace Codeuctivity
 {
     public class ListItemRetrieverSettings
     {
@@ -67,8 +67,7 @@ namespace OpenXmlPowerTools
                 AbstractNum = numXDoc
                     .Root
                     .Elements(W.abstractNum)
-                    .Where(e => (int)e.Attribute(W.abstractNumId) == AbstractNumId)
-                    .FirstOrDefault();
+.FirstOrDefault(e => (int)e.Attribute(W.abstractNumId) == AbstractNumId);
             }
 
             public int? StartOverride(int ilvl)
@@ -163,7 +162,7 @@ namespace OpenXmlPowerTools
                 var lvl2 = Main.Lvl(ilvl);
                 if (lvl2 == null)
                 {
-                    for (int i = ilvl - 1; i >= 0; i--)
+                    for (var i = ilvl - 1; i >= 0; i--)
                     {
                         lvl2 = Main.Lvl(i);
                         if (lvl2 != null)
@@ -588,8 +587,7 @@ namespace OpenXmlPowerTools
         {
             var firstRun = paragraph
                 .DescendantsTrimmed(W.txbxContent)
-                .Where(d => d.Name == W.r)
-                .FirstOrDefault();
+.FirstOrDefault(d => d.Name == W.r);
 
             var hasTextElement = paragraph
                 .DescendantsTrimmed(W.txbxContent)
@@ -690,8 +688,7 @@ namespace OpenXmlPowerTools
                     var num = numXDoc
                         .Root
                         .Elements(W.num)
-                        .Where(e => (int)e.Attribute(W.numId) == numId)
-                        .FirstOrDefault();
+.FirstOrDefault(e => (int)e.Attribute(W.numId) == numId);
 
                     if (num == null)
                     {
@@ -1130,7 +1127,7 @@ namespace OpenXmlPowerTools
                             }
                         }
 
-                        if (previous == null || level >= previous.Count || (level == ilvl && startOverride != null && !startOverrideAlreadyUsed.Contains(numId)))
+                        if (previous == null || level >= previous.Count || level == ilvl && startOverride != null && !startOverrideAlreadyUsed.Contains(numId))
                         {
                             if (previous == null || level >= previous.Count)
                             {

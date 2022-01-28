@@ -1,12 +1,10 @@
-﻿
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
 
-namespace OpenXmlPowerTools
+namespace Codeuctivity
 {
     public class SmlCellFormatter
     {
@@ -29,7 +27,7 @@ namespace OpenXmlPowerTools
                 "# ?/?",
                 new FormatConfig
                 {
-                    CellType = SmlCellFormatter.CellType.Number,
+                    CellType = CellType.Number,
                     FormatCode = "0.00",
                 }
             },
@@ -37,7 +35,7 @@ namespace OpenXmlPowerTools
                 "# ??/??",
                 new FormatConfig
                 {
-                    CellType = SmlCellFormatter.CellType.Number,
+                    CellType = CellType.Number,
                     FormatCode = "0.00",
                 }
             },
@@ -211,7 +209,7 @@ namespace OpenXmlPowerTools
                 if (cfc.StartsWith("[h]"))
                 {
                     var zeroHour = new DateTime(1899, 12, 30, 0, 0, 0);
-                    var deltaInHours = (int)((thisDate - zeroHour).TotalHours);
+                    var deltaInHours = (int)(thisDate - zeroHour).TotalHours;
                     var newCfc = cfc.Substring(3);
                     var s = (deltaInHours.ToString() + thisDate.ToString(newCfc)).Trim();
                     return s;
@@ -231,11 +229,11 @@ namespace OpenXmlPowerTools
                 var s = dv.ToString(fc.FormatCode, CultureInfo.InvariantCulture).Trim();
                 return s;
             }
-            if ((cfc.Contains('(') && cfc.Contains(')')) || cfc.Contains('-'))
+            if (cfc.Contains('(') && cfc.Contains(')') || cfc.Contains('-'))
             {
                 if (dv == 0)
                 {
-                    var s5 = (dv).ToString(cfc, CultureInfo.InvariantCulture).Trim();
+                    var s5 = dv.ToString(cfc, CultureInfo.InvariantCulture).Trim();
                     return s5;
                 }
 

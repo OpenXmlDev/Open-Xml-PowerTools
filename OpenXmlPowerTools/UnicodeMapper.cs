@@ -1,11 +1,9 @@
-﻿
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Linq;
 
-namespace OpenXmlPowerTools
+namespace Codeuctivity
 {
     public class UnicodeMapper
     {
@@ -70,7 +68,7 @@ namespace OpenXmlPowerTools
             if (element.Name == W.br)
             {
                 var typeAttribute = element.Attribute(W.type);
-                var type = typeAttribute != null ? typeAttribute.Value : null;
+                var type = typeAttribute?.Value;
                 if (type == null || type == "textWrapping")
                 {
                     return CarriageReturn.ToString();
@@ -237,14 +235,14 @@ namespace OpenXmlPowerTools
             }
 
             var fontAttribute = sym.Attribute(W.font);
-            var fontAttributeValue = fontAttribute != null ? fontAttribute.Value : null;
+            var fontAttributeValue = fontAttribute?.Value;
             if (fontAttributeValue == null)
             {
                 throw new ArgumentException("w:sym element has no w:font attribute.", nameof(sym));
             }
 
             var charAttribute = sym.Attribute(W._char);
-            var charAttributeValue = charAttribute != null ? charAttribute.Value : null;
+            var charAttributeValue = charAttribute?.Value;
             if (charAttributeValue == null)
             {
                 throw new ArgumentException("w:sym element has no w:char attribute.", nameof(sym));

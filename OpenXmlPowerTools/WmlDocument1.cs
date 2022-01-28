@@ -1,7 +1,8 @@
-﻿using DocumentFormat.OpenXml.Packaging;
+﻿using Codeuctivity.Exceptions;
+using DocumentFormat.OpenXml.Packaging;
 using System.IO;
 
-namespace OpenXmlPowerTools
+namespace Codeuctivity
 {
     public partial class WmlDocument : OpenXmlPowerToolsDocument
     {

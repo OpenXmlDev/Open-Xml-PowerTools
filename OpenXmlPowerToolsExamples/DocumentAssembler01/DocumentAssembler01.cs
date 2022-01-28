@@ -1,8 +1,9 @@
-﻿using System;
+﻿using Codeuctivity;
+using System;
 using System.IO;
 using System.Xml.Linq;
 
-namespace OpenXmlPowerTools
+namespace DocumentAssembler01
 {
     internal class Program
     {

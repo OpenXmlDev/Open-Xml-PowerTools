@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
+namespace Codeuctivity.OpenXMLWordprocessingMLToHtmlConverter
 {
     /// <summary>
     /// WmlToHtmlConverterSettings

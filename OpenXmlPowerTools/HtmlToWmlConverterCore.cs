@@ -94,7 +94,6 @@
 // has a border.
 
 using DocumentFormat.OpenXml.Packaging;
-using OpenXmlPowerTools.HtmlToWml.CSS;
 using SixLabors.Fonts;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats;
@@ -105,7 +104,7 @@ using System.Linq;
 using System.Text;
 using System.Xml.Linq;
 
-namespace OpenXmlPowerTools.HtmlToWml
+namespace Codeuctivity
 {
     public class ElementToStyleMap
     {
@@ -276,7 +275,7 @@ namespace OpenXmlPowerTools.HtmlToWml
             NumberingUpdater.GetNextNumId(wDoc, out var numId);
             foreach (var item in html.DescendantsAndSelf().Where(d => d.Name == XhtmlNoNamespace.ol || d.Name == XhtmlNoNamespace.ul))
             {
-                var parentOlUl = item.Ancestors().Where(a => a.Name == XhtmlNoNamespace.ol || a.Name == XhtmlNoNamespace.ul).LastOrDefault();
+                var parentOlUl = item.Ancestors().LastOrDefault(a => a.Name == XhtmlNoNamespace.ol || a.Name == XhtmlNoNamespace.ul);
                 int numIdToUse;
                 if (parentOlUl != null)
                 {
@@ -291,7 +290,7 @@ namespace OpenXmlPowerTools.HtmlToWml
                 item.AddAnnotation(new NumberedItemAnnotation
                 {
                     numId = numIdToUse,
-                    ilvl = item.Ancestors().Where(a => a.Name == XhtmlNoNamespace.ol || a.Name == XhtmlNoNamespace.ul).Count(),
+                    ilvl = item.Ancestors().Count(a => a.Name == XhtmlNoNamespace.ol || a.Name == XhtmlNoNamespace.ul),
                     listStyleType = lst,
                 });
             }
@@ -366,7 +365,7 @@ namespace OpenXmlPowerTools.HtmlToWml
                 {
                     if (g.Key)
                     {
-                        return (object)(new XElement(XhtmlNoNamespace.br));
+                        return (object)new XElement(XhtmlNoNamespace.br);
                     }
 
                     var x = g.Select(c => c.ToString()).StringConcatenate();
@@ -689,11 +688,11 @@ namespace OpenXmlPowerTools.HtmlToWml
             foreach (var run in runsWithWidth)
             {
                 var p = run.Ancestors(W.p).FirstOrDefault();
-                var pPr = p != null ? p.Element(W.pPr) : null;
+                var pPr = p?.Element(W.pPr);
                 var rPr = run.Element(W.rPr);
-                var rFonts = rPr != null ? rPr.Element(W.rFonts) : null;
+                var rFonts = rPr?.Element(W.rFonts);
                 var str = run.Descendants(W.t).Select(t => (string)t).StringConcatenate();
-                if ((pPr == null) || (rPr == null) || (rFonts == null) || (str == ""))
+                if (pPr == null || rPr == null || rFonts == null || str == "")
                 {
                     continue;
                 }
@@ -1250,20 +1249,20 @@ namespace OpenXmlPowerTools.HtmlToWml
             }
 
             rFonts = new XElement(W.rFonts,
-                (higherPriorityFont.Attribute(W.ascii) != null || higherPriorityFont.Attribute(W.asciiTheme) != null) ?
+                higherPriorityFont.Attribute(W.ascii) != null || higherPriorityFont.Attribute(W.asciiTheme) != null ?
                     new[] { higherPriorityFont.Attribute(W.ascii), higherPriorityFont.Attribute(W.asciiTheme) } :
                     new[] { lowerPriorityFont.Attribute(W.ascii), lowerPriorityFont.Attribute(W.asciiTheme) },
-                (higherPriorityFont.Attribute(W.hAnsi) != null || higherPriorityFont.Attribute(W.hAnsiTheme) != null) ?
+                higherPriorityFont.Attribute(W.hAnsi) != null || higherPriorityFont.Attribute(W.hAnsiTheme) != null ?
                     new[] { higherPriorityFont.Attribute(W.hAnsi), higherPriorityFont.Attribute(W.hAnsiTheme) } :
                     new[] { lowerPriorityFont.Attribute(W.hAnsi), lowerPriorityFont.Attribute(W.hAnsiTheme) },
-                (higherPriorityFont.Attribute(W.eastAsia) != null || higherPriorityFont.Attribute(W.eastAsiaTheme) != null) ?
+                higherPriorityFont.Attribute(W.eastAsia) != null || higherPriorityFont.Attribute(W.eastAsiaTheme) != null ?
                     new[] { higherPriorityFont.Attribute(W.eastAsia), higherPriorityFont.Attribute(W.eastAsiaTheme) } :
                     new[] { lowerPriorityFont.Attribute(W.eastAsia), lowerPriorityFont.Attribute(W.eastAsiaTheme) },
-                (higherPriorityFont.Attribute(W.cs) != null || higherPriorityFont.Attribute(W.cstheme) != null) ?
+                higherPriorityFont.Attribute(W.cs) != null || higherPriorityFont.Attribute(W.cstheme) != null ?
                     new[] { higherPriorityFont.Attribute(W.cs), higherPriorityFont.Attribute(W.cstheme) } :
                     new[] { lowerPriorityFont.Attribute(W.cs), lowerPriorityFont.Attribute(W.cstheme) },
-                (higherPriorityFont.Attribute(W.hint) != null ? higherPriorityFont.Attribute(W.hint) :
-                    lowerPriorityFont.Attribute(W.hint))
+                higherPriorityFont.Attribute(W.hint) != null ? higherPriorityFont.Attribute(W.hint) :
+                    lowerPriorityFont.Attribute(W.hint)
             );
 
             return rFonts;
@@ -1441,11 +1440,11 @@ namespace OpenXmlPowerTools.HtmlToWml
                 }
                 else
                 {
-                    AsciiFont = (string)(rFonts.Attribute(W.ascii));
-                    HAnsiFont = (string)(rFonts.Attribute(W.hAnsi));
-                    EastAsiaFont = (string)(rFonts.Attribute(W.eastAsia));
-                    CsFont = (string)(rFonts.Attribute(W.cs));
-                    Hint = (string)(rFonts.Attribute(W.hint));
+                    AsciiFont = (string)rFonts.Attribute(W.ascii);
+                    HAnsiFont = (string)rFonts.Attribute(W.hAnsi);
+                    EastAsiaFont = (string)rFonts.Attribute(W.eastAsia);
+                    CsFont = (string)rFonts.Attribute(W.cs);
+                    Hint = (string)rFonts.Attribute(W.hint);
                 }
                 var csel = Properties[W.cs];
                 var cs = csel != null && (csel.Attribute(W.val) == null || csel.Attribute(W.val).ToBoolean() == true);
@@ -1534,9 +1533,9 @@ namespace OpenXmlPowerTools.HtmlToWml
                         ch == 0xAA ||
                         ch == 0xAD ||
                         ch == 0xAF ||
-                        (ch >= 0xB0 && ch <= 0xB4) ||
-                        (ch >= 0xB6 && ch <= 0xBA) ||
-                        (ch >= 0xBC && ch <= 0xBF) ||
+                        ch >= 0xB0 && ch <= 0xB4 ||
+                        ch >= 0xB6 && ch <= 0xBA ||
+                        ch >= 0xBC && ch <= 0xBF ||
                         ch == 0xD7 ||
                         ch == 0xF7)
                     {
@@ -1547,10 +1546,10 @@ namespace OpenXmlPowerTools.HtmlToWml
                     {
                         if (ch == 0xE0 ||
                             ch == 0xE1 ||
-                            (ch >= 0xE8 && ch <= 0xEA) ||
-                            (ch >= 0xEC && ch <= 0xED) ||
-                            (ch >= 0xF2 && ch <= 0xF3) ||
-                            (ch >= 0xF9 && ch <= 0xFA) ||
+                            ch >= 0xE8 && ch <= 0xEA ||
+                            ch >= 0xEC && ch <= 0xED ||
+                            ch >= 0xF2 && ch <= 0xF3 ||
+                            ch >= 0xF9 && ch <= 0xFA ||
                             ch == 0xFC)
                         {
                             return FontType.EastAsia;
@@ -2648,8 +2647,8 @@ namespace OpenXmlPowerTools.HtmlToWml
 
         private static SizeEmu GetImageSizeInEmus(XElement img, Image bmp)
         {
-            double hres = bmp.Metadata.HorizontalResolution;
-            double vres = bmp.Metadata.VerticalResolution;
+            var hres = bmp.Metadata.HorizontalResolution;
+            var vres = bmp.Metadata.VerticalResolution;
             var s = bmp.Size();
             Emu cx = (long)(s.Width / hres * Emu.s_EmusPerInch);
             Emu cy = (long)(s.Height / vres * Emu.s_EmusPerInch);
@@ -3364,7 +3363,7 @@ namespace OpenXmlPowerTools.HtmlToWml
                 new XElement(W.left, GetBorderAttributes(element, "left")),
                 new XElement(W.bottom, GetBorderAttributes(element, "bottom")),
                 new XElement(W.right, GetBorderAttributes(element, "right")));
-            if (borders.Elements().Attributes(W.val).Where(v => (string)v == "none").Count() == 4)
+            if (borders.Elements().Attributes(W.val).Count(v => (string)v == "none") == 4)
             {
                 return null;
             }
@@ -3431,7 +3430,7 @@ namespace OpenXmlPowerTools.HtmlToWml
                 {
                     // space is specified in points, not twips
                     var points = (TPoint)paddingProp;
-                    space = new XAttribute(W.space, (int)(Math.Min(31, points)));
+                    space = new XAttribute(W.space, (int)Math.Min(31, points));
                 }
             }
 
@@ -3541,7 +3540,7 @@ namespace OpenXmlPowerTools.HtmlToWml
         private static XElement[][] GetTableArray(XElement table)
         {
             var rowList = table.DescendantsTrimmed(XhtmlNoNamespace.table).Where(e => e.Name == XhtmlNoNamespace.tr).ToList();
-            var numberColumns = rowList.Select(r => r.Elements().Where(e => e.Name == XhtmlNoNamespace.td || e.Name == XhtmlNoNamespace.th).Count()).Max();
+            var numberColumns = rowList.Select(r => r.Elements().Count(e => e.Name == XhtmlNoNamespace.td || e.Name == XhtmlNoNamespace.th)).Max();
             var tableArray = new XElement[rowList.Count][];
             var rowNumber = 0;
             foreach (var row in rowList)
@@ -3634,7 +3633,7 @@ namespace OpenXmlPowerTools.HtmlToWml
 
             if (vAlignValue != null)
             {
-                if (vAlignValue == "middle" || (vAlignValue != "top" && vAlignValue != "bottom"))
+                if (vAlignValue == "middle" || vAlignValue != "top" && vAlignValue != "bottom")
                 {
                     vAlignValue = "center";
                 }
@@ -4354,8 +4353,7 @@ namespace OpenXmlPowerTools.HtmlToWml
                 fontXDoc
                     .Root
                     .Elements(W.style)
-                    .Where(e => (string)e.Attribute(W.type) == "paragraph" && (string)e.Attribute(W.styleId) == "Heading1")
-                    .FirstOrDefault(),
+.FirstOrDefault(e => (string)e.Attribute(W.type) == "paragraph" && (string)e.Attribute(W.styleId) == "Heading1"),
 @"<w:font w:name='Verdana' xmlns:w='http://schemas.openxmlformats.org/wordprocessingml/2006/main'>
   <w:panose1 w:val='020B0604030504040204'/>
   <w:charset w:val='00'/>
@@ -4810,15 +4808,14 @@ namespace OpenXmlPowerTools.HtmlToWml
             {
                 foreach (var ruleSet in authorCssDoc.RuleSets)
                 {
-                    var selector = ruleSet.Selectors.Where(
-                        sel =>
+                    var selector = ruleSet.Selectors.FirstOrDefault(sel =>
                         {
                             var found = sel.SimpleSelectors.Count == 1 &&
                                 sel.SimpleSelectors.First().Class == item &&
                                 (sel.SimpleSelectors.First().ElementName == "" ||
                                 sel.SimpleSelectors.First().ElementName == null);
                             return found;
-                        }).FirstOrDefault();
+                        });
                     var color = ruleSet.Declarations.FirstOrDefault(d => d.Name == "color");
                     if (selector != null)
                     {
@@ -4847,8 +4844,7 @@ namespace OpenXmlPowerTools.HtmlToWml
                         if (styleXDoc
                             .Root
                             .Elements(W.style)
-                            .Where(e => (string)e.Attribute(W.type) == "paragraph" && ((string)e.Attribute(W.styleId)).ToLower() == styleName)
-                            .FirstOrDefault() == null)
+.FirstOrDefault(e => (string)e.Attribute(W.type) == "paragraph" && ((string)e.Attribute(W.styleId)).ToLower() == styleName) == null)
                         {
                             styleXDoc.Root.Add(newStyle);
                         }
@@ -4862,8 +4858,7 @@ namespace OpenXmlPowerTools.HtmlToWml
                     styleXDoc
                         .Root
                         .Elements(W.style)
-                        .Where(e => (string)e.Attribute(W.type) == "paragraph" && (string)e.Attribute(W.styleId) == "Heading1")
-                        .FirstOrDefault(),
+.FirstOrDefault(e => (string)e.Attribute(W.type) == "paragraph" && (string)e.Attribute(W.styleId) == "Heading1"),
 @"<w:style w:type='paragraph'
         w:styleId='Heading1'
         xmlns:w='http://schemas.openxmlformats.org/wordprocessingml/2006/main'>
@@ -4902,8 +4897,7 @@ namespace OpenXmlPowerTools.HtmlToWml
                     styleXDoc
                         .Root
                         .Elements(W.style)
-                        .Where(e => (string)e.Attribute(W.type) == "paragraph" && (string)e.Attribute(W.styleId) == "Heading2")
-                        .FirstOrDefault(),
+.FirstOrDefault(e => (string)e.Attribute(W.type) == "paragraph" && (string)e.Attribute(W.styleId) == "Heading2"),
 @"<w:style w:type='paragraph'
          w:styleId='Heading2'
          xmlns:w='http://schemas.openxmlformats.org/wordprocessingml/2006/main'>
@@ -4942,8 +4936,7 @@ namespace OpenXmlPowerTools.HtmlToWml
                 styleXDoc
                     .Root
                     .Elements(W.style)
-                    .Where(e => (string)e.Attribute(W.type) == "paragraph" && (string)e.Attribute(W.styleId) == "Heading3")
-                    .FirstOrDefault(),
+.FirstOrDefault(e => (string)e.Attribute(W.type) == "paragraph" && (string)e.Attribute(W.styleId) == "Heading3"),
 @"<w:style w:type='paragraph'
          w:styleId='Heading3'
          xmlns:w='http://schemas.openxmlformats.org/wordprocessingml/2006/main'>
@@ -4980,8 +4973,7 @@ namespace OpenXmlPowerTools.HtmlToWml
                 styleXDoc
                     .Root
                     .Elements(W.style)
-                    .Where(e => (string)e.Attribute(W.type) == "paragraph" && (string)e.Attribute(W.styleId) == "Heading4")
-                    .FirstOrDefault(),
+.FirstOrDefault(e => (string)e.Attribute(W.type) == "paragraph" && (string)e.Attribute(W.styleId) == "Heading4"),
 @"<w:style w:type='paragraph'
          w:styleId='Heading4'
          xmlns:w='http://schemas.openxmlformats.org/wordprocessingml/2006/main'>
@@ -5020,8 +5012,7 @@ namespace OpenXmlPowerTools.HtmlToWml
                 styleXDoc
                     .Root
                     .Elements(W.style)
-                    .Where(e => (string)e.Attribute(W.type) == "paragraph" && (string)e.Attribute(W.styleId) == "Heading5")
-                    .FirstOrDefault(),
+.FirstOrDefault(e => (string)e.Attribute(W.type) == "paragraph" && (string)e.Attribute(W.styleId) == "Heading5"),
 @"<w:style w:type='paragraph'
          w:styleId='Heading5'
          xmlns:w='http://schemas.openxmlformats.org/wordprocessingml/2006/main'>
@@ -5091,8 +5082,7 @@ namespace OpenXmlPowerTools.HtmlToWml
                 styleXDoc
                     .Root
                     .Elements(W.style)
-                    .Where(e => (string)e.Attribute(W.type) == "paragraph" && (string)e.Attribute(W.styleId) == "Heading7")
-                    .FirstOrDefault(),
+.FirstOrDefault(e => (string)e.Attribute(W.type) == "paragraph" && (string)e.Attribute(W.styleId) == "Heading7"),
 @"<w:style w:type='paragraph'
          w:styleId='Heading7'
          xmlns:w='http://schemas.openxmlformats.org/wordprocessingml/2006/main'>
@@ -5130,8 +5120,7 @@ namespace OpenXmlPowerTools.HtmlToWml
                 styleXDoc
                     .Root
                     .Elements(W.style)
-                    .Where(e => (string)e.Attribute(W.type) == "paragraph" && (string)e.Attribute(W.styleId) == "Heading8")
-                    .FirstOrDefault(),
+.FirstOrDefault(e => (string)e.Attribute(W.type) == "paragraph" && (string)e.Attribute(W.styleId) == "Heading8"),
 @"<w:style w:type='paragraph'
          w:styleId='Heading8'
          xmlns:w='http://schemas.openxmlformats.org/wordprocessingml/2006/main'>
@@ -5169,8 +5158,7 @@ namespace OpenXmlPowerTools.HtmlToWml
                 styleXDoc
                     .Root
                     .Elements(W.style)
-                    .Where(e => (string)e.Attribute(W.type) == "paragraph" && (string)e.Attribute(W.styleId) == "Heading9")
-                    .FirstOrDefault(),
+.FirstOrDefault(e => (string)e.Attribute(W.type) == "paragraph" && (string)e.Attribute(W.styleId) == "Heading9"),
 @"<w:style w:type='paragraph'
          w:styleId='Heading9'
          xmlns:w='http://schemas.openxmlformats.org/wordprocessingml/2006/main'>
@@ -5210,8 +5198,7 @@ namespace OpenXmlPowerTools.HtmlToWml
                 styleXDoc
                     .Root
                     .Elements(W.style)
-                    .Where(e => (string)e.Attribute(W.type) == "character" && (string)e.Attribute(W.styleId) == "Heading1Char")
-                    .FirstOrDefault(),
+.FirstOrDefault(e => (string)e.Attribute(W.type) == "character" && (string)e.Attribute(W.styleId) == "Heading1Char"),
 @"<w:style w:type='character'
          w:customStyle='1'
          w:styleId='Heading1Char'
@@ -5242,8 +5229,7 @@ namespace OpenXmlPowerTools.HtmlToWml
                 styleXDoc
                     .Root
                     .Elements(W.style)
-                    .Where(e => (string)e.Attribute(W.type) == "character" && (string)e.Attribute(W.styleId) == "Heading2Char")
-                    .FirstOrDefault(),
+.FirstOrDefault(e => (string)e.Attribute(W.type) == "character" && (string)e.Attribute(W.styleId) == "Heading2Char"),
 @"<w:style w:type='character'
          w:customStyle='1'
          w:styleId='Heading2Char'
@@ -5273,8 +5259,7 @@ namespace OpenXmlPowerTools.HtmlToWml
                 styleXDoc
                     .Root
                     .Elements(W.style)
-                    .Where(e => (string)e.Attribute(W.type) == "character" && (string)e.Attribute(W.styleId) == "Heading3Char")
-                    .FirstOrDefault(),
+.FirstOrDefault(e => (string)e.Attribute(W.type) == "character" && (string)e.Attribute(W.styleId) == "Heading3Char"),
 @"<w:style w:type='character'
          w:customStyle='1'
          w:styleId='Heading3Char'
@@ -5302,8 +5287,7 @@ namespace OpenXmlPowerTools.HtmlToWml
                 styleXDoc
                     .Root
                     .Elements(W.style)
-                    .Where(e => (string)e.Attribute(W.type) == "character" && (string)e.Attribute(W.styleId) == "Heading4Char")
-                    .FirstOrDefault(),
+.FirstOrDefault(e => (string)e.Attribute(W.type) == "character" && (string)e.Attribute(W.styleId) == "Heading4Char"),
 @"<w:style w:type='character'
          w:customStyle='1'
          w:styleId='Heading4Char'
@@ -5333,8 +5317,7 @@ namespace OpenXmlPowerTools.HtmlToWml
                 styleXDoc
                     .Root
                     .Elements(W.style)
-                    .Where(e => (string)e.Attribute(W.type) == "character" && (string)e.Attribute(W.styleId) == "Heading5Char")
-                    .FirstOrDefault(),
+.FirstOrDefault(e => (string)e.Attribute(W.type) == "character" && (string)e.Attribute(W.styleId) == "Heading5Char"),
 @"<w:style w:type='character'
          w:customStyle='1'
          w:styleId='Heading5Char'
@@ -5361,8 +5344,7 @@ namespace OpenXmlPowerTools.HtmlToWml
                 styleXDoc
                     .Root
                     .Elements(W.style)
-                    .Where(e => (string)e.Attribute(W.type) == "character" && (string)e.Attribute(W.styleId) == "Heading6Char")
-                    .FirstOrDefault(),
+.FirstOrDefault(e => (string)e.Attribute(W.type) == "character" && (string)e.Attribute(W.styleId) == "Heading6Char"),
 @"<w:style w:type='character'
          w:customStyle='1'
          w:styleId='Heading6Char'
@@ -5391,8 +5373,7 @@ namespace OpenXmlPowerTools.HtmlToWml
                 styleXDoc
                     .Root
                     .Elements(W.style)
-                    .Where(e => (string)e.Attribute(W.type) == "character" && (string)e.Attribute(W.styleId) == "Heading7Char")
-                    .FirstOrDefault(),
+.FirstOrDefault(e => (string)e.Attribute(W.type) == "character" && (string)e.Attribute(W.styleId) == "Heading7Char"),
 @"<w:style w:type='character'
          w:customStyle='1'
          w:styleId='Heading7Char'
@@ -5421,8 +5402,7 @@ namespace OpenXmlPowerTools.HtmlToWml
                 styleXDoc
                     .Root
                     .Elements(W.style)
-                    .Where(e => (string)e.Attribute(W.type) == "character" && (string)e.Attribute(W.styleId) == "Heading8Char")
-                    .FirstOrDefault(),
+.FirstOrDefault(e => (string)e.Attribute(W.type) == "character" && (string)e.Attribute(W.styleId) == "Heading8Char"),
 @"<w:style w:type='character'
          w:customStyle='1'
          w:styleId='Heading8Char'
@@ -5451,8 +5431,7 @@ namespace OpenXmlPowerTools.HtmlToWml
                 styleXDoc
                     .Root
                     .Elements(W.style)
-                    .Where(e => (string)e.Attribute(W.type) == "character" && (string)e.Attribute(W.styleId) == "Heading9Char")
-                    .FirstOrDefault(),
+.FirstOrDefault(e => (string)e.Attribute(W.type) == "character" && (string)e.Attribute(W.styleId) == "Heading9Char"),
 @"<w:style w:type='character'
          w:customStyle='1'
          w:styleId='Heading9Char'
@@ -5483,8 +5462,7 @@ namespace OpenXmlPowerTools.HtmlToWml
                 styleXDoc
                     .Root
                     .Elements(W.style)
-                    .Where(e => (string)e.Attribute(W.type) == "character" && (string)e.Attribute(W.styleId) == "Hyperlink")
-                    .FirstOrDefault(),
+.FirstOrDefault(e => (string)e.Attribute(W.type) == "character" && (string)e.Attribute(W.styleId) == "Hyperlink"),
 @"<w:style w:type='character'
          w:styleId='Hyperlink'
          xmlns:w='http://schemas.openxmlformats.org/wordprocessingml/2006/main'>
@@ -5511,7 +5489,7 @@ namespace OpenXmlPowerTools.HtmlToWml
             var themeXDoc = wDoc.MainDocumentPart.ThemePart.GetXDocument();
 
             var minorFont = html.Descendants(XhtmlNoNamespace.body).FirstOrDefault().GetProp("font-family");
-            var majorFontElement = html.Descendants().Where(e =>
+            var majorFontElement = html.Descendants().FirstOrDefault(e =>
                 e.Name == XhtmlNoNamespace.h1 ||
                 e.Name == XhtmlNoNamespace.h2 ||
                 e.Name == XhtmlNoNamespace.h3 ||
@@ -5520,7 +5498,7 @@ namespace OpenXmlPowerTools.HtmlToWml
                 e.Name == XhtmlNoNamespace.h6 ||
                 e.Name == XhtmlNoNamespace.h7 ||
                 e.Name == XhtmlNoNamespace.h8 ||
-                e.Name == XhtmlNoNamespace.h9).FirstOrDefault();
+                e.Name == XhtmlNoNamespace.h9);
             CssExpression majorFont = null;
             if (majorFontElement != null)
             {

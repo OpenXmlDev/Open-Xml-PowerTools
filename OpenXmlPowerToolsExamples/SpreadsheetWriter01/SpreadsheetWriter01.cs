@@ -1,8 +1,8 @@
-﻿using OpenXmlPowerTools;
+﻿using Codeuctivity;
 using System;
 using System.IO;
 
-namespace SpreadsheetWriterExample
+namespace SpreadsheetWriter01
 {
     internal class Program
     {

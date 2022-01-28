@@ -6,7 +6,7 @@ using System.Xml;
 using System.Xml.Linq;
 using System.Xml.XPath;
 
-namespace OpenXmlPowerTools
+namespace Codeuctivity
 {
     public partial class WmlDocument : OpenXmlPowerToolsDocument
     {
@@ -341,8 +341,7 @@ namespace OpenXmlPowerTools
                 fontTableXDoc
                     .Root
                     .Elements(W.font)
-                    .Where(e => (string)e.Attribute(W.name) == "Tahoma")
-                    .FirstOrDefault(),
+.FirstOrDefault(e => (string)e.Attribute(W.name) == "Tahoma"),
                 @"<w:font w:name='Tahoma' xmlns:w='http://schemas.openxmlformats.org/wordprocessingml/2006/main'>
                      <w:panose1 w:val='020B0604030504040204'/>
                      <w:charset w:val='00'/>
@@ -361,8 +360,7 @@ namespace OpenXmlPowerTools
             AddElementIfMissing(
                 xDoc,
                 xDoc.Root.Elements(W.style)
-                    .Where(e => (string)e.Attribute(W.type) == "paragraph" && (string)e.Attribute(W.styleId) == "TOCHeading")
-                    .FirstOrDefault(),
+.FirstOrDefault(e => (string)e.Attribute(W.type) == "paragraph" && (string)e.Attribute(W.styleId) == "TOCHeading"),
                 @"<w:style w:type='paragraph' w:styleId='TOCHeading' xmlns:w='http://schemas.openxmlformats.org/wordprocessingml/2006/main'>
                     <w:name w:val='TOC Heading'/>
                     <w:basedOn w:val='Heading1'/>
@@ -382,8 +380,7 @@ namespace OpenXmlPowerTools
             AddElementIfMissing(
                 xDoc,
                 xDoc.Root.Elements(W.style)
-                    .Where(e => (string)e.Attribute(W.type) == "paragraph" && (string)e.Attribute(W.styleId) == "TOC1")
-                    .FirstOrDefault(),
+.FirstOrDefault(e => (string)e.Attribute(W.type) == "paragraph" && (string)e.Attribute(W.styleId) == "TOC1"),
                 @"<w:style w:type='paragraph' w:styleId='TOC1' xmlns:w='http://schemas.openxmlformats.org/wordprocessingml/2006/main'>
                     <w:name w:val='toc 1'/>
                     <w:basedOn w:val='Normal'/>
@@ -399,8 +396,7 @@ namespace OpenXmlPowerTools
             AddElementIfMissing(
                 xDoc,
                 xDoc.Root.Elements(W.style)
-                    .Where(e => (string)e.Attribute(W.type) == "paragraph" && (string)e.Attribute(W.styleId) == "TOC2")
-                    .FirstOrDefault(),
+.FirstOrDefault(e => (string)e.Attribute(W.type) == "paragraph" && (string)e.Attribute(W.styleId) == "TOC2"),
                 @"<w:style w:type='paragraph' w:styleId='TOC2' xmlns:w='http://schemas.openxmlformats.org/wordprocessingml/2006/main'>
                     <w:name w:val='toc 2'/>
                     <w:basedOn w:val='Normal'/>
@@ -417,8 +413,7 @@ namespace OpenXmlPowerTools
             AddElementIfMissing(
                 xDoc,
                 xDoc.Root.Elements(W.style)
-                    .Where(e => (string)e.Attribute(W.type) == "paragraph" && (string)e.Attribute(W.styleId) == "TOC3")
-                    .FirstOrDefault(),
+.FirstOrDefault(e => (string)e.Attribute(W.type) == "paragraph" && (string)e.Attribute(W.styleId) == "TOC3"),
                 @"<w:style w:type='paragraph' w:styleId='TOC3' xmlns:w='http://schemas.openxmlformats.org/wordprocessingml/2006/main'>
                     <w:name w:val='toc 3'/>
                     <w:basedOn w:val='Normal'/>
@@ -435,8 +430,7 @@ namespace OpenXmlPowerTools
             AddElementIfMissing(
                 xDoc,
                 xDoc.Root.Elements(W.style)
-                    .Where(e => (string)e.Attribute(W.type) == "paragraph" && (string)e.Attribute(W.styleId) == "TOC4")
-                    .FirstOrDefault(),
+.FirstOrDefault(e => (string)e.Attribute(W.type) == "paragraph" && (string)e.Attribute(W.styleId) == "TOC4"),
                 @"<w:style w:type='paragraph' w:styleId='TOC4' xmlns:w='http://schemas.openxmlformats.org/wordprocessingml/2006/main'>
                     <w:name w:val='toc 4'/>
                     <w:basedOn w:val='Normal'/>
@@ -453,8 +447,7 @@ namespace OpenXmlPowerTools
             AddElementIfMissing(
                 xDoc,
                 xDoc.Root.Elements(W.style)
-                    .Where(e => (string)e.Attribute(W.type) == "character" && (string)e.Attribute(W.styleId) == "Hyperlink")
-                    .FirstOrDefault(),
+.FirstOrDefault(e => (string)e.Attribute(W.type) == "character" && (string)e.Attribute(W.styleId) == "Hyperlink"),
                 @"<w:style w:type='character' w:styleId='Hyperlink' xmlns:w='http://schemas.openxmlformats.org/wordprocessingml/2006/main'>
                      <w:name w:val='Hyperlink'/>
                      <w:basedOn w:val='DefaultParagraphFont'/>
@@ -469,8 +462,7 @@ namespace OpenXmlPowerTools
             AddElementIfMissing(
                 xDoc,
                 xDoc.Root.Elements(W.style)
-                    .Where(e => (string)e.Attribute(W.type) == "paragraph" && (string)e.Attribute(W.styleId) == "BalloonText")
-                    .FirstOrDefault(),
+.FirstOrDefault(e => (string)e.Attribute(W.type) == "paragraph" && (string)e.Attribute(W.styleId) == "BalloonText"),
                 @"<w:style w:type='paragraph' w:styleId='BalloonText' xmlns:w='http://schemas.openxmlformats.org/wordprocessingml/2006/main'>
                     <w:name w:val='Balloon Text'/>
                     <w:basedOn w:val='Normal'/>
@@ -491,9 +483,8 @@ namespace OpenXmlPowerTools
             AddElementIfMissing(
                 xDoc,
                 xDoc.Root.Elements(W.style)
-                    .Where(e => (string)e.Attribute(W.type) == "character" &&
-                        (bool?)e.Attribute(W.customStyle) == true && (string)e.Attribute(W.styleId) == "BalloonTextChar")
-                    .FirstOrDefault(),
+.FirstOrDefault(e => (string)e.Attribute(W.type) == "character" &&
+                        (bool?)e.Attribute(W.customStyle) == true && (string)e.Attribute(W.styleId) == "BalloonTextChar"),
                 @"<w:style w:type='character' w:customStyle='1' w:styleId='BalloonTextChar' xmlns:w='http://schemas.openxmlformats.org/wordprocessingml/2006/main'>
                     <w:name w:val='Balloon Text Char'/>
                     <w:basedOn w:val='DefaultParagraphFont'/>
@@ -539,8 +530,7 @@ namespace OpenXmlPowerTools
             AddElementIfMissing(
                 xDoc,
                 xDoc.Root.Elements(W.style)
-                    .Where(e => (string)e.Attribute(W.type) == "paragraph" && (string)e.Attribute(W.styleId) == "TableofFigures")
-                    .FirstOrDefault(),
+.FirstOrDefault(e => (string)e.Attribute(W.type) == "paragraph" && (string)e.Attribute(W.styleId) == "TableofFigures"),
                 @"<w:style w:type='paragraph' w:styleId='TableofFigures' xmlns:w='http://schemas.openxmlformats.org/wordprocessingml/2006/main'>
                     <w:name w:val='table of figures'/>
                     <w:basedOn w:val='Normal'/>
@@ -555,8 +545,7 @@ namespace OpenXmlPowerTools
             AddElementIfMissing(
                 xDoc,
                 xDoc.Root.Elements(W.style)
-                    .Where(e => (string)e.Attribute(W.type) == "character" && (string)e.Attribute(W.styleId) == "Hyperlink")
-                    .FirstOrDefault(),
+.FirstOrDefault(e => (string)e.Attribute(W.type) == "character" && (string)e.Attribute(W.styleId) == "Hyperlink"),
                 @"<w:style w:type='character' w:styleId='Hyperlink' xmlns:w='http://schemas.openxmlformats.org/wordprocessingml/2006/main'>
                      <w:name w:val='Hyperlink'/>
                      <w:basedOn w:val='DefaultParagraphFont'/>
@@ -599,8 +588,7 @@ namespace OpenXmlPowerTools
             AddElementIfMissing(
                 xDoc,
                 xDoc.Root.Elements(W.style)
-                    .Where(e => (string)e.Attribute(W.type) == "paragraph" && (string)e.Attribute(W.styleId) == "TableofAuthorities")
-                    .FirstOrDefault(),
+.FirstOrDefault(e => (string)e.Attribute(W.type) == "paragraph" && (string)e.Attribute(W.styleId) == "TableofAuthorities"),
                 @"<w:style w:type='paragraph'
                            w:styleId='TableofAuthorities'
                            xmlns:w='http://schemas.openxmlformats.org/wordprocessingml/2006/main'>
@@ -621,8 +609,7 @@ namespace OpenXmlPowerTools
             AddElementIfMissing(
                 xDoc,
                 xDoc.Root.Elements(W.style)
-                    .Where(e => (string)e.Attribute(W.type) == "paragraph" && (string)e.Attribute(W.styleId) == "TOAHeading")
-                    .FirstOrDefault(),
+.FirstOrDefault(e => (string)e.Attribute(W.type) == "paragraph" && (string)e.Attribute(W.styleId) == "TOAHeading"),
                 @"<w:style w:type='paragraph'
                            w:styleId='TOAHeading'
                            xmlns:w='http://schemas.openxmlformats.org/wordprocessingml/2006/main'>

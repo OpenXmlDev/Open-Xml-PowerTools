@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Xml.Linq;
 
-namespace OpenXmlPowerTools
+namespace Codeuctivity
 {
     public partial class SmlDocument
     {

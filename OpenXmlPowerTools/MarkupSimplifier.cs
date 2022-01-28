@@ -6,7 +6,7 @@ using System.Linq;
 using System.Xml.Linq;
 using System.Xml.Schema;
 
-namespace OpenXmlPowerTools
+namespace Codeuctivity
 {
     public partial class WmlDocument
     {
@@ -491,7 +491,7 @@ namespace OpenXmlPowerTools
                     if (havePsvi)
                     {
                         var schemaInfo = a.GetSchemaInfo();
-                        var schemaType = schemaInfo != null ? schemaInfo.SchemaType : null;
+                        var schemaType = schemaInfo?.SchemaType;
                         var typeCode = schemaType != null ? schemaType.TypeCode : (XmlTypeCode?)null;
 
                         switch (typeCode)
@@ -545,7 +545,7 @@ namespace OpenXmlPowerTools
             if (havePsvi)
             {
                 var schemaInfo = element.GetSchemaInfo();
-                var schemaType = schemaInfo != null ? schemaInfo.SchemaType : null;
+                var schemaType = schemaInfo?.SchemaType;
                 var typeCode = schemaType != null ? schemaType.TypeCode : (XmlTypeCode?)null;
 
                 switch (typeCode)

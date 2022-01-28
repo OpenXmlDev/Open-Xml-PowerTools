@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Xml.Linq;
 
-namespace OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
+namespace Codeuctivity.OpenXMLWordprocessingMLToHtmlConverter
 {
     /// <summary>
     /// Default handler that transforms every symbol into some html encoded font specific char

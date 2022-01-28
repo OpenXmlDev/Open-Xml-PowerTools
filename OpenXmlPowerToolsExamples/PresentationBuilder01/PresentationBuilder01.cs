@@ -1,9 +1,9 @@
-﻿using OpenXmlPowerTools;
+﻿using Codeuctivity;
 using System;
 using System.Collections.Generic;
 using System.IO;
 
-namespace ExamplePresentatonBuilder01
+namespace PresentationBuilder01
 {
     internal class ExamplePresentationBuilder01
     {

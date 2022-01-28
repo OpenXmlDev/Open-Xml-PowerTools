@@ -9,7 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Xml.Linq;
 
-namespace OpenXmlPowerTools
+namespace Codeuctivity
 {
     public class MetricsGetterSettings
     {
@@ -21,8 +21,6 @@ namespace OpenXmlPowerTools
 
     public class MetricsGetter
     {
-
-
         public static XElement GetMetrics(string fileName, MetricsGetterSettings settings)
         {
             var fi = new FileInfo(fileName);
@@ -118,7 +116,7 @@ namespace OpenXmlPowerTools
             try
             {
                 var font = new SixLabors.Fonts.Font(ff, (float)sz / 2f, fs);
-                SixLabors.Fonts.FontRectangle size = SixLabors.Fonts.TextMeasurer.Measure(text, new SixLabors.Fonts.RendererOptions(font));
+                var size = SixLabors.Fonts.TextMeasurer.Measure(text, new SixLabors.Fonts.RendererOptions(font));
 
                 return (int)size.Width;
             }
@@ -1039,7 +1037,7 @@ namespace OpenXmlPowerTools
                     var isGroup = element.Elements(W.sdtPr).Elements(W.group).Any();
                     var isPicture = element.Elements(W.sdtPr).Elements(W.picture).Any();
                     var isRichText = element.Elements(W.sdtPr).Elements(W.richText).Any() ||
-                        (!isText &&
+                        !isText &&
                         !isBibliography &&
                         !isCitation &&
                         !isComboBox &&
@@ -1049,7 +1047,7 @@ namespace OpenXmlPowerTools
                         !isDropDownList &&
                         !isEquation &&
                         !isGroup &&
-                        !isPicture);
+                        !isPicture;
                     string type = null;
                     if (isText)
                     {

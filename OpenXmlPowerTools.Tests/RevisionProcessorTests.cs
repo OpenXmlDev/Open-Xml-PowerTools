@@ -1,11 +1,10 @@
-﻿using OpenXmlPowerTools;
-using OpenXmlPowerTools.Tests;
+﻿using Codeuctivity.WmlComparer;
 using System;
 using System.IO;
 using System.Linq;
 using Xunit;
 
-namespace OxPt
+namespace Codeuctivity.Tests
 {
     public class RpTests
     {
@@ -108,8 +107,8 @@ namespace OxPt
             {
                 var baselineAcceptedWml = new WmlDocument(baselineAcceptedFi.FullName);
                 var wmlComparerSettings = new WmlComparerSettings();
-                var result = WmlComparer.Compare(baselineAcceptedWml, afterAcceptingWml, wmlComparerSettings);
-                var revisions = WmlComparer.GetRevisions(result, wmlComparerSettings);
+                var result = WmlComparer.WmlComparer.Compare(baselineAcceptedWml, afterAcceptingWml, wmlComparerSettings);
+                var revisions = WmlComparer.WmlComparer.GetRevisions(result, wmlComparerSettings);
                 if (revisions.Any())
                 {
                     Assert.True(false, "Regression Error: Accepted baseline document did not match processed document");
@@ -125,8 +124,8 @@ namespace OxPt
             {
                 var baselineRejectedWml = new WmlDocument(baselineRejectedFi.FullName);
                 var wmlComparerSettings = new WmlComparerSettings();
-                var result = WmlComparer.Compare(baselineRejectedWml, afterRejectingWml, wmlComparerSettings);
-                var revisions = WmlComparer.GetRevisions(result, wmlComparerSettings);
+                var result = WmlComparer.WmlComparer.Compare(baselineRejectedWml, afterRejectingWml, wmlComparerSettings);
+                var revisions = WmlComparer.WmlComparer.GetRevisions(result, wmlComparerSettings);
                 if (revisions.Any())
                 {
                     Assert.True(false, "Regression Error: Rejected baseline document did not match processed document");

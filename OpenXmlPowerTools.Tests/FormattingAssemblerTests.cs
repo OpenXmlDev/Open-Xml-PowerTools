@@ -1,7 +1,5 @@
 ﻿using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Validation;
-using OpenXmlPowerTools;
-using OpenXmlPowerTools.Tests;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -9,7 +7,7 @@ using System.Linq;
 using System.Text;
 using Xunit;
 
-namespace OxPt
+namespace Codeuctivity.Tests
 {
     public class FaTests
     {

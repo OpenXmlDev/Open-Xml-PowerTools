@@ -4,14 +4,13 @@ using System;
 using System.IO;
 using System.Xml.Linq;
 
-namespace OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
+namespace Codeuctivity.OpenXMLWordprocessingMLToHtmlConverter
 {
     /// <summary>
     /// Default image handler
     /// </summary>
     public class ImageHandler : IImageHandler
     {
-
         /// <summary>
         /// Transforms OpenXml Images to HTML embeddable images
         /// </summary>

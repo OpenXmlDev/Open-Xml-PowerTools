@@ -1,4 +1,4 @@
-﻿namespace OpenXmlPowerTools
+﻿namespace Codeuctivity
 {
     public class ListItemTextGetter_tr_TR
     {
@@ -73,8 +73,8 @@
             if (numFmt == "upperRoman")
             {
                 var ones = levelNumber % 10;
-                var tens = (levelNumber % 100) / 10;
-                var hundreds = (levelNumber % 1000) / 100;
+                var tens = levelNumber % 100 / 10;
+                var hundreds = levelNumber % 1000 / 100;
                 var thousands = levelNumber / 1000;
                 return RomanThousands[thousands] + RomanHundreds[hundreds] +
                     RomanTens[tens] + RomanOnes[ones];
@@ -82,8 +82,8 @@
             if (numFmt == "lowerRoman")
             {
                 var ones = levelNumber % 10;
-                var tens = (levelNumber % 100) / 10;
-                var hundreds = (levelNumber % 1000) / 100;
+                var tens = levelNumber % 100 / 10;
+                var hundreds = levelNumber % 1000 / 100;
                 var thousands = levelNumber / 1000;
                 return (RomanThousands[thousands] + RomanHundreds[hundreds] +
                     RomanTens[tens] + RomanOnes[ones]).ToLower();
@@ -142,7 +142,7 @@
                     result += " ";
                 }
 
-                var h1 = (levelNumber % 1000) / 100;
+                var h1 = levelNumber % 1000 / 100;
                 var h2 = levelNumber % 100;
                 if (h1 >= 1)
                 {
@@ -195,7 +195,7 @@
                     return result.Substring(0, 1).ToUpper() +
                         result.Substring(1);
                 }
-                var h1 = (levelNumber % 1000) / 100;
+                var h1 = levelNumber % 1000 / 100;
                 var h2 = levelNumber % 100;
                 if (h1 >= 1 && h2 != 0)
                 {

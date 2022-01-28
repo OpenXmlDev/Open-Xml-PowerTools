@@ -5,7 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 
-namespace Peg.Base
+namespace Codeuctivity
 {
     #region Input File Support
 
@@ -175,7 +175,7 @@ namespace Peg.Base
 
     #region Error handling
 
-    public class PegException : System.Exception
+    public class PegException : Exception
     {
         public PegException()
             : base("Fatal parsing error ocurred")
@@ -682,7 +682,7 @@ namespace Peg.Base
 
         public void SetErrorDestination(TextWriter errOut)
         {
-            errOut_ = errOut == null ? new StreamWriter(System.Console.OpenStandardError())
+            errOut_ = errOut == null ? new StreamWriter(Console.OpenStandardError())
                 : errOut;
         }
 
@@ -1191,7 +1191,7 @@ namespace Peg.Base
 
         public void Construct(byte[] src, TextWriter Fout)
         {
-            base.Construct(Fout);
+            Construct(Fout);
             SetSource(src);
         }
 
@@ -1271,7 +1271,7 @@ namespace Peg.Base
                 return false;
             }
 
-            var encoding = System.Text.Encoding.UTF8;
+            var encoding = Encoding.UTF8;
             var sAsString = encoding.GetString(s);
             if (!double.TryParse(sAsString, out into))
             {
@@ -1285,7 +1285,7 @@ namespace Peg.Base
         {
             if (pos_ < srcLen_)
             {
-                into = (src_[pos_] >> (lowBitNo - 1)) & ((1 << highBitNo) - 1);
+                into = src_[pos_] >> lowBitNo - 1 & (1 << highBitNo) - 1;
                 ++pos_;
                 return true;
             }
@@ -1297,7 +1297,7 @@ namespace Peg.Base
         {
             if (pos_ < srcLen_)
             {
-                var value = (byte)((src_[pos_] >> (lowBitNo - 1)) & ((1 << highBitNo) - 1));
+                var value = (byte)(src_[pos_] >> lowBitNo - 1 & (1 << highBitNo) - 1);
                 ++pos_;
                 into = value;
                 return toMatch.Matches(value);
@@ -1334,7 +1334,7 @@ namespace Peg.Base
 
         public bool Bits(int lowBitNo, int highBitNo, byte toMatch)
         {
-            if (pos_ < srcLen_ && ((src_[pos_] >> (lowBitNo - 1)) & ((1 << highBitNo) - 1)) == toMatch)
+            if (pos_ < srcLen_ && (src_[pos_] >> lowBitNo - 1 & (1 << highBitNo) - 1) == toMatch)
             {
                 ++pos_;
                 return true;
@@ -1346,7 +1346,7 @@ namespace Peg.Base
         {
             if (pos_ < srcLen_)
             {
-                var value = (byte)((src_[pos_] >> (lowBitNo - 1)) & ((1 << highBitNo) - 1));
+                var value = (byte)(src_[pos_] >> lowBitNo - 1 & (1 << highBitNo) - 1);
                 ++pos_;
                 return toMatch.Matches(value);
             }
@@ -1355,12 +1355,12 @@ namespace Peg.Base
 
         public bool PeekBits(int lowBitNo, int highBitNo, byte toMatch)
         {
-            return pos_ < srcLen_ && ((src_[pos_] >> (lowBitNo - 1)) & ((1 << highBitNo) - 1)) == toMatch;
+            return pos_ < srcLen_ && (src_[pos_] >> lowBitNo - 1 & (1 << highBitNo) - 1) == toMatch;
         }
 
         public bool NotBits(int lowBitNo, int highBitNo, byte toMatch)
         {
-            return !(pos_ < srcLen_ && ((src_[pos_] >> (lowBitNo - 1)) & ((1 << highBitNo) - 1)) == toMatch);
+            return !(pos_ < srcLen_ && (src_[pos_] >> lowBitNo - 1 & (1 << highBitNo) - 1) == toMatch);
         }
 
         public bool IntoBits(int lowBitNo, int highBitNo, out int val)
@@ -1370,7 +1370,7 @@ namespace Peg.Base
 
         public bool Bit(int bitNo, byte toMatch)
         {
-            if (pos_ < srcLen_ && ((src_[pos_] >> (bitNo - 1)) & 1) == toMatch)
+            if (pos_ < srcLen_ && (src_[pos_] >> bitNo - 1 & 1) == toMatch)
             {
                 ++pos_;
                 return true;
@@ -1380,12 +1380,12 @@ namespace Peg.Base
 
         public bool PeekBit(int bitNo, byte toMatch)
         {
-            return pos_ < srcLen_ && ((src_[pos_] >> (bitNo - 1)) & 1) == toMatch;
+            return pos_ < srcLen_ && (src_[pos_] >> bitNo - 1 & 1) == toMatch;
         }
 
         public bool NotBit(int bitNo, byte toMatch)
         {
-            return !(pos_ < srcLen_ && ((src_[pos_] >> (bitNo - 1)) & 1) == toMatch);
+            return !(pos_ < srcLen_ && (src_[pos_] >> bitNo - 1 & 1) == toMatch);
         }
 
         #endregion PEG Bit level equivalents for PEG e1 ; &e1 ; !e1; e1:into ;
@@ -1982,7 +1982,7 @@ namespace Peg.Base
                     }
                     else
                     {
-                        children_ = new Trie[(cMax - cMin_) + 1];
+                        children_ = new Trie[cMax - cMin_ + 1];
                         foreach (var c in followChars)
                         {
                             var subLiterals = new List<string>();
@@ -2065,7 +2065,7 @@ namespace Peg.Base
 
         public void Construct(string src, TextWriter Fout)
         {
-            base.Construct(Fout);
+            Construct(Fout);
             SetSource(src);
         }
 

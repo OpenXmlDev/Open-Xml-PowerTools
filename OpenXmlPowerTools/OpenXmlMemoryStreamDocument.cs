@@ -1,11 +1,12 @@
-﻿using DocumentFormat.OpenXml.Packaging;
+﻿using Codeuctivity.Exceptions;
+using DocumentFormat.OpenXml.Packaging;
 using System;
 using System.IO;
 using System.IO.Packaging;
 using System.Linq;
 using System.Xml.Linq;
 
-namespace OpenXmlPowerTools
+namespace Codeuctivity
 {
     public class OpenXmlMemoryStreamDocument : IDisposable
     {
@@ -198,28 +199,28 @@ namespace OpenXmlPowerTools
         {
             DocPackage.Close();
             DocPackage = null;
-            return new OpenXmlPowerToolsDocument((Document == null) ? null : Document.FileName, DocMemoryStream);
+            return new OpenXmlPowerToolsDocument(Document?.FileName, DocMemoryStream);
         }
 
         public WmlDocument GetModifiedWmlDocument()
         {
             DocPackage.Close();
             DocPackage = null;
-            return new WmlDocument((Document == null) ? null : Document.FileName, DocMemoryStream);
+            return new WmlDocument(Document?.FileName, DocMemoryStream);
         }
 
         public SmlDocument GetModifiedSmlDocument()
         {
             DocPackage.Close();
             DocPackage = null;
-            return new SmlDocument((Document == null) ? null : Document.FileName, DocMemoryStream);
+            return new SmlDocument(Document?.FileName, DocMemoryStream);
         }
 
         public PmlDocument GetModifiedPmlDocument()
         {
             DocPackage.Close();
             DocPackage = null;
-            return new PmlDocument((Document == null) ? null : Document.FileName, DocMemoryStream);
+            return new PmlDocument(Document?.FileName, DocMemoryStream);
         }
 
         public void Close()
