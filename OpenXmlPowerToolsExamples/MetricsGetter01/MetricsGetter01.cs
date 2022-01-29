@@ -1,7 +1,8 @@
-﻿using System;
+﻿using Codeuctivity.OpenXmlPowerTools;
+using System;
 using System.IO;
 
-namespace OpenXmlPowerTools
+namespace MetricsGetter01
 {
     internal class MetricsGetter01
     {

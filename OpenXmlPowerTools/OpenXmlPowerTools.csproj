@@ -1,56 +1,61 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <TargetFrameworks>netstandard2.0</TargetFrameworks>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <RepositoryUrl>https://github.com/Codeuctivity/OpenXmlPowerTools</RepositoryUrl>
-    <PackageTags>OpenXML DOCX Word XLSX Excel PPTX Powerpoint</PackageTags>
-    <Authors>Contributors</Authors>
-    <Company>Codeuctivity</Company>
-
-    <Version Condition="'$(GITHUB_RUN_NUMBER)' != ''">5.1.$(GITHUB_RUN_NUMBER)</Version>
-    <Version Condition="'$(GITHUB_RUN_NUMBER)' == ''">5.1.0</Version>
-    <AssemblyVersion>$(Version)</AssemblyVersion>
-    <FileVersion>$(Version)</FileVersion>
-    <PackageVersion>$(Version)-beta1</PackageVersion>
-    <PackageIcon>NugetIcon.png</PackageIcon>
-    <PackageProjectUrl>https://github.com/Codeuctivity/OpenXmlPowerTools</PackageProjectUrl>
-    <Description>The Open XML SDK provides tools for working with Office Word, Excel, and PowerPoint documents. This fork supports current .net versions.</Description>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-    <PackageReleaseNotes Condition="'$(LAST_COMMIT_MESSAGE)' != ''">$(LAST_COMMIT_MESSAGE)</PackageReleaseNotes>
-    <PackageReleaseNotes Condition="'$(APPVEYOR_REPO_COMMIT_MESSAGE)' != ''">$(APPVEYOR_REPO_COMMIT_MESSAGE)</PackageReleaseNotes>
-    <IncludeSymbols>true</IncludeSymbols>
-    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-    <PublishRepositoryUrl>true</PublishRepositoryUrl>
-    <EmbedUntrackedSources>true</EmbedUntrackedSources>
-    <Nullable>enable</Nullable>
-    <LangVersion>8.0</LangVersion>
-    <SignAssembly>true</SignAssembly>
-    <AssemblyOriginatorKeyFile>OpenXmlPowerTools.snk</AssemblyOriginatorKeyFile>
-    <PackageId>OpenXmlPowerToolsStandard</PackageId>
-    <UserSecretsId>21e414c9-78be-455b-9611-12f18f73d93e</UserSecretsId>
-    <EnableNETAnalyzers>true</EnableNETAnalyzers>
-  </PropertyGroup>
-  <ItemGroup>
-    <Compile Remove="Properties\**" />
-    <EmbeddedResource Remove="Properties\**" />
-    <None Remove="Properties\**" />
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="DocumentFormat.OpenXml" Version="2.14.0" />
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="SixLabors.ImageSharp" Version="1.0.4" />
-    <PackageReference Include="SixLabors.ImageSharp.Drawing" Version="1.0.0-beta13" />
-    <PackageReference Include="SonarAnalyzer.CSharp" Version="8.32.0.39516">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="NugetIcon.png" Pack="true" PackagePath="\" />
-  </ItemGroup>
+	<PropertyGroup>
+		<TargetFrameworks>netstandard2.0</TargetFrameworks>
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+		<RepositoryUrl>https://github.com/Codeuctivity/OpenXmlPowerTools</RepositoryUrl>
+		<PackageTags>OpenXML DOCX Word XLSX Excel PPTX Powerpoint</PackageTags>
+		<Authors>Stefan Seeland</Authors>
+		<Company>Codeuctivity</Company>
+		<Version Condition="'$(CURRENT_VERSION)' != ''">$(CURRENT_VERSION)</Version>
+		<Version Condition="'$(CURRENT_VERSION)' == ''">0.0.1</Version>
+		<AssemblyVersion>$(Version)</AssemblyVersion>
+		<FileVersion>$(Version)</FileVersion>
+		<PackageVersion>$(Version)-Prerelease</PackageVersion>
+		<PackageReleaseNotes>$(LAST_COMMIT_MESSAGE)</PackageReleaseNotes>
+		<PackageIcon>NugetIcon.png</PackageIcon>
+		<PackageProjectUrl>https://github.com/Codeuctivity/OpenXmlPowerTools</PackageProjectUrl>
+		<Description>The Open XML SDK provides tools for working with Office Word, Excel, and PowerPoint documents. This fork supports current .net versions.</Description>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+		<AssemblyOriginatorKeyFile>OpenXmlPowerTools.snk</AssemblyOriginatorKeyFile>
+		<SignAssembly>true</SignAssembly>
+		<IncludeSymbols>true</IncludeSymbols>
+		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
+		<PublishRepositoryUrl>true</PublishRepositoryUrl>
+		<EmbedUntrackedSources>true</EmbedUntrackedSources>
+		<Nullable>enable</Nullable>
+		<LangVersion>8.0</LangVersion>
+		<RootNamespace>Codeuctivity.OpenXmlPowerTools</RootNamespace>
+		<NeutralLanguage>en</NeutralLanguage>
+		<EnableNETAnalyzers>true</EnableNETAnalyzers>
+		<PackageId>Codeuctivity.OpenXmlPowerTools</PackageId>
+		<AssemblyName>Codeuctivity.OpenXmlPowerTools</AssemblyName>
+		<PackageReadmeFile>nugetReadme.md</PackageReadmeFile>
+		<ContinuousIntegrationBuild Condition="'$(GITHUB_ACTIONS)' == 'true'">true</ContinuousIntegrationBuild>
+	</PropertyGroup>
+	<ItemGroup>
+		<None Include="docs\nugetReadme.md" Pack="true" PackagePath="\" />
+	</ItemGroup>
+	<ItemGroup>
+		<Compile Remove="Properties\**" />
+		<EmbeddedResource Remove="Properties\**" />
+		<None Remove="Properties\**" />
+	</ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="DocumentFormat.OpenXml" Version="2.15.0" />
+		<PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="SixLabors.ImageSharp" Version="1.0.4" />
+		<PackageReference Include="SixLabors.ImageSharp.Drawing" Version="1.0.0-beta13" />
+		<PackageReference Include="SonarAnalyzer.CSharp" Version="8.34.0.42011">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+	</ItemGroup>
+	<ItemGroup>
+		<None Include="NugetIcon.png" Pack="true" PackagePath="\" />
+	</ItemGroup>
 </Project>

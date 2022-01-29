@@ -1,12 +1,10 @@
-
-
 using DocumentFormat.OpenXml.Packaging;
 using System;
 using System.Linq;
 using System.Xml;
 using System.Xml.Linq;
 
-namespace OpenXmlPowerTools
+namespace Codeuctivity.OpenXmlPowerTools
 {
     public static class PowerToolsBlockExtensions
     {

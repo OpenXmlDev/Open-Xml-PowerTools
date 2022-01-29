@@ -1,8 +1,9 @@
-﻿using DocumentFormat.OpenXml.Packaging;
+﻿using Codeuctivity.OpenXmlPowerTools;
+using DocumentFormat.OpenXml.Packaging;
 using System;
 using System.IO;
 
-namespace OpenXmlPowerTools
+namespace TextReplacer02
 {
     internal class Program
     {

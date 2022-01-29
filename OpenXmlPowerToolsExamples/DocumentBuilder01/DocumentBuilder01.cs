@@ -1,9 +1,10 @@
-﻿using OpenXmlPowerTools;
+﻿using  Codeuctivity.OpenXmlPowerTools;
+using Codeuctivity.OpenXmlPowerTools.DocumentBuilder;
 using System;
 using System.Collections.Generic;
 using System.IO;
 
-namespace DocumentBuilderExample
+namespace DocumentBuilder01
 {
     internal class DocumentBuilderExample
     {

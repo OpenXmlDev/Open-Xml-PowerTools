@@ -1,11 +1,12 @@
-﻿using DocumentFormat.OpenXml;
+﻿using Codeuctivity.OpenXmlPowerTools;
+using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using System.IO;
 using System.Linq;
 using System.Xml.Linq;
 using Xunit;
 
-namespace OpenXmlPowerTools.Tests
+namespace Codeuctivity.Tests
 {
     public class MarkupSimplifierTests
     {

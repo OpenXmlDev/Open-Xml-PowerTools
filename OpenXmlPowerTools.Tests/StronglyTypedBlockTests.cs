@@ -1,3 +1,4 @@
+using Codeuctivity.OpenXmlPowerTools;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
 using System;
@@ -6,7 +7,7 @@ using System.Linq;
 using System.Xml.Linq;
 using Xunit;
 
-namespace OpenXmlPowerTools.Tests
+namespace Codeuctivity.Tests
 {
     public class StronglyTypedBlockTests : TestsBase
     {

@@ -1,12 +1,10 @@
-﻿
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
 
-namespace OpenXmlPowerTools
+namespace Codeuctivity.OpenXmlPowerTools
 {
     public class OpenXmlRegex
     {
@@ -160,7 +158,7 @@ namespace OpenXmlPowerTools
                                  .Max() + 1;
                 var revTrackingWithoutId = root
                     .DescendantsAndSelf()
-                    .Where(d => RevTrackMarkupWithId.Contains(d.Name) && (d.Attribute(W.id) == null));
+                    .Where(d => RevTrackMarkupWithId.Contains(d.Name) && d.Attribute(W.id) == null);
                 foreach (var item in revTrackingWithoutId)
                 {
                     item.Add(new XAttribute(W.id, nextId++));
@@ -189,7 +187,7 @@ namespace OpenXmlPowerTools
                 return replInfo.Count;
             }
 
-            if ((first.Name.Namespace == P.p) || (first.Name.Namespace == A.a))
+            if (first.Name.Namespace == P.p || first.Name.Namespace == A.a)
             {
                 if (trackRevisions)
                 {
@@ -273,7 +271,7 @@ namespace OpenXmlPowerTools
                             continue;
                         }
 
-                        if ((callback != null) && !callback(paragraph, match))
+                        if (callback != null && !callback(paragraph, match))
                         {
                             continue;
                         }
@@ -411,12 +409,12 @@ namespace OpenXmlPowerTools
                             return e;
                         }
 
-                        if (((e.Name == W.r) && e.Elements(W.t).Any()) || e.Elements(W.tab).Any())
+                        if (e.Name == W.r && e.Elements(W.t).Any() || e.Elements(W.tab).Any())
                         {
                             return e;
                         }
 
-                        if ((e.Name == W.ins) && e.Elements(W.r).Elements(W.t).Any())
+                        if (e.Name == W.ins && e.Elements(W.r).Elements(W.t).Any())
                         {
                             return e;
                         }
@@ -538,7 +536,7 @@ namespace OpenXmlPowerTools
                 {
                     foreach (var match in matchCollection.Cast<Match>())
                     {
-                        if ((callback != null) && !callback(paragraph, match))
+                        if (callback != null && !callback(paragraph, match))
                         {
                             continue;
                         }
@@ -586,7 +584,7 @@ namespace OpenXmlPowerTools
                                     return DontConsolidate;
                                 }
 
-                                if ((ce.Elements().Count(e => e.Name != A.rPr) != 1) || (ce.Element(A.t) == null))
+                                if (ce.Elements().Count(e => e.Name != A.rPr) != 1 || ce.Element(A.t) == null)
                                 {
                                     return DontConsolidate;
                                 }
@@ -614,7 +612,7 @@ namespace OpenXmlPowerTools
                 return paragraph;
             }
 
-            if ((element.Name == A.r) && element.Elements(A.t).Any())
+            if (element.Name == A.r && element.Elements(A.t).Any())
             {
                 return element.Elements()
                     .Where(e => e.Name != A.rPr)

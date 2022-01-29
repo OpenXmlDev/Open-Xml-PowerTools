@@ -1,8 +1,5 @@
-﻿#define COPY_FILES_FOR_DEBUGGING
-
+﻿using Codeuctivity.OpenXmlPowerTools;
 using DocumentFormat.OpenXml.Packaging;
-using OpenXmlPowerTools;
-using OpenXmlPowerTools.Tests;
 using System;
 using System.Globalization;
 using System.IO;
@@ -10,7 +7,7 @@ using System.Linq;
 using System.Reflection;
 using Xunit;
 
-namespace OxPt
+namespace Codeuctivity.Tests
 {
     public class CaTests
     {
@@ -71,9 +68,9 @@ namespace OxPt
             var exception = Assert.Throws<TargetInvocationException>(() =>
               {
                   var contentParent = wDoc.MainDocumentPart.GetXDocument().Root.Element(W.body);
-                  var settings = new WmlComparerSettings();
+                  var settings = new Codeuctivity.OpenXmlPowerTools.WmlComparer.WmlComparerSettings();
 
-                  var type = typeof(WmlComparer);
+                  var type = typeof(OpenXmlPowerTools.WmlComparer.WmlComparer);
                   var method = type.GetMethods(BindingFlags.NonPublic | BindingFlags.Static).Where(x => x.Name == "CreateComparisonUnitAtomList" && x.IsStatic).Single();
 
                   //Act

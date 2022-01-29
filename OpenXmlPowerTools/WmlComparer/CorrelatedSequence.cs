@@ -25,7 +25,7 @@ using System.Text;
 // tree, and sets this as the same for all content atoms in the paragraph.  For descendants of the paragraph mark, it doesn't really matter if content is put into
 // separate runs or what not.  We don't need to be concerned about what the unids are for descendants of the paragraph.
 
-namespace OpenXmlPowerTools
+namespace Codeuctivity.OpenXmlPowerTools.WmlComparer
 {
     internal class CorrelatedSequence
     {
@@ -61,7 +61,7 @@ namespace OpenXmlPowerTools
 #endif
             sb.Append(indentString + "CorrelatedItem =====" + Environment.NewLine);
             sb.Append(indentString4 + "CorrelationStatus: " + CorrelationStatus.ToString() + Environment.NewLine);
-            if (CorrelationStatus == OpenXmlPowerTools.CorrelationStatus.Equal)
+            if (CorrelationStatus == CorrelationStatus.Equal)
             {
                 sb.Append(indentString4 + "ComparisonUnitList =====" + Environment.NewLine);
                 foreach (var item in ComparisonUnitArray2)

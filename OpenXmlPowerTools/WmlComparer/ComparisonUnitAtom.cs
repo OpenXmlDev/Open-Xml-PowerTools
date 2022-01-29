@@ -1,3 +1,4 @@
+using Codeuctivity.OpenXmlPowerTools;
 using DocumentFormat.OpenXml.Packaging;
 using System;
 using System.Collections.Generic;
@@ -29,7 +30,7 @@ using System.Xml.Linq;
 // tree, and sets this as the same for all content atoms in the paragraph.  For descendants of the paragraph mark, it doesn't really matter if content is put into
 // separate runs or what not.  We don't need to be concerned about what the unids are for descendants of the paragraph.
 
-namespace OpenXmlPowerTools
+namespace Codeuctivity.OpenXmlPowerTools.WmlComparer
 {
     public class ComparisonUnitAtom : ComparisonUnit
     {
@@ -117,7 +118,7 @@ namespace OpenXmlPowerTools
             var sb = new StringBuilder();
             sb.Append(indentString);
             var correlationStatus = "";
-            if (CorrelationStatus != OpenXmlPowerTools.CorrelationStatus.Nil)
+            if (CorrelationStatus != CorrelationStatus.Nil)
             {
                 correlationStatus = string.Format("[{0}] ", CorrelationStatus.ToString().PadRight(8));
             }
@@ -143,7 +144,7 @@ namespace OpenXmlPowerTools
             var sb = new StringBuilder();
             sb.Append(indentString);
             var correlationStatus = "";
-            if (CorrelationStatus != OpenXmlPowerTools.CorrelationStatus.Nil)
+            if (CorrelationStatus != CorrelationStatus.Nil)
             {
                 correlationStatus = string.Format("[{0}] ", CorrelationStatus.ToString().PadRight(8));
             }

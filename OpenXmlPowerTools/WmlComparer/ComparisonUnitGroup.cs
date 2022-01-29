@@ -1,3 +1,4 @@
+using Codeuctivity.OpenXmlPowerTools;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -28,7 +29,7 @@ using System.Xml.Linq;
 // tree, and sets this as the same for all content atoms in the paragraph.  For descendants of the paragraph mark, it doesn't really matter if content is put into
 // separate runs or what not.  We don't need to be concerned about what the unids are for descendants of the paragraph.
 
-namespace OpenXmlPowerTools
+namespace Codeuctivity.OpenXmlPowerTools.WmlComparer
 {
     internal class ComparisonUnitGroup : ComparisonUnit
     {
@@ -43,23 +44,23 @@ namespace OpenXmlPowerTools
             var first = comparisonUnitList.First();
             var comparisonUnitAtom = GetFirstComparisonUnitAtomOfGroup(first);
             XName ancestorName = null;
-            if (groupType == OpenXmlPowerTools.ComparisonUnitGroupType.Table)
+            if (groupType == ComparisonUnitGroupType.Table)
             {
                 ancestorName = W.tbl;
             }
-            else if (groupType == OpenXmlPowerTools.ComparisonUnitGroupType.Row)
+            else if (groupType == ComparisonUnitGroupType.Row)
             {
                 ancestorName = W.tr;
             }
-            else if (groupType == OpenXmlPowerTools.ComparisonUnitGroupType.Cell)
+            else if (groupType == ComparisonUnitGroupType.Cell)
             {
                 ancestorName = W.tc;
             }
-            else if (groupType == OpenXmlPowerTools.ComparisonUnitGroupType.Paragraph)
+            else if (groupType == ComparisonUnitGroupType.Paragraph)
             {
                 ancestorName = W.p;
             }
-            else if (groupType == OpenXmlPowerTools.ComparisonUnitGroupType.Textbox)
+            else if (groupType == ComparisonUnitGroupType.Textbox)
             {
                 ancestorName = W.txbxContent;
             }

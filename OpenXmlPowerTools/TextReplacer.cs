@@ -3,7 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Xml.Linq;
 
-namespace OpenXmlPowerTools
+namespace Codeuctivity.OpenXmlPowerTools
 {
     public partial class WmlDocument : OpenXmlPowerToolsDocument
     {
@@ -154,7 +154,7 @@ namespace OpenXmlPowerTools
                                     return "DontConsolidate";
                                 }
 
-                                if (ce.Elements().Where(e => e.Name != W.rPr).Count() != 1 ||
+                                if (ce.Elements().Count(e => e.Name != W.rPr) != 1 ||
                                     ce.Element(W.t) == null)
                                 {
                                     return "DontConsolidate";
@@ -399,7 +399,7 @@ namespace OpenXmlPowerTools
                                     return "DontConsolidate";
                                 }
 
-                                if (ce.Elements().Where(e => e.Name != A.rPr).Count() != 1 ||
+                                if (ce.Elements().Count(e => e.Name != A.rPr) != 1 ||
                                     ce.Element(A.t) == null)
                                 {
                                     return "DontConsolidate";

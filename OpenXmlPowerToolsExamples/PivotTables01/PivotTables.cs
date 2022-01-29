@@ -1,8 +1,8 @@
-﻿using OpenXmlPowerTools;
+﻿using Codeuctivity.OpenXmlPowerTools;
 using System;
 using System.IO;
 
-namespace ExamplePivotTables
+namespace PivotTables01
 {
     internal class PivotTableExample
     {
@@ -18,7 +18,7 @@ namespace ExamplePivotTables
 
             var row = 1;
             using (var streamDoc = new OpenXmlMemoryStreamDocument(
-                SmlDocument.FromFileName(qs.FullName)))
+                OpenXmlPowerToolsDocument.FromFileName(qs.FullName)))
             {
                 using (var doc = streamDoc.GetSpreadsheetDocument())
                 {
@@ -154,7 +154,7 @@ namespace ExamplePivotTables
             // Add pivot table to existing spreadsheet
             // Demonstrate multiple data fields
             using (var streamDoc = new OpenXmlMemoryStreamDocument(
-                SmlDocument.FromFileName("../../QuarterlyUnitSales.xlsx")))
+                OpenXmlPowerToolsDocument.FromFileName("../../QuarterlyUnitSales.xlsx")))
             {
                 using (var doc = streamDoc.GetSpreadsheetDocument())
                 {

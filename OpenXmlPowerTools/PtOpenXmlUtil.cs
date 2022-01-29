@@ -9,7 +9,7 @@ using System.Text.RegularExpressions;
 using System.Xml;
 using System.Xml.Linq;
 
-namespace OpenXmlPowerTools
+namespace Codeuctivity.OpenXmlPowerTools
 {
     public static class PtOpenXmlExtensions
     {
@@ -376,7 +376,7 @@ namespace OpenXmlPowerTools
                     var byteArray = binaryReader.ReadBytes(len);
                     // the following expression creates the base64String, then chunks
                     // it to lines of 76 characters long
-                    var base64String = (System.Convert.ToBase64String(byteArray))
+                    var base64String = Convert.ToBase64String(byteArray)
                         .Select
                         (
                             (c, i) => new FlatOpcTupple()
@@ -582,7 +582,7 @@ namespace OpenXmlPowerTools
                             var base64CharArray = base64StringInChunks
                                 .Where(c => c != '\r' && c != '\n').ToArray();
                             var byteArray =
-                                System.Convert.FromBase64CharArray(base64CharArray,
+                                Convert.FromBase64CharArray(base64CharArray,
                                 0, base64CharArray.Length);
                             binaryWriter.Write(byteArray);
                         }
@@ -662,8 +662,8 @@ namespace OpenXmlPowerTools
     {
         public static string ConvertToBase64(string fileName)
         {
-            var ba = System.IO.File.ReadAllBytes(fileName);
-            var base64String = (System.Convert.ToBase64String(ba))
+            var ba = File.ReadAllBytes(fileName);
+            var base64String = Convert.ToBase64String(ba)
                 .Select
                 (
                     (c, i) => new
@@ -697,7 +697,7 @@ namespace OpenXmlPowerTools
         public static byte[] ConvertFromBase64(string fileName, string b64)
         {
             var b64b = b64.Replace("\r\n", "");
-            var ba = System.Convert.FromBase64String(b64b);
+            var ba = Convert.FromBase64String(b64b);
             return ba;
         }
     }
@@ -706,7 +706,7 @@ namespace OpenXmlPowerTools
     {
         public static XAttribute GetXmlSpaceAttribute(string value)
         {
-            return (value.Length > 0) && ((value[0] == ' ') || (value[value.Length - 1] == ' '))
+            return value.Length > 0 && (value[0] == ' ' || value[value.Length - 1] == ' ')
                 ? new XAttribute(XNamespace.Xml + "space", "preserve")
                 : null;
         }
@@ -895,7 +895,7 @@ namespace OpenXmlPowerTools
             // if the pos value is in points, not twips
             if (twipsOrPoints.EndsWith("pt"))
             {
-                decimal decimalValue = decimal.Parse(twipsOrPoints.Substring(0, twipsOrPoints.Length - 2));
+                var decimalValue = decimal.Parse(twipsOrPoints.Substring(0, twipsOrPoints.Length - 2));
                 return (int)(decimalValue * 20);
             }
             return int.Parse(twipsOrPoints);
@@ -908,12 +908,12 @@ namespace OpenXmlPowerTools
                 return null;
             }
 
-            string twipsOrPoints = (string)attribute;
+            var twipsOrPoints = (string)attribute;
 
             // if the pos value is in points, not twips
             if (twipsOrPoints.EndsWith("pt"))
             {
-                decimal decimalValue = decimal.Parse(twipsOrPoints.Substring(0, twipsOrPoints.Length - 2));
+                var decimalValue = decimal.Parse(twipsOrPoints.Substring(0, twipsOrPoints.Length - 2));
                 return (int)(decimalValue * 20);
             }
             return int.Parse(twipsOrPoints);
@@ -976,7 +976,7 @@ namespace OpenXmlPowerTools
                             }
 
                             // w:ins/w:r/w:t
-                            if ((ce.Elements().Elements().Count(e => e.Name != W.rPr) != 1) ||
+                            if (ce.Elements().Elements().Count(e => e.Name != W.rPr) != 1 ||
                                 !ce.Elements().Elements(W.t).Any())
                             {
                                 return dontConsolidate;
@@ -1003,7 +1003,7 @@ namespace OpenXmlPowerTools
 
                         if (ce.Name == W.del)
                         {
-                            if ((ce.Elements(W.r).Elements().Count(e => e.Name != W.rPr) != 1) ||
+                            if (ce.Elements(W.r).Elements().Count(e => e.Name != W.rPr) != 1 ||
                                 !ce.Elements().Elements(W.delText).Any())
                             {
                                 return dontConsolidate;
@@ -1038,7 +1038,7 @@ namespace OpenXmlPowerTools
                     var textValue = g
                         .Select(r =>
                             r.Descendants()
-                                .Where(d => (d.Name == W.t) || (d.Name == W.delText) || (d.Name == W.instrText))
+                                .Where(d => d.Name == W.t || d.Name == W.delText || d.Name == W.instrText)
                                 .Select(d => d.Value)
                                 .StringConcatenate())
                         .StringConcatenate();
@@ -1745,7 +1745,7 @@ listSeparator
         {
             if (i >= 0 && i <= 25)
             {
-                return ((char)(((int)'A') + i)).ToString();
+                return ((char)('A' + i)).ToString();
             }
 
             if (i >= 26 && i <= 701)
@@ -1753,7 +1753,7 @@ listSeparator
                 var v = i - 26;
                 var h = v / 26;
                 var l = v % 26;
-                return ((char)(((int)'A') + h)).ToString() + ((char)(((int)'A') + l)).ToString();
+                return ((char)('A' + h)).ToString() + ((char)('A' + l)).ToString();
             }
             // 17576
             if (i >= 702 && i <= 18277)
@@ -1763,16 +1763,16 @@ listSeparator
                 var r = v % 676;
                 var m = r / 26;
                 var l = r % 26;
-                return ((char)(((int)'A') + h)).ToString() +
-                    ((char)(((int)'A') + m)).ToString() +
-                    ((char)(((int)'A') + l)).ToString();
+                return ((char)('A' + h)).ToString() +
+                    ((char)('A' + m)).ToString() +
+                    ((char)('A' + l)).ToString();
             }
             throw new ColumnReferenceOutOfRange(i.ToString());
         }
 
         private static int CharToInt(char c)
         {
-            return (int)c - (int)'A';
+            return c - 'A';
         }
 
         public static int ColumnIdToInt(string cid)
@@ -1795,24 +1795,24 @@ listSeparator
 
         public static IEnumerable<string> ColumnIDs()
         {
-            for (var c = (int)'A'; c <= (int)'Z'; ++c)
+            for (var c = (int)'A'; c <= 'Z'; ++c)
             {
                 yield return ((char)c).ToString();
             }
 
-            for (var c1 = (int)'A'; c1 <= (int)'Z'; ++c1)
+            for (var c1 = (int)'A'; c1 <= 'Z'; ++c1)
             {
-                for (var c2 = (int)'A'; c2 <= (int)'Z'; ++c2)
+                for (var c2 = (int)'A'; c2 <= 'Z'; ++c2)
                 {
                     yield return ((char)c1).ToString() + ((char)c2).ToString();
                 }
             }
 
-            for (var d1 = (int)'A'; d1 <= (int)'Z'; ++d1)
+            for (var d1 = (int)'A'; d1 <= 'Z'; ++d1)
             {
-                for (var d2 = (int)'A'; d2 <= (int)'Z'; ++d2)
+                for (var d2 = (int)'A'; d2 <= 'Z'; ++d2)
                 {
-                    for (var d3 = (int)'A'; d3 <= (int)'Z'; ++d3)
+                    for (var d3 = (int)'A'; d3 <= 'Z'; ++d3)
                     {
                         yield return ((char)d1).ToString() + ((char)d2).ToString() + ((char)d3).ToString();
                     }
@@ -5719,35 +5719,35 @@ listSeparator
 
         public static readonly XName[] BlockLevelContentContainers =
         {
-            W.body,
-            W.tc,
-            W.txbxContent,
-            W.hdr,
-            W.ftr,
-            W.endnote,
-            W.footnote
+            body,
+            tc,
+            txbxContent,
+            hdr,
+            ftr,
+            endnote,
+            footnote
         };
 
         public static readonly XName[] SubRunLevelContent =
         {
-            W.br,
-            W.cr,
-            W.dayLong,
-            W.dayShort,
-            W.drawing,
-            W.drawing,
-            W.monthLong,
-            W.monthShort,
-            W.noBreakHyphen,
-            W.ptab,
-            W.pgNum,
-            W.pict,
-            W.softHyphen,
-            W.sym,
-            W.t,
-            W.tab,
-            W.yearLong,
-            W.yearShort,
+            br,
+            cr,
+            dayLong,
+            dayShort,
+            drawing,
+            drawing,
+            monthLong,
+            monthShort,
+            noBreakHyphen,
+            ptab,
+            pgNum,
+            pict,
+            softHyphen,
+            sym,
+            t,
+            tab,
+            yearLong,
+            yearShort,
             MC.AlternateContent,
         };
     }

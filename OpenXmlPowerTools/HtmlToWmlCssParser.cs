@@ -7,7 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 
-namespace OpenXmlPowerTools.HtmlToWml.CSS
+namespace Codeuctivity.OpenXmlPowerTools
 {
     public class CssAttribute
     {
@@ -201,7 +201,7 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
                 sb.Append(med.ToString());
             }
 
-            var HasBlock = (Declarations.Count > 0 || Directives.Count > 0 || RuleSets.Count > 0);
+            var HasBlock = Declarations.Count > 0 || Directives.Count > 0 || RuleSets.Count > 0;
 
             if (!HasBlock)
             {
@@ -544,9 +544,9 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
         {
             get
             {
-                if (((Type == CssValueType.Hex)
-                    || (Type == CssValueType.String && Value.StartsWith("#")))
-                    && (Value.Length == 6 || (Value.Length == 7 && Value.StartsWith("#"))))
+                if ((Type == CssValueType.Hex
+                    || Type == CssValueType.String && Value.StartsWith("#"))
+                    && (Value.Length == 6 || Value.Length == 7 && Value.StartsWith("#")))
                 {
                     var hex = true;
                     foreach (var c in Value)
@@ -824,15 +824,15 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
             {
                 switch (m_combinator.Value)
                 {
-                    case OpenXmlPowerTools.HtmlToWml.CSS.CssCombinator.PrecededImmediatelyBy:
+                    case CssCombinator.PrecededImmediatelyBy:
                         sb.Append(" + ");
                         break;
 
-                    case OpenXmlPowerTools.HtmlToWml.CSS.CssCombinator.ChildOf:
+                    case CssCombinator.ChildOf:
                         sb.Append(" > ");
                         break;
 
-                    case OpenXmlPowerTools.HtmlToWml.CSS.CssCombinator.PrecededBy:
+                    case CssCombinator.PrecededBy:
                         sb.Append(" ~ ");
                         break;
                 }
@@ -1044,10 +1044,10 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
         {
             get
             {
-                if (((Type == CssTermType.Hex)
-                    || (Type == CssTermType.String && Value.StartsWith("#")))
-                    && (Value.Length == 6 || Value.Length == 3 || ((Value.Length == 7 || Value.Length == 4)
-                    && Value.StartsWith("#"))))
+                if ((Type == CssTermType.Hex
+                    || Type == CssTermType.String && Value.StartsWith("#"))
+                    && (Value.Length == 6 || Value.Length == 3 || (Value.Length == 7 || Value.Length == 4)
+                    && Value.StartsWith("#")))
                 {
                     var hex = true;
                     foreach (var c in Value)
@@ -1096,8 +1096,8 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
                 }
                 else if (Type == CssTermType.Function)
                 {
-                    if (((Function.Name.ToLower().Equals("hsl") || Function.Name.ToLower().Equals("rgb")) && Function.Expression.Terms.Count == 3) ||
-                        ((Function.Name.ToLower().Equals("hsla") || Function.Name.ToLower().Equals("rgba")) && Function.Expression.Terms.Count == 4))
+                    if ((Function.Name.ToLower().Equals("hsl") || Function.Name.ToLower().Equals("rgb")) && Function.Expression.Terms.Count == 3 ||
+                        (Function.Name.ToLower().Equals("hsla") || Function.Name.ToLower().Equals("rgba")) && Function.Expression.Terms.Count == 4)
                     {
                         for (var i = 0; i < Function.Expression.Terms.Count; i++)
                         {
@@ -1153,8 +1153,8 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
             }
             else if (Type == CssTermType.Function)
             {
-                if ((Function.Name.ToLower().Equals("rgb") && Function.Expression.Terms.Count == 3)
-                    || (Function.Name.ToLower().Equals("rgba") && Function.Expression.Terms.Count == 4)
+                if (Function.Name.ToLower().Equals("rgb") && Function.Expression.Terms.Count == 3
+                    || Function.Name.ToLower().Equals("rgba") && Function.Expression.Terms.Count == 4
                     )
                 {
                     byte fr = 0, fg = 0, fb = 0;
@@ -1181,8 +1181,8 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
                     }
                     return Color.FromRgb(fr, fg, fb);
                 }
-                else if ((Function.Name.ToLower().Equals("hsl") && Function.Expression.Terms.Count == 3)
-                  || (Function.Name.Equals("hsla") && Function.Expression.Terms.Count == 4)
+                else if (Function.Name.ToLower().Equals("hsl") && Function.Expression.Terms.Count == 3
+                  || Function.Name.Equals("hsla") && Function.Expression.Terms.Count == 4
                   )
                 {
                     int h = 0, s = 0, v = 0;
@@ -1356,7 +1356,7 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
         public CssDocument ParseText(string content)
         {
             var mem = new MemoryStream();
-            var bytes = ASCIIEncoding.ASCII.GetBytes(content);
+            var bytes = Encoding.ASCII.GetBytes(content);
             mem.Write(bytes, 0, bytes.Length);
             try
             {
@@ -1417,9 +1417,9 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
         private void ConvertFromRGB(Color color)
         {
             double min; double max; double delta;
-            var r = calcRedConponent(color);
-            var g = calcGreenConponent(color);
-            var b = calcBlueConponent(color);
+            var r = CalcRedConponent(color);
+            var g = CalcGreenConponent(color);
+            var b = CalcBlueConponent(color);
             double h; double s; double v;
 
             min = Math.Min(Math.Min(r, g), b);
@@ -1436,7 +1436,7 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
                 s = delta / max;
                 if (r == max)
                 {
-                    h = (60D * ((g - b) / delta)) % 360.0d;
+                    h = 60D * ((g - b) / delta) % 360.0d;
                 }
                 else if (g == max)
                 {
@@ -1457,7 +1457,7 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
             Value = (int)(v * 255.0d);
         }
 
-        private double calcRedConponent(Color color)
+        private double CalcRedConponent(Color color)
         {
             var hex = color.ToHex();
             var hexRed = Convert.ToInt32(hex.Substring(0, 2));
@@ -1465,7 +1465,7 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
             return hexRed / 255.0d;
         }
 
-        private double calcGreenConponent(Color color)
+        private double CalcGreenConponent(Color color)
         {
             var hex = color.ToHex();
             var hexRed = Convert.ToInt32(hex.Substring(0, 2));
@@ -1473,7 +1473,7 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
             return hexRed / 255.0d;
         }
 
-        private double calcBlueConponent(Color color)
+        private double CalcBlueConponent(Color color)
         {
             var hex = color.ToHex();
             var hexRed = Convert.ToInt32(hex.Substring(0, 2));
@@ -1490,7 +1490,7 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
             double g = 0;
             double b = 0;
 
-            h = (Hue / 255.0d * 360.0d) % 360.0d;
+            h = Hue / 255.0d * 360.0d % 360.0d;
             s = Saturation / 255.0d;
             v = Value / 255.0d;
 
@@ -1511,13 +1511,13 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
                 double sectorPos;
 
                 sectorPos = h / 60.0d;
-                sectorNumber = (int)(Math.Floor(sectorPos));
+                sectorNumber = (int)Math.Floor(sectorPos);
 
                 fractionalPart = sectorPos - sectorNumber;
 
                 p = v * (1.0d - s);
-                q = v * (1.0d - (s * fractionalPart));
-                t = v * (1.0d - (s * (1.0d - fractionalPart)));
+                q = v * (1.0d - s * fractionalPart);
+                t = v * (1.0d - s * (1.0d - fractionalPart));
 
                 switch (sectorNumber)
                 {
@@ -1568,7 +1568,7 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
 
         public static bool operator ==(HueSatVal left, HueSatVal right)
         {
-            return (left.Hue == right.Hue && left.Value == right.Value && left.Saturation == right.Saturation);
+            return left.Hue == right.Hue && left.Value == right.Value && left.Saturation == right.Saturation;
         }
 
         public override bool Equals(object obj)
@@ -1634,7 +1634,7 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
             {
                 return false;
             }
-            var units = new System.Collections.Generic.List<string>(
+            var units = new List<string>(
                 new string[]
                 {
                     "em", "ex", "px", "gd", "rem", "vw", "vh", "vm", "ch", "mm", "cm", "in", "pt", "pc", "deg", "grad", "rad", "turn", "ms", "s", "hz", "khz"
@@ -2476,9 +2476,9 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
             }
         }
 
-        private void Attrib(out OpenXmlPowerTools.HtmlToWml.CSS.CssAttribute atb)
+        private void Attrib(out CssAttribute atb)
         {
-            atb = new OpenXmlPowerTools.HtmlToWml.CSS.CssAttribute
+            atb = new CssAttribute
             {
                 Value = ""
             };
@@ -2913,8 +2913,8 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
 
     public class Errors
     {
-        public int numberOfErrorsDetected { get; set; } = 0;
-        public string errMsgFormat { get; set; } = "CssParser error: line {0} col {1}: {2}";
+        public int NumberOfErrorsDetected { get; set; } = 0;
+        public string ErrMsgFormat { get; set; } = "CssParser error: line {0} col {1}: {2}";
 
         public virtual void SyntaxError(int line, int col, int n)
         {
@@ -3173,13 +3173,13 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
                     s = "error " + n;
                     break;
             }
-            var errorString = string.Format(errMsgFormat, line, col, s);
+            var errorString = string.Format(ErrMsgFormat, line, col, s);
             throw new OpenXmlPowerToolsException(errorString);
         }
 
         public virtual void SemanticError(int line, int col, string s)
         {
-            var errorString = string.Format(errMsgFormat, line, col, s);
+            var errorString = string.Format(ErrMsgFormat, line, col, s);
             throw new OpenXmlPowerToolsException(errorString);
         }
 
@@ -3190,7 +3190,7 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
 
         public virtual void Warning(int line, int col, string s)
         {
-            var errorString = string.Format(errMsgFormat, line, col, s);
+            var errorString = string.Format(ErrMsgFormat, line, col, s);
             throw new OpenXmlPowerToolsException(errorString);
         }
 
@@ -3239,7 +3239,7 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
                 m_inputStreamLength = m_bufferLength = m_bufferStart = 0;
             }
 
-            m_inputBuffer = new byte[(m_bufferLength > 0) ? m_bufferLength : MIN_BUFFER_LENGTH];
+            m_inputBuffer = new byte[m_bufferLength > 0 ? m_bufferLength : MIN_BUFFER_LENGTH];
             if (m_inputStreamLength > 0)
             {
                 Pos = 0;
@@ -3390,7 +3390,7 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
             do
             {
                 ch = base.Read();
-            } while ((ch >= 128) && ((ch & 0xC0) != 0xC0) && (ch != EOF));
+            } while (ch >= 128 && (ch & 0xC0) != 0xC0 && ch != EOF);
             if (ch < 128 || ch == EOF)
             {
                 // nothing to do
@@ -3404,7 +3404,7 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
                 var c3 = ch & 0x3F;
                 ch = base.Read();
                 var c4 = ch & 0x3F;
-                ch = (((((c1 << 6) | c2) << 6) | c3) << 6) | c4;
+                ch = ((c1 << 6 | c2) << 6 | c3) << 6 | c4;
             }
             else if ((ch & 0xE0) == 0xE0)
             {
@@ -3413,14 +3413,14 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
                 var c2 = ch & 0x3F;
                 ch = base.Read();
                 var c3 = ch & 0x3F;
-                ch = (((c1 << 6) | c2) << 6) | c3;
+                ch = (c1 << 6 | c2) << 6 | c3;
             }
             else if ((ch & 0xC0) == 0xC0)
             {
                 var c1 = ch & 0x1F;
                 ch = base.Read();
                 var c2 = ch & 0x3F;
-                ch = (c1 << 6) | c2;
+                ch = c1 << 6 | c2;
             }
             return ch;
         }
@@ -3434,7 +3434,7 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
         private const int c_noSym = 49;
         private const int c_maxTokenLength = 128;
 
-        public CssBuffer m_scannerBuffer { get; set; }
+        public CssBuffer ScannerBuffer { get; set; }
 
         private CssToken m_currentToken;
         private int m_currentInputCharacter;
@@ -3538,13 +3538,13 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
         public Scanner(string fileName)
         {
             Stream stream = new FileStream(fileName, FileMode.Open, FileAccess.Read, FileShare.Read);
-            m_scannerBuffer = new CssBuffer(stream, false);
+            ScannerBuffer = new CssBuffer(stream, false);
             Init();
         }
 
         public Scanner(Stream s)
         {
-            m_scannerBuffer = new CssBuffer(s, true);
+            ScannerBuffer = new CssBuffer(s, true);
             Init();
         }
 
@@ -3566,7 +3566,7 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
                 {
                     throw new NotSupportedException(string.Format("illegal byte order mark: EF {0,2:X} {1,2:X}", ch1, ch2));
                 }
-                m_scannerBuffer = new UTF8Buffer(m_scannerBuffer);
+                ScannerBuffer = new UTF8Buffer(ScannerBuffer);
                 m_columnNumberOfCurrentCharacter = 0;
                 m_unicodeCharacterPosition = -1;
                 NextCh();
@@ -3583,11 +3583,11 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
             }
             else
             {
-                m_currentCharacterBytePosition = m_scannerBuffer.Pos;
-                m_currentInputCharacter = m_scannerBuffer.Read();
+                m_currentCharacterBytePosition = ScannerBuffer.Pos;
+                m_currentInputCharacter = ScannerBuffer.Read();
                 m_columnNumberOfCurrentCharacter++;
                 m_unicodeCharacterPosition++;
-                if (m_currentInputCharacter == '\r' && m_scannerBuffer.Peek() != '\n')
+                if (m_currentInputCharacter == '\r' && ScannerBuffer.Peek() != '\n')
                 {
                     m_currentInputCharacter = END_OF_LINE;
                 }
@@ -3650,7 +3650,7 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
             }
             else
             {
-                m_scannerBuffer.Pos = pos0;
+                ScannerBuffer.Pos = pos0;
                 NextCh();
                 m_lineNumberOfCurrentCharacter = line0;
                 m_columnNumberOfCurrentCharacter = col0;
@@ -4067,7 +4067,7 @@ namespace OpenXmlPowerTools.HtmlToWml.CSS
 
         private void SetScannerBehindT()
         {
-            m_scannerBuffer.Pos = m_currentToken.TokenPositionInBytes;
+            ScannerBuffer.Pos = m_currentToken.TokenPositionInBytes;
             NextCh();
             m_lineNumberOfCurrentCharacter = m_currentToken.TokenLine; m_columnNumberOfCurrentCharacter = m_currentToken.TokenColumn; m_unicodeCharacterPosition = m_currentToken.TokenPositionInCharacters;
             for (var i = 0; i < m_lengthOfCurrentToken; i++)

@@ -1,6 +1,4 @@
-﻿
-
-namespace OpenXmlPowerTools
+﻿namespace Codeuctivity.OpenXmlPowerTools
 {
     public partial class DocumentAssembler
     {

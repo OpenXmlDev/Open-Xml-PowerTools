@@ -1,9 +1,11 @@
-﻿using SixLabors.ImageSharp;
+﻿using Codeuctivity.OpenXmlPowerTools;
+using Codeuctivity.OpenXmlPowerTools.WmlComparer;
+using SixLabors.ImageSharp;
 using System;
 using System.Collections.Generic;
 using System.IO;
 
-namespace OpenXmlPowerTools
+namespace WmlComparer02
 {
     internal class WmlComparer02
     {

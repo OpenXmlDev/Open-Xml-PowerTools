@@ -1,9 +1,9 @@
-﻿using OpenXmlPowerTools;
+﻿using Codeuctivity.OpenXmlPowerTools;
 using System.IO;
 using System.Xml.Linq;
 using Xunit;
 
-namespace OxPt
+namespace Codeuctivity.Tests
 {
     public class MgTests
     {

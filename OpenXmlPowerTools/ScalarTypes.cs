@@ -1,10 +1,8 @@
-﻿
-
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.ObjectModel;
 
-namespace OpenXmlPowerTools
+namespace Codeuctivity.OpenXmlPowerTools
 {
     internal static class DefaultScalarTypes
     {

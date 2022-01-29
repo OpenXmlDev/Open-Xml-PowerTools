@@ -1,6 +1,6 @@
-﻿using DocumentFormat.OpenXml.Packaging;
+﻿using Codeuctivity.OpenXmlPowerTools;
+using DocumentFormat.OpenXml.Packaging;
 using MarkupSimplifierApp.Properties;
-using OpenXmlPowerTools;
 using System;
 
 namespace MarkupSimplifierApp

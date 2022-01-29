@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
+namespace Codeuctivity.OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
 {
     /// <summary>
     /// Handler that transforms every text in w:t

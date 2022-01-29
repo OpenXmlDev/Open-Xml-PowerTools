@@ -1,14 +1,14 @@
-﻿using DocumentFormat.OpenXml.Packaging;
+﻿using Codeuctivity.OpenXmlPowerTools;
+using Codeuctivity.OpenXmlPowerTools.WmlComparer;
+using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Validation;
-using OpenXmlPowerTools;
-using OpenXmlPowerTools.Tests;
 using System;
 using System.IO;
 using System.Linq;
 using System.Text;
 using Xunit;
 
-namespace OxPt
+namespace Codeuctivity.Tests
 {
     public class WcTests2
     {
@@ -46,7 +46,7 @@ namespace OxPt
             {
                 DebugTempFileDi = thisTestTempDir
             };
-            var comparedWml = WmlComparer.Compare(source1Wml, source2Wml, settings);
+            var comparedWml = OpenXmlPowerTools.WmlComparer.WmlComparer.Compare(source1Wml, source2Wml, settings);
 
             comparedWml.SaveAs(docxWithRevisionsFi.FullName);
             using var ms = new MemoryStream();

@@ -1,9 +1,11 @@
-﻿using OpenXmlPowerTools;
+﻿using  Codeuctivity.OpenXmlPowerTools;
+using Codeuctivity.OpenXmlPowerTools;
+using Codeuctivity.OpenXmlPowerTools.DocumentBuilder;
 using System;
 using System.IO;
 using System.Linq;
 
-namespace ExampleDocumentBuilder04
+namespace DocumentBuilder04
 {
     internal class ContentControlsExample
     {

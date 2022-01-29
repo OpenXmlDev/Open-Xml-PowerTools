@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Linq;
 
-namespace OpenXmlPowerTools
+namespace Codeuctivity.OpenXmlPowerTools.Chart
 {
     public class ChartUpdater
     {
@@ -122,7 +122,7 @@ namespace OpenXmlPowerTools
             firstSeries.Parent.Elements(C.ser).Skip(1).Remove();
 
             var newSetOfSeries = chartData.SeriesNames
-                .Select((string sn, int si) =>
+                .Select((sn, si) =>
                 {
                     XElement cat = null;
 
@@ -360,7 +360,7 @@ namespace OpenXmlPowerTools
                         throw new OpenXmlPowerToolsException("Unsupported chart type");
                     }
 
-                    var accentNumber = (si % 6) + 1;
+                    var accentNumber = si % 6 + 1;
                     newSer = (XElement)UpdateAccentTransform(newSer, accentNumber);
                     return newSer;
                 });

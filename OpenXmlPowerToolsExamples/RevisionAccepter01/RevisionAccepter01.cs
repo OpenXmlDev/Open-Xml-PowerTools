@@ -1,8 +1,9 @@
-﻿using OpenXmlPowerTools;
+﻿using  Codeuctivity.OpenXmlPowerTools;
+using Codeuctivity.OpenXmlPowerTools;
 using System;
 using System.IO;
 
-namespace RevisionAccepterExample
+namespace RevisionAccepter01
 {
     internal class RevisionAccepterExample
     {

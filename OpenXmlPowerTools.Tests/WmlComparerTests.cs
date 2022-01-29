@@ -1,7 +1,7 @@
-﻿using DocumentFormat.OpenXml.Packaging;
+﻿using Codeuctivity.OpenXmlPowerTools;
+using Codeuctivity.OpenXmlPowerTools.WmlComparer;
+using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Validation;
-using OpenXmlPowerTools;
-using OpenXmlPowerTools.Tests;
 using SixLabors.ImageSharp;
 using System;
 using System.Collections.Generic;
@@ -11,7 +11,7 @@ using System.Text;
 using System.Xml.Linq;
 using Xunit;
 
-namespace OxPt
+namespace Codeuctivity.Tests
 {
     public class WcTests
     {
@@ -157,7 +157,7 @@ namespace OxPt
             {
                 DebugTempFileDi = thisTestTempDir
             };
-            var consolidatedWml = WmlComparer.Consolidate(
+            var consolidatedWml = OpenXmlPowerTools.WmlComparer.WmlComparer.Consolidate(
                 source1Wml,
                 revisedDocumentsArray,
                 settings);
@@ -310,7 +310,7 @@ namespace OxPt
             var source1Wml = new WmlDocument(source1CopiedToDestDocx.FullName);
             var source2Wml = new WmlDocument(source2CopiedToDestDocx.FullName);
             var settings = new WmlComparerSettings();
-            var comparedWml = WmlComparer.Compare(source1Wml, source2Wml, settings);
+            var comparedWml = OpenXmlPowerTools.WmlComparer.WmlComparer.Compare(source1Wml, source2Wml, settings);
             WordprocessingMLUtil.BreakLinkToTemplate(comparedWml).SaveAs(docxWithRevisionsFi.FullName);
 
             var revisedDocInfo = new List<WmlRevisedDocumentInfo>()
@@ -322,7 +322,7 @@ namespace OxPt
                     Revisor = "Revised by Eric White",
                 }
             };
-            var consolidatedWml = WmlComparer.Consolidate(
+            var consolidatedWml = OpenXmlPowerTools.WmlComparer.WmlComparer.Consolidate(
                 source1Wml,
                 revisedDocInfo,
                 settings);
@@ -495,7 +495,7 @@ namespace OxPt
             {
                 DebugTempFileDi = thisTestTempDir
             };
-            var comparedWml = WmlComparer.Compare(source1Wml, source2Wml, settings);
+            var comparedWml = OpenXmlPowerTools.WmlComparer.WmlComparer.Compare(source1Wml, source2Wml, settings);
             comparedWml.SaveAs(docxWithRevisionsFi.FullName);
 
             // validate generated document
@@ -530,7 +530,7 @@ namespace OxPt
             var settings2 = new WmlComparerSettings();
 
             var revisionWml = new WmlDocument(docxWithRevisionsFi.FullName);
-            var revisions = WmlComparer.GetRevisions(revisionWml, settings);
+            var revisions = OpenXmlPowerTools.WmlComparer.WmlComparer.GetRevisions(revisionWml, settings);
             Assert.Equal(revisionCount, revisions.Count);
 
             var afterRejectingWml = RevisionProcessor.RejectRevisions(revisionWml);
@@ -543,8 +543,8 @@ namespace OxPt
                 afterRejectingWml.SaveAs(afterRejectingFi.FullName);
             }
 
-            var afterRejectingComparedWml = WmlComparer.Compare(source1Wml, afterRejectingWml, settings);
-            var sanityCheck1 = WmlComparer.GetRevisions(afterRejectingComparedWml, settings);
+            var afterRejectingComparedWml = OpenXmlPowerTools.WmlComparer.WmlComparer.Compare(source1Wml, afterRejectingWml, settings);
+            var sanityCheck1 = OpenXmlPowerTools.WmlComparer.WmlComparer.GetRevisions(afterRejectingComparedWml, settings);
 
             if (WRITE_TEMP_FILES)
             {
@@ -560,8 +560,8 @@ namespace OxPt
                 afterAcceptingWml.SaveAs(afterAcceptingFi.FullName);
             }
 
-            var afterAcceptingComparedWml = WmlComparer.Compare(source2Wml, afterAcceptingWml, settings);
-            var sanityCheck2 = WmlComparer.GetRevisions(afterAcceptingComparedWml, settings);
+            var afterAcceptingComparedWml = OpenXmlPowerTools.WmlComparer.WmlComparer.Compare(source2Wml, afterAcceptingWml, settings);
+            var sanityCheck2 = OpenXmlPowerTools.WmlComparer.WmlComparer.GetRevisions(afterAcceptingComparedWml, settings);
 
             if (WRITE_TEMP_FILES)
             {
@@ -667,11 +667,11 @@ namespace OxPt
             var source2Wml = new WmlDocument(sourceCopiedToDestDocx.FullName);
             var settings = new WmlComparerSettings();
 
-            var comparedWml = WmlComparer.Compare(source1Wml, source2Wml, settings);
+            var comparedWml = OpenXmlPowerTools.WmlComparer.WmlComparer.Compare(source1Wml, source2Wml, settings);
             comparedWml.SaveAs(docxComparedFi.FullName);
             ValidateDocument(comparedWml);
 
-            var comparedWml2 = WmlComparer.Compare(comparedWml, source1Wml, settings);
+            var comparedWml2 = OpenXmlPowerTools.WmlComparer.WmlComparer.Compare(comparedWml, source1Wml, settings);
             comparedWml2.SaveAs(docxCompared2Fi.FullName);
             ValidateDocument(comparedWml2);
         }
@@ -718,7 +718,7 @@ namespace OxPt
                 CaseInsensitive = true,
                 CultureInfo = System.Globalization.CultureInfo.CurrentCulture
             };
-            var comparedWml = WmlComparer.Compare(source1Wml, source2Wml, settings);
+            var comparedWml = OpenXmlPowerTools.WmlComparer.WmlComparer.Compare(source1Wml, source2Wml, settings);
             comparedWml.SaveAs(docxWithRevisionsFi.FullName);
 
             using (var ms = new MemoryStream())
@@ -745,7 +745,7 @@ namespace OxPt
             }
 
             var revisionWml = new WmlDocument(docxWithRevisionsFi.FullName);
-            var revisions = WmlComparer.GetRevisions(revisionWml, settings);
+            var revisions = OpenXmlPowerTools.WmlComparer.WmlComparer.GetRevisions(revisionWml, settings);
             Assert.Equal(revisionCount, revisions.Count);
         }
 

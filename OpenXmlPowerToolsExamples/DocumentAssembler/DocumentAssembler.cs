@@ -1,8 +1,9 @@
-﻿using System;
+﻿using Codeuctivity.OpenXmlPowerTools;
+using System;
 using System.IO;
 using System.Xml.Linq;
 
-namespace OpenXmlPowerTools
+namespace DocumentAssembler
 {
     internal class Program
     {
@@ -38,7 +39,7 @@ namespace OpenXmlPowerTools
 
             var wmlDoc = new WmlDocument(templateDoc.FullName);
             var data = XElement.Load(dataFile.FullName);
-            var wmlAssembledDoc = DocumentAssembler.AssembleDocument(wmlDoc, data, out var templateError);
+            var wmlAssembledDoc = Codeuctivity.OpenXmlPowerTools.DocumentAssembler.AssembleDocument(wmlDoc, data, out var templateError);
             if (templateError)
             {
                 Console.WriteLine("Errors in template.");

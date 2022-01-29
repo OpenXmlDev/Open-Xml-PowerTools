@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Linq;
 
-namespace OpenXmlPowerTools
+namespace Codeuctivity.OpenXmlPowerTools
 {
     public class FieldRetriever
     {
@@ -209,7 +209,7 @@ namespace OpenXmlPowerTools
                 return new
                 {
                     Element = t1,
-                    Id = t2.Id,
+                    t2.Id,
                     WmlFieldInfoStack = t2.FiStack,
                 };
             });

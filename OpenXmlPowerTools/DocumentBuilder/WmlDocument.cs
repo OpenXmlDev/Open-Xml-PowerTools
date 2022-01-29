@@ -1,17 +1,9 @@
-
-
-#define TestForUnsupportedDocuments
-#define MergeStylesWithSameNames
-
 using System.Collections.Generic;
 
-namespace OpenXmlPowerTools
+namespace Codeuctivity.OpenXmlPowerTools
 {
     public partial class WmlDocument : OpenXmlPowerToolsDocument
     {
-        public IEnumerable<WmlDocument> SplitOnSections()
-        {
-            return DocumentBuilder.SplitOnSections(this);
-        }
+        public IEnumerable<WmlDocument> SplitOnSections() => DocumentBuilder.DocumentBuilder.SplitOnSections(this);
     }
 }

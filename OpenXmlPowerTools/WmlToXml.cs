@@ -7,7 +7,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
 
-namespace OpenXmlPowerTools
+namespace Codeuctivity.OpenXmlPowerTools
 {
     public class ContentTypeRule
     {
@@ -946,7 +946,7 @@ namespace OpenXmlPowerTools
                     var listItemNum = fldSimple.Elements(W.r).Elements(W.t).Select(t => (string)t).StringConcatenate();
                     var runsBefore = element
                         .Elements()
-                        .TakeWhile(fs => fs.Name != W.fldSimple || (fs.Name == W.fldSimple && !((string)fs.Attribute(W.instr)).Trim().StartsWith("SEQ")))
+                        .TakeWhile(fs => fs.Name != W.fldSimple || fs.Name == W.fldSimple && !((string)fs.Attribute(W.instr)).Trim().StartsWith("SEQ"))
                         .Select(e =>
                         {
 #if false
@@ -1306,7 +1306,7 @@ namespace OpenXmlPowerTools
                 if (settings.ProgressFunction != null)
                 {
                     ++count;
-                    if (count < 50 || (count) % 10 == 0 || count == totalCount)
+                    if (count < 50 || count % 10 == 0 || count == totalCount)
                     {
                         var msg = string.Format("  {0} of {1}", count, totalCount);
                         msg += "".PadRight(msg.Length, '\b');
@@ -1759,8 +1759,7 @@ namespace OpenXmlPowerTools
                             new XAttribute(W.id, commentNumber)));
                     var firstRunInParagraph = blc
                         .DescendantsTrimmed(W.txbxContent)
-                        .Where(r => r.Name == W.r)
-                        .FirstOrDefault();
+.FirstOrDefault(r => r.Name == W.r);
                     if (firstRunInParagraph != null)
                     {
                         // for now, only do the work of inserting a comment if it is easy.  For content types for tables, rows and cells, not inserting a comment.
@@ -1914,8 +1913,7 @@ namespace OpenXmlPowerTools
                             new XAttribute(W.id, commentNumber)));
                     var firstRunInParagraph = rlc
                         .DescendantsTrimmed(W.txbxContent)
-                        .Where(r => r.Name == W.r)
-                        .FirstOrDefault();
+.FirstOrDefault(r => r.Name == W.r);
 
                     // for now, only do the work of inserting a comment if it is easy.  For content types for tables, rows and cells, not inserting a comment.
                     if (rlc.Parent.Name == W.p)

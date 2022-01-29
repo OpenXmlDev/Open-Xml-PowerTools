@@ -1,6 +1,6 @@
 ﻿using SixLabors.ImageSharp;
 
-namespace OpenXmlPowerTools
+namespace Codeuctivity.OpenXmlPowerTools
 {
     public static class ColorParser
     {

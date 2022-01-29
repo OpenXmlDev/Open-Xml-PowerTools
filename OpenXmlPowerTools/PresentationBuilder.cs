@@ -5,7 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Xml.Linq;
 
-namespace OpenXmlPowerTools
+namespace Codeuctivity.OpenXmlPowerTools
 {
     public class SlideSource
     {
@@ -524,7 +524,7 @@ namespace OpenXmlPowerTools
             if (ids.Any())
             {
                 newID = ids.Max();
-                var maxMaster = newPresentation.Root.Descendants(P.sldMasterId).Where(f => (uint)f.Attribute(NoNamespace.id) == newID).FirstOrDefault();
+                var maxMaster = newPresentation.Root.Descendants(P.sldMasterId).FirstOrDefault(f => (uint)f.Attribute(NoNamespace.id) == newID);
                 var maxMasterPart = (SlideMasterPart)newDocument.PresentationPart.GetPartById(maxMaster.Attribute(R.id).Value);
                 newID += (uint)maxMasterPart.GetXDocument().Root.Descendants(P.sldLayoutId).Count() + 1;
             }
@@ -549,7 +549,7 @@ namespace OpenXmlPowerTools
                 CopyRelatedPartsForContentParts(newDocument, layoutPart, newLayout, new[] { newLayout.GetXDocument().Root }, images, mediaList);
                 newLayout.AddPart(newMaster);
                 var resID = sourceMasterPart.GetIdOfPart(layoutPart);
-                var entry = sourceMaster.Root.Descendants(P.sldLayoutId).Where(f => f.Attribute(R.id).Value == resID).FirstOrDefault();
+                var entry = sourceMaster.Root.Descendants(P.sldLayoutId).FirstOrDefault(f => f.Attribute(R.id).Value == resID);
                 entry.Attribute(R.id).SetValue(newMaster.GetIdOfPart(newLayout));
                 entry.SetAttributeValue(NoNamespace.id, newID.ToString());
                 newID++;
@@ -614,8 +614,7 @@ namespace OpenXmlPowerTools
 
         private static XElement FindCommentsAuthor(PresentationDocument newDocument, XElement comment, XDocument oldAuthors)
         {
-            var oldAuthor = oldAuthors.Root.Elements(P.cmAuthor).Where(
-                f => f.Attribute(NoNamespace.id).Value == comment.Attribute(NoNamespace.authorId).Value).FirstOrDefault();
+            var oldAuthor = oldAuthors.Root.Elements(P.cmAuthor).FirstOrDefault(f => f.Attribute(NoNamespace.id).Value == comment.Attribute(NoNamespace.authorId).Value);
             XElement newAuthor = null;
             if (newDocument.PresentationPart.CommentAuthorsPart == null)
             {
@@ -626,8 +625,7 @@ namespace OpenXmlPowerTools
                     new XAttribute(XNamespace.Xmlns + "p", P.p))));
             }
             var authors = newDocument.PresentationPart.CommentAuthorsPart.GetXDocument();
-            newAuthor = authors.Root.Elements(P.cmAuthor).Where(
-                f => f.Attribute(NoNamespace.initials).Value == oldAuthor.Attribute(NoNamespace.initials).Value).FirstOrDefault();
+            newAuthor = authors.Root.Elements(P.cmAuthor).FirstOrDefault(f => f.Attribute(NoNamespace.initials).Value == oldAuthor.Attribute(NoNamespace.initials).Value);
             if (newAuthor == null)
             {
                 uint newID = 0;
@@ -664,7 +662,7 @@ namespace OpenXmlPowerTools
                 }
 
                 var oldTableStyles = oldDocument.PresentationPart.TableStylesPart.GetXDocument();
-                var oldStyle = oldTableStyles.Root.Elements(A.tblStyle).Where(f => f.Attribute(NoNamespace.styleId).Value == styleId).FirstOrDefault();
+                var oldStyle = oldTableStyles.Root.Elements(A.tblStyle).FirstOrDefault(f => f.Attribute(NoNamespace.styleId).Value == styleId);
                 if (oldStyle == null)
                 {
                     continue;
@@ -686,7 +684,7 @@ namespace OpenXmlPowerTools
                 }
 
                 // Search new TableStylesPart to see if it contains the ID
-                if (tableStyles.Root.Elements(A.tblStyle).Where(f => f.Attribute(NoNamespace.styleId).Value == styleId).FirstOrDefault() != null)
+                if (tableStyles.Root.Elements(A.tblStyle).FirstOrDefault(f => f.Attribute(NoNamespace.styleId).Value == styleId) != null)
                 {
                     continue;
                 }
@@ -1086,17 +1084,17 @@ namespace OpenXmlPowerTools
                 CopyRelatedSound(newDocument, oldContentPart, newContentPart, soundReference, R.link);
             }
 
-            if ((oldContentPart is ChartsheetPart && newContentPart is ChartsheetPart) ||
-                (oldContentPart is DialogsheetPart && newContentPart is DialogsheetPart) ||
-                (oldContentPart is HandoutMasterPart && newContentPart is HandoutMasterPart) ||
-                (oldContentPart is InternationalMacroSheetPart && newContentPart is InternationalMacroSheetPart) ||
-                (oldContentPart is MacroSheetPart && newContentPart is MacroSheetPart) ||
-                (oldContentPart is NotesMasterPart && newContentPart is NotesMasterPart) ||
-                (oldContentPart is NotesSlidePart && newContentPart is NotesSlidePart) ||
-                (oldContentPart is SlideLayoutPart && newContentPart is SlideLayoutPart) ||
-                (oldContentPart is SlideMasterPart && newContentPart is SlideMasterPart) ||
-                (oldContentPart is SlidePart && newContentPart is SlidePart) ||
-                (oldContentPart is WorksheetPart && newContentPart is WorksheetPart))
+            if (oldContentPart is ChartsheetPart && newContentPart is ChartsheetPart ||
+                oldContentPart is DialogsheetPart && newContentPart is DialogsheetPart ||
+                oldContentPart is HandoutMasterPart && newContentPart is HandoutMasterPart ||
+                oldContentPart is InternationalMacroSheetPart && newContentPart is InternationalMacroSheetPart ||
+                oldContentPart is MacroSheetPart && newContentPart is MacroSheetPart ||
+                oldContentPart is NotesMasterPart && newContentPart is NotesMasterPart ||
+                oldContentPart is NotesSlidePart && newContentPart is NotesSlidePart ||
+                oldContentPart is SlideLayoutPart && newContentPart is SlideLayoutPart ||
+                oldContentPart is SlideMasterPart && newContentPart is SlideMasterPart ||
+                oldContentPart is SlidePart && newContentPart is SlidePart ||
+                oldContentPart is WorksheetPart && newContentPart is WorksheetPart)
             {
                 foreach (var soundReference in newContent.DescendantsAndSelf().Where(d => d.Name == P.snd || d.Name == P.sndTgt || d.Name == A.wavAudioFile || d.Name == A.snd || d.Name == PAV.srcMedia))
                 {
@@ -1587,7 +1585,7 @@ namespace OpenXmlPowerTools
                     else
                     {
                         var imagePart = (ImagePart)temp.ImagePart;
-                        var existingImagePart = newContentPart.AddPart<ImagePart>(imagePart);
+                        var existingImagePart = newContentPart.AddPart(imagePart);
                         var newId = newContentPart.GetIdOfPart(existingImagePart);
                         temp.AddContentPartRelTypeResourceIdTupple(newContentPart, imagePart.RelationshipType, newId);
                         imageReference.Attribute(attributeName).Value = newId;

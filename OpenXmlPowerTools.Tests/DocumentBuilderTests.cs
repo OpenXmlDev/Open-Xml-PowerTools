@@ -1,7 +1,7 @@
-﻿using DocumentFormat.OpenXml.Packaging;
+﻿using Codeuctivity.OpenXmlPowerTools;
+using Codeuctivity.OpenXmlPowerTools.DocumentBuilder;
+using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Validation;
-using OpenXmlPowerTools;
-using OpenXmlPowerTools.Tests;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -10,7 +10,7 @@ using System.Text;
 using System.Xml.Linq;
 using Xunit;
 
-namespace OxPt
+namespace Codeuctivity.Tests
 {
     public class DbTests
     {
@@ -343,7 +343,7 @@ namespace OxPt
                         Paragraph = p,
                         Index = i,
                     });
-                var zipped = PtExtensions.PtZip(beforeZipped, sectionCounts, (pi, sc) => new
+                var zipped = beforeZipped.PtZip(sectionCounts, (pi, sc) => new
                 {
                     pi.Paragraph,
                     pi.Index,

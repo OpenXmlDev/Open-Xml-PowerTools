@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace OpenXmlPowerTools
+namespace Codeuctivity.OpenXmlPowerTools.Exceptions
 {
     public class DocumentBuilderException : Exception
     {

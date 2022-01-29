@@ -10,7 +10,7 @@ using System.Xml;
 using System.Xml.Linq;
 using System.Xml.Schema;
 
-namespace OpenXmlPowerTools
+namespace Codeuctivity.OpenXmlPowerTools
 {
     public static class PtUtils
     {
@@ -804,7 +804,7 @@ namespace OpenXmlPowerTools
         public static IEnumerable<XElement> DescendantsTrimmed(this XElement element,
             XName trimName)
         {
-            return DescendantsTrimmed(element, e => e.Name == trimName);
+            return element.DescendantsTrimmed(e => e.Name == trimName);
         }
 
         public static IEnumerable<XElement> DescendantsTrimmed(this XElement element,
@@ -931,7 +931,7 @@ namespace OpenXmlPowerTools
 
         private static string GetQName(XAttribute xa)
         {
-            var prefix = xa.Parent != null ? xa.Parent.GetPrefixOfNamespace(xa.Name.Namespace) : null;
+            var prefix = xa.Parent?.GetPrefixOfNamespace(xa.Name.Namespace);
             if (xa.Name.Namespace == XNamespace.None || prefix == null)
             {
                 return xa.Name.ToString();
@@ -1294,7 +1294,7 @@ namespace OpenXmlPowerTools
 
         public void Bucket(string bucket)
         {
-            DateTime now = DateTime.Now;
+            var now = DateTime.Now;
             if (LastBucket != null)
                 AddToBuckets(now);
             LastBucket = bucket;
@@ -1303,7 +1303,7 @@ namespace OpenXmlPowerTools
 
         public void End()
         {
-            DateTime now = DateTime.Now;
+            var now = DateTime.Now;
             if (LastBucket != null)
                 AddToBuckets(now);
             LastBucket = null;
@@ -1311,7 +1311,7 @@ namespace OpenXmlPowerTools
 
         private void AddToBuckets(DateTime now)
         {
-            TimeSpan d = now - LastTime;
+            var d = now - LastTime;
             var bucketParts = LastBucket.Split('/');
             var bucketList = bucketParts.Select((t, i) => bucketParts
                 .Take(i + 1)
@@ -1341,16 +1341,16 @@ namespace OpenXmlPowerTools
 
         public string DumpBucketsByKey()
         {
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder();
             foreach (var bucket in Buckets.OrderBy(b => b.Key))
             {
-                string ts = bucket.Value.Time.ToString();
+                var ts = bucket.Value.Time.ToString();
                 if (ts.Contains('.'))
                     ts = ts.Substring(0, ts.Length - 5);
-                string s = bucket.Key.PadRight(60, '-') + "  " + string.Format("{0:00000000}", bucket.Value.Count) + "  " + ts;
+                var s = bucket.Key.PadRight(60, '-') + "  " + string.Format("{0:00000000}", bucket.Value.Count) + "  " + ts;
                 sb.Append(s + Environment.NewLine);
             }
-            TimeSpan total = Buckets
+            var total = Buckets
                 .Aggregate(TimeSpan.Zero, (t, b) => t + b.Value.Time);
             var tz = total.ToString();
             sb.Append(string.Format("Total: {0}", tz.Substring(0, tz.Length - 5)));
@@ -1359,13 +1359,13 @@ namespace OpenXmlPowerTools
 
         public string DumpBucketsToCsvByKey()
         {
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder();
             foreach (var bucket in Buckets.OrderBy(b => b.Key))
             {
-                string ts = bucket.Value.Time.ToString();
+                var ts = bucket.Value.Time.ToString();
                 if (ts.Contains('.'))
                     ts = ts.Substring(0, ts.Length - 5);
-                string s = bucket.Key + "," + bucket.Value.Count.ToString() + "," + ts;
+                var s = bucket.Key + "," + bucket.Value.Count.ToString() + "," + ts;
                 sb.Append(s + Environment.NewLine);
             }
             return sb.ToString();
@@ -1373,16 +1373,16 @@ namespace OpenXmlPowerTools
 
         public string DumpBucketsByTime()
         {
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder();
             foreach (var bucket in Buckets.OrderBy(b => b.Value.Time))
             {
-                string ts = bucket.Value.Time.ToString();
+                var ts = bucket.Value.Time.ToString();
                 if (ts.Contains('.'))
                     ts = ts.Substring(0, ts.Length - 5);
-                string s = bucket.Key.PadRight(60, '-') + "  " + string.Format("{0:00000000}", bucket.Value.Count) + "  " + ts;
+                var s = bucket.Key.PadRight(60, '-') + "  " + string.Format("{0:00000000}", bucket.Value.Count) + "  " + ts;
                 sb.Append(s + Environment.NewLine);
             }
-            TimeSpan total = Buckets
+            var total = Buckets
                 .Aggregate(TimeSpan.Zero, (t, b) => t + b.Value.Time);
             var tz = total.ToString();
             sb.Append(string.Format("Total: {0}", tz.Substring(0, tz.Length - 5)));

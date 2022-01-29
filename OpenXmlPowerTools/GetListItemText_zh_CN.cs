@@ -1,6 +1,4 @@
-﻿
-
-namespace OpenXmlPowerTools
+﻿namespace Codeuctivity.OpenXmlPowerTools
 {
     public class ListItemTextGetter_zh_CN
     {
@@ -39,8 +37,8 @@ namespace OpenXmlPowerTools
             var thousandsRemainder = levelNumber % 1000;
             var hundredsRemainder = levelNumber % 100;
             var thousands = levelNumber / 1000;
-            var hundreds = (levelNumber % 1000) / 100;
-            var tens = (levelNumber % 100) / 10;
+            var hundreds = levelNumber % 1000 / 100;
+            var tens = levelNumber % 100 / 10;
             var ones = levelNumber % 10;
 
             if (numFmt == "chineseCounting")

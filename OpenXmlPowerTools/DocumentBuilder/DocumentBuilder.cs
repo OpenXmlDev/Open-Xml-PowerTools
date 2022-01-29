@@ -1,6 +1,7 @@
 ﻿#define TestForUnsupportedDocuments
 #define MergeStylesWithSameNames
 
+using Codeuctivity.OpenXmlPowerTools.Exceptions;
 using DocumentFormat.OpenXml.Packaging;
 using System;
 using System.Collections.Generic;
@@ -8,7 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Xml.Linq;
 
-namespace OpenXmlPowerTools
+namespace Codeuctivity.OpenXmlPowerTools.DocumentBuilder
 {
     public class DocumentBuilderSettings
     {
@@ -143,7 +144,7 @@ namespace OpenXmlPowerTools
                     {
                         new Source(doc, ts.Start, ts.Count, true)
                     };
-                var newDoc = DocumentBuilder.BuildDocument(sources);
+                var newDoc = BuildDocument(sources);
                 newDoc = AdjustSectionBreak(newDoc);
                 yield return newDoc;
             }
@@ -858,7 +859,7 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml
             var newStyleId = styleName
                 .Replace("_", "")
                 .Replace("#", "")
-                .Replace(".", "") + ((new Random()).Next(990) + 9).ToString();
+                .Replace(".", "") + (new Random().Next(990) + 9).ToString();
             return newStyleId;
         }
 
@@ -922,7 +923,7 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml
         private static WmlDocument CoalesceGlossaryDocumentParts(IEnumerable<Source> sources)
         {
             var allGlossaryDocuments = sources
-                .Select(s => DocumentBuilder.ExtractGlossaryDocument(s.WmlDocument))
+                .Select(s => ExtractGlossaryDocument(s.WmlDocument))
                 .Where(s => s != null)
                 .Select(s => new Source(s))
                 .ToList();
@@ -932,7 +933,7 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml
                 return null;
             }
 
-            var coalescedRaw = DocumentBuilder.BuildDocument(allGlossaryDocuments);
+            var coalescedRaw = BuildDocument(allGlossaryDocuments);
 
             // now need to do some fix up
             using var ms = new MemoryStream();
@@ -1008,8 +1009,7 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml
                 var propertyPart = customXmlPart
                     .Parts
                     .Select(p => p.OpenXmlPart)
-                    .Where(p => p.ContentType == "application/vnd.openxmlformats-officedocument.customXmlProperties+xml")
-                    .FirstOrDefault();
+.FirstOrDefault(p => p.ContentType == "application/vnd.openxmlformats-officedocument.customXmlProperties+xml");
                 if (propertyPart != null)
                 {
                     var propertyPartDoc = propertyPart.GetXDocument();
@@ -1616,8 +1616,7 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml
                                 var element = oldNumbering
                                     .Descendants()
                                     .Elements(W.num)
-                                    .Where(p => ((string)p.Attribute(W.numId)) == numId)
-                                    .FirstOrDefault();
+.FirstOrDefault(p => (string)p.Attribute(W.numId) == numId);
 
                                 // Copy abstract numbering element, if necessary (use matching NSID)
                                 var abstractNumId = string.Empty;
@@ -1632,8 +1631,7 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml
                                     var abstractElement = oldNumbering
                                         .Descendants()
                                         .Elements(W.abstractNum)
-                                        .Where(p => ((string)p.Attribute(W.abstractNumId)) == abstractNumId)
-                                        .FirstOrDefault();
+.FirstOrDefault(p => (string)p.Attribute(W.abstractNumId) == abstractNumId);
                                     var abstractNSID = string.Empty;
                                     if (abstractElement != null)
                                     {
@@ -1650,7 +1648,7 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml
                                             .Descendants()
                                             .Elements(W.abstractNum)
                                             .Where(e => e.Annotation<FromPreviousSourceSemaphore>() == null)
-                                            .Where(p =>
+.FirstOrDefault(p =>
                                             {
                                                 var thisNsidElement = p.Element(W.nsid);
                                                 if (thisNsidElement == null)
@@ -1659,8 +1657,7 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml
                                                 }
 
                                                 return (string)thisNsidElement.Attribute(W.val) == abstractNSID;
-                                            })
-                                            .FirstOrDefault();
+                                            });
                                         if (newAbstractElement == null)
                                         {
                                             newAbstractElement = new XElement(abstractElement);
@@ -1701,9 +1698,8 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml
                                             newElement = newNumbering
                                                 .Descendants()
                                                 .Elements(W.num)
-                                                .Where(p => !p.Elements(W.lvlOverride).Any() &&
-                                                    ((string)p.Elements(W.abstractNumId).First().Attribute(W.val)) == newAbstractId)
-                                                .FirstOrDefault();
+.FirstOrDefault(p => !p.Elements(W.lvlOverride).Any() &&
+                                                    (string)p.Elements(W.abstractNumId).First().Attribute(W.val) == newAbstractId);
                                         }
 
                                         if (newElement == null)
@@ -1898,7 +1894,7 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml
                 if (!toFontTable
                     .Root
                     .Elements(W.font)
-                    .Where(o => o.Attribute(W.name).Value == name).Any())
+.Any(o => o.Attribute(W.name).Value == name))
                 {
                     toFontTable.Root.Add(new XElement(font));
                 }
@@ -2012,7 +2008,7 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml
                 var element = oldComments
                     .Descendants()
                     .Elements(W.comment)
-                    .Where(p =>
+.FirstOrDefault(p =>
                     {
                         if (!int.TryParse((string)p.Attribute(W.id), out var thisId))
                         {
@@ -2020,8 +2016,7 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml
                         }
 
                         return thisId == id;
-                    })
-                    .FirstOrDefault();
+                    });
                 if (element == null)
                 {
                     throw new DocumentBuilderException("Invalid document - comment reference without associated comment in comments part");
@@ -2157,7 +2152,8 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml
             return node;
         }
 
-        private class ReplaceSemaphore { }
+        private class ReplaceSemaphore
+        { }
 
         // Rules for sections
         // - if KeepSections for all documents in the source collection are false, then it takes the section
@@ -2567,8 +2563,7 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml
                 var propertyPart = customXmlPart
                     .Parts
                     .Select(p => p.OpenXmlPart)
-                    .Where(p => p.ContentType == "application/vnd.openxmlformats-officedocument.customXmlProperties+xml")
-                    .FirstOrDefault();
+.FirstOrDefault(p => p.ContentType == "application/vnd.openxmlformats-officedocument.customXmlProperties+xml");
                 if (propertyPart != null)
                 {
                     var propertyPartDoc = propertyPart.GetXDocument();
@@ -2736,7 +2731,8 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml
             }
         }
 
-        private class FromPreviousSourceSemaphore { };
+        private class FromPreviousSourceSemaphore
+        { };
 
         private static void CopyNumbering(WordprocessingDocument sourceDocument, WordprocessingDocument newDocument,
             IEnumerable<XElement> newContent, List<ImageData> images)
@@ -2794,8 +2790,7 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml
                     {
                         var element = oldNumbering
                             .Descendants(W.num)
-                            .Where(p => ((int)p.Attribute(W.numId)) == numId)
-                            .FirstOrDefault();
+.FirstOrDefault(p => (int)p.Attribute(W.numId) == numId);
                         if (element == null)
                         {
                             continue;
@@ -2814,8 +2809,7 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml
                         var abstractElement = oldNumbering
                             .Descendants()
                             .Elements(W.abstractNum)
-                            .Where(p => ((int)p.Attribute(W.abstractNumId)) == abstractNumId)
-                            .First();
+.First(p => (int)p.Attribute(W.abstractNumId) == abstractNumId);
                         var nsidElement = abstractElement
                             .Element(W.nsid);
                         string abstractNSID = null;
@@ -2829,7 +2823,7 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml
                             .Descendants()
                             .Elements(W.abstractNum)
                             .Where(e => e.Annotation<FromPreviousSourceSemaphore>() == null)
-                            .Where(p =>
+.FirstOrDefault(p =>
                             {
                                 var thisNsidElement = p.Element(W.nsid);
                                 if (thisNsidElement == null)
@@ -2838,8 +2832,7 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml
                                 }
 
                                 return (string)thisNsidElement.Attribute(W.val) == abstractNSID;
-                            })
-                            .FirstOrDefault();
+                            });
                         if (newAbstractElement == null)
                         {
                             newAbstractElement = new XElement(abstractElement);
@@ -2881,8 +2874,7 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml
                                 .Descendants()
                                 .Elements(W.num)
                                 .Where(e => e.Annotation<FromPreviousSourceSemaphore>() == null)
-                                .Where(p => ((int)p.Attribute(W.numId)) == numIdMap[numId])
-                                .First();
+.First(p => (int)p.Attribute(W.numId) == numIdMap[numId]);
                         }
                         else
                         {
@@ -2982,8 +2974,7 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml
                     {
                         var element = oldNumbering
                             .Descendants(W.num)
-                            .Where(p => ((int)p.Attribute(W.numId)) == numId)
-                            .FirstOrDefault();
+.FirstOrDefault(p => (int)p.Attribute(W.numId) == numId);
                         if (element == null)
                         {
                             continue;
@@ -3002,8 +2993,7 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml
                         var abstractElement = oldNumbering
                             .Descendants()
                             .Elements(W.abstractNum)
-                            .Where(p => ((int)p.Attribute(W.abstractNumId)) == abstractNumId)
-                            .First();
+.First(p => (int)p.Attribute(W.abstractNumId) == abstractNumId);
                         var nsidElement = abstractElement
                             .Element(W.nsid);
                         string abstractNSID = null;
@@ -3017,7 +3007,7 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml
                             .Descendants()
                             .Elements(W.abstractNum)
                             .Where(e => e.Annotation<FromPreviousSourceSemaphore>() == null)
-                            .Where(p =>
+.FirstOrDefault(p =>
                             {
                                 var thisNsidElement = p.Element(W.nsid);
                                 if (thisNsidElement == null)
@@ -3026,8 +3016,7 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml
                                 }
 
                                 return (string)thisNsidElement.Attribute(W.val) == abstractNSID;
-                            })
-                            .FirstOrDefault();
+                            });
                         if (newAbstractElement == null)
                         {
                             newAbstractElement = new XElement(abstractElement);
@@ -3069,8 +3058,7 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml
                                 .Descendants()
                                 .Elements(W.num)
                                 .Where(e => e.Annotation<FromPreviousSourceSemaphore>() == null)
-                                .Where(p => ((int)p.Attribute(W.numId)) == numIdMap[numId])
-                                .First();
+.First(p => (int)p.Attribute(W.numId) == numIdMap[numId]);
                         }
                         else
                         {
@@ -3173,8 +3161,7 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml
                     {
                         var element = oldNumbering
                             .Descendants(W.num)
-                            .Where(p => ((int)p.Attribute(W.numId)) == numId)
-                            .FirstOrDefault();
+.FirstOrDefault(p => (int)p.Attribute(W.numId) == numId);
                         if (element == null)
                         {
                             continue;
@@ -3193,8 +3180,7 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml
                         var abstractElement = oldNumbering
                             .Descendants()
                             .Elements(W.abstractNum)
-                            .Where(p => ((int)p.Attribute(W.abstractNumId)) == abstractNumId)
-                            .First();
+.First(p => (int)p.Attribute(W.abstractNumId) == abstractNumId);
                         var nsidElement = abstractElement
                             .Element(W.nsid);
                         string abstractNSID = null;
@@ -3208,7 +3194,7 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml
                             .Descendants()
                             .Elements(W.abstractNum)
                             .Where(e => e.Annotation<FromPreviousSourceSemaphore>() == null)
-                            .Where(p =>
+.FirstOrDefault(p =>
                             {
                                 var thisNsidElement = p.Element(W.nsid);
                                 if (thisNsidElement == null)
@@ -3217,8 +3203,7 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml
                                 }
 
                                 return (string)thisNsidElement.Attribute(W.val) == abstractNSID;
-                            })
-                            .FirstOrDefault();
+                            });
                         if (newAbstractElement == null)
                         {
                             newAbstractElement = new XElement(abstractElement);
@@ -3260,8 +3245,7 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml
                                 .Descendants()
                                 .Elements(W.num)
                                 .Where(e => e.Annotation<FromPreviousSourceSemaphore>() == null)
-                                .Where(p => ((int)p.Attribute(W.numId)) == numIdMap[numId])
-                                .First();
+.First(p => (int)p.Attribute(W.numId) == numIdMap[numId]);
                         }
                         else
                         {
@@ -3772,7 +3756,7 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml
                 }
 
                 var oldPart2 = oldFontTablePart.GetPartById(relId);
-                if (oldPart2 == null || (!(oldPart2 is FontPart)))
+                if (oldPart2 == null || !(oldPart2 is FontPart))
                 {
                     throw new DocumentBuilderException("Invalid document - FontTablePart contains invalid relationship");
                 }
@@ -4023,8 +4007,7 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml
                 var id = (string)footnote.Attribute(W.id);
                 var element = oldFootnotes.Descendants()
                     .Elements(W.footnote)
-                    .Where(p => ((string)p.Attribute(W.id)) == id)
-                    .FirstOrDefault();
+.FirstOrDefault(p => (string)p.Attribute(W.id) == id);
                 if (element != null)
                 {
                     var newElement = new XElement(element);
@@ -4088,8 +4071,7 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml
                 var id = (string)endnote.Attribute(W.id);
                 var element = oldEndnotes.Descendants()
                     .Elements(W.endnote)
-                    .Where(p => ((string)p.Attribute(W.id)) == id)
-                    .FirstOrDefault();
+.FirstOrDefault(p => (string)p.Attribute(W.id) == id);
                 if (element != null)
                 {
                     var newElement = new XElement(element);
@@ -4182,12 +4164,11 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml
                 var rangeId = start.Attribute(idAttribute).Value;
                 if (!newContent
                     .DescendantsAndSelf(endElement)
-                    .Where(e => e.Attribute(idAttribute).Value == rangeId).Any())
+.Any(e => e.Attribute(idAttribute).Value == rangeId))
                 {
                     var end = sourceDocument
                         .Descendants(endElement)
-                        .Where(o => o.Attribute(idAttribute).Value == rangeId)
-                        .FirstOrDefault();
+.FirstOrDefault(o => o.Attribute(idAttribute).Value == rangeId);
                     if (end != null)
                     {
                         AddAtEnd(newContent, new XElement(end));
@@ -4204,12 +4185,11 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml
                 var rangeId = end.Attribute(idAttribute).Value;
                 if (!newContent
                     .DescendantsAndSelf(startElement)
-                    .Where(s => s.Attribute(idAttribute).Value == rangeId).Any())
+.Any(s => s.Attribute(idAttribute).Value == rangeId))
                 {
                     var start = sourceDocument
                         .Descendants(startElement)
-                        .Where(o => o.Attribute(idAttribute).Value == rangeId)
-                        .FirstOrDefault();
+.FirstOrDefault(o => o.Attribute(idAttribute).Value == rangeId);
                     if (start != null)
                     {
                         AddAtBeginning(newContent, new XElement(start));
@@ -4225,7 +4205,7 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml
             foreach (var start in newContent.Elements(startElement))
             {
                 var id = start.Attribute(matchAttr).Value;
-                if (!newContent.Elements(matchTo).Where(n => n.Attribute(matchAttr).Value == id).Any())
+                if (!newContent.Elements(matchTo).Any(n => n.Attribute(matchAttr).Value == id))
                 {
                     deleteList.Add(start.Attribute(idAttr).Value);
                 }
@@ -4279,8 +4259,7 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml
                 var element = oldFootnotes
                     .Descendants()
                     .Elements(W.footnote)
-                    .Where(p => ((string)p.Attribute(W.id)) == id)
-                    .FirstOrDefault();
+.FirstOrDefault(p => (string)p.Attribute(W.id) == id);
                 if (element != null)
                 {
                     var newElement = new XElement(element);
@@ -4345,8 +4324,7 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml
                 var element = oldEndnotes
                     .Descendants()
                     .Elements(W.endnote)
-                    .Where(p => ((string)p.Attribute(W.id)) == id)
-                    .First();
+.First(p => (string)p.Attribute(W.id) == id);
                 var newElement = new XElement(element);
                 newElement.Attribute(W.id).Value = number.ToString();
                 newEndnotes.Root.Add(newElement);

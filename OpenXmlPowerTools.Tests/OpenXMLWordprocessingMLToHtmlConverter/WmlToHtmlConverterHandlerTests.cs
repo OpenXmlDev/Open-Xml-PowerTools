@@ -1,6 +1,5 @@
-﻿using Codeuctivity;
-using OpenXmlPowerTools;
-using OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter;
+﻿using Codeuctivity.OpenXmlPowerTools;
+using Codeuctivity.OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -8,7 +7,7 @@ using System.Linq;
 using System.Xml.Linq;
 using Xunit;
 
-namespace OxPt
+namespace Codeuctivity.Tests.OpenXMLWordprocessingMLToHtmlConverter
 {
     public class WmlToHtmlConverterHandlerTests
     {
@@ -59,7 +58,7 @@ namespace OxPt
             expectedImage.Position = 0;
             actualImage.Position = 0;
 
-            Assert.True(ImageSharpCompare.ImageAreEqual(expectedImage, actualImage));
+            Assert.True(ImageSharpCompare.ImagesAreEqual(expectedImage, actualImage));
         }
 
         [Fact]
