@@ -9,7 +9,7 @@ using System.Text.RegularExpressions;
 using System.Xml;
 using System.Xml.Linq;
 
-namespace Codeuctivity
+namespace Codeuctivity.OpenXmlPowerTools
 {
     public static class PtOpenXmlExtensions
     {

@@ -1,7 +1,7 @@
 ﻿#define TestForUnsupportedDocuments
 #define MergeStylesWithSameNames
 
-using Codeuctivity.Exceptions;
+using Codeuctivity.OpenXmlPowerTools.Exceptions;
 using DocumentFormat.OpenXml.Packaging;
 using System;
 using System.Collections.Generic;
@@ -9,7 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Xml.Linq;
 
-namespace Codeuctivity.DocumentBuilder
+namespace Codeuctivity.OpenXmlPowerTools.DocumentBuilder
 {
     public class DocumentBuilderSettings
     {

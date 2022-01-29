@@ -4,7 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
 
-namespace Codeuctivity
+namespace Codeuctivity.OpenXmlPowerTools
 {
     public class SmlCellFormatter
     {

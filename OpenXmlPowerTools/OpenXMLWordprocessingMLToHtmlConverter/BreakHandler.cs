@@ -1,10 +1,9 @@
-﻿using Codeuctivity;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Xml.Linq;
 
-namespace Codeuctivity.OpenXMLWordprocessingMLToHtmlConverter
+namespace Codeuctivity.OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
 {
     /// <summary>
     /// Default handler that transforms OpenXml breaks into some HTML specific equivalent

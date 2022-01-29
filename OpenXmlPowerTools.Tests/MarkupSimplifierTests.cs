@@ -1,4 +1,5 @@
-﻿using DocumentFormat.OpenXml;
+﻿using Codeuctivity.OpenXmlPowerTools;
+using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using System.IO;
 using System.Linq;

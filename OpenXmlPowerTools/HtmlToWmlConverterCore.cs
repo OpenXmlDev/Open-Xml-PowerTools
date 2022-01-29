@@ -104,7 +104,7 @@ using System.Linq;
 using System.Text;
 using System.Xml.Linq;
 
-namespace Codeuctivity
+namespace Codeuctivity.OpenXmlPowerTools
 {
     public class ElementToStyleMap
     {

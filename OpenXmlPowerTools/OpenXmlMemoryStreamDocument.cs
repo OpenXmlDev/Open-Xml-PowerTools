@@ -1,4 +1,4 @@
-﻿using Codeuctivity.Exceptions;
+﻿using Codeuctivity.OpenXmlPowerTools.Exceptions;
 using DocumentFormat.OpenXml.Packaging;
 using System;
 using System.IO;
@@ -6,7 +6,7 @@ using System.IO.Packaging;
 using System.Linq;
 using System.Xml.Linq;
 
-namespace Codeuctivity
+namespace Codeuctivity.OpenXmlPowerTools
 {
     public class OpenXmlMemoryStreamDocument : IDisposable
     {

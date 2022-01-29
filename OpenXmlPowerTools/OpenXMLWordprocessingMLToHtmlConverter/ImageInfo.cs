@@ -1,7 +1,7 @@
 ﻿using System.IO;
 using System.Xml.Linq;
 
-namespace Codeuctivity.OpenXMLWordprocessingMLToHtmlConverter
+namespace Codeuctivity.OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
 {
     public class ImageInfo
     {

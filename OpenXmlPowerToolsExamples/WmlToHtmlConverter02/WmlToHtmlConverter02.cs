@@ -1,5 +1,6 @@
-﻿using Codeuctivity;
-using Codeuctivity.OpenXMLWordprocessingMLToHtmlConverter;
+﻿using  Codeuctivity.OpenXmlPowerTools;
+using Codeuctivity.OpenXmlPowerTools;
+using Codeuctivity.OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter;
 using DocumentFormat.OpenXml.Packaging;
 using System;
 using System.IO;

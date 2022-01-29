@@ -1,4 +1,5 @@
-﻿using DocumentFormat.OpenXml.Packaging;
+﻿using Codeuctivity.OpenXmlPowerTools;
+using DocumentFormat.OpenXml.Packaging;
 using System;
 using System.Globalization;
 using System.IO;
@@ -67,9 +68,9 @@ namespace Codeuctivity.Tests
             var exception = Assert.Throws<TargetInvocationException>(() =>
               {
                   var contentParent = wDoc.MainDocumentPart.GetXDocument().Root.Element(W.body);
-                  var settings = new Codeuctivity.WmlComparer.WmlComparerSettings();
+                  var settings = new Codeuctivity.OpenXmlPowerTools.WmlComparer.WmlComparerSettings();
 
-                  var type = typeof(Codeuctivity.WmlComparer.WmlComparer);
+                  var type = typeof(OpenXmlPowerTools.WmlComparer.WmlComparer);
                   var method = type.GetMethods(BindingFlags.NonPublic | BindingFlags.Static).Where(x => x.Name == "CreateComparisonUnitAtomList" && x.IsStatic).Single();
 
                   //Act

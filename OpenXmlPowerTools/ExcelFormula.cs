@@ -5,7 +5,7 @@
 using System;
 using System.IO;
 
-namespace Codeuctivity
+namespace Codeuctivity.OpenXmlPowerTools
 {
     internal enum EExcelFormula
     {

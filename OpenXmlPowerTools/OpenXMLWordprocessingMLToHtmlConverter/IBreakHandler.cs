@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Xml.Linq;
 
-namespace Codeuctivity.OpenXMLWordprocessingMLToHtmlConverter
+namespace Codeuctivity.OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
 {
     public interface IBreakHandler
     {

@@ -1,7 +1,7 @@
 using DocumentFormat.OpenXml.Packaging;
 using System;
 
-namespace Codeuctivity
+namespace Codeuctivity.OpenXmlPowerTools
 {
     /// <summary>
     /// Provides an elegant way of wrapping a set of invocations of the strongly typed

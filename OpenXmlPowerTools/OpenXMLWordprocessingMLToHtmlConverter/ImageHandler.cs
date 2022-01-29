@@ -4,7 +4,7 @@ using System;
 using System.IO;
 using System.Xml.Linq;
 
-namespace Codeuctivity.OpenXMLWordprocessingMLToHtmlConverter
+namespace Codeuctivity.OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
 {
     /// <summary>
     /// Default image handler

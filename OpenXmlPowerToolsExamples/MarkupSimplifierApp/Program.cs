@@ -1,4 +1,4 @@
-﻿using Codeuctivity;
+﻿using Codeuctivity.OpenXmlPowerTools;
 using DocumentFormat.OpenXml.Packaging;
 using MarkupSimplifierApp.Properties;
 using System;

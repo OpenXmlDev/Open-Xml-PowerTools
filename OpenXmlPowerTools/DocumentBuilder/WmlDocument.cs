@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 
-namespace Codeuctivity
+namespace Codeuctivity.OpenXmlPowerTools
 {
     public partial class WmlDocument : OpenXmlPowerToolsDocument
     {
-        public IEnumerable<WmlDocument> SplitOnSections() => Codeuctivity.DocumentBuilder.DocumentBuilder.SplitOnSections(this);
+        public IEnumerable<WmlDocument> SplitOnSections() => DocumentBuilder.DocumentBuilder.SplitOnSections(this);
     }
 }

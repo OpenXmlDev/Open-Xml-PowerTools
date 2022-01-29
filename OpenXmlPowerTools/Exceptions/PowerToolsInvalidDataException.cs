@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Codeuctivity.Exceptions
+namespace Codeuctivity.OpenXmlPowerTools.Exceptions
 {
     public class PowerToolsInvalidDataException : Exception
     {

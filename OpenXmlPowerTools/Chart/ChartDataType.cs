@@ -1,4 +1,4 @@
-﻿namespace Codeuctivity.Chart
+﻿namespace Codeuctivity.OpenXmlPowerTools.Chart
 {
     public enum ChartDataType
     {

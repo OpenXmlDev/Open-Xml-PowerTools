@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Codeuctivity
+namespace Codeuctivity.OpenXmlPowerTools
 {
     public class ListItemTextGetter_sv_SE
     {

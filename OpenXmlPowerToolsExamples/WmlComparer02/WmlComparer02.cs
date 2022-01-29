@@ -1,5 +1,5 @@
-﻿using Codeuctivity;
-using Codeuctivity.WmlComparer;
+﻿using Codeuctivity.OpenXmlPowerTools;
+using Codeuctivity.OpenXmlPowerTools.WmlComparer;
 using SixLabors.ImageSharp;
 using System;
 using System.Collections.Generic;

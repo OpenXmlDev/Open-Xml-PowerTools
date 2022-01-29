@@ -10,7 +10,7 @@ using System.Xml.Linq;
 // Content-Language: en-US
 // Content-Language: fr-FR
 
-namespace Codeuctivity.OpenXMLWordprocessingMLToHtmlConverter
+namespace Codeuctivity.OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
 {
     /// <summary>
     /// Converts a wordDoc to a self contained HTML

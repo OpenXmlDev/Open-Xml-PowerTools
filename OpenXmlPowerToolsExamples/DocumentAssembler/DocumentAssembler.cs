@@ -1,4 +1,4 @@
-﻿using Codeuctivity;
+﻿using Codeuctivity.OpenXmlPowerTools;
 using System;
 using System.IO;
 using System.Xml.Linq;
@@ -39,7 +39,7 @@ namespace DocumentAssembler
 
             var wmlDoc = new WmlDocument(templateDoc.FullName);
             var data = XElement.Load(dataFile.FullName);
-            var wmlAssembledDoc = Codeuctivity.DocumentAssembler.AssembleDocument(wmlDoc, data, out var templateError);
+            var wmlAssembledDoc = Codeuctivity.OpenXmlPowerTools.DocumentAssembler.AssembleDocument(wmlDoc, data, out var templateError);
             if (templateError)
             {
                 Console.WriteLine("Errors in template.");

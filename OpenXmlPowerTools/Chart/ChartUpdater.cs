@@ -1,11 +1,10 @@
-﻿using Codeuctivity;
-using DocumentFormat.OpenXml.Packaging;
+﻿using DocumentFormat.OpenXml.Packaging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Linq;
 
-namespace Codeuctivity.Chart
+namespace Codeuctivity.OpenXmlPowerTools.Chart
 {
     public class ChartUpdater
     {

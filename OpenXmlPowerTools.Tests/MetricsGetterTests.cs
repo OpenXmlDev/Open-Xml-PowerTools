@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using Codeuctivity.OpenXmlPowerTools;
+using System.IO;
 using System.Xml.Linq;
 using Xunit;
 

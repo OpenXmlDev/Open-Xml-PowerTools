@@ -1,4 +1,5 @@
-﻿using Codeuctivity.DocumentBuilder;
+﻿using Codeuctivity.OpenXmlPowerTools;
+using Codeuctivity.OpenXmlPowerTools.DocumentBuilder;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Validation;
 using System;
@@ -24,7 +25,7 @@ namespace Codeuctivity.Tests
                 new Source(new WmlDocument(sourceDocx.FullName), true),
             };
             var processedDestDocx = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, sourceDocx.Name.Replace(".docx", "-processed-by-DocumentBuilder.docx")));
-            Codeuctivity.DocumentBuilder.DocumentBuilder.BuildDocument(sources, processedDestDocx.FullName);
+            DocumentBuilder.BuildDocument(sources, processedDestDocx.FullName);
         }
 
         [Fact]
@@ -40,7 +41,7 @@ namespace Codeuctivity.Tests
                 new Source(new WmlDocument(source1Docx.FullName)) { KeepSections = true },
             };
             var processedDestDocx = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, "DB002-Keep-Sections-Discard-Headers-And-Footers.docx"));
-            Codeuctivity.DocumentBuilder.DocumentBuilder.BuildDocument(sources, processedDestDocx.FullName);
+            DocumentBuilder.BuildDocument(sources, processedDestDocx.FullName);
         }
 
         [Fact]
@@ -56,7 +57,7 @@ namespace Codeuctivity.Tests
                 new Source(new WmlDocument(source1Docx.FullName)) { KeepSections = true },
             };
             var processedDestDocx = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, "DB003-Only-Default-Header.docx"));
-            Codeuctivity.DocumentBuilder.DocumentBuilder.BuildDocument(sources, processedDestDocx.FullName);
+            DocumentBuilder.BuildDocument(sources, processedDestDocx.FullName);
         }
 
         [Fact]
@@ -72,7 +73,7 @@ namespace Codeuctivity.Tests
                 new Source(new WmlDocument(source1Docx.FullName)) { KeepSections = true },
             };
             var processedDestDocx = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, "DB003-Only-Default-Header.docx"));
-            Codeuctivity.DocumentBuilder.DocumentBuilder.BuildDocument(sources, processedDestDocx.FullName);
+            DocumentBuilder.BuildDocument(sources, processedDestDocx.FullName);
         }
 
         [Fact]
@@ -88,7 +89,7 @@ namespace Codeuctivity.Tests
                 new Source(new WmlDocument(source1Docx.FullName)) { KeepSections = true },
             };
             var processedDestDocx = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, "DB005.docx"));
-            Codeuctivity.DocumentBuilder.DocumentBuilder.BuildDocument(sources, processedDestDocx.FullName);
+            DocumentBuilder.BuildDocument(sources, processedDestDocx.FullName);
         }
 
         [Fact]
@@ -105,7 +106,7 @@ namespace Codeuctivity.Tests
                 new Source(new WmlDocument(source1.FullName), 5, 10, true),
             };
             var out1 = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, "DB006-Out1.docx"));
-            Codeuctivity.DocumentBuilder.DocumentBuilder.BuildDocument(sources, out1.FullName);
+            DocumentBuilder.BuildDocument(sources, out1.FullName);
             Validate(out1);
 
             // Create new document from paragraph 1, and paragraphs 5 through end of Source3.docx.
@@ -116,7 +117,7 @@ namespace Codeuctivity.Tests
                 new Source(new WmlDocument(source3.FullName), 4, false),
             };
             var out2 = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, "DB006-Out2.docx"));
-            Codeuctivity.DocumentBuilder.DocumentBuilder.BuildDocument(sources, out2.FullName);
+            DocumentBuilder.BuildDocument(sources, out2.FullName);
             Validate(out2);
 
             // Create a new document that consists of the entirety of Source1.docx and Source2.docx.  Use
@@ -127,7 +128,7 @@ namespace Codeuctivity.Tests
                 new Source(new WmlDocument(source2.FullName), false),
             };
             var out3 = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, "DB006-Out3.docx"));
-            Codeuctivity.DocumentBuilder.DocumentBuilder.BuildDocument(sources, out3.FullName);
+            DocumentBuilder.BuildDocument(sources, out3.FullName);
             Validate(out3);
 
             // Create a new document that consists of the entirety of Source1.docx and Source2.docx.  Use
@@ -138,7 +139,7 @@ namespace Codeuctivity.Tests
                 new Source(new WmlDocument(source2.FullName), true),
             };
             var out4 = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, "DB006-Out4.docx"));
-            Codeuctivity.DocumentBuilder.DocumentBuilder.BuildDocument(sources, out4.FullName);
+            DocumentBuilder.BuildDocument(sources, out4.FullName);
             Validate(out4);
 
             // Create a new document that consists of the first 5 paragraphs of Source1.docx and the first
@@ -149,7 +150,7 @@ namespace Codeuctivity.Tests
                 new Source(new WmlDocument(source1.FullName), 0, 5, false),
                 new Source(new WmlDocument(source2.FullName), 0, 5, true),
             };
-            var wmlOut5 = Codeuctivity.DocumentBuilder.DocumentBuilder.BuildDocument(sources);
+            var wmlOut5 = DocumentBuilder.BuildDocument(sources);
             var out5 = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, "DB006-Out5.docx"));
 
             wmlOut5.SaveAs(out5.FullName);  // save it to the file system, but we could just as easily done something
@@ -172,7 +173,7 @@ namespace Codeuctivity.Tests
                 new Source(new WmlDocument(whitePaper.FullName), 1, false),
             };
             var assembledPaper = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, "DB007-AssembledPaper.docx"));
-            Codeuctivity.DocumentBuilder.DocumentBuilder.BuildDocument(sources, assembledPaper.FullName);
+            DocumentBuilder.BuildDocument(sources, assembledPaper.FullName);
             Validate(assembledPaper);
         }
 
@@ -209,7 +210,7 @@ namespace Codeuctivity.Tests
                     .ToList();
             }
             var newNotes = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, "DB008-NewNotes.docx"));
-            Codeuctivity.DocumentBuilder.DocumentBuilder.BuildDocument(sources, newNotes.FullName);
+            DocumentBuilder.BuildDocument(sources, newNotes.FullName);
             Validate(newNotes);
         }
 
@@ -300,7 +301,7 @@ namespace Codeuctivity.Tests
             };
 
             var outFi = new FileInfo(Path.Combine(tempDirFullName, "Output.docx"));
-            Codeuctivity.DocumentBuilder.DocumentBuilder.BuildDocument(sources, outFi.FullName);
+            DocumentBuilder.BuildDocument(sources, outFi.FullName);
             Validate(outFi);
         }
 
@@ -365,7 +366,7 @@ namespace Codeuctivity.Tests
                 var documentSource = new List<Source> {
                     new Source(new WmlDocument(spec.FullName), doc.Start, doc.Count, true)
                 };
-                Codeuctivity.DocumentBuilder.DocumentBuilder.BuildDocument(documentSource, fiSection.FullName);
+                DocumentBuilder.BuildDocument(documentSource, fiSection.FullName);
                 Validate(fiSection);
             }
 
@@ -376,7 +377,7 @@ namespace Codeuctivity.Tests
                 .ToList();
             var fiReassembled = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, "DB009-Reassembled.docx"));
 
-            Codeuctivity.DocumentBuilder.DocumentBuilder.BuildDocument(sources, fiReassembled.FullName);
+            DocumentBuilder.BuildDocument(sources, fiReassembled.FullName);
             using (var doc = WordprocessingDocument.Open(fiReassembled.FullName, true))
             {
                 ReferenceAdder.AddToc(doc, "/w:document/w:body/w:p[1]",
@@ -427,7 +428,7 @@ namespace Codeuctivity.Tests
                 new Source(new WmlDocument(front.FullName), "Front"),
             };
             var out1 = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, "DB010-Inserted.docx"));
-            Codeuctivity.DocumentBuilder.DocumentBuilder.BuildDocument(sources, out1.FullName);
+            DocumentBuilder.BuildDocument(sources, out1.FullName);
             Validate(out1);
         }
 
@@ -445,7 +446,7 @@ namespace Codeuctivity.Tests
             };
             var processedDestDocx =
                 new FileInfo(Path.Combine(TestUtil.TempDir.FullName, "DB011-Body-And-Header-With-Shapes.docx"));
-            Codeuctivity.DocumentBuilder.DocumentBuilder.BuildDocument(sources, processedDestDocx.FullName);
+            DocumentBuilder.BuildDocument(sources, processedDestDocx.FullName);
             Validate(processedDestDocx);
 
             ValidateUniqueDocPrIds(processedDestDocx);
@@ -464,7 +465,7 @@ namespace Codeuctivity.Tests
             };
             var processedDestDocx = new FileInfo(Path.Combine(TestUtil.TempDir.FullName,
                 sourceDocx.Name.Replace(".docx", "-processed-by-DocumentBuilder.docx")));
-            Codeuctivity.DocumentBuilder.DocumentBuilder.BuildDocument(sources, processedDestDocx.FullName);
+            DocumentBuilder.BuildDocument(sources, processedDestDocx.FullName);
 
             using var wDoc = WordprocessingDocument.Open(processedDestDocx.FullName, false);
             var numberingRoot = wDoc.MainDocumentPart.NumberingDefinitionsPart.GetXDocument().Root;
@@ -490,7 +491,7 @@ namespace Codeuctivity.Tests
             };
             var processedDestDocx =
                 new FileInfo(Path.Combine(TestUtil.TempDir.FullName, "DB013a-Colored-Heading1.docx"));
-            Codeuctivity.DocumentBuilder.DocumentBuilder.BuildDocument(sources, processedDestDocx.FullName);
+            DocumentBuilder.BuildDocument(sources, processedDestDocx.FullName);
 
             using var wDoc = WordprocessingDocument.Open(processedDestDocx.FullName, false);
             var styles = wDoc.MainDocumentPart.StyleDefinitionsPart.GetXDocument().Root.Elements(W.style).ToArray();
@@ -522,7 +523,7 @@ namespace Codeuctivity.Tests
             };
             var processedDestDocx =
                 new FileInfo(Path.Combine(TestUtil.TempDir.FullName, "DB013b-Colored-List.docx"));
-            Codeuctivity.DocumentBuilder.DocumentBuilder.BuildDocument(sources, processedDestDocx.FullName);
+            DocumentBuilder.BuildDocument(sources, processedDestDocx.FullName);
 
             using var wDoc = WordprocessingDocument.Open(processedDestDocx.FullName, false);
             var styles = wDoc.MainDocumentPart.StyleDefinitionsPart.GetXDocument().Root.Elements(W.style).ToArray();
@@ -545,7 +546,7 @@ namespace Codeuctivity.Tests
                 new Source(new WmlDocument(source.FullName)),
             };
             var processedDestDocx = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, "DB014-WebExtensions.docx"));
-            Codeuctivity.DocumentBuilder.DocumentBuilder.BuildDocument(sources, processedDestDocx.FullName);
+            DocumentBuilder.BuildDocument(sources, processedDestDocx.FullName);
             Validate(processedDestDocx);
 
             using var wDoc = WordprocessingDocument.Open(processedDestDocx.FullName, false);
@@ -564,7 +565,7 @@ namespace Codeuctivity.Tests
                 new Source(new WmlDocument(source.FullName)),
             };
             var processedDestDocx = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, "DB015-LatentStyles.docx"));
-            Codeuctivity.DocumentBuilder.DocumentBuilder.BuildDocument(sources, processedDestDocx.FullName);
+            DocumentBuilder.BuildDocument(sources, processedDestDocx.FullName);
             Validate(processedDestDocx);
 
             //using (WordprocessingDocument wDoc = WordprocessingDocument.Open(processedDestDocx.FullName, false))
@@ -587,7 +588,7 @@ namespace Codeuctivity.Tests
             };
             var processedDestDocx = new FileInfo(Path.Combine(TestUtil.TempDir.FullName,
                 sourceDocx.Name.Replace(".docx", "-processed-by-DocumentBuilder.docx")));
-            Codeuctivity.DocumentBuilder.DocumentBuilder.BuildDocument(sources, processedDestDocx.FullName);
+            DocumentBuilder.BuildDocument(sources, processedDestDocx.FullName);
 
             using var wDoc = WordprocessingDocument.Open(processedDestDocx.FullName, true);
             var styles = wDoc.MainDocumentPart.StyleDefinitionsPart.GetXDocument().Root.Elements(W.docDefaults).ToArray();
@@ -679,7 +680,7 @@ namespace Codeuctivity.Tests
 
             var outFi = new FileInfo(Path.Combine(tempDirFullName, "Output.docx"));
             var settings = new DocumentBuilderSettings();
-            Codeuctivity.DocumentBuilder.DocumentBuilder.BuildDocument(sources, outFi.FullName, settings);
+            DocumentBuilder.BuildDocument(sources, outFi.FullName, settings);
             Validate(outFi);
         }
 

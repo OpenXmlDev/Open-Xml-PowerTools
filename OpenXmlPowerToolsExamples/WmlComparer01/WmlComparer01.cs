@@ -1,5 +1,5 @@
-﻿using Codeuctivity;
-using Codeuctivity.WmlComparer;
+﻿using  Codeuctivity.OpenXmlPowerTools;
+using Codeuctivity.OpenXmlPowerTools.WmlComparer;
 using System;
 using System.IO;
 

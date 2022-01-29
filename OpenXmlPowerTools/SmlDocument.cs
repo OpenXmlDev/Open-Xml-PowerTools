@@ -1,8 +1,8 @@
-﻿using Codeuctivity.Exceptions;
+﻿using Codeuctivity.OpenXmlPowerTools.Exceptions;
 using DocumentFormat.OpenXml.Packaging;
 using System.IO;
 
-namespace Codeuctivity
+namespace Codeuctivity.OpenXmlPowerTools
 {
     public partial class SmlDocument : OpenXmlPowerToolsDocument
     {

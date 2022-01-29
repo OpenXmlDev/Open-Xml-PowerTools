@@ -2,7 +2,7 @@
 using System.Collections;
 using System.Collections.ObjectModel;
 
-namespace Codeuctivity
+namespace Codeuctivity.OpenXmlPowerTools
 {
     internal static class DefaultScalarTypes
     {

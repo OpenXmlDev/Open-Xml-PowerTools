@@ -1,4 +1,4 @@
-﻿using Codeuctivity.OpenXMLWordprocessingMLToHtmlConverter;
+﻿using Codeuctivity.OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter;
 using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Validation;
@@ -11,7 +11,7 @@ using System.Text;
 using System.Xml;
 using System.Xml.Linq;
 
-namespace Codeuctivity
+namespace Codeuctivity.OpenXmlPowerTools
 {
     public static class AddDocxTextHelper
     {

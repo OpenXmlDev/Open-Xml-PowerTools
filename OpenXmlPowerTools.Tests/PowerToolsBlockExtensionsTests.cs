@@ -1,3 +1,4 @@
+using Codeuctivity.OpenXmlPowerTools;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
 using System.IO;

@@ -1,4 +1,4 @@
-﻿namespace Codeuctivity
+﻿namespace Codeuctivity.OpenXmlPowerTools
 {
     internal class ListItemTextGetter_Default
     {
