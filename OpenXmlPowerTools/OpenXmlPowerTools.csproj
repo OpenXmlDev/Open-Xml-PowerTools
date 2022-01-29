@@ -30,6 +30,7 @@
 		<NeutralLanguage>en</NeutralLanguage>
 		<EnableNETAnalyzers>true</EnableNETAnalyzers>
 		<PackageId>Codeuctivity.OpenXmlPowerTools</PackageId>
+		<AssemblyName>Codeuctivity.OpenXmlPowerTools</AssemblyName>
 		<PackageReadmeFile>nugetReadme.md</PackageReadmeFile>
 		<ContinuousIntegrationBuild Condition="'$(GITHUB_ACTIONS)' == 'true'">true</ContinuousIntegrationBuild>
 	</PropertyGroup>
