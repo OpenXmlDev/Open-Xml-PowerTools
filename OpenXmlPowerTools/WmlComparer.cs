@@ -3697,6 +3697,7 @@ namespace OpenXmlPowerTools
                                                 }
                                                 var sha1 = PtUtils.SHA1HashStringForByteArray(ba);
                                                 oxp.AddAnnotation(new PartSHA1HashAnnotation(sha1));
+
                                                 return new XAttribute(a.Name, sha1);
                                             }
                                         }
@@ -4817,8 +4818,9 @@ namespace OpenXmlPowerTools
                                 newPartXDoc = XDocument.Load(stream);
                                 MoveRelatedPartsToDestination(relatedPackagePart, newPart, newPartXDoc.Root);
                             }
-                            using (var stream = newPart.GetStream())
-                                newPartXDoc.Save(stream);
+
+                            using (var partStream = newPart.GetStream())
+                                newPartXDoc.Save(partStream);
                         }
                     }
                 }

@@ -1,0 +1,22 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.26228.98
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenXmlPowerTools", "OpenXmlPowerTools.csproj", "{B9C353A0-D182-46D3-94E0-C11D2A9F2FAD}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B9C353A0-D182-46D3-94E0-C11D2A9F2FAD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B9C353A0-D182-46D3-94E0-C11D2A9F2FAD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B9C353A0-D182-46D3-94E0-C11D2A9F2FAD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B9C353A0-D182-46D3-94E0-C11D2A9F2FAD}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

@@ -371,9 +371,7 @@ namespace OpenXmlPowerTools
             if (fieldType.ToUpper() != "HYPERLINK" &&
                 fieldType.ToUpper() != "REF" &&
                 fieldType.ToUpper() != "SEQ" &&
-                fieldType.ToUpper() != "STYLEREF" &&
-                fieldType.ToUpper() != "LISTNUM" &&
-                fieldType.ToUpper() != "PAGE")
+                fieldType.ToUpper() != "STYLEREF")
                 return emptyField;
             string[] tokens = GetTokens(field);
             if (tokens.Length == 0)

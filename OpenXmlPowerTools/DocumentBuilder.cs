@@ -483,6 +483,7 @@ namespace OpenXmlPowerTools
                 }
                 else
                 {
+
                     FixUpSectionProperties(output);
 
                     // Any sectPr elements that do not have headers and footers should take their headers and footers from the *next* section,
@@ -1145,6 +1146,7 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml
 
         private static void ProcessSectionsForLinkToPreviousHeadersAndFooters(WordprocessingDocument doc)
         {
+
             CachedHeaderFooter[] cachedHeaderFooter = new[]
             {
                 new CachedHeaderFooter() { Ref = W.headerReference, Type = "first" },
@@ -1269,6 +1271,7 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml
 
         private static void InitEmptyHeaderOrFooter(MainDocumentPart mainDocPart, XElement sect, XName referenceXName, string toType)
         {
+
             XDocument xDoc = null;
             if (referenceXName == W.headerReference)
             {
