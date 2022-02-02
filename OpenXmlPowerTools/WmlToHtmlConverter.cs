@@ -1210,7 +1210,7 @@ namespace OpenXmlPowerTools
                         : "0");
             }
 
-            var firstLine = WordprocessingMLUtil.AttributeToTwips(ind.Attribute(W.firstLine));
+            var firstLine = (decimal?) ind.Attribute(W.firstLine);
             if (firstLine != null && elementName != Xhtml.span)
             {
                 var firstLineInInches = (decimal) firstLine/1440m;
@@ -1218,7 +1218,7 @@ namespace OpenXmlPowerTools
                     string.Format(NumberFormatInfo.InvariantInfo, "{0:0.00}in", firstLineInInches));
             }
 
-            var hanging = WordprocessingMLUtil.AttributeToTwips(ind.Attribute(W.hanging));
+            var hanging = (decimal?) ind.Attribute(W.hanging);
             if (hanging != null && elementName != Xhtml.span)
             {
                 var hangingInInches = (decimal) -hanging/1440m;
@@ -1279,7 +1279,7 @@ namespace OpenXmlPowerTools
                     style.Add("line-height", string.Format(NumberFormatInfo.InvariantInfo, "{0:0.0}pt", points));
             }
 
-            var spacingAfter = suppressTrailingWhiteSpace ? 0 : WordprocessingMLUtil.AttributeToTwips(spacing.Attribute(W.after));
+            var spacingAfter = suppressTrailingWhiteSpace ? 0m : (decimal?) spacing.Attribute(W.after);
             if (spacingAfter != null)
                 style.AddIfMissing("margin-bottom",
                     spacingAfter > 0m
@@ -1837,8 +1837,7 @@ namespace OpenXmlPowerTools
 
             // w:defaultTabStop in settings
             var sxd = wordDoc.MainDocumentPart.DocumentSettingsPart.GetXDocument();
-            var defaultTabStopValue = (string)sxd.Descendants(W.defaultTabStop).Attributes(W.val).FirstOrDefault();
-            var defaultTabStop = defaultTabStopValue != null ? WordprocessingMLUtil.StringToTwips(defaultTabStopValue) : 720;
+            var defaultTabStop = (int?)sxd.Descendants(W.defaultTabStop).Attributes(W.val).FirstOrDefault() ?? 720;
 
             var pxd = wordDoc.MainDocumentPart.GetXDocument();
             var root = pxd.Root;
@@ -1877,16 +1876,16 @@ namespace OpenXmlPowerTools
             {
                 // todo need to handle start and end attributes
 
-                var left = WordprocessingMLUtil.AttributeToTwips(ind.Attribute(W.left));
+                var left = (int?)ind.Attribute(W.left);
                 if (left != null)
                     leftInTwips = (int)left;
 
                 var firstLine = 0;
-                var firstLineAtt = WordprocessingMLUtil.AttributeToTwips(ind.Attribute(W.firstLine));
+                var firstLineAtt = (int?)ind.Attribute(W.firstLine);
                 if (firstLineAtt != null)
                     firstLine = (int)firstLineAtt;
 
-                var hangingAtt = WordprocessingMLUtil.AttributeToTwips(ind.Attribute(W.hanging));
+                var hangingAtt = (int?)ind.Attribute(W.hanging);
                 if (hangingAtt != null)
                     firstLine = -(int)hangingAtt;
 
@@ -1960,7 +1959,7 @@ namespace OpenXmlPowerTools
 
                     var tabAfterText = tabs
                         .Elements(W.tab)
-                        .FirstOrDefault(t => WordprocessingMLUtil.StringToTwips((string)t.Attribute(W.pos)) > testAmount);
+                        .FirstOrDefault(t => (int)t.Attribute(W.pos) > testAmount);
 
                     if (tabAfterText == null)
                     {
@@ -1996,14 +1995,14 @@ namespace OpenXmlPowerTools
                             new XElement(W.t, textAfterTab));
 
                         var widthOfTextAfterTab = CalcWidthOfRunInTwips(dummyRun2);
-                        var delta2 = WordprocessingMLUtil.StringToTwips((string)tabAfterText.Attribute(W.pos)) - widthOfTextAfterTab - twipCounter;
+                        var delta2 = (int)tabAfterText.Attribute(W.pos) - widthOfTextAfterTab - twipCounter;
                         if (delta2 < 0)
                             delta2 = 0;
                         currentElement.Add(
                             new XAttribute(PtOpenXml.TabWidth,
                                 string.Format(NumberFormatInfo.InvariantInfo, "{0:0.000}", (decimal)delta2 / 1440m)),
                             GetLeader(tabAfterText));
-                        twipCounter = Math.Max(WordprocessingMLUtil.StringToTwips((string)tabAfterText.Attribute(W.pos)), twipCounter + widthOfTextAfterTab);
+                        twipCounter = Math.Max((int)tabAfterText.Attribute(W.pos), twipCounter + widthOfTextAfterTab);
 
                         var lastElement = textElementsToMeasure.LastOrDefault();
                         if (lastElement == null)
@@ -2043,7 +2042,7 @@ namespace OpenXmlPowerTools
                                 new XElement(W.t, mantissa));
 
                             var widthOfMantissa = CalcWidthOfRunInTwips(dummyRun4);
-                            var delta2 = WordprocessingMLUtil.StringToTwips((string)tabAfterText.Attribute(W.pos)) - widthOfMantissa - twipCounter;
+                            var delta2 = (int)tabAfterText.Attribute(W.pos) - widthOfMantissa - twipCounter;
                             if (delta2 < 0)
                                 delta2 = 0;
                             currentElement.Add(
@@ -2058,7 +2057,7 @@ namespace OpenXmlPowerTools
                                 new XElement(W.t, decims));
 
                             var widthOfDecims = CalcWidthOfRunInTwips(dummyRun4);
-                            twipCounter = Math.Max(WordprocessingMLUtil.StringToTwips((string)tabAfterText.Attribute(W.pos)) + widthOfDecims, twipCounter + widthOfMantissa + widthOfDecims);
+                            twipCounter = Math.Max((int)tabAfterText.Attribute(W.pos) + widthOfDecims, twipCounter + widthOfMantissa + widthOfDecims);
 
                             var lastElement = textElementsToMeasure.LastOrDefault();
                             if (lastElement == null)
@@ -2078,14 +2077,14 @@ namespace OpenXmlPowerTools
                                 new XElement(W.t, textAfterTab));
 
                             var widthOfTextAfterTab = CalcWidthOfRunInTwips(dummyRun2);
-                            var delta2 = WordprocessingMLUtil.StringToTwips((string)tabAfterText.Attribute(W.pos)) - widthOfTextAfterTab - twipCounter;
+                            var delta2 = (int)tabAfterText.Attribute(W.pos) - widthOfTextAfterTab - twipCounter;
                             if (delta2 < 0)
                                 delta2 = 0;
                             currentElement.Add(
                                 new XAttribute(PtOpenXml.TabWidth,
                                     string.Format(NumberFormatInfo.InvariantInfo, "{0:0.000}", (decimal)delta2 / 1440m)),
                                 GetLeader(tabAfterText));
-                            twipCounter = Math.Max(WordprocessingMLUtil.StringToTwips((string)tabAfterText.Attribute(W.pos)), twipCounter + widthOfTextAfterTab);
+                            twipCounter = Math.Max((int)tabAfterText.Attribute(W.pos), twipCounter + widthOfTextAfterTab);
 
                             var lastElement = textElementsToMeasure.LastOrDefault();
                             if (lastElement == null)
@@ -2122,14 +2121,14 @@ namespace OpenXmlPowerTools
                             new XElement(W.t, textAfterTab));
 
                         var widthOfText = CalcWidthOfRunInTwips(dummyRun4);
-                        var delta2 = WordprocessingMLUtil.StringToTwips((string)tabAfterText.Attribute(W.pos)) - (widthOfText / 2) - twipCounter;
+                        var delta2 = (int)tabAfterText.Attribute(W.pos) - (widthOfText / 2) - twipCounter;
                         if (delta2 < 0)
                             delta2 = 0;
                         currentElement.Add(
                             new XAttribute(PtOpenXml.TabWidth,
                                 string.Format(NumberFormatInfo.InvariantInfo, "{0:0.000}", (decimal)delta2 / 1440m)),
                             GetLeader(tabAfterText));
-                        twipCounter = Math.Max(WordprocessingMLUtil.StringToTwips((string)tabAfterText.Attribute(W.pos)) + widthOfText / 2, twipCounter + widthOfText);
+                        twipCounter = Math.Max((int)tabAfterText.Attribute(W.pos) + widthOfText / 2, twipCounter + widthOfText);
 
                         var lastElement = textElementsToMeasure.LastOrDefault();
                         if (lastElement == null)
@@ -2143,12 +2142,12 @@ namespace OpenXmlPowerTools
                     }
                     if (tabVal == "left" || tabVal == "start" || tabVal == "num")
                     {
-                        var delta = WordprocessingMLUtil.StringToTwips((string)tabAfterText.Attribute(W.pos)) - twipCounter;
+                        var delta = (int)tabAfterText.Attribute(W.pos) - twipCounter;
                         currentElement.Add(
                             new XAttribute(PtOpenXml.TabWidth,
                                 string.Format(NumberFormatInfo.InvariantInfo, "{0:0.000}", (decimal)delta / 1440m)),
                             GetLeader(tabAfterText));
-                        twipCounter = WordprocessingMLUtil.StringToTwips((string)tabAfterText.Attribute(W.pos));
+                        twipCounter = (int)tabAfterText.Attribute(W.pos);
 
                         currentElementIdx++;
                         if (currentElementIdx >= contentToMeasure.Length)
@@ -2210,13 +2209,13 @@ namespace OpenXmlPowerTools
             var lastTabElement = tabs
                 .Elements(W.tab)
                 .Where(t => (string)t.Attribute(W.val) != "clear" && (string)t.Attribute(W.val) != "bar")
-                .OrderBy(t => WordprocessingMLUtil.StringToTwips((string)t.Attribute(W.pos)))
+                .OrderBy(t => (int)t.Attribute(W.pos))
                 .LastOrDefault();
             if (lastTabElement != null)
             {
                 if (defaultTabStop == 0)
                     defaultTabStop = 720;
-                var rangeStart = WordprocessingMLUtil.StringToTwips((string)lastTabElement.Attribute(W.pos)) / defaultTabStop + 1;
+                var rangeStart = (int)lastTabElement.Attribute(W.pos) / defaultTabStop + 1;
                 var tempTabs = new XElement(W.tabs,
                     tabs.Elements().Where(t => (string)t.Attribute(W.val) != "clear" && (string)t.Attribute(W.val) != "bar"),
                     Enumerable.Range(rangeStart, 100)
@@ -2224,7 +2223,7 @@ namespace OpenXmlPowerTools
                         new XAttribute(W.val, "left"),
                         new XAttribute(W.pos, r * defaultTabStop))));
                 tempTabs = new XElement(W.tabs,
-                    tempTabs.Elements().OrderBy(t => WordprocessingMLUtil.StringToTwips((string)t.Attribute(W.pos))));
+                    tempTabs.Elements().OrderBy(t => (int)t.Attribute(W.pos)));
                 return tempTabs;
             }
             else
