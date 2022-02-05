@@ -22,7 +22,7 @@ namespace Codeuctivity.OpenXmlPowerTools
             "artonde", "nittonde"
         };
 
-        public static string GetListItemText(int levelNumber, string numFmt)
+        public static string? GetListItemText(int levelNumber, string numFmt)
         {
             switch (numFmt)
             {

@@ -31,7 +31,7 @@ namespace Codeuctivity.Tests.OpenXMLWordprocessingMLToHtmlConverter
         [InlineData("png", minimalPng)]
         [InlineData("bmp", minimalBmp)]
         [InlineData("jpeg", minimalJpg)]
-        public async void ShouldTranslateWithDefaultImageHandler(string imageType, string minimalImage)
+        public void ShouldTranslateWithDefaultImageHandler(string imageType, string minimalImage)
         {
             var expectedStart = $"<img src=\"data:image/{imageType};base64,";
             var expectedEnd = "\" xmlns=\"http://www.w3.org/1999/xhtml\" />";

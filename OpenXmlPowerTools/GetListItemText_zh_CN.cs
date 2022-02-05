@@ -2,7 +2,7 @@
 {
     public class ListItemTextGetter_zh_CN
     {
-        public static string GetListItemText(int levelNumber, string numFmt)
+        public static string? GetListItemText(int levelNumber, string numFmt)
         {
             var ccTDigitCharacters = new[] {
                 "",

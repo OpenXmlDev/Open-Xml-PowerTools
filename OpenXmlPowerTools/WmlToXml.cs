@@ -371,7 +371,7 @@ namespace Codeuctivity.OpenXmlPowerTools
                     .Select(h =>
                     {
                         var childrenHeadings = GetChildrenHeadings(mainPart, contentList, h, settings);
-                        var xml = (XElement)ProduceXmlTransform(mainPart, h, settings);
+                        var xml = ProduceXmlTransform(mainPart, h, settings) as XElement;
                         if (xml != null)
                         {
                             xml.Add(childrenHeadings);
@@ -580,7 +580,7 @@ namespace Codeuctivity.OpenXmlPowerTools
             return theOne;
         }
 
-        private static object HierarchyPerSettingsTransform(IEnumerable<XElement> list, int level)
+        private static object? HierarchyPerSettingsTransform(IEnumerable<XElement> list, int level)
         {
             // small optimization - other code in this method would have same effect, but this is more efficient.
             if (!list.Any())
@@ -815,7 +815,7 @@ namespace Codeuctivity.OpenXmlPowerTools
 
                     var re = new Regex("[A-F0-9.]+$");
                     var m = re.Match(listItemText);
-                    string matchedValue = null;
+                    string? matchedValue = null;
                     if (m.Success)
                     {
                         matchedValue = m.Value;
@@ -922,8 +922,7 @@ namespace Codeuctivity.OpenXmlPowerTools
 
         private static object AnnotateRunsThatUseFldSimple(XNode node)
         {
-            var element = node as XElement;
-            if (element != null)
+            if (node is XElement element)
             {
                 if (element.Name == W.p &&
                     element.Elements(W.fldSimple).Any(fs =>
@@ -979,7 +978,7 @@ namespace Codeuctivity.OpenXmlPowerTools
                         return newE;
                     });
                     var runAfterTextTrimmedLength = runAfterText.Length - runAfterTextTrimmed.Length;
-                    XElement runAfterListItemElement = null;
+                    XElement? runAfterListItemElement = null;
                     if (runAfterTextTrimmedLength != 0)
                     {
                         runAfterListItemElement = new XElement(W.r,
@@ -1031,7 +1030,7 @@ namespace Codeuctivity.OpenXmlPowerTools
                     .Select(h =>
                     {
                         var childrenHeadings = GetChildrenHeadings(part, contentList, h, settings);
-                        var xml = (XElement)ProduceXmlTransform(part, h, settings);
+                        var xml = ProduceXmlTransform(part, h, settings) as XElement;
                         if (xml != null)
                         {
                             xml.Add(childrenHeadings);
@@ -1053,7 +1052,7 @@ namespace Codeuctivity.OpenXmlPowerTools
                     .Select(h =>
                     {
                         var childrenHeadings = GetChildrenHeadings(part, contentList, h, settings);
-                        var xml = (XElement)ProduceXmlTransform(part, h, settings);
+                        var xml = ProduceXmlTransform(part, h, settings) as XElement;
                         if (xml != null)
                         {
                             xml.Add(childrenHeadings);
@@ -1064,10 +1063,9 @@ namespace Codeuctivity.OpenXmlPowerTools
                     );
         }
 
-        public static object ProduceXmlTransform(OpenXmlPart part, XNode node, WmlToXmlSettings settings)
+        public static object? ProduceXmlTransform(OpenXmlPart part, XNode node, WmlToXmlSettings settings)
         {
-            var element = node as XElement;
-            if (element != null)
+            if (node is XElement element)
             {
                 if (settings.XmlGenerationLambdas == null)
                 {
@@ -1111,43 +1109,38 @@ namespace Codeuctivity.OpenXmlPowerTools
 
                 if (contentType != null)
                 {
-                    if (settings.XmlGenerationLambdas != null)
+                    if (settings.XmlGenerationLambdas != null && settings.XmlGenerationLambdas.ContainsKey(contentType))
                     {
-                        if (settings.XmlGenerationLambdas.ContainsKey(contentType))
+                        var lamda = settings.XmlGenerationLambdas[contentType];
+                        var newElement = lamda(contentType, part, element, settings);
+
+                        var lang = (string)element.Elements(W.pPr).Elements(W.rPr).Elements(W.lang).Attributes(W.val).FirstOrDefault();
+                        if (lang == null)
                         {
-                            var lamda = settings.XmlGenerationLambdas[contentType];
-                            var newElement = lamda(contentType, part, element, settings);
-
-                            var lang = (string)element.Elements(W.pPr).Elements(W.rPr).Elements(W.lang).Attributes(W.val).FirstOrDefault();
-                            if (lang == null)
-                            {
-                                lang = settings.DefaultLang;
-                            }
-
-                            if (lang != null && !lang.StartsWith("en"))  // TODO we are not generating lang if English, but this needs revised after analysis
-                            {
-                                var n = newElement as XElement;
-                                if (n != null)
-                                {
-                                    n.Add(new XAttribute("Lang", lang));
-                                    if (n.Attribute("Unid") == null && element.Attribute(PtOpenXml.Unid) != null)
-                                    {
-                                        n.Add(new XAttribute("Unid", element.Attribute(PtOpenXml.Unid).Value));
-                                    }
-
-                                    return n;
-                                }
-                            }
-
-                            var n2 = newElement as XElement;
-                            if (n2 != null && n2.Attribute("Unid") == null && element.Attribute(PtOpenXml.Unid) != null)
-                            {
-                                n2.Add(new XAttribute("Unid", element.Attribute(PtOpenXml.Unid).Value));
-                                return n2;
-                            }
-
-                            return newElement;
+                            lang = settings.DefaultLang;
                         }
+
+                        if (lang != null && !lang.StartsWith("en"))  // TODO we are not generating lang if English, but this needs revised after analysis
+                        {
+                            if (newElement is XElement n)
+                            {
+                                n.Add(new XAttribute("Lang", lang));
+                                if (n.Attribute("Unid") == null && element.Attribute(PtOpenXml.Unid) != null)
+                                {
+                                    n.Add(new XAttribute("Unid", element.Attribute(PtOpenXml.Unid).Value));
+                                }
+
+                                return n;
+                            }
+                        }
+
+                        if (newElement is XElement n2 && n2.Attribute("Unid") == null && element.Attribute(PtOpenXml.Unid) != null)
+                        {
+                            n2.Add(new XAttribute("Unid", element.Attribute(PtOpenXml.Unid).Value));
+                            return n2;
+                        }
+
+                        return newElement;
                     }
 
                     // if no generation rules are set, or if there is no rule for this content type, then
@@ -1320,8 +1313,8 @@ namespace Codeuctivity.OpenXmlPowerTools
                     }
                 }
 
-                string styleOfBlc = null;
-                string styleOfBlcUC = null;
+                string? styleOfBlc = null;
+                string? styleOfBlcUC = null;
                 if (blc.Name == W.p)
                 {
                     var styleIdOfBlc = (string)blc.Elements(W.pPr).Elements(W.pStyle).Attributes(W.val).FirstOrDefault();
@@ -1398,12 +1391,9 @@ namespace Codeuctivity.OpenXmlPowerTools
                 // Apply the Document rules first, then apply the DocumentType rules, then apply the Global rules.  First one that matches, wins.
                 foreach (var rule in settings.DocumentContentTypeRules.Concat(settings.DocumentTypeContentTypeRules).Concat(settings.GlobalContentTypeRules))
                 {
-                    if (rule.DocumentTypeCollection != null)
+                    if (rule.DocumentTypeCollection != null && !rule.DocumentTypeCollection.Any(dt => dt == settings.DocumentType))
                     {
-                        if (!rule.DocumentTypeCollection.Any(dt => dt == settings.DocumentType))
-                        {
-                            continue;
-                        }
+                        continue;
                     }
 
                     if (settings.ContentTypeCount.ContainsKey(rule.ContentType))
@@ -1465,12 +1455,9 @@ namespace Codeuctivity.OpenXmlPowerTools
                     if (stylePass && styleRegexPass && regexPass)
                     {
                         matchLambdaPass = rule.MatchLambda == null;
-                        if (rule.MatchLambda != null)
+                        if (rule.MatchLambda != null && rule.MatchLambda(blc, rule, wDoc, settings))
                         {
-                            if (rule.MatchLambda(blc, rule, wDoc, settings))
-                            {
-                                matchLambdaPass = true;
-                            }
+                            matchLambdaPass = true;
                         }
                     }
 
@@ -1538,13 +1525,9 @@ namespace Codeuctivity.OpenXmlPowerTools
             }
 
             part.PutXDocument();
-            var mainPart = part as MainDocumentPart;
-            if (mainPart != null)
+            if (part is MainDocumentPart mainPart && mainPart.WordprocessingCommentsPart != null)
             {
-                if (mainPart.WordprocessingCommentsPart != null)
-                {
-                    mainPart.WordprocessingCommentsPart.PutXDocument();
-                }
+                mainPart.WordprocessingCommentsPart.PutXDocument();
             }
         }
 
@@ -1675,34 +1658,31 @@ namespace Codeuctivity.OpenXmlPowerTools
             // add the attribute to the block content
             blc.Add(new XAttribute(PtOpenXml.ContentType, contentType));
 
-            var mainPart = part as MainDocumentPart;
-            if (settings.InjectCommentForContentTypes != null && (bool)settings.InjectCommentForContentTypes)
+            if (settings.InjectCommentForContentTypes != null && (bool)settings.InjectCommentForContentTypes && part is MainDocumentPart mainPart)
             {
-                if (mainPart != null)
+                // add a comment, if appropriate
+                var commentNumber = 1;
+                XDocument? newComments = null;
+                if (mainPart.WordprocessingCommentsPart != null)
                 {
-                    // add a comment, if appropriate
-                    var commentNumber = 1;
-                    XDocument newComments = null;
-                    if (mainPart.WordprocessingCommentsPart != null)
+                    newComments = mainPart.WordprocessingCommentsPart.GetXDocument();
+                    newComments.Declaration.Standalone = "yes";
+                    newComments.Declaration.Encoding = "UTF-8";
+                    var ids = newComments.Root.Elements(W.comment).Select(f => (int)f.Attribute(W.id));
+                    if (ids.Any())
                     {
-                        newComments = mainPart.WordprocessingCommentsPart.GetXDocument();
-                        newComments.Declaration.Standalone = "yes";
-                        newComments.Declaration.Encoding = "UTF-8";
-                        var ids = newComments.Root.Elements(W.comment).Select(f => (int)f.Attribute(W.id));
-                        if (ids.Any())
-                        {
-                            commentNumber = ids.Max() + 1;
-                        }
+                        commentNumber = ids.Max() + 1;
                     }
-                    else
-                    {
-                        part.AddNewPart<WordprocessingCommentsPart>();
-                        newComments = mainPart.WordprocessingCommentsPart.GetXDocument();
-                        newComments.Declaration.Standalone = "yes";
-                        newComments.Declaration.Encoding = "UTF-8";
-                        newComments.Add(new XElement(W.comments, NamespaceAttributes));
-                        commentNumber = 1;
-                    }
+                }
+                else
+                {
+                    part.AddNewPart<WordprocessingCommentsPart>();
+                    newComments = mainPart.WordprocessingCommentsPart.GetXDocument();
+                    newComments.Declaration.Standalone = "yes";
+                    newComments.Declaration.Encoding = "UTF-8";
+                    newComments.Add(new XElement(W.comments, NamespaceAttributes));
+                    commentNumber = 1;
+                }
 #if false
   <w:comment w:id="12"
              w:author="Eric White"
@@ -1727,21 +1707,21 @@ namespace Codeuctivity.OpenXmlPowerTools
     </w:p>
   </w:comment>
 #endif
-                    var newElement = new XElement(W.comment,
-                        new XAttribute(W.id, commentNumber),
-                        new XElement(W.p,
-                            new XElement(W.pPr,
-                                new XElement(W.pStyle,
-                                    new XAttribute(W.val, "CommentText"))),
-                            new XElement(W.r,
-                                new XElement(W.rPr,
-                                    new XElement(W.rStyle,
-                                        new XAttribute(W.val, "CommentReference"))),
-                                        new XElement(W.annotationRef)),
-                            new XElement(W.r,
-                                new XElement(W.t,
-                                    new XText(contentType)))));
-                    newComments.Root.Add(newElement);
+                var newElement = new XElement(W.comment,
+                    new XAttribute(W.id, commentNumber),
+                    new XElement(W.p,
+                        new XElement(W.pPr,
+                            new XElement(W.pStyle,
+                                new XAttribute(W.val, "CommentText"))),
+                        new XElement(W.r,
+                            new XElement(W.rPr,
+                                new XElement(W.rStyle,
+                                    new XAttribute(W.val, "CommentReference"))),
+                                    new XElement(W.annotationRef)),
+                        new XElement(W.r,
+                            new XElement(W.t,
+                                new XText(contentType)))));
+                newComments.Root.Add(newElement);
 
 #if false
       <w:r>
@@ -1752,38 +1732,38 @@ namespace Codeuctivity.OpenXmlPowerTools
       </w:r>
 #endif
 
-                    var commentRun = new XElement(W.r,
-                        new XElement(W.rPr,
-                            new XElement(W.rStyle, new XAttribute(W.val, "CommentReference"))),
-                        new XElement(W.commentReference,
-                            new XAttribute(W.id, commentNumber)));
-                    var firstRunInParagraph = blc
-                        .DescendantsTrimmed(W.txbxContent)
+                var commentRun = new XElement(W.r,
+                    new XElement(W.rPr,
+                        new XElement(W.rStyle, new XAttribute(W.val, "CommentReference"))),
+                    new XElement(W.commentReference,
+                        new XAttribute(W.id, commentNumber)));
+                var firstRunInParagraph = blc
+                    .DescendantsTrimmed(W.txbxContent)
 .FirstOrDefault(r => r.Name == W.r);
-                    if (firstRunInParagraph != null)
+                if (firstRunInParagraph != null)
+                {
+                    // for now, only do the work of inserting a comment if it is easy.  For content types for tables, rows and cells, not inserting a comment.
+                    if (firstRunInParagraph.Parent.Name == W.p)
                     {
-                        // for now, only do the work of inserting a comment if it is easy.  For content types for tables, rows and cells, not inserting a comment.
-                        if (firstRunInParagraph.Parent.Name == W.p)
-                        {
-                            firstRunInParagraph.AddBeforeSelf(commentRun);
-                        }
+                        firstRunInParagraph.AddBeforeSelf(commentRun);
                     }
-                    else
+                }
+                else
+                {
+                    // for now, only do the work of inserting a comment if it is easy.  For content types for tables, rows and cells, not inserting a comment.
+                    if (blc.Name == W.p)
                     {
-                        // for now, only do the work of inserting a comment if it is easy.  For content types for tables, rows and cells, not inserting a comment.
-                        if (blc.Name == W.p)
-                        {
-                            blc.Add(commentRun);
-                        }
+                        blc.Add(commentRun);
                     }
+                }
 
-                    if (mainPart.StyleDefinitionsPart == null)
-                    {
-                        throw new ContentApplierException("Document does not have styles definition part");
-                    }
-                    var stylesXDoc = mainPart.StyleDefinitionsPart.GetXDocument();
+                if (mainPart.StyleDefinitionsPart == null)
+                {
+                    throw new ContentApplierException("Document does not have styles definition part");
+                }
+                var stylesXDoc = mainPart.StyleDefinitionsPart.GetXDocument();
 
-                    var style =
+                var style =
 @"<w:style w:type=""paragraph""
            w:styleId=""CommentText""
            xmlns:w=""http://schemas.openxmlformats.org/wordprocessingml/2006/main"">
@@ -1797,8 +1777,8 @@ namespace Codeuctivity.OpenXmlPowerTools
     </w:rPr>
   </w:style>
 ";
-                    AddIfMissing(stylesXDoc, style);
-                    style =
+                AddIfMissing(stylesXDoc, style);
+                style =
 @"<w:style w:type=""paragraph""
            w:styleId=""CommentSubject""
            xmlns:w=""http://schemas.openxmlformats.org/wordprocessingml/2006/main"">
@@ -1812,8 +1792,8 @@ namespace Codeuctivity.OpenXmlPowerTools
     </w:rPr>
   </w:style>
 ";
-                    AddIfMissing(stylesXDoc, style);
-                    style =
+                AddIfMissing(stylesXDoc, style);
+                style =
 @"<w:style w:type=""character""
            w:styleId=""CommentReference""
            xmlns:w=""http://schemas.openxmlformats.org/wordprocessingml/2006/main"">
@@ -1829,8 +1809,8 @@ namespace Codeuctivity.OpenXmlPowerTools
     </w:rPr>
   </w:style>
 ";
-                    AddIfMissing(stylesXDoc, style);
-                    style =
+                AddIfMissing(stylesXDoc, style);
+                style =
 @"<w:style w:type=""character""
            w:customStyle=""1""
            w:styleId=""CommentTextChar""
@@ -1846,9 +1826,8 @@ namespace Codeuctivity.OpenXmlPowerTools
     </w:rPr>
   </w:style>
 ";
-                    AddIfMissing(stylesXDoc, style);
-                    mainPart.StyleDefinitionsPart.PutXDocument();
-                }
+                AddIfMissing(stylesXDoc, style);
+                mainPart.StyleDefinitionsPart.PutXDocument();
             }
         }
 
@@ -1863,71 +1842,68 @@ namespace Codeuctivity.OpenXmlPowerTools
             // add the attribute to the block level content
             rlc.Add(new XAttribute(PtOpenXml.ContentType, contentType));
 
-            if (settings.InjectCommentForContentTypes != null && (bool)settings.InjectCommentForContentTypes)
+            if (settings.InjectCommentForContentTypes != null && (bool)settings.InjectCommentForContentTypes && part is MainDocumentPart mainPart)
             {
-                var mainPart = part as MainDocumentPart;
-                if (mainPart != null)
+                // add a comment, if appropriate
+                var commentNumber = 1;
+                XDocument? newComments = null;
+                if (mainPart.WordprocessingCommentsPart != null)
                 {
-                    // add a comment, if appropriate
-                    var commentNumber = 1;
-                    XDocument newComments = null;
-                    if (mainPart.WordprocessingCommentsPart != null)
+                    newComments = mainPart.WordprocessingCommentsPart.GetXDocument();
+                    newComments.Declaration.Standalone = "yes";
+                    newComments.Declaration.Encoding = "UTF-8";
+                    var ids = newComments.Root.Elements(W.comment).Select(f => (int)f.Attribute(W.id));
+                    if (ids.Any())
                     {
-                        newComments = mainPart.WordprocessingCommentsPart.GetXDocument();
-                        newComments.Declaration.Standalone = "yes";
-                        newComments.Declaration.Encoding = "UTF-8";
-                        var ids = newComments.Root.Elements(W.comment).Select(f => (int)f.Attribute(W.id));
-                        if (ids.Any())
-                        {
-                            commentNumber = ids.Max() + 1;
-                        }
+                        commentNumber = ids.Max() + 1;
                     }
-                    else
-                    {
-                        mainPart.AddNewPart<WordprocessingCommentsPart>();
-                        newComments = mainPart.WordprocessingCommentsPart.GetXDocument();
-                        newComments.Declaration.Standalone = "yes";
-                        newComments.Declaration.Encoding = "UTF-8";
-                        newComments.Add(new XElement(W.comments, NamespaceAttributes));
-                        commentNumber = 1;
-                    }
-                    var newElement = new XElement(W.comment,
-                        new XAttribute(W.id, commentNumber),
-                        new XElement(W.p,
-                            new XElement(W.pPr,
-                                new XElement(W.pStyle,
-                                    new XAttribute(W.val, "CommentText"))),
-                            new XElement(W.r,
-                                new XElement(W.rPr,
-                                    new XElement(W.rStyle,
-                                        new XAttribute(W.val, "CommentReference"))),
-                                        new XElement(W.annotationRef)),
-                            new XElement(W.r,
-                                new XElement(W.t,
-                                    new XText(contentType)))));
-                    newComments.Root.Add(newElement);
-                    var commentRun = new XElement(W.r,
-                        new XElement(W.rPr,
-                            new XElement(W.rStyle, new XAttribute(W.val, "CommentReference"))),
-                        new XElement(W.commentReference,
-                            new XAttribute(W.id, commentNumber)));
-                    var firstRunInParagraph = rlc
-                        .DescendantsTrimmed(W.txbxContent)
+                }
+                else
+                {
+                    mainPart.AddNewPart<WordprocessingCommentsPart>();
+                    newComments = mainPart.WordprocessingCommentsPart.GetXDocument();
+                    newComments.Declaration.Standalone = "yes";
+                    newComments.Declaration.Encoding = "UTF-8";
+                    newComments.Add(new XElement(W.comments, NamespaceAttributes));
+                    commentNumber = 1;
+                }
+                var newElement = new XElement(W.comment,
+                    new XAttribute(W.id, commentNumber),
+                    new XElement(W.p,
+                        new XElement(W.pPr,
+                            new XElement(W.pStyle,
+                                new XAttribute(W.val, "CommentText"))),
+                        new XElement(W.r,
+                            new XElement(W.rPr,
+                                new XElement(W.rStyle,
+                                    new XAttribute(W.val, "CommentReference"))),
+                                    new XElement(W.annotationRef)),
+                        new XElement(W.r,
+                            new XElement(W.t,
+                                new XText(contentType)))));
+                newComments.Root.Add(newElement);
+                var commentRun = new XElement(W.r,
+                    new XElement(W.rPr,
+                        new XElement(W.rStyle, new XAttribute(W.val, "CommentReference"))),
+                    new XElement(W.commentReference,
+                        new XAttribute(W.id, commentNumber)));
+                var firstRunInParagraph = rlc
+                    .DescendantsTrimmed(W.txbxContent)
 .FirstOrDefault(r => r.Name == W.r);
 
-                    // for now, only do the work of inserting a comment if it is easy.  For content types for tables, rows and cells, not inserting a comment.
-                    if (rlc.Parent.Name == W.p)
-                    {
-                        rlc.AddBeforeSelf(commentRun);
-                    }
+                // for now, only do the work of inserting a comment if it is easy.  For content types for tables, rows and cells, not inserting a comment.
+                if (rlc.Parent.Name == W.p)
+                {
+                    rlc.AddBeforeSelf(commentRun);
+                }
 
-                    if (mainPart.StyleDefinitionsPart == null)
-                    {
-                        throw new ContentApplierException("Document does not have styles definition part");
-                    }
-                    var stylesXDoc = mainPart.StyleDefinitionsPart.GetXDocument();
+                if (mainPart.StyleDefinitionsPart == null)
+                {
+                    throw new ContentApplierException("Document does not have styles definition part");
+                }
+                var stylesXDoc = mainPart.StyleDefinitionsPart.GetXDocument();
 
-                    var style =
+                var style =
 @"<w:style w:type=""paragraph""
            w:styleId=""CommentText""
            xmlns:w=""http://schemas.openxmlformats.org/wordprocessingml/2006/main"">
@@ -1941,8 +1917,8 @@ namespace Codeuctivity.OpenXmlPowerTools
     </w:rPr>
   </w:style>
 ";
-                    AddIfMissing(stylesXDoc, style);
-                    style =
+                AddIfMissing(stylesXDoc, style);
+                style =
 @"<w:style w:type=""paragraph""
            w:styleId=""CommentSubject""
            xmlns:w=""http://schemas.openxmlformats.org/wordprocessingml/2006/main"">
@@ -1956,8 +1932,8 @@ namespace Codeuctivity.OpenXmlPowerTools
     </w:rPr>
   </w:style>
 ";
-                    AddIfMissing(stylesXDoc, style);
-                    style =
+                AddIfMissing(stylesXDoc, style);
+                style =
 @"<w:style w:type=""character""
            w:styleId=""CommentReference""
            xmlns:w=""http://schemas.openxmlformats.org/wordprocessingml/2006/main"">
@@ -1973,8 +1949,8 @@ namespace Codeuctivity.OpenXmlPowerTools
     </w:rPr>
   </w:style>
 ";
-                    AddIfMissing(stylesXDoc, style);
-                    style =
+                AddIfMissing(stylesXDoc, style);
+                style =
 @"<w:style w:type=""character""
            w:customStyle=""1""
            w:styleId=""CommentTextChar""
@@ -1990,9 +1966,8 @@ namespace Codeuctivity.OpenXmlPowerTools
     </w:rPr>
   </w:style>
 ";
-                    AddIfMissing(stylesXDoc, style);
-                    mainPart.StyleDefinitionsPart.PutXDocument();
-                }
+                AddIfMissing(stylesXDoc, style);
+                mainPart.StyleDefinitionsPart.PutXDocument();
             }
         }
 
@@ -2125,7 +2100,7 @@ namespace Codeuctivity.OpenXmlPowerTools
                     .Elements(W.style)
                     .FirstOrDefault(s => (string)s.Attribute(W._default) == "1");
 
-                string defaultParagraphStyleName = null;
+                string? defaultParagraphStyleName = null;
                 if (defaultParagraphStyle != null)
                 {
                     defaultParagraphStyleName = (string)defaultParagraphStyle.Attribute(W.styleId);
@@ -2154,12 +2129,9 @@ namespace Codeuctivity.OpenXmlPowerTools
                     foreach (var vr in settings.BlockLevelContentValidationRules)
                     {
                         if (settings.DocumentType != null &&
-                            vr.DocumentTypeInfoCollection != null)
+                            vr.DocumentTypeInfoCollection != null && !vr.DocumentTypeInfoCollection.Any(dti => dti.DocumentType == settings.DocumentType))
                         {
-                            if (!vr.DocumentTypeInfoCollection.Any(dti => dti.DocumentType == settings.DocumentType))
-                            {
-                                continue;
-                            }
+                            continue;
                         }
 
                         var matchStyle = true;

@@ -211,8 +211,7 @@ namespace Codeuctivity.OpenXmlPowerTools
             Func<XElement, Match, bool> callback, bool trackRevisions, string revisionTrackingAuthor,
             ReplaceInternalInfo replInfo, bool coalesceContent)
         {
-            var element = node as XElement;
-            if (element == null)
+            if (!(node is XElement element))
             {
                 return node;
             }
@@ -398,8 +397,7 @@ namespace Codeuctivity.OpenXmlPowerTools
                     paragraph.Attributes(),
                     paragraph.Nodes().Select(n =>
                     {
-                        var e = n as XElement;
-                        if (e == null)
+                        if (!(n is XElement e))
                         {
                             return n;
                         }
@@ -437,8 +435,7 @@ namespace Codeuctivity.OpenXmlPowerTools
                 var collectionOfIns = collectionOfCollections
                     .Select(c =>
                     {
-                        var elements = c as IEnumerable<XElement>;
-                        return elements != null
+                        return c is IEnumerable<XElement> elements
                             ? elements.Select(ixc => new XElement(W.ins, element.Attributes(), ixc))
                             : c;
                     })
@@ -468,8 +465,7 @@ namespace Codeuctivity.OpenXmlPowerTools
 
         private static object TransformToDelText(XNode node)
         {
-            var element = node as XElement;
-            if (element == null)
+            if (!(node is XElement element))
             {
                 return node;
             }
@@ -489,8 +485,7 @@ namespace Codeuctivity.OpenXmlPowerTools
         private static object PmlSearchAndReplaceTransform(XNode node, Regex regex, string replacement,
             Func<XElement, Match, bool> callback, ReplaceInternalInfo counter)
         {
-            var element = node as XElement;
-            if (element == null)
+            if (!(node is XElement element))
             {
                 return node;
             }

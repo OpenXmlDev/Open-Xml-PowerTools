@@ -35,8 +35,7 @@ namespace Codeuctivity.OpenXmlPowerTools
 
         private static XObject CloneWithAnnotation(XNode node)
         {
-            var element = node as XElement;
-            if (element != null)
+            if (node is XElement element)
             {
                 var newElement = new XElement(element.Name,
                     element.Attributes(),
@@ -52,8 +51,7 @@ namespace Codeuctivity.OpenXmlPowerTools
         private static object WmlSearchAndReplaceTransform(XNode node,
             string search, string replace, bool matchCase)
         {
-            var element = node as XElement;
-            if (element != null)
+            if (node is XElement element)
             {
                 if (element.Name == W.p)
                 {
@@ -176,7 +174,7 @@ namespace Codeuctivity.OpenXmlPowerTools
                                     }
 
                                     var textValue = g.Select(r => r.Element(W.t).Value).StringConcatenate();
-                                    XAttribute xs = null;
+                                    XAttribute? xs = null;
                                     if (textValue[0] == ' ' || textValue[textValue.Length - 1] == ' ')
                                     {
                                         xs = new XAttribute(XNamespace.Xml + "space", "preserve");
@@ -296,8 +294,7 @@ namespace Codeuctivity.OpenXmlPowerTools
         private static object PmlReplaceTextTransform(XNode node, string search, string replace,
             bool matchCase)
         {
-            var element = node as XElement;
-            if (element != null)
+            if (node is XElement element)
             {
                 if (element.Name == A.p)
                 {

@@ -108,8 +108,7 @@ internal class HtmlToWmlConverterExample
 
         private static object ConvertToNoNamespace(XNode node)
         {
-            var element = node as XElement;
-            if (element != null)
+            if (node is XElement element)
             {
                 return new XElement(element.Name.LocalName,
                     element.Attributes().Where(a => !a.IsNamespaceDeclaration),

@@ -30,7 +30,7 @@
             "soixante", "", "quatre-vingt", ""
         };
 
-        public static string GetListItemText(int levelNumber, string numFmt)
+        public static string? GetListItemText(int levelNumber, string numFmt)
         {
             if (numFmt == "cardinalText")
             {

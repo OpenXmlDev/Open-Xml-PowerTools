@@ -89,10 +89,9 @@ namespace Codeuctivity.OpenXmlPowerTools
             part.PutXDocument();
         }
 
-        private static object RejectRevisionsForPartTransform(XNode node)
+        private static object? RejectRevisionsForPartTransform(XNode node)
         {
-            var element = node as XElement;
-            if (element != null)
+            if (node is XElement element)
             {
                 // Inserted Numbering Properties
 
@@ -217,8 +216,7 @@ namespace Codeuctivity.OpenXmlPowerTools
 
         private static object RejectRevisionsForStylesTransform(XNode node)
         {
-            var element = node as XElement;
-            if (element != null)
+            if (node is XElement element)
             {
                 if (element.Name == W.pPr &&
                     element.Element(W.pPrChange) != null)
@@ -273,15 +271,14 @@ namespace Codeuctivity.OpenXmlPowerTools
                 InInsert = false
             };
             var newRoot = (XElement)ReverseRevisionsTransform(xDoc.Root, rri);
-            newRoot = (XElement)RemoveRsidTransform(newRoot);
+            newRoot = RemoveRsidTransform(newRoot) as XElement;
             xDoc.Root.ReplaceWith(newRoot);
             part.PutXDocument();
         }
 
-        private static object RemoveRsidTransform(XNode node)
+        private static object? RemoveRsidTransform(XNode node)
         {
-            var element = node as XElement;
-            if (element != null)
+            if (node is XElement element)
             {
                 if (element.Name == W.rsid)
                 {
@@ -304,8 +301,7 @@ namespace Codeuctivity.OpenXmlPowerTools
 
         private static object MergeAdjacentTablesTransform(XNode node)
         {
-            var element = node as XElement;
-            if (element != null)
+            if (node is XElement element)
             {
                 if (element.Element(W.tbl) != null)
                 {
@@ -464,8 +460,7 @@ namespace Codeuctivity.OpenXmlPowerTools
 
         private static object ReverseRevisionsTransform(XNode node, ReverseRevisionsInfo rri)
         {
-            var element = node as XElement;
-            if (element != null)
+            if (node is XElement element)
             {
                 var parent = element
                     .Ancestors()
@@ -724,10 +719,9 @@ namespace Codeuctivity.OpenXmlPowerTools
             stylesDefinitionsPart.PutXDocument();
         }
 
-        private static object AcceptRevisionsForStylesTransform(XNode node)
+        private static object? AcceptRevisionsForStylesTransform(XNode node)
         {
-            var element = node as XElement;
-            if (element != null)
+            if (node is XElement element)
             {
                 if (element.Name == W.pPrChange || element.Name == W.rPrChange)
                 {
@@ -744,10 +738,10 @@ namespace Codeuctivity.OpenXmlPowerTools
         public static void AcceptRevisionsForPart(OpenXmlPart part)
         {
             var documentElement = part.GetXDocument().Root;
-            documentElement = (XElement)RemoveRsidTransform(documentElement);
+            documentElement = RemoveRsidTransform(documentElement) as XElement;
             documentElement = (XElement)FixUpDeletedOrInsertedFieldCodesTransform(documentElement);
             var containsMoveFromMoveTo = documentElement.Descendants(W.moveFrom).Any();
-            documentElement = (XElement)AcceptMoveFromMoveToTransform(documentElement);
+            documentElement = AcceptMoveFromMoveToTransform(documentElement) as XElement;
             documentElement = AcceptMoveFromRanges(documentElement);
             // AcceptParagraphEndTagsInMoveFromTransform needs rewritten similar to AcceptDeletedAndMoveFromParagraphMarks
             documentElement = (XElement)AcceptParagraphEndTagsInMoveFromTransform(documentElement);
@@ -755,10 +749,10 @@ namespace Codeuctivity.OpenXmlPowerTools
             documentElement = AcceptDeletedAndMoveFromParagraphMarks(documentElement);
             if (containsMoveFromMoveTo)
             {
-                documentElement = (XElement)RemoveRowsLeftEmptyByMoveFrom(documentElement);
+                documentElement = RemoveRowsLeftEmptyByMoveFrom(documentElement) as XElement;
             }
 
-            documentElement = (XElement)AcceptAllOtherRevisionsTransform(documentElement);
+            documentElement = AcceptAllOtherRevisionsTransform(documentElement) as XElement;
             documentElement = (XElement)AcceptDeletedCellsTransform(documentElement);
             documentElement = (XElement)MergeAdjacentTablesTransform(documentElement);
             documentElement = (XElement)AddEmptyParagraphToAnyEmptyCells(documentElement);
@@ -772,21 +766,20 @@ namespace Codeuctivity.OpenXmlPowerTools
         // for a single paragraph.  The paragraph may contain a marker for a deleted or inserted content control, as one example, of
         // which there are many.  This method accepts simple revisions, such as deleted or inserted text, which is the most common use
         // case.
-        public static XElement AcceptRevisionsForElement(XElement element)
+        public static XElement? AcceptRevisionsForElement(XElement element)
         {
             var rElement = element;
-            rElement = (XElement)RemoveRsidTransform(rElement);
-            rElement = (XElement)AcceptMoveFromMoveToTransform(rElement);
-            rElement = (XElement)AcceptAllOtherRevisionsTransform(rElement);
-            rElement.Descendants().Attributes().Where(a => a.Name == PT.UniqueId || a.Name == PT.RunIds).Remove();
-            rElement.Descendants(W.numPr).Where(np => !np.HasElements).Remove();
+            rElement = RemoveRsidTransform(rElement) as XElement;
+            rElement = AcceptMoveFromMoveToTransform(rElement) as XElement;
+            rElement = AcceptAllOtherRevisionsTransform(rElement) as XElement;
+            rElement?.Descendants().Attributes().Where(a => a.Name == PT.UniqueId || a.Name == PT.RunIds).Remove();
+            rElement?.Descendants(W.numPr).Where(np => !np.HasElements).Remove();
             return rElement;
         }
 
         private static object FixUpDeletedOrInsertedFieldCodesTransform(XNode node)
         {
-            var element = node as XElement;
-            if (element != null)
+            if (node is XElement element)
             {
                 if (element.Name == W.p)
                 {
@@ -874,8 +867,7 @@ namespace Codeuctivity.OpenXmlPowerTools
 
         private static object TransformInstrTextToDelInstrText(XNode node)
         {
-            var element = node as XElement;
-            if (element != null)
+            if (node is XElement element)
             {
                 if (element.Name == W.instrText)
                 {
@@ -893,8 +885,7 @@ namespace Codeuctivity.OpenXmlPowerTools
 
         private static object AddEmptyParagraphToAnyEmptyCells(XNode node)
         {
-            var element = node as XElement;
-            if (element != null)
+            if (node is XElement element)
             {
                 if (element.Name == W.tc && !element.Elements().Any(e => e.Name != W.tcPr))
                 {
@@ -961,10 +952,9 @@ namespace Codeuctivity.OpenXmlPowerTools
             return newTbl;
         }
 
-        private static object AcceptMoveFromMoveToTransform(XNode node)
+        private static object? AcceptMoveFromMoveToTransform(XNode? node)
         {
-            var element = node as XElement;
-            if (element != null)
+            if (node is XElement element)
             {
                 if (element.Name == W.moveTo)
                 {
@@ -983,7 +973,7 @@ namespace Codeuctivity.OpenXmlPowerTools
             return node;
         }
 
-        private static XElement AcceptMoveFromRanges(XElement document)
+        private static XElement? AcceptMoveFromRanges(XElement? document)
         {
             // The following lists contain the elements that are between start/end elements.
             var startElementTagsInMoveFromRange = new List<XElement>();
@@ -1052,13 +1042,11 @@ namespace Codeuctivity.OpenXmlPowerTools
                     }
                 }
             }
-            var moveFromElementsToDelete = startElementTagsInMoveFromRange
-                .Intersect(endElementTagsInMoveFromRange)
-                .ToArray();
+            var moveFromElementsToDelete = startElementTagsInMoveFromRange.Intersect(endElementTagsInMoveFromRange).ToArray();
+
             if (moveFromElementsToDelete.Any())
             {
-                return (XElement)AcceptMoveFromRangesTransform(
-                    document, moveFromElementsToDelete);
+                return AcceptMoveFromRangesTransform(document, moveFromElementsToDelete) as XElement;
             }
 
             return document;
@@ -1072,8 +1060,7 @@ namespace Codeuctivity.OpenXmlPowerTools
 
         private static object AcceptParagraphEndTagsInMoveFromTransform(XNode node)
         {
-            var element = node as XElement;
-            if (element != null)
+            if (node is XElement element)
             {
                 if (W.BlockLevelContentContainers.Contains(element.Name))
                 {
@@ -1147,10 +1134,9 @@ namespace Codeuctivity.OpenXmlPowerTools
             return node;
         }
 
-        private static object AcceptAllOtherRevisionsTransform(XNode node)
+        private static object? AcceptAllOtherRevisionsTransform(XNode? node)
         {
-            var element = node as XElement;
-            if (element != null)
+            if (node is XElement element)
             {
                 // Accept inserted text, inserted paragraph marks, etc.
                 // Collapse all w:ins elements.
@@ -1271,8 +1257,7 @@ namespace Codeuctivity.OpenXmlPowerTools
 
         private static object CollapseParagraphTransform(XNode node)
         {
-            var element = node as XElement;
-            if (element != null)
+            if (node is XElement element)
             {
                 if (element.Name == W.p)
                 {
@@ -1331,7 +1316,7 @@ namespace Codeuctivity.OpenXmlPowerTools
             {
                 currentContentInfo.ThisBlockContentElement.AddAnnotation(currentContentInfo);
                 // Find next sibling content element.
-                XElement nextContentElement = null;
+                XElement? nextContentElement = null;
                 var current = currentContentInfo.ThisBlockContentElement;
                 while (true)
                 {
@@ -1443,7 +1428,7 @@ namespace Codeuctivity.OpenXmlPowerTools
                 var runsInNewDocument = runs.Select(r => newDocument.Descendants(W.r).First(z => z.Attribute(PT.UniqueId).Value == r.Attribute(PT.UniqueId).Value)).ToList();
 
                 // find common ancestor
-                List<XElement> runAncestorIntersection = null;
+                List<XElement>? runAncestorIntersection = null;
                 foreach (var run in runsInNewDocument)
                 {
                     if (runAncestorIntersection == null)
@@ -1554,7 +1539,7 @@ namespace Codeuctivity.OpenXmlPowerTools
             { W.bookmarkEnd, 50 },
         };
 
-        private static XElement AcceptDeletedAndMoveFromParagraphMarks(XElement element)
+        private static XElement AcceptDeletedAndMoveFromParagraphMarks(XElement? element)
         {
             AnnotateRunElementsWithId(element);
             AnnotateContentControlsWithRunIds(element);
@@ -1577,12 +1562,11 @@ namespace Codeuctivity.OpenXmlPowerTools
 
         private static object AcceptDeletedAndMoveFromParagraphMarksTransform(XNode node)
         {
-            var element = node as XElement;
-            if (element != null)
+            if (node is XElement element)
             {
                 if (W.BlockLevelContentContainers.Contains(element.Name))
                 {
-                    XElement bodySectPr = null;
+                    XElement? bodySectPr = null;
                     if (element.Name == W.body)
                     {
                         bodySectPr = element.Element(W.sectPr);
@@ -1755,9 +1739,9 @@ namespace Codeuctivity.OpenXmlPowerTools
         {
             // needs collapse
             // dir, bdo, sdt, ins, moveTo, smartTag
-            var testP = (XElement)CollapseTransform(p);
+            var testP = CollapseTransform(p) as XElement;
 
-            var childElements = testP.Elements();
+            var childElements = testP?.Elements();
             var contentElements = childElements
                 .Where(ce =>
                 {
@@ -1778,10 +1762,9 @@ namespace Codeuctivity.OpenXmlPowerTools
         }
 
         // dir, bdo, sdt, ins, moveTo, smartTag
-        private static object CollapseTransform(XNode node)
+        private static object? CollapseTransform(XNode node)
         {
-            var element = node as XElement;
-            if (element != null)
+            if (node is XElement element)
             {
                 if (element.Name == W.dir ||
                     element.Name == W.bdr ||
@@ -1854,7 +1837,7 @@ namespace Codeuctivity.OpenXmlPowerTools
             return null;
         }
 
-        private static IEnumerable<Tag> DescendantAndSelfTags(XElement element)
+        private static IEnumerable<Tag> DescendantAndSelfTags(XElement? element)
         {
             yield return new Tag
             {
@@ -1923,16 +1906,15 @@ namespace Codeuctivity.OpenXmlPowerTools
 
         private class Tag
         {
-            public XElement Element;
+            public XElement? Element;
             public TagTypeEnum TagType;
         }
 
-        private static object AcceptDeletedAndMovedFromContentControlsTransform(XNode node,
+        private static object? AcceptDeletedAndMovedFromContentControlsTransform(XNode node,
             XElement[] contentControlElementsToCollapse,
             XElement[] moveFromElementsToDelete)
         {
-            var element = node as XElement;
-            if (element != null)
+            if (node is XElement element)
             {
                 if (element.Name == W.sdt && contentControlElementsToCollapse.Contains(element))
                 {
@@ -1956,7 +1938,7 @@ namespace Codeuctivity.OpenXmlPowerTools
             return node;
         }
 
-        private static XElement AcceptDeletedAndMovedFromContentControls(XElement documentRootElement)
+        private static XElement? AcceptDeletedAndMovedFromContentControls(XElement documentRootElement)
         {
             // The following lists contain the elements that are between start/end elements.
             var startElementTagsInDeleteRange = new List<XElement>();
@@ -2112,11 +2094,10 @@ namespace Codeuctivity.OpenXmlPowerTools
             }
         }
 
-        private static object AcceptMoveFromRangesTransform(XNode node,
+        private static object? AcceptMoveFromRangesTransform(XNode node,
             XElement[] elementsToDelete)
         {
-            var element = node as XElement;
-            if (element != null)
+            if (node is XElement element)
             {
                 if (elementsToDelete.Contains(element))
                 {
@@ -2134,8 +2115,7 @@ namespace Codeuctivity.OpenXmlPowerTools
         private static object CoalesqueParagraphEndTagsInMoveFromTransform(XNode node,
             IGrouping<MoveFromCollectionType, XElement> g)
         {
-            var element = node as XElement;
-            if (element != null)
+            if (node is XElement element)
             {
                 if (element.Name == W.p)
                 {
@@ -2164,10 +2144,9 @@ namespace Codeuctivity.OpenXmlPowerTools
         // For each table row, group deleted cells plus the cell before any deleted cell.
         // Produce a new cell that has gridSpan set appropriately for group, and clone everything
         // else.
-        private static object AcceptDeletedCellsTransform(XNode node)
+        private static object AcceptDeletedCellsTransform(XNode? node)
         {
-            var element = node as XElement;
-            if (element != null)
+            if (node is XElement element)
             {
                 if (element.Name == W.tr)
                 {
@@ -2265,10 +2244,9 @@ namespace Codeuctivity.OpenXmlPowerTools
             W.moveTo,
         };
 
-        private static object RemoveRowsLeftEmptyByMoveFrom(XNode node)
+        private static object? RemoveRowsLeftEmptyByMoveFrom(XNode node)
         {
-            var element = node as XElement;
-            if (element != null)
+            if (node is XElement element)
             {
                 if (element.Name == W.tr)
                 {
@@ -2391,9 +2369,9 @@ namespace Codeuctivity.OpenXmlPowerTools
 
     public class BlockContentInfo
     {
-        public XElement PreviousBlockContentElement { get; set; }
-        public XElement ThisBlockContentElement { get; set; }
-        public XElement NextBlockContentElement { get; set; }
+        public XElement? PreviousBlockContentElement { get; set; }
+        public XElement? ThisBlockContentElement { get; set; }
+        public XElement? NextBlockContentElement { get; set; }
     }
 
     public static class RevisionAccepterExtensions
@@ -2406,7 +2384,7 @@ namespace Codeuctivity.OpenXmlPowerTools
                     "GetParagraphInfo called for element that is not child of content container");
             }
 
-            XElement prev = null;
+            XElement? prev = null;
             foreach (var content in contentContext.Elements())
             {
                 // This may return null, indicating that there is no descendant paragraph.  For

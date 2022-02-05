@@ -34,9 +34,9 @@ namespace Codeuctivity.OpenXmlPowerTools.WmlComparer
         // if ComparisonUnitList1 == null and ComparisonUnitList2 contains sequence, then inserted content.
         // if ComparisonUnitList2 == null and ComparisonUnitList1 contains sequence, then deleted content.
         // if ComparisonUnitList2 contains sequence and ComparisonUnitList1 contains sequence, then either is Unknown or Equal.
-        public ComparisonUnit[] ComparisonUnitArray1;
+        public ComparisonUnit?[] ComparisonUnitArray1;
 
-        public ComparisonUnit[] ComparisonUnitArray2;
+        public ComparisonUnit?[] ComparisonUnitArray2;
 #if DEBUG
         public string SourceFile;
         public int SourceLine;

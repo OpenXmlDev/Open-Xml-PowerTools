@@ -13,15 +13,17 @@ namespace Codeuctivity.OpenXmlPowerTools
 {
     public class MetricsGetterSettings
     {
-        public bool IncludeTextInContentControls;
-        public bool IncludeXlsxTableCellData;
-        public bool RetrieveNamespaceList;
-        public bool RetrieveContentTypeList;
+        public bool IncludeTextInContentControls { get; set; }
+        public bool IncludeXlsxTableCellData { get; set; }
+        public bool RetrieveNamespaceList { get; set; }
+        public bool RetrieveContentTypeList { get; set; }
     }
 
     public class MetricsGetter
     {
-        public static XElement GetMetrics(string fileName, MetricsGetterSettings settings)
+        private const string UriString = "http://broken-link/";
+
+        public static XElement? GetMetrics(string fileName, MetricsGetterSettings settings)
         {
             var fi = new FileInfo(fileName);
             if (!fi.Exists)
@@ -51,26 +53,22 @@ namespace Codeuctivity.OpenXmlPowerTools
         {
             try
             {
-                using (var ms = new MemoryStream())
+                using var ms = new MemoryStream();
+                ms.Write(wmlDoc.DocumentByteArray, 0, wmlDoc.DocumentByteArray.Length);
+                using var document = WordprocessingDocument.Open(ms, true);
+                var hasTrackedRevisions = RevisionAccepter.HasTrackedRevisions(document);
+                if (hasTrackedRevisions)
                 {
-                    ms.Write(wmlDoc.DocumentByteArray, 0, wmlDoc.DocumentByteArray.Length);
-                    using (var document = WordprocessingDocument.Open(ms, true))
-                    {
-                        var hasTrackedRevisions = RevisionAccepter.HasTrackedRevisions(document);
-                        if (hasTrackedRevisions)
-                        {
-                            RevisionAccepter.AcceptRevisions(document);
-                        }
-
-                        var metrics1 = GetWmlMetrics(wmlDoc.FileName, false, document, settings);
-                        if (hasTrackedRevisions)
-                        {
-                            metrics1.Add(new XElement(H.RevisionTracking, new XAttribute(H.Val, true)));
-                        }
-
-                        return metrics1;
-                    }
+                    RevisionAccepter.AcceptRevisions(document);
                 }
+
+                var metrics1 = GetWmlMetrics(wmlDoc.FileName, false, document, settings);
+                if (hasTrackedRevisions)
+                {
+                    metrics1.Add(new XElement(H.RevisionTracking, new XAttribute(H.Val, true)));
+                }
+
+                return metrics1;
             }
             catch (OpenXmlPowerToolsException e)
             {
@@ -85,22 +83,20 @@ namespace Codeuctivity.OpenXmlPowerTools
                     using (var ms = new MemoryStream())
                     {
                         ms.Write(wmlDoc.DocumentByteArray, 0, wmlDoc.DocumentByteArray.Length);
-                        using (var document = WordprocessingDocument.Open(ms, true))
+                        using var document = WordprocessingDocument.Open(ms, true);
+                        var hasTrackedRevisions = RevisionAccepter.HasTrackedRevisions(document);
+                        if (hasTrackedRevisions)
                         {
-                            var hasTrackedRevisions = RevisionAccepter.HasTrackedRevisions(document);
-                            if (hasTrackedRevisions)
-                            {
-                                RevisionAccepter.AcceptRevisions(document);
-                            }
-
-                            var metrics2 = GetWmlMetrics(wmlDoc.FileName, true, document, settings);
-                            if (hasTrackedRevisions)
-                            {
-                                metrics2.Add(new XElement(H.RevisionTracking, new XAttribute(H.Val, true)));
-                            }
-
-                            return metrics2;
+                            RevisionAccepter.AcceptRevisions(document);
                         }
+
+                        var metrics2 = GetWmlMetrics(wmlDoc.FileName, true, document, settings);
+                        if (hasTrackedRevisions)
+                        {
+                            metrics2.Add(new XElement(H.RevisionTracking, new XAttribute(H.Val, true)));
+                        }
+
+                        return metrics2;
                     }
                 }
             }
@@ -163,7 +159,7 @@ namespace Codeuctivity.OpenXmlPowerTools
 
         private static Uri FixUri(string brokenUri)
         {
-            return new Uri("http://broken-link/");
+            return new Uri(UriString);
         }
 
         private static XElement GetWmlMetrics(string fileName, bool invalidHyperlink, WordprocessingDocument wDoc, MetricsGetterSettings settings)
@@ -215,29 +211,27 @@ namespace Codeuctivity.OpenXmlPowerTools
             var uniqueNamespaces = new HashSet<string>();
             foreach (var xp in xmlParts)
             {
-                using (var st = xp.GetStream())
+                using var st = xp.GetStream();
+                try
                 {
-                    try
+                    var xdoc = XDocument.Load(st);
+                    var namespaces = xdoc
+                        .Descendants()
+                        .Attributes()
+                        .Where(a => a.IsNamespaceDeclaration)
+                        .Select(a => string.Format("{0}|{1}", a.Name.LocalName, a.Value))
+                        .OrderBy(t => t)
+                        .Distinct()
+                        .ToList();
+                    foreach (var item in namespaces)
                     {
-                        var xdoc = XDocument.Load(st);
-                        var namespaces = xdoc
-                            .Descendants()
-                            .Attributes()
-                            .Where(a => a.IsNamespaceDeclaration)
-                            .Select(a => string.Format("{0}|{1}", a.Name.LocalName, a.Value))
-                            .OrderBy(t => t)
-                            .Distinct()
-                            .ToList();
-                        foreach (var item in namespaces)
-                        {
-                            uniqueNamespaces.Add(item);
-                        }
+                        uniqueNamespaces.Add(item);
                     }
-                    catch (Exception)
-                    {
-                        // if catch exception, forget about it.  Just trying to get a most complete survey possible of all namespaces in all documents. If caught exception, chances are the document is bad anyway.
-                        continue;
-                    }
+                }
+                catch (Exception)
+                {
+                    // if catch exception, forget about it.  Just trying to get a most complete survey possible of all namespaces in all documents. If caught exception, chances are the document is bad anyway.
+                    continue;
                 }
             }
             var xe = new XElement(H.Namespaces,
@@ -788,7 +782,7 @@ namespace Codeuctivity.OpenXmlPowerTools
             }
         }
 
-        private static string GetFontFromFontType(FormattingAssembler.CharStyleAttributes csa, FormattingAssembler.FontType ft)
+        private static string? GetFontFromFontType(FormattingAssembler.CharStyleAttributes csa, FormattingAssembler.FontType ft)
         {
             switch (ft)
             {
@@ -811,25 +805,21 @@ namespace Codeuctivity.OpenXmlPowerTools
 
         public static XElement GetXlsxMetrics(SmlDocument smlDoc, MetricsGetterSettings settings)
         {
-            using (var streamDoc = new OpenXmlMemoryStreamDocument(smlDoc))
-            {
-                using (var sDoc = streamDoc.GetSpreadsheetDocument())
-                {
-                    var metrics = new List<XElement>();
+            using var streamDoc = new OpenXmlMemoryStreamDocument(smlDoc);
+            using var sDoc = streamDoc.GetSpreadsheetDocument();
+            var metrics = new List<XElement>();
 
-                    var valid = ValidateAgainstSpecificVersion(sDoc, metrics, DocumentFormat.OpenXml.FileFormatVersions.Office2007, H.SdkValidationError2007);
-                    valid |= ValidateAgainstSpecificVersion(sDoc, metrics, DocumentFormat.OpenXml.FileFormatVersions.Office2010, H.SdkValidationError2010);
-                    valid |= ValidateAgainstSpecificVersion(sDoc, metrics, DocumentFormat.OpenXml.FileFormatVersions.Office2013, H.SdkValidationError2013);
+            var valid = ValidateAgainstSpecificVersion(sDoc, metrics, DocumentFormat.OpenXml.FileFormatVersions.Office2007, H.SdkValidationError2007);
+            valid |= ValidateAgainstSpecificVersion(sDoc, metrics, DocumentFormat.OpenXml.FileFormatVersions.Office2010, H.SdkValidationError2010);
+            valid |= ValidateAgainstSpecificVersion(sDoc, metrics, DocumentFormat.OpenXml.FileFormatVersions.Office2013, H.SdkValidationError2013);
 
-                    return new XElement(H.Metrics,
-                        new XAttribute(H.FileName, smlDoc.FileName),
-                        new XAttribute(H.FileType, "SpreadsheetML"),
-                        metrics,
-                        GetTableInfoForWorkbook(sDoc, settings),
-                        settings.RetrieveNamespaceList ? RetrieveNamespaceList(sDoc) : null,
-                        settings.RetrieveContentTypeList ? RetrieveContentTypeList(sDoc) : null);
-                }
-            }
+            return new XElement(H.Metrics,
+                new XAttribute(H.FileName, smlDoc.FileName),
+                new XAttribute(H.FileType, "SpreadsheetML"),
+                metrics,
+                GetTableInfoForWorkbook(sDoc, settings),
+                settings.RetrieveNamespaceList ? RetrieveNamespaceList(sDoc) : null,
+                settings.RetrieveContentTypeList ? RetrieveContentTypeList(sDoc) : null);
         }
 
         private static XElement GetTableInfoForWorkbook(SpreadsheetDocument spreadsheet, MetricsGetterSettings settings)
@@ -851,7 +841,7 @@ namespace Codeuctivity.OpenXmlPowerTools
             return partInformation;
         }
 
-        public static XElement GetTableInfoForSheet(SpreadsheetDocument spreadsheetDocument, WorksheetPart sheetPart, string sheetName,
+        public static XElement? GetTableInfoForSheet(SpreadsheetDocument spreadsheetDocument, WorksheetPart sheetPart, string sheetName,
             MetricsGetterSettings settings)
         {
             var xd = sheetPart.GetXDocument();
@@ -863,7 +853,7 @@ namespace Codeuctivity.OpenXmlPowerTools
                         var tablePart = (TableDefinitionPart)sheetPart.GetPartById(rId);
                         var txd = tablePart.GetXDocument();
                         var tableName = (string)txd.Root.Attribute("displayName");
-                        XElement tableCellData = null;
+                        XElement? tableCellData = null;
                         if (settings.IncludeXlsxTableCellData)
                         {
                             var xlsxTable = spreadsheetDocument.Table(tableName);
@@ -904,26 +894,22 @@ namespace Codeuctivity.OpenXmlPowerTools
 
         public static XElement GetPptxMetrics(PmlDocument pmlDoc, MetricsGetterSettings settings)
         {
-            using (var streamDoc = new OpenXmlMemoryStreamDocument(pmlDoc))
-            {
-                using (var pDoc = streamDoc.GetPresentationDocument())
-                {
-                    var metrics = new List<XElement>();
+            using var streamDoc = new OpenXmlMemoryStreamDocument(pmlDoc);
+            using var pDoc = streamDoc.GetPresentationDocument();
+            var metrics = new List<XElement>();
 
-                    var valid = ValidateAgainstSpecificVersion(pDoc, metrics, DocumentFormat.OpenXml.FileFormatVersions.Office2007, H.SdkValidationError2007);
-                    valid |= ValidateAgainstSpecificVersion(pDoc, metrics, DocumentFormat.OpenXml.FileFormatVersions.Office2010, H.SdkValidationError2010);
-                    valid |= ValidateAgainstSpecificVersion(pDoc, metrics, DocumentFormat.OpenXml.FileFormatVersions.Office2013, H.SdkValidationError2013);
-                    return new XElement(H.Metrics,
-                        new XAttribute(H.FileName, pmlDoc.FileName),
-                        new XAttribute(H.FileType, "PresentationML"),
-                        metrics,
-                        settings.RetrieveNamespaceList ? RetrieveNamespaceList(pDoc) : null,
-                        settings.RetrieveContentTypeList ? RetrieveContentTypeList(pDoc) : null);
-                }
-            }
+            var valid = ValidateAgainstSpecificVersion(pDoc, metrics, DocumentFormat.OpenXml.FileFormatVersions.Office2007, H.SdkValidationError2007);
+            valid |= ValidateAgainstSpecificVersion(pDoc, metrics, DocumentFormat.OpenXml.FileFormatVersions.Office2010, H.SdkValidationError2010);
+            valid |= ValidateAgainstSpecificVersion(pDoc, metrics, DocumentFormat.OpenXml.FileFormatVersions.Office2013, H.SdkValidationError2013);
+            return new XElement(H.Metrics,
+                new XAttribute(H.FileName, pmlDoc.FileName),
+                new XAttribute(H.FileType, "PresentationML"),
+                metrics,
+                settings.RetrieveNamespaceList ? RetrieveNamespaceList(pDoc) : null,
+                settings.RetrieveContentTypeList ? RetrieveContentTypeList(pDoc) : null);
         }
 
-        private static object GetStyleHierarchy(WordprocessingDocument document)
+        private static object? GetStyleHierarchy(WordprocessingDocument document)
         {
             var stylePart = document.MainDocumentPart.StyleDefinitionsPart;
             if (stylePart == null)
@@ -976,9 +962,9 @@ namespace Codeuctivity.OpenXmlPowerTools
             return styleHierarchy;
         }
 
-        private static XElement GetMetricsForWmlPart(OpenXmlPart part, MetricsGetterSettings settings)
+        private static XElement? GetMetricsForWmlPart(OpenXmlPart part, MetricsGetterSettings settings)
         {
-            XElement contentControls = null;
+            XElement? contentControls = null;
             if (part is MainDocumentPart ||
                 part is HeaderPart ||
                 part is FooterPart ||
@@ -986,7 +972,7 @@ namespace Codeuctivity.OpenXmlPowerTools
                 part is EndnotesPart)
             {
                 var xd = part.GetXDocument();
-                contentControls = (XElement)GetContentControlsTransform(xd.Root, settings);
+                contentControls = GetContentControlsTransform(xd.Root, settings) as XElement;
                 if (!contentControls.HasElements)
                 {
                     contentControls = null;
@@ -1004,10 +990,9 @@ namespace Codeuctivity.OpenXmlPowerTools
             return null;
         }
 
-        private static object GetContentControlsTransform(XNode node, MetricsGetterSettings settings)
+        private static object? GetContentControlsTransform(XNode node, MetricsGetterSettings settings)
         {
-            var element = node as XElement;
-            if (element != null)
+            if (node is XElement element)
             {
                 if (element == element.Document.Root)
                 {
@@ -1048,7 +1033,7 @@ namespace Codeuctivity.OpenXmlPowerTools
                         !isEquation &&
                         !isGroup &&
                         !isPicture;
-                    string type = null;
+                    string? type = null;
                     if (isText)
                     {
                         type = "Text";

@@ -15,7 +15,7 @@ namespace Codeuctivity.OpenXmlPowerTools
 
         public CssAttributeOperator? Operator { get; set; } = null;
 
-        public string CssOperatorString
+        public string? CssOperatorString
         {
             get
             {
@@ -759,7 +759,7 @@ namespace Codeuctivity.OpenXmlPowerTools
             set => m_combinator = value;
         }
 
-        public string CombinatorString
+        public string? CombinatorString
         {
             get
             {
@@ -967,19 +967,19 @@ namespace Codeuctivity.OpenXmlPowerTools
 
         public char? Sign { get; set; }
 
-        public string SignChar
+        public string? SignChar
         {
-            get => Sign.HasValue ? Sign.Value.ToString() : null;
-            set => Sign = !string.IsNullOrEmpty(value) ? value[0] : '\0';
+            get => Sign?.ToString() ?? null;
+            set => Sign = !string.IsNullOrEmpty(value) ? value![0] : '\0';
         }
 
         public CssTermType Type { get; set; }
 
-        public string Value { get; set; }
+        public string? Value { get; set; }
 
         public CssUnit? Unit { get; set; }
 
-        public string UnitString
+        public string? UnitString
         {
             get
             {
@@ -3221,7 +3221,7 @@ namespace Codeuctivity.OpenXmlPowerTools
         private int m_bufferLength;
         private int m_inputStreamLength;
         private int m_currentPositionInBuffer;
-        private Stream m_inputStream;
+        private Stream? m_inputStream;
         private readonly bool m_isUserStream;
 
         public CssBuffer(Stream s, bool isUserStream)
@@ -3289,7 +3289,6 @@ namespace Codeuctivity.OpenXmlPowerTools
             }
             else if (Pos < m_inputStreamLength)
             {
-                Pos = Pos;
                 return m_inputBuffer[m_currentPositionInBuffer++];
             }
             else if (m_inputStream != null && !m_inputStream.CanSeek && ReadNextStreamChunk() > 0)

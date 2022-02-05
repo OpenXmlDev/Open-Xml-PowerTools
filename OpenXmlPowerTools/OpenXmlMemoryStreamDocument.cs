@@ -12,7 +12,7 @@ namespace Codeuctivity.OpenXmlPowerTools
     {
         private readonly OpenXmlPowerToolsDocument Document;
         private MemoryStream DocMemoryStream;
-        private Package DocPackage;
+        private Package? DocPackage;
 
         public OpenXmlMemoryStreamDocument(OpenXmlPowerToolsDocument doc)
         {
@@ -156,7 +156,7 @@ namespace Codeuctivity.OpenXmlPowerTools
             }
         }
 
-        public Type GetDocumentType()
+        public Type? GetDocumentType()
         {
             var relationship = DocPackage.GetRelationshipsByType("http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument").FirstOrDefault();
             if (relationship == null)

@@ -414,7 +414,7 @@ namespace Codeuctivity.OpenXmlPowerTools.WmlComparer
             var endnoteXDoc = wDocDelta.MainDocumentPart.EndnotesPart.GetXDocument();
             foreach (var note in footnoteEndnoteReferences)
             {
-                XElement fnen = null;
+                XElement? fnen = null;
                 if (note.Name == W.footnoteReference)
                 {
                     var id = (int)note.Attribute(W.id);
@@ -627,7 +627,7 @@ namespace Codeuctivity.OpenXmlPowerTools.WmlComparer
                                 throw new OpenXmlPowerToolsException("Internal error");
                             }
 
-                            XElement elementToInsertAfter = null;
+                            XElement? elementToInsertAfter = null;
                             if (consolidatedByUnid.ContainsKey(unid))
                             {
                                 elementToInsertAfter = consolidatedByUnid[unid];
@@ -936,8 +936,7 @@ namespace Codeuctivity.OpenXmlPowerTools.WmlComparer
 
         private static object CleanPartTransform(XNode node)
         {
-            var element = node as XElement;
-            if (element != null)
+            if (node is XElement element)
             {
                 return new XElement(element.Name,
                     element.Attributes().Where(a => a.Name.Namespace != PtOpenXml.pt &&
@@ -1009,14 +1008,14 @@ namespace Codeuctivity.OpenXmlPowerTools.WmlComparer
             var footnotesPart = wDoc.MainDocumentPart.FootnotesPart;
             var endnotesPart = wDoc.MainDocumentPart.EndnotesPart;
 
-            XDocument footnotesPartXDoc = null;
+            XDocument? footnotesPartXDoc = null;
             if (footnotesPart != null)
             {
                 footnotesPartXDoc = footnotesPart.GetXDocument();
                 IgnorePt14Namespace(footnotesPartXDoc.Root);
             }
 
-            XDocument endnotesPartXDoc = null;
+            XDocument? endnotesPartXDoc = null;
             if (endnotesPart != null)
             {
                 endnotesPartXDoc = endnotesPart.GetXDocument();
@@ -1143,7 +1142,7 @@ namespace Codeuctivity.OpenXmlPowerTools.WmlComparer
 
                                 // it is important that this code follows the code above, because the code above updates ci.RevisionElement (using DML)
 
-                                XElement paraAfter = null;
+                                XElement? paraAfter = null;
                                 if (ci.RevisionElement.Name == W.tbl)
                                 {
                                     paraAfter = emptyParagraph;
@@ -1202,7 +1201,7 @@ namespace Codeuctivity.OpenXmlPowerTools.WmlComparer
             {
                 var content = groupedCi.Select(ci =>
                 {
-                    XElement paraAfter = null;
+                    XElement? paraAfter = null;
                     if (ci.RevisionElement.Name == W.tbl)
                     {
                         paraAfter = emptyParagraph;
@@ -1436,13 +1435,13 @@ namespace Codeuctivity.OpenXmlPowerTools.WmlComparer
             var endnotesPart = wDoc.MainDocumentPart.EndnotesPart;
 
             var mainDocumentXDoc = mainDocPart.GetXDocument();
-            XDocument footnotesPartXDoc = null;
+            XDocument? footnotesPartXDoc = null;
             if (footnotesPart != null)
             {
                 footnotesPartXDoc = footnotesPart.GetXDocument();
             }
 
-            XDocument endnotesPartXDoc = null;
+            XDocument? endnotesPartXDoc = null;
             if (endnotesPart != null)
             {
                 endnotesPartXDoc = endnotesPart.GetXDocument();
@@ -1560,7 +1559,7 @@ namespace Codeuctivity.OpenXmlPowerTools.WmlComparer
             }
 
             // if cus1 and cus2 have completely different content, then just return the first document deleted, and the second document inserted.
-            List<CorrelatedSequence> correlatedSequence = null;
+            List<CorrelatedSequence>? correlatedSequence = null;
 
             correlatedSequence = DetectUnrelatedSources(cus1, cus2, settings);
 
@@ -1734,8 +1733,7 @@ namespace Codeuctivity.OpenXmlPowerTools.WmlComparer
 
         private static object FootnoteEndnoteReferenceCleanupTransform(XNode node)
         {
-            var element = node as XElement;
-            if (element != null)
+            if (node is XElement element)
             {
                 // small optimization to eliminate the work for most elements
                 if (element.Element(W.del) != null || element.Element(W.ins) != null)
@@ -2044,8 +2042,7 @@ namespace Codeuctivity.OpenXmlPowerTools.WmlComparer
 
         private static object ConjoinTransform(XNode node)
         {
-            var element = node as XElement;
-            if (element != null)
+            if (node is XElement element)
             {
                 if (element.Name == W.p && element.Elements(W.pPr).Count() >= 2)
                 {
@@ -2074,8 +2071,7 @@ namespace Codeuctivity.OpenXmlPowerTools.WmlComparer
 
         private static object MarkContentAsDeletedOrInsertedTransform(XNode node, WmlComparerSettings settings)
         {
-            var element = node as XElement;
-            if (element != null)
+            if (node is XElement element)
             {
                 if (element.Name == W.r)
                 {
@@ -2280,25 +2276,25 @@ namespace Codeuctivity.OpenXmlPowerTools.WmlComparer
             var footnotesPartAfter = mainDocumentPartAfter.FootnotesPart;
             var endnotesPartAfter = mainDocumentPartAfter.EndnotesPart;
 
-            XDocument footnotesPartBeforeXDoc = null;
+            XDocument? footnotesPartBeforeXDoc = null;
             if (footnotesPartBefore != null)
             {
                 footnotesPartBeforeXDoc = footnotesPartBefore.GetXDocument();
             }
 
-            XDocument footnotesPartAfterXDoc = null;
+            XDocument? footnotesPartAfterXDoc = null;
             if (footnotesPartAfter != null)
             {
                 footnotesPartAfterXDoc = footnotesPartAfter.GetXDocument();
             }
 
-            XDocument endnotesPartBeforeXDoc = null;
+            XDocument? endnotesPartBeforeXDoc = null;
             if (endnotesPartBefore != null)
             {
                 endnotesPartBeforeXDoc = endnotesPartBefore.GetXDocument();
             }
 
-            XDocument endnotesPartAfterXDoc = null;
+            XDocument? endnotesPartAfterXDoc = null;
             if (endnotesPartAfter != null)
             {
                 endnotesPartAfterXDoc = endnotesPartAfter.GetXDocument();
@@ -2312,7 +2308,7 @@ namespace Codeuctivity.OpenXmlPowerTools.WmlComparer
 
             foreach (var fn in possiblyModifiedFootnotesEndNotes)
             {
-                string beforeId = null;
+                string? beforeId = null;
                 if (fn.ContentElementBefore != null)
                 {
                     beforeId = (string)fn.ContentElementBefore.Attribute(W.id);
@@ -2320,12 +2316,12 @@ namespace Codeuctivity.OpenXmlPowerTools.WmlComparer
 
                 var afterId = (string)fn.ContentElement.Attribute(W.id);
 
-                XElement footnoteEndnoteBefore = null;
-                XElement footnoteEndnoteAfter = null;
-                OpenXmlPart partToUseBefore = null;
-                OpenXmlPart partToUseAfter = null;
-                XDocument partToUseBeforeXDoc = null;
-                XDocument partToUseAfterXDoc = null;
+                XElement? footnoteEndnoteBefore = null;
+                XElement? footnoteEndnoteAfter = null;
+                OpenXmlPart? partToUseBefore = null;
+                OpenXmlPart? partToUseAfter = null;
+                XDocument? partToUseBeforeXDoc = null;
+                XDocument? partToUseAfterXDoc = null;
 
                 if (fn.CorrelationStatus == CorrelationStatus.Equal)
                 {
@@ -2711,19 +2707,19 @@ namespace Codeuctivity.OpenXmlPowerTools.WmlComparer
             var footnotesPartWithRevisions = mainDocumentPartWithRevisions.FootnotesPart;
             var endnotesPartWithRevisions = mainDocumentPartWithRevisions.EndnotesPart;
 
-            XDocument footnotesPartBeforeXDoc = null;
+            XDocument? footnotesPartBeforeXDoc = null;
             if (footnotesPartBefore != null)
             {
                 footnotesPartBeforeXDoc = footnotesPartBefore.GetXDocument();
             }
 
-            XDocument footnotesPartAfterXDoc = null;
+            XDocument? footnotesPartAfterXDoc = null;
             if (footnotesPartAfter != null)
             {
                 footnotesPartAfterXDoc = footnotesPartAfter.GetXDocument();
             }
 
-            XDocument footnotesPartWithRevisionsXDoc = null;
+            XDocument? footnotesPartWithRevisionsXDoc = null;
             if (footnotesPartWithRevisions != null)
             {
                 footnotesPartWithRevisionsXDoc = footnotesPartWithRevisions.GetXDocument();
@@ -2734,19 +2730,19 @@ namespace Codeuctivity.OpenXmlPowerTools.WmlComparer
                     .Remove();
             }
 
-            XDocument endnotesPartBeforeXDoc = null;
+            XDocument? endnotesPartBeforeXDoc = null;
             if (endnotesPartBefore != null)
             {
                 endnotesPartBeforeXDoc = endnotesPartBefore.GetXDocument();
             }
 
-            XDocument endnotesPartAfterXDoc = null;
+            XDocument? endnotesPartAfterXDoc = null;
             if (endnotesPartAfter != null)
             {
                 endnotesPartAfterXDoc = endnotesPartAfter.GetXDocument();
             }
 
-            XDocument endnotesPartWithRevisionsXDoc = null;
+            XDocument? endnotesPartWithRevisionsXDoc = null;
             if (endnotesPartWithRevisions != null)
             {
                 endnotesPartWithRevisionsXDoc = endnotesPartWithRevisions.GetXDocument();
@@ -2972,7 +2968,7 @@ namespace Codeuctivity.OpenXmlPowerTools.WmlComparer
 
             // the following should always succeed, because there will always be at least one element in rComparisonUnitAtomList, and there will always be at least one
             // ancestor in AncestorElements
-            string deepestAncestorUnid = null;
+            string? deepestAncestorUnid = null;
             if (rComparisonUnitAtomList.Any())
             {
                 var deepestAncestor = rComparisonUnitAtomList.First().AncestorElements.First();
@@ -2992,7 +2988,7 @@ namespace Codeuctivity.OpenXmlPowerTools.WmlComparer
 
             // This also makes the basic assumption that an endnote / footnote can't contain a text box, which I believe is a good assumption.
 
-            string[] currentAncestorUnids = null;
+            string[]? currentAncestorUnids = null;
             foreach (var cua in rComparisonUnitAtomList)
             {
                 if (cua.ContentElement.Name == W.pPr)
@@ -3246,15 +3242,13 @@ namespace Codeuctivity.OpenXmlPowerTools.WmlComparer
 
                 foreach (var ca in toIterateThrough)
                 {
-                    var cug = ca as ComparisonUnitGroup;
-
                     // this works because we will never see a table in this list, only rows.  If tables were in this list, would need to recursively
                     // go into children, but tables are always flattened in the LCS process.
 
                     // when we have a row, it is only necessary to find the first content atom of the row, then find the row ancestor, and then tweak
                     // the w:trPr
 
-                    if (cug != null && cug.ComparisonUnitGroupType == ComparisonUnitGroupType.Row)
+                    if (ca is ComparisonUnitGroup cug && cug.ComparisonUnitGroupType == ComparisonUnitGroupType.Row)
                     {
                         var firstContentAtom = cug.DescendantContentAtoms().FirstOrDefault();
                         if (firstContentAtom == null)
@@ -3278,7 +3272,7 @@ namespace Codeuctivity.OpenXmlPowerTools.WmlComparer
                             trPr = new XElement(W.trPr);
                             tr.AddFirst(trPr);
                         }
-                        XName revTrackElementName = null;
+                        XName? revTrackElementName = null;
                         if (dcs.CorrelationStatus == CorrelationStatus.Deleted)
                         {
                             revTrackElementName = W.del;
@@ -3595,14 +3589,9 @@ namespace Codeuctivity.OpenXmlPowerTools.WmlComparer
                 if (blockLevelContent.Name == W.tbl ||
                     blockLevelContent.Name == W.tr)
                 {
-                    var clonedForStructureHash = (XElement)CloneForStructureHash(cloneBlockLevelContentForHashing);
+                    var clonedForStructureHash = CloneForStructureHash(cloneBlockLevelContentForHashing) as XElement;
 
-                    // this is a convenient place to look at why tables are being compared as different.
-
-                    //if (blockLevelContent.Name == W.tbl)
-                    //    Console.WriteLine();
-
-                    var shaString2 = clonedForStructureHash.ToString(SaveOptions.DisableFormatting)
+                    var shaString2 = clonedForStructureHash?.ToString(SaveOptions.DisableFormatting)
                         .Replace(" xmlns=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"", "");
                     var sha1Hash2 = PtUtils.SHA1HashStringForUTF8String(shaString2);
                     blockLevelContent.Add(new XAttribute(PtOpenXml.StructureSHA1Hash, sha1Hash2));
@@ -3611,10 +3600,9 @@ namespace Codeuctivity.OpenXmlPowerTools.WmlComparer
         }
 
         // This strips all text nodes from the XML tree, thereby leaving only the structure.
-        private static object CloneForStructureHash(XNode node)
+        private static object? CloneForStructureHash(XNode node)
         {
-            var element = node as XElement;
-            if (element != null)
+            if (node is XElement element)
             {
                 return new XElement(element.Name,
                     element.Attributes(),
@@ -3632,17 +3620,16 @@ namespace Codeuctivity.OpenXmlPowerTools.WmlComparer
             "type",
         };
 
-        private static XElement CloneBlockLevelContentForHashing(OpenXmlPart mainDocumentPart, XNode node, bool includeRelatedParts, WmlComparerSettings settings)
+        private static XElement? CloneBlockLevelContentForHashing(OpenXmlPart mainDocumentPart, XNode node, bool includeRelatedParts, WmlComparerSettings settings)
         {
-            var rValue = (XElement)CloneBlockLevelContentForHashingInternal(mainDocumentPart, node, includeRelatedParts, settings);
-            rValue.DescendantsAndSelf().Attributes().Where(a => a.IsNamespaceDeclaration).Remove();
+            var rValue = CloneBlockLevelContentForHashingInternal(mainDocumentPart, node, includeRelatedParts, settings) as XElement;
+            rValue?.DescendantsAndSelf().Attributes().Where(a => a.IsNamespaceDeclaration).Remove();
             return rValue;
         }
 
-        private static object CloneBlockLevelContentForHashingInternal(OpenXmlPart mainDocumentPart, XNode node, bool includeRelatedParts, WmlComparerSettings settings)
+        private static object? CloneBlockLevelContentForHashingInternal(OpenXmlPart mainDocumentPart, XNode node, bool includeRelatedParts, WmlComparerSettings settings)
         {
-            var element = node as XElement;
-            if (element != null)
+            if (node is XElement element)
             {
                 if (element.Name == W.bookmarkStart ||
                     element.Name == W.bookmarkEnd ||
@@ -3877,8 +3864,7 @@ namespace Codeuctivity.OpenXmlPowerTools.WmlComparer
             }
             if (settings.CaseInsensitive || settings.ConflateBreakingAndNonbreakingSpaces)
             {
-                var xt = node as XText;
-                if (xt != null)
+                if (node is XText xt)
                 {
                     var text = xt.Value;
                     if (settings.CaseInsensitive)
@@ -3897,7 +3883,7 @@ namespace Codeuctivity.OpenXmlPowerTools.WmlComparer
             return node;
         }
 
-        private static List<CorrelatedSequence> FindCommonAtBeginningAndEnd(CorrelatedSequence unknown, WmlComparerSettings settings)
+        private static List<CorrelatedSequence>? FindCommonAtBeginningAndEnd(CorrelatedSequence unknown, WmlComparerSettings settings)
         {
             var lengthToCompare = Math.Min(unknown.ComparisonUnitArray1.Length, unknown.ComparisonUnitArray2.Length);
 
@@ -3964,10 +3950,7 @@ namespace Codeuctivity.OpenXmlPowerTools.WmlComparer
                 }
                 else if (remainingLeft != 0 && remainingRight != 0)
                 {
-                    var first1 = unknown.ComparisonUnitArray1[0] as ComparisonUnitWord;
-                    var first2 = unknown.ComparisonUnitArray2[0] as ComparisonUnitWord;
-
-                    if (first1 != null && first2 != null)
+                    if (unknown.ComparisonUnitArray1[0] is ComparisonUnitWord first1 && unknown.ComparisonUnitArray2[0] is ComparisonUnitWord first2)
                     {
                         // if operating at the word level and
                         //   if the last word on the left != pPr && last word on right != pPr
@@ -4080,8 +4063,7 @@ namespace Codeuctivity.OpenXmlPowerTools.WmlComparer
                     .Take(countCommonAtEnd)
                     .LastOrDefault();
 
-                var firstCommonWord = firstCommon as ComparisonUnitWord;
-                if (firstCommonWord == null)
+                if (!(firstCommon is ComparisonUnitWord firstCommonWord))
                 {
                     break;
                 }
@@ -4092,8 +4074,7 @@ namespace Codeuctivity.OpenXmlPowerTools.WmlComparer
                     break;
                 }
 
-                var firstCommonAtom = firstCommonWord.Contents.First() as ComparisonUnitAtom;
-                if (firstCommonAtom == null)
+                if (!(firstCommonWord.Contents.First() is ComparisonUnitAtom firstCommonAtom))
                 {
                     break;
                 }
@@ -4115,14 +4096,12 @@ namespace Codeuctivity.OpenXmlPowerTools.WmlComparer
                     .Take(countCommonAtEnd)
                     .LastOrDefault();
 
-                var firstCommonWord = firstCommon as ComparisonUnitWord;
-                if (firstCommonWord != null)
+                if (firstCommon is ComparisonUnitWord firstCommonWord)
                 {
                     // if the word contains more than one atom, then not a paragraph mark
                     if (firstCommonWord.Contents.Count == 1)
                     {
-                        var firstCommonAtom = firstCommonWord.Contents.First() as ComparisonUnitAtom;
-                        if (firstCommonAtom != null)
+                        if (firstCommonWord.Contents.First() is ComparisonUnitAtom firstCommonAtom)
                         {
                             if (firstCommonAtom.ContentElement.Name == W.pPr)
                             {
@@ -4145,17 +4124,12 @@ namespace Codeuctivity.OpenXmlPowerTools.WmlComparer
                     .Reverse()
                     .Take(countCommonAtEnd)
                     .FirstOrDefault();
-
-                var firstCommonWord = firstCommon as ComparisonUnitWord;
-                var secondCommonWord = secondCommon as ComparisonUnitWord;
-                if (firstCommonWord != null && secondCommonWord != null)
+                if (firstCommon is ComparisonUnitWord firstCommonWord && secondCommon is ComparisonUnitWord secondCommonWord)
                 {
                     // if the word contains more than one atom, then not a paragraph mark
                     if (firstCommonWord.Contents.Count == 1 && secondCommonWord.Contents.Count == 1)
                     {
-                        var firstCommonAtom = firstCommonWord.Contents.First() as ComparisonUnitAtom;
-                        var secondCommonAtom = secondCommonWord.Contents.First() as ComparisonUnitAtom;
-                        if (firstCommonAtom != null && secondCommonAtom != null)
+                        if (firstCommonWord.Contents.First() is ComparisonUnitAtom firstCommonAtom && secondCommonWord.Contents.First() is ComparisonUnitAtom secondCommonAtom)
                         {
                             if (secondCommonAtom.ContentElement.Name == W.pPr)
                             {
@@ -4346,7 +4320,7 @@ namespace Codeuctivity.OpenXmlPowerTools.WmlComparer
             return null;
         }
 
-        private static List<ComparisonUnit[]> SplitAtParagraphMark(ComparisonUnit[] cua)
+        private static List<ComparisonUnit[]> SplitAtParagraphMark(ComparisonUnit?[] cua)
         {
             int i;
             for (i = 0; i < cua.Length; i++)
@@ -4387,7 +4361,7 @@ namespace Codeuctivity.OpenXmlPowerTools.WmlComparer
 
         private static int s_MaxId = 0;
 
-        private static object ProduceNewWmlMarkupFromCorrelatedSequence(OpenXmlPart part,
+        private static object? ProduceNewWmlMarkupFromCorrelatedSequence(OpenXmlPart part,
             IEnumerable<ComparisonUnitAtom> comparisonUnitAtomList,
             WmlComparerSettings settings)
         {
@@ -4537,7 +4511,7 @@ namespace Codeuctivity.OpenXmlPowerTools.WmlComparer
             }
         }
 
-        private static object CoalesceRecurse(OpenXmlPart part, IEnumerable<ComparisonUnitAtom> list, int level, WmlComparerSettings settings)
+        private static object? CoalesceRecurse(OpenXmlPart part, IEnumerable<ComparisonUnitAtom> list, int level, WmlComparerSettings settings)
         {
             var grouped = list.GroupBy(ca =>
             {
@@ -4914,7 +4888,7 @@ namespace Codeuctivity.OpenXmlPowerTools.WmlComparer
 
                     var tartString = relationshipForDeletedPart.TargetUri.ToString();
 
-                    Uri targetUri;
+                    Uri? targetUri;
                     try
                     {
                         targetUri = PackUriHelper
@@ -4932,7 +4906,7 @@ namespace Codeuctivity.OpenXmlPowerTools.WmlComparer
                         var relatedPackagePart = partOfDeletedContent.Package.GetPart(targetUri);
                         var uriSplit = relatedPackagePart.Uri.ToString().Split('/');
                         var last = uriSplit[uriSplit.Length - 1].Split('.');
-                        string uriString = null;
+                        string? uriString = null;
                         if (last.Length == 2)
                         {
                             uriString = uriSplit.PtSkipLast(1).Select(p => p + "/").StringConcatenate() +
@@ -4943,7 +4917,7 @@ namespace Codeuctivity.OpenXmlPowerTools.WmlComparer
                             uriString = uriSplit.PtSkipLast(1).Select(p => p + "/").StringConcatenate() +
                                 "P" + Guid.NewGuid().ToString().Replace("-", "");
                         }
-                        Uri uri = null;
+                        Uri? uri = null;
                         if (relatedPackagePart.Uri.IsAbsoluteUri)
                         {
                             uri = new Uri(uriString, UriKind.Absolute);
@@ -4966,7 +4940,7 @@ namespace Codeuctivity.OpenXmlPowerTools.WmlComparer
 
                         if (newPart.ContentType.EndsWith("xml"))
                         {
-                            XDocument newPartXDoc = null;
+                            XDocument? newPartXDoc = null;
                             using (var stream = newPart.GetStream())
                             {
                                 newPartXDoc = XDocument.Load(stream);
@@ -4983,7 +4957,7 @@ namespace Codeuctivity.OpenXmlPowerTools.WmlComparer
             return contentElement;
         }
 
-        private static XAttribute GetXmlSpaceAttribute(string textOfTextElement)
+        private static XAttribute? GetXmlSpaceAttribute(string textOfTextElement)
         {
             if (char.IsWhiteSpace(textOfTextElement[0]) ||
                 char.IsWhiteSpace(textOfTextElement[textOfTextElement.Length - 1]))
@@ -4994,24 +4968,24 @@ namespace Codeuctivity.OpenXmlPowerTools.WmlComparer
             return null;
         }
 
-        private static XElement ReconstructElement(OpenXmlPart part, IGrouping<string, ComparisonUnitAtom> g, XElement ancestorBeingConstructed, XName props1XName,
-            XName props2XName, XName props3XName, int level, WmlComparerSettings settings)
+        private static XElement ReconstructElement(OpenXmlPart part, IGrouping<string?, ComparisonUnitAtom> g, XElement ancestorBeingConstructed, XName props1XName,
+            XName? props2XName, XName? props3XName, int level, WmlComparerSettings settings)
         {
             var newChildElements = CoalesceRecurse(part, g, level + 1, settings);
 
-            object props1 = null;
+            object? props1 = null;
             if (props1XName != null)
             {
                 props1 = ancestorBeingConstructed.Elements(props1XName);
             }
 
-            object props2 = null;
+            object? props2 = null;
             if (props2XName != null)
             {
                 props2 = ancestorBeingConstructed.Elements(props2XName);
             }
 
-            object props3 = null;
+            object? props3 = null;
             if (props3XName != null)
             {
                 props3 = ancestorBeingConstructed.Elements(props3XName);
@@ -5024,7 +4998,7 @@ namespace Codeuctivity.OpenXmlPowerTools.WmlComparer
             return reconstructedElement;
         }
 
-        private static List<CorrelatedSequence> DetectUnrelatedSources(ComparisonUnit[] cu1, ComparisonUnit[] cu2, WmlComparerSettings settings)
+        private static List<CorrelatedSequence>? DetectUnrelatedSources(ComparisonUnit[] cu1, ComparisonUnit[] cu2, WmlComparerSettings settings)
         {
             if (cu1.OfType<ComparisonUnitGroup>().Take(4).Count() > 3 &&
                 cu2.OfType<ComparisonUnitGroup>().Take(4).Count() > 3)
@@ -5140,16 +5114,14 @@ namespace Codeuctivity.OpenXmlPowerTools.WmlComparer
         {
             if (unknown.ComparisonUnitArray1.Length == 1 && unknown.ComparisonUnitArray2.Length == 1)
             {
-                var cua1 = unknown.ComparisonUnitArray1[0] as ComparisonUnitGroup;
-                var cua2 = unknown.ComparisonUnitArray2[0] as ComparisonUnitGroup;
-                if (cua1 != null &&
-                    cua2 != null &&
+                if (unknown.ComparisonUnitArray1[0] is ComparisonUnitGroup cua1 &&
+                    unknown.ComparisonUnitArray2[0] is ComparisonUnitGroup cua2 &&
                     cua1.ComparisonUnitGroupType == cua2.ComparisonUnitGroupType)
                 {
                     var groupType = cua1.ComparisonUnitGroupType;
                     var da1 = cua1.DescendantContentAtoms();
                     var da2 = cua2.DescendantContentAtoms();
-                    XName takeThruName = null;
+                    XName? takeThruName = null;
                     switch (groupType)
                     {
                         case ComparisonUnitGroupType.Paragraph:
@@ -5231,7 +5203,7 @@ namespace Codeuctivity.OpenXmlPowerTools.WmlComparer
             }
         }
 
-        private static List<CorrelatedSequence> ProcessCorrelatedHashes(CorrelatedSequence unknown, WmlComparerSettings settings)
+        private static List<CorrelatedSequence>? ProcessCorrelatedHashes(CorrelatedSequence unknown, WmlComparerSettings settings)
         {
             // never attempt this optimization if there are less than 3 groups
             var maxd = Math.Min(unknown.ComparisonUnitArray1.Length, unknown.ComparisonUnitArray2.Length);
@@ -5239,10 +5211,7 @@ namespace Codeuctivity.OpenXmlPowerTools.WmlComparer
             {
                 return null;
             }
-
-            var firstInCu1 = unknown.ComparisonUnitArray1.FirstOrDefault() as ComparisonUnitGroup;
-            var firstInCu2 = unknown.ComparisonUnitArray2.FirstOrDefault() as ComparisonUnitGroup;
-            if (firstInCu1 != null && firstInCu2 != null)
+            if (unknown.ComparisonUnitArray1.FirstOrDefault() is ComparisonUnitGroup firstInCu1 && unknown.ComparisonUnitArray2.FirstOrDefault() is ComparisonUnitGroup firstInCu2)
             {
                 if ((firstInCu1.ComparisonUnitGroupType == ComparisonUnitGroupType.Paragraph ||
                     firstInCu1.ComparisonUnitGroupType == ComparisonUnitGroupType.Table ||
@@ -5277,10 +5246,8 @@ namespace Codeuctivity.OpenXmlPowerTools.WmlComparer
                             var thisI2 = i2;
                             while (true)
                             {
-                                var group1 = cul1[thisI1] as ComparisonUnitGroup;
-                                var group2 = cul2[thisI2] as ComparisonUnitGroup;
-                                var match = group1 != null &&
-                                    group2 != null &&
+                                var match = cul1[thisI1] is ComparisonUnitGroup group1 &&
+                                    cul2[thisI2] is ComparisonUnitGroup group2 &&
                                     group1.ComparisonUnitGroupType == group2.ComparisonUnitGroupType &&
                                     group1.CorrelatedSHA1Hash != null &&
                                     group2.CorrelatedSHA1Hash != null &&
@@ -5553,8 +5520,7 @@ namespace Codeuctivity.OpenXmlPowerTools.WmlComparer
 
                 var firstCommon = cul1[currentI1];
 
-                var firstCommonWord = firstCommon as ComparisonUnitWord;
-                if (firstCommonWord == null)
+                if (!(firstCommon is ComparisonUnitWord firstCommonWord))
                 {
                     break;
                 }
@@ -5565,8 +5531,7 @@ namespace Codeuctivity.OpenXmlPowerTools.WmlComparer
                     break;
                 }
 
-                var firstCommonAtom = firstCommonWord.Contents.First() as ComparisonUnitAtom;
-                if (firstCommonAtom == null)
+                if (!(firstCommonWord.Contents.First() is ComparisonUnitAtom firstCommonAtom))
                 {
                     break;
                 }
@@ -5594,14 +5559,12 @@ namespace Codeuctivity.OpenXmlPowerTools.WmlComparer
             {
                 var firstCommon = cul1[currentI1];
 
-                var firstCommonWord = firstCommon as ComparisonUnitWord;
-                if (firstCommonWord != null)
+                if (firstCommon is ComparisonUnitWord firstCommonWord)
                 {
                     // if the word contains more than one atom, then not a paragraph mark
                     if (firstCommonWord.Contents.Count == 1)
                     {
-                        var firstCommonAtom = firstCommonWord.Contents.First() as ComparisonUnitAtom;
-                        if (firstCommonAtom != null)
+                        if (firstCommonWord.Contents.First() is ComparisonUnitAtom firstCommonAtom)
                         {
                             if (firstCommonAtom.ContentElement.Name == W.pPr)
                             {
@@ -5615,8 +5578,7 @@ namespace Codeuctivity.OpenXmlPowerTools.WmlComparer
             // don't match just a single character
             if (currentLongestCommonSequenceLength == 1)
             {
-                var cuw2 = cul2[currentI2] as ComparisonUnitAtom;
-                if (cuw2 != null)
+                if (cul2[currentI2] is ComparisonUnitAtom cuw2)
                 {
                     if (cuw2.ContentElement.Name == W.t && cuw2.ContentElement.Value == " ")
                     {
@@ -5679,8 +5641,8 @@ namespace Codeuctivity.OpenXmlPowerTools.WmlComparer
             // don't find that LCS.
             if (!isOnlyParagraphMark && currentLongestCommonSequenceLength > 0)
             {
-                var anyButWord1 = cul1.Any(cu => cu as ComparisonUnitWord == null);
-                var anyButWord2 = cul2.Any(cu => cu as ComparisonUnitWord == null);
+                var anyButWord1 = cul1.Any(cu => !(cu is ComparisonUnitWord));
+                var anyButWord2 = cul2.Any(cu => !(cu is ComparisonUnitWord));
                 if (!anyButWord1 && !anyButWord2)
                 {
                     var maxLen = Math.Max(cul1.Length, cul2.Length);
@@ -6053,18 +6015,11 @@ namespace Codeuctivity.OpenXmlPowerTools.WmlComparer
                     return newListOfCorrelatedSequence;
                 }
 
-                // if first of left is a row and first of right is a row
-                // then flatten the row to cells and iterate.
-
-                var firstLeft = unknown
+                if (unknown
                     .ComparisonUnitArray1
-                    .FirstOrDefault() as ComparisonUnitGroup;
-
-                var firstRight = unknown
+                    .FirstOrDefault() is ComparisonUnitGroup firstLeft && unknown
                     .ComparisonUnitArray2
-                    .FirstOrDefault() as ComparisonUnitGroup;
-
-                if (firstLeft != null && firstRight != null)
+                    .FirstOrDefault() is ComparisonUnitGroup firstRight)
                 {
                     if (firstLeft.ComparisonUnitGroupType == ComparisonUnitGroupType.Row &&
                         firstRight.ComparisonUnitGroupType == ComparisonUnitGroupType.Row)
@@ -6250,10 +6205,8 @@ namespace Codeuctivity.OpenXmlPowerTools.WmlComparer
 
                 if (unknown.ComparisonUnitArray1.Any() && unknown.ComparisonUnitArray2.Any())
                 {
-                    var left = unknown.ComparisonUnitArray1.First() as ComparisonUnitWord;
-                    var right = unknown.ComparisonUnitArray2.First() as ComparisonUnitGroup;
-                    if (left != null &&
-                        right != null &&
+                    if (unknown.ComparisonUnitArray1.First() is ComparisonUnitWord left &&
+                        unknown.ComparisonUnitArray2.First() is ComparisonUnitGroup right &&
                         right.ComparisonUnitGroupType == ComparisonUnitGroupType.Row)
                     {
                         var insertedCorrelatedSequence3 = new CorrelatedSequence
@@ -6274,11 +6227,8 @@ namespace Codeuctivity.OpenXmlPowerTools.WmlComparer
 
                         return newListOfCorrelatedSequence;
                     }
-
-                    var left2 = unknown.ComparisonUnitArray1.First() as ComparisonUnitGroup;
-                    var right2 = unknown.ComparisonUnitArray2.First() as ComparisonUnitWord;
-                    if (right2 != null &&
-                        left2 != null &&
+                    if (unknown.ComparisonUnitArray2.First() is ComparisonUnitWord right2 &&
+                        unknown.ComparisonUnitArray1.First() is ComparisonUnitGroup left2 &&
                         left2.ComparisonUnitGroupType == ComparisonUnitGroupType.Row)
                     {
                         var deletedCorrelatedSequence3 = new CorrelatedSequence
@@ -6566,8 +6516,7 @@ namespace Codeuctivity.OpenXmlPowerTools.WmlComparer
             // here is the point that we want to make a new unknown from this point to the end of the paragraph that contains the equal parts.
             // this will never hurt anything, and will in many cases result in a better difference.
 
-            var leftCuw = middleEqual.ComparisonUnitArray1[middleEqual.ComparisonUnitArray1.Length - 1] as ComparisonUnitWord;
-            if (leftCuw != null)
+            if (middleEqual.ComparisonUnitArray1[middleEqual.ComparisonUnitArray1.Length - 1] is ComparisonUnitWord leftCuw)
             {
                 var lastContentAtom = leftCuw.DescendantContentAtoms().LastOrDefault();
                 // if the middleEqual did not end with a paragraph mark
@@ -6607,7 +6556,7 @@ namespace Codeuctivity.OpenXmlPowerTools.WmlComparer
             return newListOfCorrelatedSequence;
         }
 
-        private static int FindIndexOfNextParaMark(ComparisonUnit[] cul)
+        private static int FindIndexOfNextParaMark(ComparisonUnit[]? cul)
         {
             for (var i = 0; i < cul.Length; i++)
             {
@@ -6621,7 +6570,7 @@ namespace Codeuctivity.OpenXmlPowerTools.WmlComparer
             return cul.Length;
         }
 
-        private static List<CorrelatedSequence> DoLcsAlgorithmForTable(CorrelatedSequence unknown, WmlComparerSettings settings)
+        private static List<CorrelatedSequence>? DoLcsAlgorithmForTable(CorrelatedSequence unknown, WmlComparerSettings settings)
         {
             var newListOfCorrelatedSequence = new List<CorrelatedSequence>();
 
@@ -7332,7 +7281,7 @@ namespace Codeuctivity.OpenXmlPowerTools.WmlComparer
         private static XElement ReconstructElement(IGrouping<string, ComparisonUnitAtom> g, XElement ancestorBeingConstructed, XName[] childPropElementNames, int level)
         {
             var newChildElements = CoalesceRecurse(g, level + 1);
-            IEnumerable<XElement> childProps = null;
+            IEnumerable<XElement>? childProps = null;
             if (childPropElementNames != null)
             {
                 childProps = ancestorBeingConstructed.Elements()
@@ -7486,7 +7435,7 @@ namespace Codeuctivity.OpenXmlPowerTools.WmlComparer
 
         private static void AnnotateElementWithProps(OpenXmlPart part, XElement element, List<ComparisonUnitAtom> comparisonUnitAtomList, XName[] childElementPropertyNames, WmlComparerSettings settings)
         {
-            IEnumerable<XElement> runChildrenToProcess = null;
+            IEnumerable<XElement>? runChildrenToProcess = null;
             if (childElementPropertyNames == null)
             {
                 runChildrenToProcess = element.Elements();
