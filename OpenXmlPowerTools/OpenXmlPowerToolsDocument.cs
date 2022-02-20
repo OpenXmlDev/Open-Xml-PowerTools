@@ -15,7 +15,7 @@ namespace Codeuctivity.OpenXmlPowerTools
         public static OpenXmlPowerToolsDocument FromFileName(string fileName)
         {
             var bytes = File.ReadAllBytes(fileName);
-            Type type;
+            Type? type;
             try
             {
                 type = GetDocumentType(bytes);
@@ -131,7 +131,7 @@ namespace Codeuctivity.OpenXmlPowerTools
 
         private void ConvertToTransitional(string fileName, byte[] tempByteArray)
         {
-            Type type;
+            Type? type;
             try
             {
                 type = GetDocumentType(tempByteArray);
@@ -268,12 +268,12 @@ namespace Codeuctivity.OpenXmlPowerTools
             stream.Write(DocumentByteArray, 0, DocumentByteArray.Length);
         }
 
-        public Type GetDocumentType()
+        public Type? GetDocumentType()
         {
             return GetDocumentType(DocumentByteArray);
         }
 
-        private static Type GetDocumentType(byte[] bytes)
+        private static Type? GetDocumentType(byte[] bytes)
         {
             using var stream = new MemoryStream();
             stream.Write(bytes, 0, bytes.Length);

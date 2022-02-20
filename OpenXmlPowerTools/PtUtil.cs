@@ -14,7 +14,7 @@ namespace Codeuctivity.OpenXmlPowerTools
 {
     public static class PtUtils
     {
-        public static string SHA1HashStringForUTF8String(string s)
+        public static string SHA1HashStringForUTF8String(string? s)
         {
             var bytes = Encoding.UTF8.GetBytes(s);
             var sha1 = SHA1.Create();
@@ -76,25 +76,25 @@ namespace Codeuctivity.OpenXmlPowerTools
 
     public class MhtParser
     {
-        public string MimeVersion { get; set; }
-        public string ContentType { get; set; }
+        public string? MimeVersion { get; set; }
+        public string? ContentType { get; set; }
         public MhtParserPart[] Parts { get; set; }
 
         public class MhtParserPart
         {
-            public string ContentLocation { get; set; }
-            public string ContentTransferEncoding { get; set; }
-            public string ContentType { get; set; }
-            public string CharSet { get; set; }
+            public string? ContentLocation { get; set; }
+            public string? ContentTransferEncoding { get; set; }
+            public string? ContentType { get; set; }
+            public string? CharSet { get; set; }
             public string Text { get; set; }
-            public byte[] Binary { get; set; }
+            public byte[]? Binary { get; set; }
         }
 
         public static MhtParser Parse(string src)
         {
-            string mimeVersion = null;
-            string contentType = null;
-            string boundary = null;
+            string? mimeVersion = null;
+            string? contentType = null;
+            string? boundary = null;
 
             var lines = src.Split(new[] { Environment.NewLine }, StringSplitOptions.None);
 
@@ -164,11 +164,11 @@ namespace Codeuctivity.OpenXmlPowerTools
                         return partPriambleKeyWords.Any(pk => s.StartsWith(pk));
                     }).ToArray();
 
-                    string contentLocation = null;
-                    string contentTransferEncoding = null;
-                    string partContentType = null;
-                    string partCharSet = null;
-                    byte[] partBinary = null;
+                    string? contentLocation = null;
+                    string? contentTransferEncoding = null;
+                    string? partContentType = null;
+                    string? partCharSet = null;
+                    byte[]? partBinary = null;
 
                     foreach (var item in partPriamble)
                     {
@@ -199,7 +199,7 @@ namespace Codeuctivity.OpenXmlPowerTools
 
                     if (partContentType != null && partContentType.Contains(";"))
                     {
-                        string thisPartContentType = null;
+                        string? thisPartContentType = null;
                         var spl = partContentType.Split(';').Select(s => s.Trim()).ToArray();
                         foreach (var s in spl)
                         {
@@ -270,8 +270,7 @@ namespace Codeuctivity.OpenXmlPowerTools
                         return null;
                     }
 
-                    var e = n as XElement;
-                    if (e != null)
+                    if (n is XElement e)
                     {
                         return NormalizeElement(e, havePSVI);
                     }
@@ -333,7 +332,7 @@ namespace Codeuctivity.OpenXmlPowerTools
                     );
         }
 
-        private static XNode NormalizeNode(XNode node, bool havePSVI)
+        private static XNode? NormalizeNode(XNode node, bool havePSVI)
         {
             // trim comments and processing instructions from normalized tree
             if (node is XComment || node is XProcessingInstruction)
@@ -341,8 +340,7 @@ namespace Codeuctivity.OpenXmlPowerTools
                 return null;
             }
 
-            var e = node as XElement;
-            if (e != null)
+            if (node is XElement e)
             {
                 return NormalizeElement(e, havePSVI);
             }
@@ -678,7 +676,7 @@ namespace Codeuctivity.OpenXmlPowerTools
 
         private static void InitializeSiblingsReverseDocumentOrder(XElement element)
         {
-            XElement prev = null;
+            XElement? prev = null;
             foreach (var e in element.Elements())
             {
                 e.AddAnnotation(new SiblingsReverseDocumentOrderInfo { PreviousSibling = prev });
@@ -713,7 +711,7 @@ namespace Codeuctivity.OpenXmlPowerTools
 
         private static void InitializeDescendantsReverseDocumentOrder(XElement element)
         {
-            XElement prev = null;
+            XElement? prev = null;
             foreach (var e in element.Descendants())
             {
                 e.AddAnnotation(new DescendantsReverseDocumentOrderInfo { PreviousElement = prev });
@@ -748,7 +746,7 @@ namespace Codeuctivity.OpenXmlPowerTools
 
         private static void InitializeDescendantsTrimmedReverseDocumentOrder(XElement element, XName trimName)
         {
-            XElement prev = null;
+            XElement? prev = null;
             foreach (var e in element.DescendantsTrimmed(trimName))
             {
                 e.AddAnnotation(new DescendantsTrimmedReverseDocumentOrderInfo { PreviousElement = prev });
@@ -963,24 +961,21 @@ namespace Codeuctivity.OpenXmlPowerTools
                        s => s.ToString());
         }
 
-        public static string GetXPath(this XObject xobj)
+        public static string? GetXPath(this XObject xobj)
         {
             if (xobj.Parent == null)
             {
-                var doc = xobj as XDocument;
-                if (doc != null)
+                if (xobj is XDocument doc)
                 {
                     return ".";
                 }
 
-                var el = xobj as XElement;
-                if (el != null)
+                if (xobj is XElement el)
                 {
                     return "/" + NameWithPredicate(el);
                 }
 
-                var xt = xobj as XText;
-                if (xt != null)
+                if (xobj is XText xt)
                 {
                     return null;
                 }
@@ -1006,8 +1001,7 @@ namespace Codeuctivity.OpenXmlPowerTools
                 //        "text()"
                 //    );
                 //
-                var com = xobj as XComment;
-                if (com != null && com.Document != null)
+                if (xobj is XComment com && com.Document != null)
                 {
                     return
                         "/" +
@@ -1027,8 +1021,7 @@ namespace Codeuctivity.OpenXmlPowerTools
                         );
                 }
 
-                var pi = xobj as XProcessingInstruction;
-                if (pi != null)
+                if (xobj is XProcessingInstruction pi)
                 {
                     return
                         "/" +
@@ -1048,8 +1041,7 @@ namespace Codeuctivity.OpenXmlPowerTools
             }
             else
             {
-                var el = xobj as XElement;
-                if (el != null)
+                if (xobj is XElement el)
                 {
                     return
                         "/" +
@@ -1061,8 +1053,7 @@ namespace Codeuctivity.OpenXmlPowerTools
                         NameWithPredicate(el);
                 }
 
-                var at = xobj as XAttribute;
-                if (at != null && at.Parent != null)
+                if (xobj is XAttribute at && at.Parent != null)
                 {
                     return
                         "/" +
@@ -1075,8 +1066,7 @@ namespace Codeuctivity.OpenXmlPowerTools
                         "@" + GetQName(at);
                 }
 
-                var com = xobj as XComment;
-                if (com != null && com.Parent != null)
+                if (xobj is XComment com && com.Parent != null)
                 {
                     return
                         "/" +
@@ -1101,8 +1091,7 @@ namespace Codeuctivity.OpenXmlPowerTools
                         );
                 }
 
-                var cd = xobj as XCData;
-                if (cd != null && cd.Parent != null)
+                if (xobj is XCData cd && cd.Parent != null)
                 {
                     return
                         "/" +
@@ -1127,8 +1116,7 @@ namespace Codeuctivity.OpenXmlPowerTools
                         );
                 }
 
-                var tx = xobj as XText;
-                if (tx != null && tx.Parent != null)
+                if (xobj is XText tx && tx.Parent != null)
                 {
                     return
                         "/" +
@@ -1153,8 +1141,7 @@ namespace Codeuctivity.OpenXmlPowerTools
                         );
                 }
 
-                var pi = xobj as XProcessingInstruction;
-                if (pi != null && pi.Parent != null)
+                if (xobj is XProcessingInstruction pi && pi.Parent != null)
                 {
                     return
                         "/" +
@@ -1243,12 +1230,12 @@ namespace Codeuctivity.OpenXmlPowerTools
 
     public class DescendantsReverseDocumentOrderInfo
     {
-        public XElement PreviousElement { get; set; }
+        public XElement? PreviousElement { get; set; }
     }
 
     public class DescendantsTrimmedReverseDocumentOrderInfo
     {
-        public XElement PreviousElement { get; set; }
+        public XElement? PreviousElement { get; set; }
     }
 
     public class GroupOfAdjacent<TSource, TKey> : IGrouping<TKey, TSource>

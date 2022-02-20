@@ -86,8 +86,8 @@ namespace Codeuctivity.OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
             FieldRetriever.AnnotateWithFieldInfo(wordDoc.MainDocumentPart);
             AnnotateForSections(wordDoc);
 
-            var xhtml = (XElement)ConvertToHtmlTransform(wordDoc, htmlConverterSettings,
-                rootElement, false, 0m);
+            var xhtml = ConvertToHtmlTransform(wordDoc, htmlConverterSettings,
+                rootElement, false, 0m) as XElement;
 
             ReifyStylesAndClasses(htmlConverterSettings, xhtml);
 
@@ -280,7 +280,7 @@ namespace Codeuctivity.OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
             }
         }
 
-        private static object ConvertToHtmlTransform(WordprocessingDocument wordDoc, WmlToHtmlConverterSettings settings, XNode node, bool suppressTrailingWhiteSpace, decimal currentMarginLeft, Dictionary<string, string> styleContext = default!)
+        private static object? ConvertToHtmlTransform(WordprocessingDocument wordDoc, WmlToHtmlConverterSettings settings, XNode node, bool suppressTrailingWhiteSpace, decimal currentMarginLeft, Dictionary<string, string> styleContext = default!)
         {
             if (!(node is XElement element))
             {
@@ -442,7 +442,7 @@ namespace Codeuctivity.OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
             return a;
         }
 
-        private static object ProcessBookmarkStart(XElement element)
+        private static object? ProcessBookmarkStart(XElement element)
         {
             var name = (string)element.Attribute(W.name);
             if (name == null)
@@ -464,7 +464,7 @@ namespace Codeuctivity.OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
             return a;
         }
 
-        private static object ProcessTab(XElement element)
+        private static object? ProcessTab(XElement element)
         {
             var tabWidthAtt = element.Attribute(PtOpenXml.TabWidth);
             if (tabWidthAtt == null)
@@ -570,7 +570,7 @@ namespace Codeuctivity.OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
         // transformed to h:span elements rather than h:p elements and added to
         // the element (e.g., h:h2) created from the w:p element having the (first)
         // style separator (i.e., a w:specVanish element).
-        private static object ProcessParagraph(WordprocessingDocument wordDoc, WmlToHtmlConverterSettings settings,
+        private static object? ProcessParagraph(WordprocessingDocument wordDoc, WmlToHtmlConverterSettings settings,
             XElement element, bool suppressTrailingWhiteSpace, decimal currentMarginLeft)
         {
             // Ignore this paragraph if the previous paragraph has a style separator.
@@ -665,8 +665,8 @@ namespace Codeuctivity.OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
                 element.Elements().Select(e => ConvertToHtmlTransform(wordDoc, settings, e, false, currentMarginLeft)));
             table.AddAnnotation(style);
             var jc = (string)element.Elements(W.tblPr).Elements(W.jc).Attributes(W.val).FirstOrDefault() ?? "left";
-            XAttribute dir = null;
-            XAttribute jcToUse = null;
+            XAttribute? dir = null;
+            XAttribute? jcToUse = null;
             if (bidiVisual != null)
             {
                 dir = new XAttribute("dir", "rtl");
@@ -694,11 +694,11 @@ namespace Codeuctivity.OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
             return tableDiv;
         }
 
-        private static object ProcessTableCell(WordprocessingDocument wordDoc, WmlToHtmlConverterSettings settings, XElement element)
+        private static object? ProcessTableCell(WordprocessingDocument wordDoc, WmlToHtmlConverterSettings settings, XElement element)
         {
             var style = new Dictionary<string, string>();
-            XAttribute colSpan = null;
-            XAttribute rowSpan = null;
+            XAttribute? colSpan = null;
+            XAttribute? rowSpan = null;
 
             var tcPr = element.Element(W.tcPr);
             if (tcPr != null)
@@ -864,7 +864,7 @@ namespace Codeuctivity.OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
             return elementName;
         }
 
-        private static XElement GetStyle(string styleId, WordprocessingDocument wordDoc)
+        private static XElement? GetStyle(string styleId, WordprocessingDocument wordDoc)
         {
             var stylesPart = wordDoc.MainDocumentPart.StyleDefinitionsPart;
             if (stylesPart == null)
@@ -894,7 +894,7 @@ namespace Codeuctivity.OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
                 .Select(g =>
                 {
                     var sectPr = g.First().Annotation<SectionAnnotation>();
-                    XElement bidi = null;
+                    XElement? bidi = null;
                     if (sectPr != null)
                     {
                         bidi = sectPr
@@ -1022,7 +1022,7 @@ namespace Codeuctivity.OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
             return paraElement;
         }
 
-        private static List<object> TransformElementsPrecedingTab(WordprocessingDocument wordDoc, WmlToHtmlConverterSettings settings,
+        private static List<object>? TransformElementsPrecedingTab(WordprocessingDocument wordDoc, WmlToHtmlConverterSettings settings,
             List<XElement> elementsPrecedingTab, XElement firstTabRun)
         {
             var tabWidth = firstTabRun != null ? (decimal?)firstTabRun.Elements(W.tab).Attributes(PtOpenXml.TabWidth).FirstOrDefault() ?? 0m : 0m;
@@ -1320,7 +1320,7 @@ namespace Codeuctivity.OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
          *
          */
 
-        private static object ConvertRun(WordprocessingDocument wordDoc, WmlToHtmlConverterSettings settings, XElement run)
+        private static object? ConvertRun(WordprocessingDocument wordDoc, WmlToHtmlConverterSettings settings, XElement run)
         {
             var rPr = run.Element(W.rPr);
             if (rPr == null)
@@ -1340,7 +1340,7 @@ namespace Codeuctivity.OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
             // Wrap content in h:sup or h:sub elements as necessary.
             if (rPr.Element(W.vertAlign) != null)
             {
-                XElement newContent = null;
+                XElement? newContent = null;
                 var vertAlignVal = (string)rPr.Elements(W.vertAlign).Attributes(W.val).FirstOrDefault();
                 switch (vertAlignVal)
                 {
@@ -1511,7 +1511,7 @@ namespace Codeuctivity.OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
             return languageType == "bidi" ? (decimal?)rPr.Elements(W.szCs).Attributes(W.val).FirstOrDefault() : (decimal?)rPr.Elements(W.sz).Attributes(W.val).FirstOrDefault();
         }
 
-        private static void DetermineRunMarks(XElement run, XElement rPr, Dictionary<string, string> style, out XEntity runStartMark, out XEntity runEndMark)
+        private static void DetermineRunMarks(XElement run, XElement rPr, Dictionary<string, string> style, out XEntity? runStartMark, out XEntity? runEndMark)
         {
             runStartMark = null;
             runEndMark = null;
@@ -1555,14 +1555,14 @@ namespace Codeuctivity.OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
             }
         }
 
-        private static XAttribute GetLangAttribute(XElement run)
+        private static XAttribute? GetLangAttribute(XElement run)
         {
             const string defaultLanguage = "en-US"; // todo need to get defaultLanguage
 
             var rPr = run.Elements(W.rPr).First();
             var languageType = (string)run.Attribute(PtOpenXml.LanguageType);
 
-            string lang = null;
+            string? lang = null;
             if (languageType == "western")
             {
                 lang = (string)rPr.Elements(W.lang).Attributes(W.val).FirstOrDefault();
@@ -2268,7 +2268,7 @@ namespace Codeuctivity.OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
                 element.Nodes().Select(n => CalculateSpanWidthTransform(n, defaultTabStop)));
         }
 
-        private static XAttribute GetLeader(XElement tabAfterText)
+        private static XAttribute? GetLeader(XElement tabAfterText)
         {
             var leader = (string)tabAfterText.Attribute(W.leader);
             if (leader == null)
@@ -3209,7 +3209,7 @@ namespace Codeuctivity.OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
             "image/png", "image/gif", "image/tiff", "image/jpeg"
         };
 
-        internal static XElement ProcessImage(WordprocessingDocument wordDoc, XElement element, IImageHandler imageHandler)
+        internal static XElement? ProcessImage(WordprocessingDocument wordDoc, XElement element, IImageHandler imageHandler)
         {
             if (imageHandler == null)
             {
@@ -3226,7 +3226,7 @@ namespace Codeuctivity.OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
             return null;
         }
 
-        private static XElement ProcessDrawing(WordprocessingDocument wordDoc, XElement element, IImageHandler imageHandler)
+        private static XElement? ProcessDrawing(WordprocessingDocument wordDoc, XElement element, IImageHandler imageHandler)
         {
             var containerElement = element.Elements()
                 .FirstOrDefault(e => e.Name == WP.inline || e.Name == WP.anchor);
@@ -3235,7 +3235,7 @@ namespace Codeuctivity.OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
                 return null;
             }
 
-            string hyperlinkUri = null;
+            string? hyperlinkUri = null;
             var hyperlinkElement = element
                 .Elements(WP.inline)
                 .Elements(WP.docPr)
@@ -3341,7 +3341,7 @@ namespace Codeuctivity.OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
             return imgElement;
         }
 
-        private static XElement ProcessPictureOrObject(WordprocessingDocument wordDoc, XElement element, IImageHandler imageHandler)
+        private static XElement? ProcessPictureOrObject(WordprocessingDocument wordDoc, XElement element, IImageHandler imageHandler)
         {
             var imageRid = (string)element.Elements(VML.shape).Elements(VML.imagedata).Attributes(R.id).FirstOrDefault();
             if (imageRid == null)

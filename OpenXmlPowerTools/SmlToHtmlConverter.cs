@@ -87,8 +87,7 @@ namespace Codeuctivity.OpenXmlPowerTools
 
         private static XNode ConvertToHtmlTransform(SpreadsheetDocument sDoc, SmlToHtmlConverterSettings htmlConverterSettings, XNode node)
         {
-            var element = node as XElement;
-            if (element != null)
+            if (node is XElement element)
             {
                 return new XElement(element.Name,
                     element.Attributes(),

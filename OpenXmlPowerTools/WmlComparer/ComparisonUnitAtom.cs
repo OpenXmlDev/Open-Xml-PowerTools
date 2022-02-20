@@ -1,4 +1,3 @@
-using Codeuctivity.OpenXmlPowerTools;
 using DocumentFormat.OpenXml.Packaging;
 using System;
 using System.Collections.Generic;
@@ -37,7 +36,7 @@ namespace Codeuctivity.OpenXmlPowerTools.WmlComparer
         // AncestorElements are kept in order from the body to the leaf, because this is the order in which we need to access in order to reassemble the document.  However, in many places in the code, it is necessary to find the nearest ancestor, i.e. cell so it is necessary to reverse the order when looking for it, i.e. look from the leaf back to the body element.
 
         public XElement[] AncestorElements { get; set; }
-        public string[] AncestorUnids { get; set; }
+        public string?[] AncestorUnids { get; set; }
         public XElement ContentElement { get; set; }
         public XElement ContentElementBefore { get; set; }
         public ComparisonUnitAtom ComparisonUnitAtomBefore { get; set; }
@@ -95,7 +94,7 @@ namespace Codeuctivity.OpenXmlPowerTools.WmlComparer
 
         private static XElement GetRevisionTrackingElementFromAncestors(XElement contentElement, XElement[] ancestors)
         {
-            XElement revTrackElement = null;
+            XElement? revTrackElement = null;
 
             if (contentElement.Name == W.pPr)
             {

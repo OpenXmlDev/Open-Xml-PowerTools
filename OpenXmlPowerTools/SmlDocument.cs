@@ -62,7 +62,7 @@ namespace Codeuctivity.OpenXmlPowerTools
             }
         }
 
-        public SmlDocument(string fileName, MemoryStream memStream)
+        public SmlDocument(string? fileName, MemoryStream memStream)
             : base(fileName, memStream)
         {
         }

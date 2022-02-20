@@ -337,7 +337,7 @@ namespace Codeuctivity.OpenXmlPowerTools
         /// </summary>
         /// <param name="character">The character.</param>
         /// <returns>The Open XML element or null, if the character equals <see cref="StartOfHeading" /> (U+0001).</returns>
-        public static XElement CharToRunChild(char character)
+        public static XElement? CharToRunChild(char character)
         {
             // Ignore the special character that represents the Open XML elements we
             // wanted to ignore.

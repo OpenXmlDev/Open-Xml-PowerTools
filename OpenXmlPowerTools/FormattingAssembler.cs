@@ -96,7 +96,7 @@ namespace Codeuctivity.OpenXmlPowerTools
                 var pxd = part.GetXDocument();
                 pxd.Root.Descendants().Attributes().Where(a => a.IsNamespaceDeclaration).Remove();
                 NormalizePropsForPart(pxd, settings);
-                var newRoot = (XElement)CleanupTransform(pxd.Root);
+                var newRoot = CleanupTransform(pxd.Root) as XElement;
                 pxd.Root.ReplaceWith(newRoot);
                 part.PutXDocument();
             }
@@ -153,10 +153,9 @@ namespace Codeuctivity.OpenXmlPowerTools
             }
         }
 
-        private static object CleanupTransform(XNode node)
+        private static object? CleanupTransform(XNode node)
         {
-            var element = node as XElement;
-            if (element != null)
+            if (node is XElement element)
             {
                 if (element.Name == W.tabs && element.Element(W.tab) == null)
                 {
@@ -169,12 +168,9 @@ namespace Codeuctivity.OpenXmlPowerTools
                 }
 
                 // a cleaner solution would be to not include the w:ins and w:del elements when rolling up the paragraph run properties into the run properties.
-                if ((element.Name == W.ins || element.Name == W.del) && element.Parent.Name == W.rPr)
+                if ((element.Name == W.ins || element.Name == W.del) && element.Parent.Name == W.rPr && (element.Parent.Parent.Name == W.r || element.Parent.Parent.Name == W.rPrChange))
                 {
-                    if (element.Parent.Parent.Name == W.r || element.Parent.Parent.Name == W.rPrChange)
-                    {
-                        return null;
-                    }
+                    return null;
                 }
 
                 return new XElement(element.Name,
@@ -252,8 +248,7 @@ namespace Codeuctivity.OpenXmlPowerTools
 
         private static object NormalizeListItemsTransform(FormattingAssemblerInfo fai, WordprocessingDocument wDoc, XNode node, FormattingAssemblerSettings settings)
         {
-            var element = node as XElement;
-            if (element != null)
+            if (node is XElement element)
             {
                 if (element.Name == W.p)
                 {
@@ -266,7 +261,7 @@ namespace Codeuctivity.OpenXmlPowerTools
                             element.Elements(W.pPr).Elements().Where(e => e.Name != W.numPr)
                         );
 
-                        XElement listItemRunProps = null;
+                        XElement? listItemRunProps = null;
                         var listItemHtmlAttributes = new List<XAttribute>();
                         int? abstractNumId = null;
                         if (listItemInfo != null)
@@ -323,8 +318,8 @@ namespace Codeuctivity.OpenXmlPowerTools
                             var listItemLvlRunProps = listItemLvl.Elements(W.rPr).FirstOrDefault();
                             listItemRunProps = MergeStyleElement(listItemLvlRunProps, mergedRunProps);
 
-                            string numFmt = null;
-                            string format = null;
+                            string? numFmt = null;
+                            string? format = null;
                             numFmt = (string)listItemLvl.Elements(W.numFmt).Attributes(W.val).FirstOrDefault();
 
                             if (numFmt == null)
@@ -503,8 +498,8 @@ namespace Codeuctivity.OpenXmlPowerTools
 
                         var isDeleted = false;
                         var isInserted = false;
-                        XAttribute authorAtt = null;
-                        XAttribute dateAtt = null;
+                        XAttribute? authorAtt = null;
+                        XAttribute? dateAtt = null;
 
                         var paraDelElement = newParaProps
                             .Elements(W.rPr)
@@ -667,8 +662,7 @@ namespace Codeuctivity.OpenXmlPowerTools
 
         private static object TransformToDeleted(XNode node)
         {
-            var element = node as XElement;
-            if (element != null)
+            if (node is XElement element)
             {
                 if (element.Name == W.t)
                 {
@@ -772,12 +766,9 @@ namespace Codeuctivity.OpenXmlPowerTools
                     var existingRunProps = existingParaProps.Element(W.rPr);
                     if (existingRunProps != null)
                     {
-                        if (!settings.RemoveStyleNamesFromParagraphAndRunProperties)
+                        if (!settings.RemoveStyleNamesFromParagraphAndRunProperties && newRunProps.Element(W.rStyle) == null)
                         {
-                            if (newRunProps.Element(W.rStyle) == null)
-                            {
-                                newRunProps.Add(existingRunProps.Element(W.rStyle));
-                            }
+                            newRunProps.Add(existingRunProps.Element(W.rStyle));
                         }
                         existingRunProps.ReplaceWith(newRunProps);
                     }
@@ -791,12 +782,9 @@ namespace Codeuctivity.OpenXmlPowerTools
                     var existingRunProps = parent.Element(W.rPr);
                     if (existingRunProps != null)
                     {
-                        if (!settings.RemoveStyleNamesFromParagraphAndRunProperties)
+                        if (!settings.RemoveStyleNamesFromParagraphAndRunProperties && newRunProps.Element(W.rStyle) == null)
                         {
-                            if (newRunProps.Element(W.rStyle) == null)
-                            {
-                                newRunProps.Add(existingRunProps.Element(W.rStyle));
-                            }
+                            newRunProps.Add(existingRunProps.Element(W.rStyle));
                         }
                         existingRunProps.ReplaceWith(newRunProps);
                     }
@@ -811,12 +799,9 @@ namespace Codeuctivity.OpenXmlPowerTools
             {
                 var paraRunProps = item.Parent.Elements(W.pPr).Elements(W.rPr).FirstOrDefault();
                 var merged = MergeStyleElement(item.Element(W.rPr), paraRunProps);
-                if (!settings.RemoveStyleNamesFromParagraphAndRunProperties)
+                if (!settings.RemoveStyleNamesFromParagraphAndRunProperties && merged.Element(W.rStyle) == null)
                 {
-                    if (merged.Element(W.rStyle) == null)
-                    {
-                        merged.Add(paraRunProps.Element(W.rStyle));
-                    }
+                    merged.Add(paraRunProps.Element(W.rStyle));
                 }
 
                 var newParaProps = new XElement(W.pPr,
@@ -827,12 +812,9 @@ namespace Codeuctivity.OpenXmlPowerTools
                 var existingParaProps = para.Element(W.pPr);
                 if (existingParaProps != null)
                 {
-                    if (!settings.RemoveStyleNamesFromParagraphAndRunProperties)
+                    if (!settings.RemoveStyleNamesFromParagraphAndRunProperties && newParaProps.Element(W.pStyle) == null)
                     {
-                        if (newParaProps.Element(W.pStyle) == null)
-                        {
-                            newParaProps.Add(existingParaProps.Element(W.pStyle));
-                        }
+                        newParaProps.Add(existingParaProps.Element(W.pStyle));
                     }
                     existingParaProps.ReplaceWith(newParaProps);
                 }
@@ -924,10 +906,10 @@ namespace Codeuctivity.OpenXmlPowerTools
 
         private static void AnnotateWithGlobalDefaults(WordprocessingDocument wDoc, XElement rootElement, FormattingAssemblerSettings settings)
         {
-            XElement globalDefaultParaProps = null;
-            XElement globalDefaultParaPropsAsDefined = null;
-            XElement globalDefaultRunProps = null;
-            XElement globalDefaultRunPropsAsDefined = null;
+            XElement? globalDefaultParaProps = null;
+            XElement? globalDefaultParaPropsAsDefined = null;
+            XElement? globalDefaultRunProps = null;
+            XElement? globalDefaultRunPropsAsDefined = null;
             var sXDoc = wDoc.MainDocumentPart.StyleDefinitionsPart.GetXDocument();
             var defaultParaStyleName = (string)sXDoc
                 .Root
@@ -1156,7 +1138,7 @@ namespace Codeuctivity.OpenXmlPowerTools
                     // as appropriate per the cnfStyle element, then replacing the row and cell properties
                     foreach (var row in tbl.Elements(W.tr))
                     {
-                        XElement trPr2 = null;
+                        XElement? trPr2 = null;
                         trPr2 = style.Element(W.trPr);
                         if (trPr2 == null)
                         {
@@ -1535,7 +1517,7 @@ namespace Codeuctivity.OpenXmlPowerTools
             {
                 var rowCount = tbl.Elements(W.tr).Count();
                 var lastRow = rowCount - 1;
-                XElement insideV = null;
+                XElement? insideV = null;
                 foreach (var row in tbl.Elements(W.tr))
                 {
                     var rowCnfStyle = row.Elements(W.trPr).Elements(W.cnfStyle).FirstOrDefault();
@@ -1765,7 +1747,7 @@ namespace Codeuctivity.OpenXmlPowerTools
             {"inset", 25 },
         };
 
-        private static XElement ResolveInsideBorder(XElement inside1, XElement sideToReplace)
+        private static XElement? ResolveInsideBorder(XElement inside1, XElement sideToReplace)
         {
             if (inside1 == null && sideToReplace == null)
             {
@@ -2124,7 +2106,7 @@ namespace Codeuctivity.OpenXmlPowerTools
             return newMergedElement;
         }
 
-        private static XElement LangMerge(XElement hLang, XElement lLang)
+        private static XElement? LangMerge(XElement hLang, XElement lLang)
         {
             if (hLang == null && lLang == null)
             {
@@ -2157,7 +2139,7 @@ namespace Codeuctivity.OpenXmlPowerTools
             None,
         };
 
-        private static XElement IndMerge(XElement higherPriorityElement, XElement lowerPriorityElement)
+        private static XElement? IndMerge(XElement higherPriorityElement, XElement lowerPriorityElement)
         {
             if (higherPriorityElement == null && lowerPriorityElement == null)
             {
@@ -2221,7 +2203,7 @@ namespace Codeuctivity.OpenXmlPowerTools
         // merge child tab elements
         // they are additive, with the exception that if there are two elements at the same location,
         // we need to take the higher, and not take the lower.
-        private static XElement TabsMerge(XElement higherPriorityElement, XElement lowerPriorityElement)
+        private static XElement? TabsMerge(XElement higherPriorityElement, XElement lowerPriorityElement)
         {
             if (higherPriorityElement != null && lowerPriorityElement == null)
             {
@@ -2263,7 +2245,7 @@ namespace Codeuctivity.OpenXmlPowerTools
             return newTabs;
         }
 
-        private static XElement SpacingMerge(XElement hn, XElement ln)
+        private static XElement? SpacingMerge(XElement hn, XElement ln)
         {
             if (hn == null && ln == null)
             {
@@ -2310,7 +2292,7 @@ namespace Codeuctivity.OpenXmlPowerTools
             }
         }
 
-        private static XElement FontMerge(XElement higherPriorityFont, XElement lowerPriorityFont)
+        private static XElement? FontMerge(XElement higherPriorityFont, XElement lowerPriorityFont)
         {
             XElement rFonts;
 
@@ -2366,7 +2348,7 @@ namespace Codeuctivity.OpenXmlPowerTools
             }
 
             // get para table props, to be merged.
-            XElement tablepPr = null;
+            XElement? tablepPr = null;
 
             var blockLevelContentContainer = para
                 .Ancestors()
@@ -2413,7 +2395,7 @@ namespace Codeuctivity.OpenXmlPowerTools
                 }
             }
             var stylesPart = wDoc.MainDocumentPart.StyleDefinitionsPart;
-            XDocument sXDoc = null;
+            XDocument? sXDoc = null;
             if (stylesPart != null)
             {
                 sXDoc = stylesPart.GetXDocument();
@@ -2653,7 +2635,7 @@ namespace Codeuctivity.OpenXmlPowerTools
 
         private static void AnnotateRunProperties(FormattingAssemblerInfo fai, WordprocessingDocument wDoc, XElement runOrPara, FormattingAssemblerSettings settings)
         {
-            XElement localRunProps = null;
+            XElement? localRunProps = null;
             if (runOrPara.Name == W.p)
             {
                 var rPr = runOrPara.Elements(W.pPr).Elements(W.rPr).FirstOrDefault();
@@ -2672,7 +2654,7 @@ namespace Codeuctivity.OpenXmlPowerTools
             }
 
             // get run table props, to be merged.
-            XElement tablerPr = null;
+            XElement? tablerPr = null;
             var blockLevelContentContainer = runOrPara
                 .Ancestors()
                 .FirstOrDefault(a => a.Name == W.body ||
@@ -2720,7 +2702,7 @@ namespace Codeuctivity.OpenXmlPowerTools
             var currentRunProps = runOrPara.Element(PtOpenXml.rPr); // this is already stored on the run from previous aggregation of props
             var mergedRunProps = MergeStyleElement(toggledRunProps, currentRunProps);
             var newMergedRunProps = MergeStyleElement(localRunProps, mergedRunProps);
-            XElement pPr = null;
+            XElement? pPr = null;
             if (runOrPara.Name == W.p)
             {
                 pPr = runOrPara.Element(PtOpenXml.pPr);
@@ -2743,13 +2725,13 @@ namespace Codeuctivity.OpenXmlPowerTools
         {
             var sXDoc = wDoc.MainDocumentPart.StyleDefinitionsPart.GetXDocument();
 
-            string charStyle = null;
-            string paraStyle = null;
-            XElement rPr = null;
-            XElement pPr = null;
-            XElement pStyle = null;
-            XElement rStyle = null;
-            CachedParaInfo cpi = null; // CachedParaInfo is an optimization for the case where a paragraph contains thousands of runs.
+            string? charStyle = null;
+            string? paraStyle = null;
+            XElement? rPr = null;
+            XElement? pPr = null;
+            XElement? pStyle = null;
+            XElement? rStyle = null;
+            CachedParaInfo? cpi = null; // CachedParaInfo is an optimization for the case where a paragraph contains thousands of runs.
 
             if (runOrPara.Name == W.p)
             {
@@ -2837,7 +2819,7 @@ namespace Codeuctivity.OpenXmlPowerTools
             }
 
             // A run always must have an ancestor paragraph.
-            XElement para = null;
+            XElement? para = null;
             var rolledUpParaStyleRunProps = new XElement(W.rPr);
             if (runOrPara.Name == W.r)
             {
@@ -2876,7 +2858,7 @@ namespace Codeuctivity.OpenXmlPowerTools
 
             var key = (paraStyle == null ? "[null]" : paraStyle) + "~|~" +
                 (charStyle == null ? "[null]" : charStyle);
-            XElement rolledRunProps = null;
+            XElement? rolledRunProps = null;
 
             if (fai.RolledCharacterStyles.ContainsKey(key))
             {
@@ -2950,7 +2932,7 @@ namespace Codeuctivity.OpenXmlPowerTools
             var rValue = new Stack<XElement>();
             while (localCharStyleName != null)
             {
-                XElement basedOn = null;
+                XElement? basedOn = null;
                 // first look for character style
                 var charStyle = sXDoc.Root.Elements(W.style).FirstOrDefault(s =>
                 {
@@ -3089,11 +3071,11 @@ namespace Codeuctivity.OpenXmlPowerTools
 
         public class CharStyleAttributes
         {
-            public string AsciiFont { get; set; }
-            public string HAnsiFont { get; set; }
-            public string EastAsiaFont { get; set; }
-            public string CsFont { get; set; }
-            public string Hint { get; set; }
+            public string? AsciiFont { get; set; }
+            public string? HAnsiFont { get; set; }
+            public string? EastAsiaFont { get; set; }
+            public string? CsFont { get; set; }
+            public string? Hint { get; set; }
             public bool Rtl { get; set; }
 
             public string LatinLang { get; set; }
@@ -3103,7 +3085,7 @@ namespace Codeuctivity.OpenXmlPowerTools
             public Dictionary<XName, bool?> ToggleProperties { get; set; }
             public Dictionary<XName, XElement> Properties { get; set; }
 
-            public CharStyleAttributes(XElement pPr, XElement rPr)
+            public CharStyleAttributes(XElement? pPr, XElement? rPr)
             {
                 ToggleProperties = new Dictionary<XName, bool?>();
                 Properties = new Dictionary<XName, XElement>();
@@ -3335,18 +3317,18 @@ namespace Codeuctivity.OpenXmlPowerTools
             '\x06F9',
         };
 
-        private static void AdjustFontAttributes(WordprocessingDocument wDoc, XElement paraOrRun, XElement pPr,
+        private static void AdjustFontAttributes(WordprocessingDocument wDoc, XElement paraOrRun, XElement? pPr,
             XElement rPr, FormattingAssemblerSettings settings)
         {
-            XDocument themeXDoc = null;
+            XDocument? themeXDoc = null;
             if (wDoc.MainDocumentPart.ThemePart != null)
             {
                 themeXDoc = wDoc.MainDocumentPart.ThemePart.GetXDocument();
             }
 
-            XElement fontScheme = null;
-            XElement majorFont = null;
-            XElement minorFont = null;
+            XElement? fontScheme = null;
+            XElement? majorFont = null;
+            XElement? minorFont = null;
             if (themeXDoc != null)
             {
                 fontScheme = themeXDoc.Root.Element(A.themeElements).Element(A.fontScheme);
@@ -3362,15 +3344,15 @@ namespace Codeuctivity.OpenXmlPowerTools
             var hAnsiTheme = (string)rFonts.Attribute(W.hAnsiTheme);
             var eastAsiaTheme = (string)rFonts.Attribute(W.eastAsiaTheme);
             var cstheme = (string)rFonts.Attribute(W.cstheme);
-            string ascii = null;
-            string hAnsi = null;
-            string eastAsia = null;
-            string cs = null;
+            string? ascii = null;
+            string? hAnsi = null;
+            string? eastAsia = null;
+            string? cs = null;
 
-            XElement minorLatin = null;
-            string minorLatinTypeface = null;
-            XElement majorLatin = null;
-            string majorLatinTypeface = null;
+            XElement? minorLatin = null;
+            string? minorLatinTypeface = null;
+            XElement? majorLatin = null;
+            string? majorLatinTypeface = null;
 
             if (minorFont != null)
             {
@@ -3473,8 +3455,8 @@ namespace Codeuctivity.OpenXmlPowerTools
             }
 
             var ft = DetermineFontTypeFromCharacter(charToExamine, csa);
-            string fontType = null;
-            string languageType = null;
+            string? fontType = null;
+            string? languageType = null;
             switch (ft)
             {
                 case FontType.Ascii:
@@ -3593,19 +3575,16 @@ namespace Codeuctivity.OpenXmlPowerTools
                     {
                         return FontType.EastAsia;
                     }
-                    if (csa.EastAsiaLang == "zh-hant" ||
-                        csa.EastAsiaLang == "zh-hans")
-                    {
-                        if (ch == 0xE0 ||
+                    if ((csa.EastAsiaLang == "zh-hant" ||
+                        csa.EastAsiaLang == "zh-hans") && (ch == 0xE0 ||
                             ch == 0xE1 ||
                             ch >= 0xE8 && ch <= 0xEA ||
                             ch >= 0xEC && ch <= 0xED ||
                             ch >= 0xF2 && ch <= 0xF3 ||
                             ch >= 0xF9 && ch <= 0xFA ||
-                            ch == 0xFC)
-                        {
-                            return FontType.EastAsia;
-                        }
+                            ch == 0xFC))
+                    {
+                        return FontType.EastAsia;
                     }
                 }
                 return FontType.HAnsi;
@@ -3614,14 +3593,11 @@ namespace Codeuctivity.OpenXmlPowerTools
             // Unicode Block: Latin Extended-A
             if (ch >= 0x0100 && ch <= 0x017F)
             {
-                if (csa.Hint == "eastAsia")
+                if (csa.Hint == "eastAsia" && (csa.EastAsiaLang == "zh-hant" ||
+                        csa.EastAsiaLang == "zh-hans")
+)
                 {
-                    if (csa.EastAsiaLang == "zh-hant" ||
-                        csa.EastAsiaLang == "zh-hans"
-                        /* || the character set of the east Asia (or east Asia theme) font is Chinese5 || GB2312 todo */)
-                    {
-                        return FontType.EastAsia;
-                    }
+                    return FontType.EastAsia;
                 }
                 return FontType.HAnsi;
             }
@@ -4115,7 +4091,7 @@ namespace Codeuctivity.OpenXmlPowerTools
         private class CachedParaInfo
         {
             public string ParagraphStyleName;
-            public XElement ParagraphProperties;
+            public XElement? ParagraphProperties;
         }
 
         public class UnsupportedNumberingFormatException : Exception

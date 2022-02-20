@@ -77,7 +77,7 @@ namespace Codeuctivity.OpenXmlPowerTools.DocumentBuilder
 
         private class Atbid
         {
-            public XElement BlockLevelContent;
+            public XElement? BlockLevelContent;
             public int Index;
             public int Div;
         }
@@ -920,7 +920,7 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml
             CopyRelatedPartsForContentParts(wDoc.MainDocumentPart, outputGlossaryDocumentPart, new[] { fromXDoc.Root }, images);
         }
 
-        private static WmlDocument CoalesceGlossaryDocumentParts(IEnumerable<Source> sources)
+        private static WmlDocument? CoalesceGlossaryDocumentParts(IEnumerable<Source> sources)
         {
             var allGlossaryDocuments = sources
                 .Select(s => ExtractGlossaryDocument(s.WmlDocument))
@@ -1460,7 +1460,7 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml
             foreach (var headerReference in headerReferences)
             {
                 var oldRid = headerReference.Attribute(R.id).Value;
-                HeaderPart oldHeaderPart = null;
+                HeaderPart? oldHeaderPart = null;
                 try
                 {
                     oldHeaderPart = (HeaderPart)sourceDocument.MainDocumentPart.GetPartById(oldRid);
@@ -1554,8 +1554,8 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml
 
                     var number = 1;
                     var abstractNumber = 0;
-                    XDocument oldNumbering = null;
-                    XDocument newNumbering = null;
+                    XDocument? oldNumbering = null;
+                    XDocument? newNumbering = null;
                     foreach (var numReference in style.Descendants(W.numPr))
                     {
                         var idElement = numReference.Descendants(W.numId).FirstOrDefault();
@@ -1692,7 +1692,7 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml
                                         var newAbstractId = newAbstractElement.Attribute(W.abstractNumId).Value;
 
                                         // Copy numbering element, if necessary (use matching element with no overrides)
-                                        XElement newElement = null;
+                                        XElement? newElement = null;
                                         if (!element.Elements(W.lvlOverride).Any())
                                         {
                                             newElement = newNumbering
@@ -1729,12 +1729,9 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml
                 else
                 {
                     var toId = (string)toStyle.Attribute(W.styleId);
-                    if (fromId != toId)
+                    if (fromId != toId && !newIds.ContainsKey(fromId))
                     {
-                        if (!newIds.ContainsKey(fromId))
-                        {
-                            newIds.Add(fromId, toId);
-                        }
+                        newIds.Add(fromId, toId);
                     }
                 }
             }
@@ -1969,8 +1966,8 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml
         {
             var commentIdMap = new Dictionary<int, int>();
             var number = 0;
-            XDocument oldComments = null;
-            XDocument newComments = null;
+            XDocument? oldComments = null;
+            XDocument? newComments = null;
             foreach (var comment in newContent.DescendantsAndSelf(W.commentReference))
             {
                 if (oldComments == null)
@@ -2137,8 +2134,7 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml
 
         private static object InsertTransform(XNode node, List<XElement> newContent)
         {
-            var element = node as XElement;
-            if (element != null)
+            if (node is XElement element)
             {
                 if (element.Annotation<ReplaceSemaphore>() != null)
                 {
@@ -2164,7 +2160,7 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml
         // - if you specify true for any document, and there are no sections for any paragraphs, then no
         //   sections are copied.
         private static void AppendDocument(WordprocessingDocument sourceDocument, WordprocessingDocument newDocument,
-            List<XElement> newContent, bool keepSection, string insertId, List<ImageData> images)
+            List<XElement> newContent, bool keepSection, string? insertId, List<ImageData> images)
         {
             FixRanges(sourceDocument.MainDocumentPart.GetXDocument(), newContent);
             AddRelationships(sourceDocument.MainDocumentPart, newDocument.MainDocumentPart, newContent);
@@ -2310,7 +2306,7 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml
             partXDoc.Elements().First().ReplaceWith((XElement)InsertTransform(partXDoc.Root, newContent));
         }
 
-        public static WmlDocument ExtractGlossaryDocument(WmlDocument wmlGlossaryDocument)
+        public static WmlDocument? ExtractGlossaryDocument(WmlDocument wmlGlossaryDocument)
         {
             if (RelationshipMarkup == null)
             {
@@ -2740,8 +2736,8 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml
             var numIdMap = new Dictionary<int, int>();
             var number = 1;
             var abstractNumber = 0;
-            XDocument oldNumbering = null;
-            XDocument newNumbering = null;
+            XDocument? oldNumbering = null;
+            XDocument? newNumbering = null;
 
             foreach (var numReference in newContent.DescendantsAndSelf(W.numPr))
             {
@@ -2812,7 +2808,7 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml
 .First(p => (int)p.Attribute(W.abstractNumId) == abstractNumId);
                         var nsidElement = abstractElement
                             .Element(W.nsid);
-                        string abstractNSID = null;
+                        string? abstractNSID = null;
                         if (nsidElement != null)
                         {
                             abstractNSID = (string)nsidElement
@@ -2924,8 +2920,8 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml
             var numIdMap = new Dictionary<int, int>();
             var number = 1;
             var abstractNumber = 0;
-            XDocument oldNumbering = null;
-            XDocument newNumbering = null;
+            XDocument? oldNumbering = null;
+            XDocument? newNumbering = null;
 
             foreach (var numReference in newContent.DescendantsAndSelf(W.numPr))
             {
@@ -2996,7 +2992,7 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml
 .First(p => (int)p.Attribute(W.abstractNumId) == abstractNumId);
                         var nsidElement = abstractElement
                             .Element(W.nsid);
-                        string abstractNSID = null;
+                        string? abstractNSID = null;
                         if (nsidElement != null)
                         {
                             abstractNSID = (string)nsidElement
@@ -3111,8 +3107,8 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml
             var numIdMap = new Dictionary<int, int>();
             var number = 1;
             var abstractNumber = 0;
-            XDocument oldNumbering = null;
-            XDocument newNumbering = null;
+            XDocument? oldNumbering = null;
+            XDocument? newNumbering = null;
 
             foreach (var numReference in newContent.DescendantsAndSelf(W.numPr))
             {
@@ -3183,7 +3179,7 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml
 .First(p => (int)p.Attribute(W.abstractNumId) == abstractNumId);
                         var nsidElement = abstractElement
                             .Element(W.nsid);
-                        string abstractNSID = null;
+                        string? abstractNSID = null;
                         if (nsidElement != null)
                         {
                             abstractNSID = (string)nsidElement
@@ -3330,7 +3326,7 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml
                 var temp = ManageImageCopy(oldPart, newContentPart, images);
                 if (temp.ImagePart == null)
                 {
-                    ImagePart newPart = null;
+                    ImagePart? newPart = null;
                     if (newContentPart is MainDocumentPart)
                     {
                         newPart = ((MainDocumentPart)newContentPart).AddImagePart(oldPart.ContentType);
@@ -3346,9 +3342,9 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml
                         newPart = ((FooterPart)newContentPart).AddImagePart(oldPart.ContentType);
                     }
 
-                    if (newContentPart is EndnotesPart)
+                    if (newContentPart is EndnotesPart part)
                     {
-                        newPart = ((EndnotesPart)newContentPart).AddImagePart(oldPart.ContentType);
+                        newPart = part.AddImagePart(oldPart.ContentType);
                     }
 
                     if (newContentPart is FootnotesPart)
@@ -3564,7 +3560,7 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml
                 if (ipp4 != null)
                 {
                     var oldPart = oldContentPart.GetPartById(relId);
-                    OpenXmlPart newPart = null;
+                    OpenXmlPart? newPart = null;
                     if (oldPart is EmbeddedObjectPart)
                     {
                         if (newContentPart is HeaderPart)
@@ -3962,8 +3958,8 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml
             XDocument settingsXDoc)
         {
             var number = 0;
-            XDocument oldFootnotes = null;
-            XDocument newFootnotes = null;
+            XDocument? oldFootnotes = null;
+            XDocument? newFootnotes = null;
             var footnotePr = settingsXDoc.Root.Element(W.footnotePr);
             if (footnotePr == null)
             {
@@ -4024,8 +4020,8 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml
             XDocument settingsXDoc)
         {
             var number = 0;
-            XDocument oldEndnotes = null;
-            XDocument newEndnotes = null;
+            XDocument? oldEndnotes = null;
+            XDocument? newEndnotes = null;
             var endnotePr = settingsXDoc.Root.Element(W.endnotePr);
             if (endnotePr == null)
             {
@@ -4157,7 +4153,7 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml
         // comments, etc., then this adds them to the paragraph.  Note that this adds them to
         // sourceDocument, and is impure.
         private static void FixRange(XDocument sourceDocument, IEnumerable<XElement> newContent,
-            XName startElement, XName endElement, XName idAttribute, XName refElement)
+            XName startElement, XName endElement, XName idAttribute, XName? refElement)
         {
             foreach (var start in newContent.DescendantsAndSelf(startElement))
             {
@@ -4223,8 +4219,8 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml
             IEnumerable<XElement> newContent, List<ImageData> images)
         {
             var number = 0;
-            XDocument oldFootnotes = null;
-            XDocument newFootnotes = null;
+            XDocument? oldFootnotes = null;
+            XDocument? newFootnotes = null;
             foreach (var footnote in newContent.DescendantsAndSelf(W.footnoteReference))
             {
                 if (oldFootnotes == null)
@@ -4285,8 +4281,8 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml
             IEnumerable<XElement> newContent, List<ImageData> images)
         {
             var number = 0;
-            XDocument oldEndnotes = null;
-            XDocument newEndnotes = null;
+            XDocument? oldEndnotes = null;
+            XDocument? newEndnotes = null;
             foreach (var endnote in newContent.DescendantsAndSelf(W.endnoteReference))
             {
                 if (oldEndnotes == null)

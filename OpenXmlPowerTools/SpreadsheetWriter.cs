@@ -459,23 +459,23 @@ namespace Codeuctivity.OpenXmlPowerTools
 
         private static int CreateNewStyle(XDocument sXDoc, CellDfn cell)
         {
-            XAttribute applyFont = null;
-            XAttribute fontId = null;
+            XAttribute? applyFont = null;
+            XAttribute? fontId = null;
             if (cell.Bold == true || cell.Italic == true)
             {
                 applyFont = new XAttribute(SSNoNamespace.applyFont, 1);
                 fontId = new XAttribute(SSNoNamespace.fontId, GetFontId(sXDoc, cell));
             }
-            XAttribute applyAlignment = null;
-            XElement alignment = null;
+            XAttribute? applyAlignment = null;
+            XElement? alignment = null;
             if (cell.HorizontalCellAlignment != null)
             {
                 applyAlignment = new XAttribute(SSNoNamespace.applyAlignment, 1);
                 alignment = new XElement(S.alignment,
                     new XAttribute(SSNoNamespace.horizontal, cell.HorizontalCellAlignment.ToString().ToLower()));
             }
-            XAttribute applyNumberFormat = null;
-            XAttribute numFmtId = null;
+            XAttribute? applyNumberFormat = null;
+            XAttribute? numFmtId = null;
             if (cell.FormatCode != null)
             {
                 if (CellDfn.StandardFormats.ContainsKey(cell.FormatCode))

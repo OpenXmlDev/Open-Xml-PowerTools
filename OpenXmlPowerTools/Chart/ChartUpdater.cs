@@ -110,7 +110,7 @@ namespace Codeuctivity.OpenXmlPowerTools.Chart
             var root = cpXDoc.Root;
             var firstSeries = root.Descendants(C.ser).FirstOrDefault();
             var numRef = firstSeries.Elements(C.val).Elements(C.numRef).FirstOrDefault();
-            string sheetName = null;
+            string? sheetName = null;
             var f = (string)firstSeries.Descendants(C.f).FirstOrDefault();
             if (f != null)
             {
@@ -124,7 +124,7 @@ namespace Codeuctivity.OpenXmlPowerTools.Chart
             var newSetOfSeries = chartData.SeriesNames
                 .Select((sn, si) =>
                 {
-                    XElement cat = null;
+                    XElement? cat = null;
 
                     var oldCat = firstSeries.Elements(C.cat).FirstOrDefault();
                     if (oldCat == null)
@@ -135,7 +135,7 @@ namespace Codeuctivity.OpenXmlPowerTools.Chart
                     var catHasFormula = oldCat.Descendants(C.f).Any();
                     if (catHasFormula)
                     {
-                        XElement newFormula = null;
+                        XElement? newFormula = null;
                         if (sheetName != null)
                         {
                             newFormula = new XElement(C.f, string.Format("{0}!$A$2:$A${1}", sheetName, chartData.CategoryNames.Length + 1));
@@ -203,7 +203,7 @@ namespace Codeuctivity.OpenXmlPowerTools.Chart
                         }
                     }
 
-                    XElement newCval = null;
+                    XElement? newCval = null;
 
                     if (sheetName == null)
                     {
@@ -237,10 +237,10 @@ namespace Codeuctivity.OpenXmlPowerTools.Chart
                     }
 
                     var serHasFormula = firstSeries.Descendants(C.f).Any();
-                    XElement tx = null;
+                    XElement? tx = null;
                     if (serHasFormula)
                     {
-                        XElement newFormula = null;
+                        XElement? newFormula = null;
                         if (sheetName != null)
                         {
                             newFormula = new XElement(C.f, string.Format("{0}!${1}$1", sheetName, SpreadsheetMLUtil.IntToColumnId(si + 1)));
@@ -261,7 +261,7 @@ namespace Codeuctivity.OpenXmlPowerTools.Chart
                             new XElement(C.v, chartData.SeriesNames[si]));
                     }
 
-                    XElement newSer = null;
+                    XElement? newSer = null;
 
                     if (chartType == C.area3DChart || chartType == C.areaChart)
                     {
@@ -564,8 +564,7 @@ namespace Codeuctivity.OpenXmlPowerTools.Chart
 
         private static object UpdateAccentTransform(XNode node, int accentNumber)
         {
-            var element = node as XElement;
-            if (element != null)
+            if (node is XElement element)
             {
                 if (element.Name == A.schemeClr && (string)element.Attribute("val") == "accent1")
                 {

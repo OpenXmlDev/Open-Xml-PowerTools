@@ -115,7 +115,7 @@ namespace Codeuctivity.OpenXmlPowerTools
 
         private static void RemoveElementsForDocumentComparison(WordprocessingDocument doc)
         {
-            OpenXmlPart part = doc.ExtendedFilePropertiesPart;
+            OpenXmlPart? part = doc.ExtendedFilePropertiesPart;
             if (part != null)
             {
                 var appPropsXDoc = part.GetXDocument();
@@ -165,7 +165,7 @@ namespace Codeuctivity.OpenXmlPowerTools
             // After transforming to single character runs, Rsid info will be invalid, so
             // remove from the part.
             var xDoc = part.GetXDocument();
-            var newRoot = (XElement)RemoveRsidTransform(xDoc.Root);
+            var newRoot = RemoveRsidTransform(xDoc.Root) as XElement;
             newRoot = (XElement)SingleCharacterRunTransform(newRoot);
             xDoc.Elements().First().ReplaceWith(newRoot);
             part.PutXDocument();
@@ -189,8 +189,7 @@ namespace Codeuctivity.OpenXmlPowerTools
         private static object RemoveCustomXmlAndContentControlsTransform(
             XNode node, SimplifyMarkupSettings simplifyMarkupSettings)
         {
-            var element = node as XElement;
-            if (element != null)
+            if (node is XElement element)
             {
                 if (simplifyMarkupSettings.RemoveSmartTags &&
                     element.Name == W.smartTag)
@@ -221,10 +220,9 @@ namespace Codeuctivity.OpenXmlPowerTools
             return node;
         }
 
-        private static object RemoveRsidTransform(XNode node)
+        private static object? RemoveRsidTransform(XNode node)
         {
-            var element = node as XElement;
-            if (element == null)
+            if (!(node is XElement element))
             {
                 return node;
             }
@@ -250,8 +248,7 @@ namespace Codeuctivity.OpenXmlPowerTools
 
         private static object MergeAdjacentRunsTransform(XNode node)
         {
-            var element = node as XElement;
-            if (element == null)
+            if (!(node is XElement element))
             {
                 return node;
             }
@@ -266,11 +263,10 @@ namespace Codeuctivity.OpenXmlPowerTools
                 element.Nodes().Select(n => MergeAdjacentRunsTransform(n)));
         }
 
-        private static object RemoveEmptyRunsAndRunPropertiesTransform(
+        private static object? RemoveEmptyRunsAndRunPropertiesTransform(
             XNode node)
         {
-            var element = node as XElement;
-            if (element != null)
+            if (node is XElement element)
             {
                 if (((element.Name == W.r) || (element.Name == W.rPr) || (element.Name == W.pPr)) &&
                     !element.Elements().Any())
@@ -289,8 +285,7 @@ namespace Codeuctivity.OpenXmlPowerTools
         private static object MergeAdjacentInstrText(
             XNode node)
         {
-            var element = node as XElement;
-            if (element != null)
+            if (node is XElement element)
             {
                 if ((element.Name == W.r) && element.Elements(W.instrText).Any())
                 {
@@ -338,13 +333,12 @@ namespace Codeuctivity.OpenXmlPowerTools
         // - collapse fldSimple
         // - remove fldSimple, fldData, fldChar, instrText.
 
-        private static object SimplifyMarkupTransform(
+        private static object? SimplifyMarkupTransform(
             XNode node,
             SimplifyMarkupSettings settings,
             SimplifyMarkupParameters parameters)
         {
-            var element = node as XElement;
-            if (element == null)
+            if (!(node is XElement element))
             {
                 return node;
             }
@@ -473,8 +467,7 @@ namespace Codeuctivity.OpenXmlPowerTools
                         return null;
                     }
 
-                    var e = n as XElement;
-                    return e != null ? NormalizeElement(e, havePsvi) : n;
+                    return n is XElement e ? NormalizeElement(e, havePsvi) : n;
                 }));
         }
 
@@ -522,7 +515,7 @@ namespace Codeuctivity.OpenXmlPowerTools
                 });
         }
 
-        private static XNode NormalizeNode(XNode node, bool havePsvi)
+        private static XNode? NormalizeNode(XNode node, bool havePsvi)
         {
             // trim comments and processing instructions from normalized tree
             if (node is XComment || node is XProcessingInstruction)
@@ -530,8 +523,7 @@ namespace Codeuctivity.OpenXmlPowerTools
                 return null;
             }
 
-            var e = node as XElement;
-            if (e != null)
+            if (node is XElement e)
             {
                 return NormalizeElement(e, havePsvi);
             }
@@ -625,7 +617,7 @@ namespace Codeuctivity.OpenXmlPowerTools
             // This may touch many elements, so needs to be its own transform.
             if (settings.RemoveRsidInfo)
             {
-                newRoot = (XElement)RemoveRsidTransform(newRoot);
+                newRoot = RemoveRsidTransform(newRoot) as XElement;
             }
 
             var prevNewRoot = new XDocument(newRoot);
@@ -642,11 +634,11 @@ namespace Codeuctivity.OpenXmlPowerTools
                     settings.RemoveGoBackBookmark ||
                     settings.RemoveHyperlinks)
                 {
-                    newRoot = (XElement)SimplifyMarkupTransform(newRoot, settings, parameters);
+                    newRoot = SimplifyMarkupTransform(newRoot, settings, parameters) as XElement;
                 }
 
                 // Remove runs and run properties that have become empty due to previous transforms.
-                newRoot = (XElement)RemoveEmptyRunsAndRunPropertiesTransform(newRoot);
+                newRoot = RemoveEmptyRunsAndRunPropertiesTransform(newRoot) as XElement;
 
                 // Merge adjacent runs that have identical run properties.
                 newRoot = (XElement)MergeAdjacentRunsTransform(newRoot);
@@ -712,8 +704,7 @@ namespace Codeuctivity.OpenXmlPowerTools
 
         private static object SeparateRunChildrenIntoSeparateRuns(XNode node)
         {
-            var element = node as XElement;
-            if (element == null)
+            if (!(node is XElement element))
             {
                 return node;
             }
@@ -730,10 +721,9 @@ namespace Codeuctivity.OpenXmlPowerTools
                 element.Nodes().Select(n => SeparateRunChildrenIntoSeparateRuns(n)));
         }
 
-        private static object SingleCharacterRunTransform(XNode node)
+        private static object SingleCharacterRunTransform(XNode? node)
         {
-            var element = node as XElement;
-            if (element == null)
+            if (!(node is XElement element))
             {
                 return node;
             }

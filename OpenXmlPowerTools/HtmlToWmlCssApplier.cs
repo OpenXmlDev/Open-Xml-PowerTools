@@ -59,7 +59,7 @@ namespace Codeuctivity.OpenXmlPowerTools
                 InitialValue = (element, settings) => new CssExpression { Terms = new List<CssTerm> { new CssTerm { Value = "normal", Type = CssTermType.String } } },
                 ComputedValue = (element, assignedValue, settings) =>
                 {
-                    CssExpression valueForPercentage = null;
+                    CssExpression? valueForPercentage = null;
                     if (element.Parent != null) { valueForPercentage = GetComputedPropertyValue(null, element, "font-size", settings); } return ComputeAbsoluteLength(element, assignedValue, settings, valueForPercentage);
                 },
             },
@@ -245,7 +245,7 @@ namespace Codeuctivity.OpenXmlPowerTools
                 InitialValue = (element, settings) => new CssExpression { Terms = new List<CssTerm> { new CssTerm { Value = "0", Type = CssTermType.Number, Unit = CssUnit.PT, } } },
                 ComputedValue = (element, assignedValue, settings) =>
                 {
-                    CssExpression valueForPercentage = null;
+                    CssExpression? valueForPercentage = null;
                     if (element.Parent != null) { valueForPercentage = GetComputedPropertyValue(null, element.Parent, "width", settings); } return ComputeAbsoluteLength(element, assignedValue, settings, valueForPercentage);
                 },
             },
@@ -442,7 +442,7 @@ namespace Codeuctivity.OpenXmlPowerTools
                     },
                 ComputedValue = (element, assignedValue, settings) =>
                 {
-                    CssExpression valueForPercentage = null;
+                    CssExpression? valueForPercentage = null;
                     if (element.Parent != null) { valueForPercentage = GetComputedPropertyValue(null, element.Parent, "width", settings); } return ComputeAbsoluteLength(element, assignedValue, settings, valueForPercentage);
                 },
             },
@@ -467,7 +467,7 @@ namespace Codeuctivity.OpenXmlPowerTools
                 InitialValue = (element, settings) => new CssExpression { Terms = new List<CssTerm> { new CssTerm { Value = "0", Type = CssTermType.Number, Unit = CssUnit.PT, } } },
                 ComputedValue = (element, assignedValue, settings) =>
                 {
-                    CssExpression valueForPercentage = null;
+                    CssExpression? valueForPercentage = null;
                     if (element.Parent != null) { valueForPercentage = GetComputedPropertyValue(null, element.Parent, "width", settings); } return ComputeAbsoluteLength(element, assignedValue, settings, valueForPercentage);
                 },
             },
@@ -495,7 +495,7 @@ namespace Codeuctivity.OpenXmlPowerTools
                 InitialValue = (element, settings) => new CssExpression { Terms = new List<CssTerm> { new CssTerm { Value = "0", Type = CssTermType.Number, Unit = CssUnit.PT, } } },
                 ComputedValue = (element, assignedValue, settings) =>
                 {
-                    CssExpression valueForPercentage = null;
+                    CssExpression? valueForPercentage = null;
                     if (element.Parent != null) { valueForPercentage = GetComputedPropertyValue(null, element.Parent, "width", settings); } return ComputeAbsoluteLength(element, assignedValue, settings, valueForPercentage);
                 },
             },
@@ -741,7 +741,7 @@ namespace Codeuctivity.OpenXmlPowerTools
                             return parentPropertyValue;
                         }
                     }
-                    CssExpression valueForPercentage = null;
+                    CssExpression? valueForPercentage = null;
                     var elementToQuery = element.Parent;
                     while (elementToQuery != null)
                     {
@@ -778,7 +778,7 @@ namespace Codeuctivity.OpenXmlPowerTools
                 InitialValue = (element, settings) => new CssExpression { Terms = new List<CssTerm> { new CssTerm { Value = "0", Type = CssTermType.Number, Unit = CssUnit.PT, } } },
                 ComputedValue = (element, assignedValue, settings) =>
                 {
-                    CssExpression valueForPercentage = null;
+                    CssExpression? valueForPercentage = null;
                     if (element.Parent != null) { valueForPercentage = GetComputedPropertyValue(null, element.Parent, "width", settings); } return ComputeAbsoluteLength(element, assignedValue, settings, valueForPercentage);
                 },
             },
@@ -803,7 +803,7 @@ namespace Codeuctivity.OpenXmlPowerTools
                 InitialValue = (element, settings) => new CssExpression { Terms = new List<CssTerm> { new CssTerm { Value = "none", Type = CssTermType.String, } } },
                 ComputedValue = (element, assignedValue, settings) =>
                 {
-                    CssExpression valueForPercentage = null;
+                    CssExpression? valueForPercentage = null;
                     if (element.Parent != null) { valueForPercentage = GetComputedPropertyValue(null, element.Parent, "width", settings); } return ComputeAbsoluteLength(element, assignedValue, settings, valueForPercentage);
                 },
             },
@@ -828,7 +828,7 @@ namespace Codeuctivity.OpenXmlPowerTools
                 InitialValue = (element, settings) => new CssExpression { Terms = new List<CssTerm> { new CssTerm { Value = "auto", Type = CssTermType.String, } } },
                 ComputedValue = (element, assignedValue, settings) =>
                 {
-                    CssExpression valueForPercentage = null;
+                    CssExpression? valueForPercentage = null;
                     if (element.Parent != null) { valueForPercentage = GetComputedPropertyValue(null, element.Parent, "height", settings); } return ComputeAbsoluteLength(element, assignedValue, settings, valueForPercentage);
                 },
             },
@@ -853,7 +853,7 @@ namespace Codeuctivity.OpenXmlPowerTools
                 InitialValue = (element, settings) => new CssExpression { Terms = new List<CssTerm> { new CssTerm { Value = "0", Type = CssTermType.Number, Unit = CssUnit.PT, } } },
                 ComputedValue = (element, assignedValue, settings) =>
                 {
-                    CssExpression valueForPercentage = null;
+                    CssExpression? valueForPercentage = null;
                     if (element.Parent != null) { valueForPercentage = GetComputedPropertyValue(null, element.Parent, "height", settings); } return ComputeAbsoluteLength(element, assignedValue, settings, valueForPercentage);
                 },
             },
@@ -878,7 +878,7 @@ namespace Codeuctivity.OpenXmlPowerTools
                 InitialValue = (element, settings) => new CssExpression { Terms = new List<CssTerm> { new CssTerm { Value = "none", Type = CssTermType.String, } } },
                 ComputedValue = (element, assignedValue, settings) =>
                 {
-                    CssExpression valueForPercentage = null;
+                    CssExpression? valueForPercentage = null;
                     if (element.Parent != null) { valueForPercentage = GetComputedPropertyValue(null, element.Parent, "height", settings); } return ComputeAbsoluteLength(element, assignedValue, settings, valueForPercentage);
                 },
             },
@@ -1049,8 +1049,8 @@ namespace Codeuctivity.OpenXmlPowerTools
             }
         }
 
-        public static CssExpression GetComputedPropertyValue(PropertyInfo propertyInfo, XElement element, string propertyName,
-            HtmlToWmlConverterSettings settings)
+        public static CssExpression GetComputedPropertyValue(PropertyInfo? propertyInfo, XElement element, string propertyName,
+            HtmlToWmlConverterSettings? settings)
         {
             // if (property is already computed)
             //   return the computed value
@@ -1158,7 +1158,7 @@ namespace Codeuctivity.OpenXmlPowerTools
         }
 
         private static CssExpression ComputeAbsoluteLength(XElement element, CssExpression assignedValue, HtmlToWmlConverterSettings settings,
-            CssExpression lengthForPercentage)
+            CssExpression? lengthForPercentage)
         {
             if (assignedValue.Terms.Count != 1)
             {
@@ -1887,9 +1887,9 @@ namespace Codeuctivity.OpenXmlPowerTools
                 var p = kvp.Value;
                 if (p.Name == "border")
                 {
-                    CssExpression borderColor;
-                    CssExpression borderWidth;
-                    CssExpression borderStyle;
+                    CssExpression? borderColor;
+                    CssExpression? borderWidth;
+                    CssExpression? borderStyle;
                     if (p.Expression.Terms.Count == 1 && p.Expression.Terms.First().Value == "inherit")
                     {
                         borderColor = new CssExpression { Terms = new List<CssTerm> { new CssTerm { Value = "inherit", Type = CssTermType.String } } };
@@ -1969,9 +1969,9 @@ namespace Codeuctivity.OpenXmlPowerTools
                 }
                 if (p.Name == "border-top" || p.Name == "border-right" || p.Name == "border-bottom" || p.Name == "border-left")
                 {
-                    CssExpression borderColor;
-                    CssExpression borderWidth;
-                    CssExpression borderStyle;
+                    CssExpression? borderColor;
+                    CssExpression? borderWidth;
+                    CssExpression? borderStyle;
                     if (p.Expression.Terms.Count == 1 && p.Expression.Terms.First().Value == "inherit")
                     {
                         borderColor = new CssExpression { Terms = new List<CssTerm> { new CssTerm { Value = "inherit", Type = CssTermType.String } } };
@@ -2708,11 +2708,11 @@ namespace Codeuctivity.OpenXmlPowerTools
 
         public class PropertyInfo
         {
-            public string[] Names;
+            public string[]? Names;
             public bool Inherits;
-            public Func<XElement, HtmlToWmlConverterSettings, bool> Includes;
-            public Func<XElement, HtmlToWmlConverterSettings, CssExpression> InitialValue;
-            public Func<XElement, CssExpression, HtmlToWmlConverterSettings, CssExpression> ComputedValue;
+            public Func<XElement, HtmlToWmlConverterSettings, bool>? Includes;
+            public Func<XElement, HtmlToWmlConverterSettings, CssExpression>? InitialValue;
+            public Func<XElement, CssExpression, HtmlToWmlConverterSettings, CssExpression>? ComputedValue;
         }
 
         private static void WriteXHtmlWithAnnotations(XElement element, StringBuilder sb)
