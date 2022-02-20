@@ -116,7 +116,8 @@ namespace Codeuctivity.OpenXmlPowerTools
             try
             {
                 var font = new SixLabors.Fonts.Font(ff, (float)sz / 2f, fs);
-                var size = SixLabors.Fonts.TextMeasurer.Measure(text, new SixLabors.Fonts.RendererOptions(font));
+                var textOptions = new SixLabors.Fonts.TextOptions(font);
+                var size = SixLabors.Fonts.TextMeasurer.Measure(text,textOptions );
 
                 return (int)size.Width;
             }

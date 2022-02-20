@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Xml.Linq;
+using Codeuctivity.ImageSharpCompare;
 using Xunit;
 
 namespace Codeuctivity.Tests.OpenXMLWordprocessingMLToHtmlConverter
@@ -58,7 +59,7 @@ namespace Codeuctivity.Tests.OpenXMLWordprocessingMLToHtmlConverter
             expectedImage.Position = 0;
             actualImage.Position = 0;
 
-            Assert.True(ImageSharpCompare.ImagesAreEqual(expectedImage, actualImage));
+            Assert.True(Codeuctivity.ImageSharpCompare.ImageSharpCompare.ImagesAreEqual(expectedImage, actualImage));
         }
 
         [Fact]
