@@ -137,7 +137,7 @@ namespace Codeuctivity.OpenXmlPowerTools
             }
 
             var sourceNum = 0;
-            SlideMasterPart currentMasterPart = null;
+            SlideMasterPart? currentMasterPart = null;
             foreach (var source in sources)
             {
                 using (var streamDoc = new OpenXmlMemoryStreamDocument(source.PmlDocument))
@@ -261,7 +261,7 @@ namespace Codeuctivity.OpenXmlPowerTools
                 var newFontLst = new XElement(P.embeddedFontLst);
                 foreach (var font in oldPresentationDoc.Root.Element(P.embeddedFontLst).Elements(P.embeddedFont))
                 {
-                    XElement newRegular = null, newBold = null, newItalic = null, newBoldItalic = null;
+                    XElement? newRegular = null, newBold = null, newItalic = null, newBoldItalic = null;
                     if (font.Element(P.regular) != null)
                     {
                         newRegular = CreatedEmbeddedFontPart(sourceDocument, newDocument, font, P.regular);
@@ -615,7 +615,7 @@ namespace Codeuctivity.OpenXmlPowerTools
         private static XElement FindCommentsAuthor(PresentationDocument newDocument, XElement comment, XDocument oldAuthors)
         {
             var oldAuthor = oldAuthors.Root.Elements(P.cmAuthor).FirstOrDefault(f => f.Attribute(NoNamespace.id).Value == comment.Attribute(NoNamespace.authorId).Value);
-            XElement newAuthor = null;
+            XElement? newAuthor = null;
             if (newDocument.PresentationPart.CommentAuthorsPart == null)
             {
                 newDocument.PresentationPart.AddNewPart<CommentAuthorsPart>();
@@ -669,7 +669,7 @@ namespace Codeuctivity.OpenXmlPowerTools
                 }
 
                 // Create new TableStylesPart, if needed
-                XDocument tableStyles = null;
+                XDocument? tableStyles = null;
                 if (newDocument.PresentationPart.TableStylesPart == null)
                 {
                     var newStylesPart = newDocument.PresentationPart.AddNewPart<TableStylesPart>();
@@ -856,7 +856,7 @@ namespace Codeuctivity.OpenXmlPowerTools
                 if (oldPartIdPair != null)
                 {
                     var oldPart = oldPartIdPair.OpenXmlPart;
-                    OpenXmlPart newPart = null;
+                    OpenXmlPart? newPart = null;
                     if (oldPart is EmbeddedObjectPart)
                     {
                         if (newContentPart is DialogsheetPart)
@@ -962,8 +962,7 @@ namespace Codeuctivity.OpenXmlPowerTools
                 var oldPartIdPair2 = oldContentPart.Parts.FirstOrDefault(p => p.RelationshipId == relId);
                 if (oldPartIdPair2 != null)
                 {
-                    var oldPart = oldPartIdPair2.OpenXmlPart as ChartPart;
-                    if (oldPart != null)
+                    if (oldPartIdPair2.OpenXmlPart is ChartPart oldPart)
                     {
                         var oldChart = oldPart.GetXDocument();
                         var newPart = newContentPart.AddNewPart<ChartPart>();
@@ -999,8 +998,7 @@ namespace Codeuctivity.OpenXmlPowerTools
                 var oldPartIdPair3 = oldContentPart.Parts.FirstOrDefault(p => p.RelationshipId == relId);
                 if (oldPartIdPair3 != null)
                 {
-                    var oldPart = oldPartIdPair3.OpenXmlPart as ChartDrawingPart;
-                    if (oldPart != null)
+                    if (oldPartIdPair3.OpenXmlPart is ChartDrawingPart oldPart)
                     {
                         var oldXDoc = oldPart.GetXDocument();
                         var newPart = newContentPart.AddNewPart<ChartDrawingPart>();
@@ -1036,8 +1034,7 @@ namespace Codeuctivity.OpenXmlPowerTools
                 var oldPartIdPair4 = oldContentPart.Parts.FirstOrDefault(p => p.RelationshipId == relId);
                 if (oldPartIdPair4 != null)
                 {
-                    var oldPart = oldPartIdPair4.OpenXmlPart as UserDefinedTagsPart;
-                    if (oldPart != null)
+                    if (oldPartIdPair4.OpenXmlPart is UserDefinedTagsPart oldPart)
                     {
                         var oldXDoc = oldPart.GetXDocument();
                         var newPart = newContentPart.AddNewPart<UserDefinedTagsPart>();
@@ -1101,7 +1098,7 @@ namespace Codeuctivity.OpenXmlPowerTools
                     CopyRelatedSound(newDocument, oldContentPart, newContentPart, soundReference, R.embed);
                 }
 
-                IEnumerable<VmlDrawingPart> vmlDrawingParts = null;
+                IEnumerable<VmlDrawingPart>? vmlDrawingParts = null;
                 if (oldContentPart is ChartsheetPart)
                 {
                     vmlDrawingParts = ((ChartsheetPart)oldContentPart).VmlDrawingParts;
@@ -1162,7 +1159,7 @@ namespace Codeuctivity.OpenXmlPowerTools
                     // Transitional: Copy VML Drawing parts, implicit relationship
                     foreach (var vmlPart in vmlDrawingParts)
                     {
-                        VmlDrawingPart newVmlPart = null;
+                        VmlDrawingPart? newVmlPart = null;
                         if (newContentPart is ChartsheetPart)
                         {
                             newVmlPart = ((ChartsheetPart)newContentPart).AddNewPart<VmlDrawingPart>();
@@ -1245,8 +1242,7 @@ namespace Codeuctivity.OpenXmlPowerTools
                 var oldPartIdPair = oldChart.Parts.FirstOrDefault(p => p.RelationshipId == relId);
                 if (oldPartIdPair != null)
                 {
-                    var oldPart = oldPartIdPair.OpenXmlPart as EmbeddedPackagePart;
-                    if (oldPart != null)
+                    if (oldPartIdPair.OpenXmlPart is EmbeddedPackagePart oldPart)
                     {
                         var newPart = newChart.AddEmbeddedPackagePart(oldPart.ContentType);
                         using (var oldObject = oldPart.GetStream(FileMode.Open, FileAccess.Read))
@@ -1262,8 +1258,7 @@ namespace Codeuctivity.OpenXmlPowerTools
                         dataReference.Attribute(R.id).Value = newChart.GetIdOfPart(newPart);
                         continue;
                     }
-                    var oldEmbeddedObjectPart = oldPartIdPair.OpenXmlPart as EmbeddedObjectPart;
-                    if (oldEmbeddedObjectPart != null)
+                    if (oldPartIdPair.OpenXmlPart is EmbeddedObjectPart oldEmbeddedObjectPart)
                     {
                         var newPart = newChart.AddEmbeddedPackagePart(oldEmbeddedObjectPart.ContentType);
                         using (var oldObject = oldEmbeddedObjectPart.GetStream(FileMode.Open, FileAccess.Read))
@@ -1312,20 +1307,21 @@ namespace Codeuctivity.OpenXmlPowerTools
             }
         }
 
-        private static Dictionary<XName, XName[]> RelationshipMarkup = null;
+        private static Dictionary<XName, XName[]>? RelationshipMarkup = null;
 
         private static void UpdateContent(IEnumerable<XElement> newContent, XName elementToModify, string oldRid, string newRid)
         {
-            foreach (var attributeName in RelationshipMarkup[elementToModify])
-            {
-                var elementsToUpdate = newContent
-                    .Descendants(elementToModify)
-                    .Where(e => (string)e.Attribute(attributeName) == oldRid);
-                foreach (var element in elementsToUpdate)
+            if (RelationshipMarkup != null)
+                foreach (var attributeName in RelationshipMarkup[elementToModify])
                 {
-                    element.Attribute(attributeName).Value = newRid;
+                    var elementsToUpdate = newContent
+                        .Descendants(elementToModify)
+                        .Where(e => (string)e.Attribute(attributeName) == oldRid);
+                    foreach (var element in elementsToUpdate)
+                    {
+                        element.Attribute(attributeName).Value = newRid;
+                    }
                 }
-            }
         }
 
         private static void RemoveContent(IEnumerable<XElement> newContent, XName elementToModify, string oldRid)
@@ -1466,7 +1462,7 @@ namespace Codeuctivity.OpenXmlPowerTools
                 var temp = ManageImageCopy(oldPart, images);
                 if (temp.ImagePart == null)
                 {
-                    ImagePart newPart = null;
+                    ImagePart? newPart = null;
                     if (newContentPart is ChartDrawingPart)
                     {
                         newPart = ((ChartDrawingPart)newContentPart).AddImagePart(oldPart.ContentType);
@@ -1637,12 +1633,12 @@ namespace Codeuctivity.OpenXmlPowerTools
                 var ext = Path.GetExtension(oldPart.Uri.OriginalString);
                 var newPart = newContentPart.OpenXmlPackage.CreateMediaDataPart(ct, ext);
                 newPart.FeedData(oldPart.GetStream());
-                string id = null;
-                string relationshipType = null;
+                string? id = null;
+                string? relationshipType = null;
 
                 if (mediaRelationshipType == "media")
                 {
-                    MediaReferenceRelationship mrr = null;
+                    MediaReferenceRelationship? mrr = null;
 
                     if (newContentPart is SlidePart)
                     {
@@ -1662,7 +1658,7 @@ namespace Codeuctivity.OpenXmlPowerTools
                 }
                 else if (mediaRelationshipType == "video")
                 {
-                    VideoReferenceRelationship vrr = null;
+                    VideoReferenceRelationship? vrr = null;
 
                     if (newContentPart is SlidePart)
                     {
@@ -1698,7 +1694,7 @@ namespace Codeuctivity.OpenXmlPowerTools
             }
             else
             {
-                string desiredRelType = null;
+                string? desiredRelType = null;
                 if (mediaRelationshipType == "media")
                 {
                     desiredRelType = "http://schemas.microsoft.com/office/2007/relationships/media";
@@ -1717,11 +1713,11 @@ namespace Codeuctivity.OpenXmlPowerTools
                 else
                 {
                     var newPart = (MediaDataPart)temp.DataPart;
-                    string id = null;
-                    string relationshipType = null;
+                    string? id = null;
+                    string? relationshipType = null;
                     if (mediaRelationshipType == "media")
                     {
-                        MediaReferenceRelationship mrr = null;
+                        MediaReferenceRelationship? mrr = null;
 
                         if (newContentPart is SlidePart)
                         {
@@ -1743,7 +1739,7 @@ namespace Codeuctivity.OpenXmlPowerTools
                     }
                     else if (mediaRelationshipType == "video")
                     {
-                        VideoReferenceRelationship vrr = null;
+                        VideoReferenceRelationship? vrr = null;
 
                         if (newContentPart is SlidePart)
                         {
@@ -1929,7 +1925,7 @@ namespace Codeuctivity.OpenXmlPowerTools
 
                 var oldPart = (ExtendedPart)oldContentPart.GetPartById(relId);
                 var fileInfo = new FileInfo(oldPart.Uri.OriginalString);
-                ExtendedPart newPart = null;
+                ExtendedPart? newPart = null;
 
                 if (newContentPart is ChartColorStylePart)
                 {
@@ -2276,7 +2272,7 @@ namespace Codeuctivity.OpenXmlPowerTools
                 var temp = (AudioReferenceRelationship)oldContentPart.GetReferenceRelationship(relId);
                 var newSound = newDocument.CreateMediaDataPart(temp.DataPart.ContentType);
                 newSound.FeedData(temp.DataPart.GetStream());
-                AudioReferenceRelationship newRel = null;
+                AudioReferenceRelationship? newRel = null;
 
                 if (newContentPart is SlidePart)
                 {
@@ -2310,7 +2306,7 @@ namespace Codeuctivity.OpenXmlPowerTools
                 var temp = (MediaReferenceRelationship)oldContentPart.GetReferenceRelationship(relId);
                 var newSound = newDocument.CreateMediaDataPart(temp.DataPart.ContentType);
                 newSound.FeedData(temp.DataPart.GetStream());
-                MediaReferenceRelationship newRel = null;
+                MediaReferenceRelationship? newRel = null;
 
                 if (newContentPart is SlidePart)
                 {

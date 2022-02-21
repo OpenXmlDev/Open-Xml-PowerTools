@@ -497,7 +497,7 @@ AAsACwDBAgAAbCwAAAAA";
         public bool RevisionTracking;
         public int RunCount;
         public int SimpleField;
-        public XmlDocument StyleHierarchy;
+        public XmlDocument? StyleHierarchy;
         public int SubDocument;
         public int Table;
         public int TextBox;
@@ -593,7 +593,7 @@ AAsACwDBAgAAbCwAAAAA";
             return (int)ele.Attribute(H.Val);
         }
 
-        private static XmlDocument GetXmlDocumentForMetrics(XElement metricsXml, XName xName)
+        private static XmlDocument? GetXmlDocumentForMetrics(XElement metricsXml, XName xName)
         {
             var ele = metricsXml.Element(xName);
             if (ele == null)

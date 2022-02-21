@@ -503,7 +503,7 @@ namespace Codeuctivity.OpenXmlPowerTools
 
         private static void UpdateStylesPartForToc(WordprocessingDocument doc)
         {
-            StylesPart stylesPart = doc.MainDocumentPart.StyleDefinitionsPart;
+            StylesPart? stylesPart = doc.MainDocumentPart?.StyleDefinitionsPart;
             if (stylesPart == null)
             {
                 return;
@@ -561,7 +561,7 @@ namespace Codeuctivity.OpenXmlPowerTools
 
         private static void UpdateStylesPartForTof(WordprocessingDocument doc)
         {
-            StylesPart stylesPart = doc.MainDocumentPart.StyleDefinitionsPart;
+            StylesPart? stylesPart = doc?.MainDocumentPart?.StyleDefinitionsPart;
             if (stylesPart == null)
             {
                 return;
@@ -640,7 +640,7 @@ namespace Codeuctivity.OpenXmlPowerTools
 
         private static void UpdateStylesPartForToa(WordprocessingDocument doc)
         {
-            StylesPart stylesPart = doc.MainDocumentPart.StyleDefinitionsPart;
+            StylesPart? stylesPart = doc.MainDocumentPart?.StyleDefinitionsPart;
             if (stylesPart == null)
             {
                 return;

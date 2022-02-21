@@ -166,7 +166,7 @@ namespace Codeuctivity.OpenXmlPowerTools
                             }
 
                             var cellType = (string)cell.Attribute("t");
-                            string sharedString = null;
+                            string? sharedString = null;
                             if (cellType == "s")
                             {
                                 var sharedStringBeforeParsing = (string)cell.Element(S.v);
@@ -185,7 +185,7 @@ namespace Codeuctivity.OpenXmlPowerTools
                                     throw new FileFormatException("Invalid document");
                                 }
 
-                                XElement sharedStringElement = null;
+                                XElement? sharedStringElement = null;
                                 if (sharedStringTable == null)
                                 {
                                     throw new FileFormatException("Invalid spreadsheet.  Shared string, but no Shared String Part.");
@@ -214,7 +214,7 @@ namespace Codeuctivity.OpenXmlPowerTools
                                 var cellProps = GetCellProps_NotInTable(styleXDoc, cell);
                                 var value = sharedString;
                                 string displayValue;
-                                string color = null;
+                                string? color = null;
                                 if (cellProps != null)
                                 {
                                     displayValue = SmlCellFormatter.FormatCell(
@@ -249,7 +249,7 @@ namespace Codeuctivity.OpenXmlPowerTools
                                 {
                                     type = "s";
                                 }
-                                XAttribute typeAttr = null;
+                                XAttribute? typeAttr = null;
                                 if (type != null)
                                 {
                                     typeAttr = new XAttribute("Type", type);
@@ -257,7 +257,7 @@ namespace Codeuctivity.OpenXmlPowerTools
 
                                 var cellProps = GetCellProps_NotInTable(styleXDoc, cell);
                                 string displayValue;
-                                string color = null;
+                                string? color = null;
                                 if (cellProps != null)
                                 {
                                     displayValue = SmlCellFormatter.FormatCell(
@@ -379,7 +379,7 @@ namespace Codeuctivity.OpenXmlPowerTools
             return didFixup;
         }
 
-        private static XElement GetPrevousElement(XElement element)
+        private static XElement? GetPrevousElement(XElement element)
         {
             XNode currentNode = element;
             while (true)
@@ -389,8 +389,7 @@ namespace Codeuctivity.OpenXmlPowerTools
                     return null;
                 }
 
-                var previousElement = currentNode.PreviousNode as XElement;
-                if (previousElement != null)
+                if (currentNode.PreviousNode is XElement previousElement)
                 {
                     return previousElement;
                 }
@@ -471,7 +470,7 @@ namespace Codeuctivity.OpenXmlPowerTools
                         if (tc.SharedString != null)
                         {
                             string displayValue;
-                            string color = null;
+                            string? color = null;
                             if (cellProps != null)
                             {
                                 displayValue = SmlCellFormatter.FormatCell(
@@ -499,7 +498,7 @@ namespace Codeuctivity.OpenXmlPowerTools
                         }
                         else
                         {
-                            XAttribute type = null;
+                            XAttribute? type = null;
                             if (tc.Type != null)
                             {
                                 if (tc.Type == "inlineStr")
@@ -512,7 +511,7 @@ namespace Codeuctivity.OpenXmlPowerTools
                                 }
                             }
                             string displayValue;
-                            string color = null;
+                            string? color = null;
                             if (cellProps != null)
                             {
                                 displayValue = SmlCellFormatter.FormatCell(
@@ -600,14 +599,14 @@ namespace Codeuctivity.OpenXmlPowerTools
 
         public static string[] TableNames(SpreadsheetDocument sDoc)
         {
-            var workbookXDoc = sDoc.WorkbookPart.GetXDocument();
-            var sheets = workbookXDoc.Root.Elements(S.sheets).Elements(S.sheet);
+            var workbookXDoc = sDoc.WorkbookPart?.GetXDocument();
+            var sheets = workbookXDoc?.Root.Elements(S.sheets).Elements(S.sheet);
             var tableNames = sheets.Select(sh =>
                 {
                     var rId = (string)sh.Attribute(R.id);
-                    var sheetPart = sDoc.WorkbookPart.GetPartById(rId);
-                    var sheetXDoc = sheetPart.GetXDocument();
-                    var tableParts = sheetXDoc.Root.Element(S.tableParts);
+                    var sheetPart = sDoc.WorkbookPart?.GetPartById(rId);
+                    var sheetXDoc = sheetPart?.GetXDocument();
+                    var tableParts = sheetXDoc?.Root.Element(S.tableParts);
                     if (tableParts == null)
                     {
                         return new List<string>();
@@ -631,7 +630,7 @@ namespace Codeuctivity.OpenXmlPowerTools
             return tableNames;
         }
 
-        private static XElement GetTableProps(Table table)
+        private static XElement? GetTableProps(Table table)
         {
             var tableProps = new XElement("TableProps");
             var tableStyleInfo = table.TableStyleInfo;
@@ -649,7 +648,7 @@ namespace Codeuctivity.OpenXmlPowerTools
             return tableProps;
         }
 
-        private static XElement GetDataProps(XDocument shXDoc)
+        private static XElement? GetDataProps(XDocument shXDoc)
         {
             var sheetFormatPr = shXDoc.Root.Element(S.sheetFormatPr);
             if (sheetFormatPr != null && sheetFormatPr.Attribute("defaultColWidth") == null)
@@ -700,7 +699,7 @@ namespace Codeuctivity.OpenXmlPowerTools
             return rowProps;
         }
 
-        private static XElement GetCellProps_NotInTable(XDocument styleXDoc, XElement cell)
+        private static XElement? GetCellProps_NotInTable(XDocument styleXDoc, XElement cell)
         {
             var cellProps = new XElement("CellProps");
             var style = (int?)cell.Attribute("s");
@@ -748,7 +747,7 @@ namespace Codeuctivity.OpenXmlPowerTools
             return cellProps;
         }
 
-        private static XElement GetCellProps_InTable(XDocument styleXDoc, Table table, Cell tc)
+        private static XElement? GetCellProps_InTable(XDocument styleXDoc, Table table, Cell tc)
         {
             var style = tc.Style;
             if (style == null)
@@ -913,7 +912,7 @@ namespace Codeuctivity.OpenXmlPowerTools
                     .FirstOrDefault();
                 if (fontElement != null)
                 {
-                    var newFontElement = (XElement)TransformRemoveNamespace(fontElement);
+                    var newFontElement = TransformRemoveNamespace(fontElement) as XElement;
                     AddOrReplaceElement(props, newFontElement);
                 }
             }
@@ -928,7 +927,7 @@ namespace Codeuctivity.OpenXmlPowerTools
                     .FirstOrDefault();
                 if (fillElement != null)
                 {
-                    var newFillElement = (XElement)TransformRemoveNamespace(fillElement);
+                    var newFillElement = TransformRemoveNamespace(fillElement) as XElement;
                     AddOrReplaceElement(props, newFillElement);
                 }
             }
@@ -943,14 +942,14 @@ namespace Codeuctivity.OpenXmlPowerTools
                     .FirstOrDefault();
                 if (borderElement != null)
                 {
-                    var newborderElement = (XElement)TransformRemoveNamespace(borderElement);
+                    var newborderElement = TransformRemoveNamespace(borderElement) as XElement;
                     AddOrReplaceElement(props, newborderElement);
                 }
             }
 
             if (xf.Element(S.alignment) != null)
             {
-                var newAlignmentElement = (XElement)TransformRemoveNamespace(xf.Element(S.alignment));
+                var newAlignmentElement = TransformRemoveNamespace(xf.Element(S.alignment)) as XElement;
                 AddOrReplaceElement(props, newAlignmentElement);
             }
         }
@@ -1107,15 +1106,14 @@ namespace Codeuctivity.OpenXmlPowerTools
             }
         }
 
-        private static object TransformRemoveNamespace(XNode node)
+        private static object? TransformRemoveNamespace(XNode? node)
         {
             if (node == null)
             {
                 return null;
             }
 
-            var element = node as XElement;
-            if (element != null)
+            if (node is XElement element)
             {
                 return new XElement(element.Name.LocalName,
                     element.Attributes().Select(a => new XAttribute(a.Name.LocalName, (string)a)).OrderBy(a => a.Name.LocalName),
@@ -1124,7 +1122,7 @@ namespace Codeuctivity.OpenXmlPowerTools
             return node;
         }
 
-        private static string GetFormatCodeFromFmtId(int fmtId)
+        private static string? GetFormatCodeFromFmtId(int fmtId)
         {
             switch (fmtId)
             {
@@ -1160,7 +1158,7 @@ namespace Codeuctivity.OpenXmlPowerTools
             }
         }
 
-        private static void AddOrReplaceElement(XElement props, XElement element)
+        private static void AddOrReplaceElement(XElement props, XElement? element)
         {
             var existingElement = props.Element(element.Name);
             if (existingElement != null)

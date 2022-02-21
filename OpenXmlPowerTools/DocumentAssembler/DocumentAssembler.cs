@@ -66,7 +66,7 @@ namespace Codeuctivity.OpenXmlPowerTools
             ProcessOrphanEndRepeatEndConditional(xDocRoot, te);
 
             // do the actual content replacement
-            xDocRoot = (XElement)ContentReplacementTransform(xDocRoot, data, te);
+            xDocRoot = ContentReplacementTransform(xDocRoot, data, te) as XElement;
 
             xDoc.Elements().First().ReplaceWith(xDocRoot);
             part.PutXDocument();
@@ -254,7 +254,7 @@ namespace Codeuctivity.OpenXmlPowerTools
                 foreach (var metadata in xDoc.Descendants().Where(d => (d.Name == PA.Repeat || d.Name == PA.Conditional) && d.Attribute(PA.Depth) != null).ToList())
                 {
                     var depth = (int)metadata.Attribute(PA.Depth);
-                    XName matchingEndName = null;
+                    XName? matchingEndName = null;
                     if (metadata.Name == PA.Repeat)
                     {
                         matchingEndName = PA.EndRepeat;
@@ -308,8 +308,7 @@ namespace Codeuctivity.OpenXmlPowerTools
 
         private static object TransformToMetadata(XNode node, XElement data, TemplateError te)
         {
-            var element = node as XElement;
-            if (element != null)
+            if (node is XElement element)
             {
                 if (element.Name == W.sdt)
                 {
@@ -384,7 +383,7 @@ namespace Codeuctivity.OpenXmlPowerTools
                         var runReplacementInfo = new List<RunReplacementInfo>();
                         var thisGuid = Guid.NewGuid().ToString();
                         var r = new Regex("<#.*?#>");
-                        XElement xml = null;
+                        XElement? xml = null;
                         OpenXmlRegex.Replace(new[] { element }, r, thisGuid, (para, match) =>
                         {
                             var matchString = match.Value.Trim();
@@ -484,12 +483,12 @@ namespace Codeuctivity.OpenXmlPowerTools
 
         private class RunReplacementInfo
         {
-            public XElement Xml;
-            public string XmlExceptionMessage;
-            public string SchemaValidationMessage;
+            public XElement? Xml;
+            public string? XmlExceptionMessage;
+            public string? SchemaValidationMessage;
         }
 
-        private static string ValidatePerSchema(XElement element)
+        private static string? ValidatePerSchema(XElement element)
         {
             if (s_PASchemaSets == null)
             {
@@ -584,7 +583,7 @@ namespace Codeuctivity.OpenXmlPowerTools
             }
             var paSchemaSet = s_PASchemaSets[element.Name];
             var d = new XDocument(element);
-            string message = null;
+            string? message = null;
             d.Validate(paSchemaSet.SchemaSet, (sender, e) =>
             {
                 if (message == null)
@@ -602,10 +601,9 @@ namespace Codeuctivity.OpenXmlPowerTools
 
         private static Dictionary<XName, PASchemaSet> s_PASchemaSets;
 
-        private static object ContentReplacementTransform(XNode node, XElement data, TemplateError templateError)
+        private static object? ContentReplacementTransform(XNode node, XElement data, TemplateError templateError)
         {
-            var element = node as XElement;
-            if (element != null)
+            if (node is XElement element)
             {
                 if (element.Name == PA.Content)
                 {
@@ -729,7 +727,7 @@ namespace Codeuctivity.OpenXmlPowerTools
                                         var paragraph = tc.Elements(W.p).FirstOrDefault();
                                         var cellRun = paragraph.Elements(W.r).FirstOrDefault();
                                         var xPath = paragraph.Value;
-                                        string newValue = null;
+                                        string? newValue = null;
                                         try
                                         {
                                             newValue = EvaluateXPathToString(d, xPath, false);
@@ -773,7 +771,7 @@ namespace Codeuctivity.OpenXmlPowerTools
                         return CreateContextErrorMessage(element, "Conditional: Cannot specify both Match and NotMatch", templateError);
                     }
 
-                    string testValue = null;
+                    string? testValue = null;
 
                     try
                     {

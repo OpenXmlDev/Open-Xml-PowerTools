@@ -13,7 +13,7 @@ namespace Codeuctivity.OpenXmlPowerTools
             {
                 {"fr-FR", ListItemTextGetter_fr_FR.GetListItemText},
                 {"tr-TR", ListItemTextGetter_tr_TR.GetListItemText},
-                {"ru-RU", ListItemTextGetter_ru_RU.GetListItemText},
+                {"ru-RU", ListItemTextGetterRuRU.GetListItemText},
                 {"sv-SE", ListItemTextGetter_sv_SE.GetListItemText},
                 {"zh-CN", ListItemTextGetter_zh_CN.GetListItemText},
             };
@@ -86,7 +86,7 @@ namespace Codeuctivity.OpenXmlPowerTools
                 return null;
             }
 
-            public XElement OverrideLvl(int ilvl)
+            public XElement? OverrideLvl(int ilvl)
             {
                 var lvlOverride = Num
                     .Elements(W.lvlOverride)
@@ -157,7 +157,7 @@ namespace Codeuctivity.OpenXmlPowerTools
                 }
             }
 
-            public XElement Lvl(int ilvl)
+            public XElement? Lvl(int ilvl)
             {
                 var lvl2 = Main.Lvl(ilvl);
                 if (lvl2 == null)
@@ -224,7 +224,7 @@ namespace Codeuctivity.OpenXmlPowerTools
             public bool IsZeroNumId { get; set; }
 
             public ListItemSource FromStyle { get; set; }
-            public ListItemSource FromParagraph { get; set; }
+            public ListItemSource? FromParagraph { get; set; }
 
             private int? mAbstractNumId { get; set; } = null;
 
@@ -254,7 +254,7 @@ namespace Codeuctivity.OpenXmlPowerTools
                 }
             }
 
-            public XElement Lvl(int ilvl)
+            public XElement? Lvl(int ilvl)
             {
                 if (FromParagraph != null)
                 {
@@ -595,20 +595,17 @@ namespace Codeuctivity.OpenXmlPowerTools
                 .Elements(W.t)
                 .Any();
 
-            if (firstRun == null || !hasTextElement)
-            {
-                if (paragraph
+            if ((firstRun == null || !hasTextElement) && paragraph
                     .Elements(W.pPr)
                     .Elements(W.sectPr)
                     .Any())
-                {
-                    return true;
-                }
+            {
+                return true;
             }
             return false;
         }
 
-        private static ListItemSource InitializeParagraphListItemSource(XDocument numXDoc, XDocument stylesXDoc, XElement paragraph, XElement paragraphNumberingProperties, out int? ilvl, out bool? zeroNumId)
+        private static ListItemSource? InitializeParagraphListItemSource(XDocument numXDoc, XDocument stylesXDoc, XElement paragraph, XElement paragraphNumberingProperties, out int? ilvl, out bool? zeroNumId)
         {
             zeroNumId = null;
 
@@ -651,7 +648,7 @@ namespace Codeuctivity.OpenXmlPowerTools
             return listItemSource;
         }
 
-        private static ListItemSource InitializeStyleListItemSource(XDocument numXDoc, XDocument stylesXDoc, XElement paragraph, out int? ilvl, out bool? zeroNumId)
+        private static ListItemSource? InitializeStyleListItemSource(XDocument numXDoc, XDocument stylesXDoc, XElement paragraph, out int? ilvl, out bool? zeroNumId)
         {
             zeroNumId = null;
             var pPr = FormattingAssembler.ParagraphStyleRollup(paragraph, stylesXDoc, GetDefaultParagraphStyleName(stylesXDoc));
@@ -712,7 +709,7 @@ namespace Codeuctivity.OpenXmlPowerTools
         private static string GetDefaultParagraphStyleName(XDocument stylesXDoc)
         {
             XElement defaultParagraphStyle;
-            string defaultParagraphStyleName = null;
+            string? defaultParagraphStyleName = null;
 
             var stylesInfo = stylesXDoc.Annotation<StylesInfo>();
 
@@ -733,14 +730,13 @@ namespace Codeuctivity.OpenXmlPowerTools
                         }
 
                         var defaultAttribute = s.Attribute(W._default);
-                        var isDefault = false;
-                        if (defaultAttribute != null &&
-                            (bool)s.Attribute(W._default).ToBoolean())
+
+                        if (defaultAttribute != null && s.Attribute(W._default).ToBoolean().HasValue)
                         {
-                            isDefault = true;
+                            return s.Attribute(W._default)?.ToBoolean() ?? false;
                         }
 
-                        return isDefault;
+                        return false;
                     });
                 defaultParagraphStyleName = null;
                 if (defaultParagraphStyle != null)
@@ -757,7 +753,7 @@ namespace Codeuctivity.OpenXmlPowerTools
             return defaultParagraphStyleName;
         }
 
-        private static ListItemInfo GetListItemInfoFromCache(XDocument numXDoc, string styleName, int? numId)
+        private static ListItemInfo? GetListItemInfoFromCache(XDocument numXDoc, string styleName, int? numId)
         {
             var key = (styleName ?? "") + "|" + (numId == null ? "" : numId.ToString());
 
@@ -805,7 +801,7 @@ namespace Codeuctivity.OpenXmlPowerTools
 
         private class StylesInfo
         {
-            public string DefaultParagraphStyleName { get; set; }
+            public string? DefaultParagraphStyleName { get; set; }
         }
 
         private class ParagraphInfo
@@ -815,15 +811,15 @@ namespace Codeuctivity.OpenXmlPowerTools
 
         private class ReverseAxis
         {
-            public XElement PreviousParagraph { get; set; }
+            public XElement? PreviousParagraph { get; set; }
         }
 
-        public static string RetrieveListItem(WordprocessingDocument wordDoc, XElement paragraph)
+        public static string? RetrieveListItem(WordprocessingDocument wordDoc, XElement paragraph)
         {
             return RetrieveListItem(wordDoc, paragraph, null);
         }
 
-        public static string RetrieveListItem(WordprocessingDocument wordDoc, XElement paragraph, ListItemRetrieverSettings settings)
+        public static string? RetrieveListItem(WordprocessingDocument wordDoc, XElement paragraph, ListItemRetrieverSettings? settings)
         {
             if (wordDoc.MainDocumentPart.NumberingDefinitionsPart == null)
             {
@@ -892,7 +888,7 @@ namespace Codeuctivity.OpenXmlPowerTools
                 .Attributes(PtOpenXml.LanguageType)
                 .FirstOrDefault();
 
-            string languageIdentifier = null;
+            string? languageIdentifier = null;
 
             if (languageType == null || languageType == "western")
             {
@@ -1060,7 +1056,7 @@ namespace Codeuctivity.OpenXmlPowerTools
                     .ToList();
 
                 // annotate paragraphs with previous paragraphs so that we can look backwards with good perf
-                XElement prevParagraph = null;
+                XElement? prevParagraph = null;
                 foreach (var paragraph in listItems)
                 {
                     var reverse = new ReverseAxis()
@@ -1072,7 +1068,7 @@ namespace Codeuctivity.OpenXmlPowerTools
                 }
 
                 var startOverrideAlreadyUsed = new List<int>();
-                List<int> previous = null;
+                List<int>? previous = null;
                 var listItemInfoInEffectForStartOverride = new ListItemInfo[] {
                     null,
                     null,
@@ -1090,7 +1086,7 @@ namespace Codeuctivity.OpenXmlPowerTools
                     var listItemInfo = paragraph.Annotation<ListItemInfo>();
                     var ilvl = GetParagraphLevel(paragraph);
                     listItemInfoInEffectForStartOverride[ilvl] = listItemInfo;
-                    ListItemInfo listItemInfoInEffect = null;
+                    ListItemInfo? listItemInfoInEffect = null;
                     if (ilvl > 0)
                     {
                         listItemInfoInEffect = listItemInfoInEffectForStartOverride[ilvl - 1];
@@ -1159,16 +1155,10 @@ namespace Codeuctivity.OpenXmlPowerTools
                             {
                                 var start = listItemInfo.Start(level);
                                 // only look at startOverride if the level that we're examining is same as the paragraph's level.
-                                if (level == ilvl)
+                                if (level == ilvl && startOverride != null && !startOverrideAlreadyUsed.Contains(numId))
                                 {
-                                    if (startOverride != null)
-                                    {
-                                        if (!startOverrideAlreadyUsed.Contains(numId))
-                                        {
-                                            startOverrideAlreadyUsed.Add(numId);
-                                            start = (int)startOverride;
-                                        }
-                                    }
+                                    startOverrideAlreadyUsed.Add(numId);
+                                    start = (int)startOverride;
                                 }
                                 levelNumbers.Add(start);
                             }
@@ -1255,7 +1245,7 @@ namespace Codeuctivity.OpenXmlPowerTools
                 }
 
                 var levelNumber = levelNumbers[indentationLevel];
-                string levelText = null;
+                string? levelText = null;
                 var rlvl = lii.Lvl(indentationLevel);
                 var numFmtForLevel = (string)rlvl.Elements(W.numFmt).Attributes(W.val).FirstOrDefault();
                 if (numFmtForLevel == null)
@@ -1273,13 +1263,10 @@ namespace Codeuctivity.OpenXmlPowerTools
                         numFmtForLevel = "decimal";
                     }
                 }
-                if (languageCultureName != null && settings != null)
+                if (languageCultureName != null && settings != null && settings.ListItemTextImplementations.ContainsKey(languageCultureName))
                 {
-                    if (settings.ListItemTextImplementations.ContainsKey(languageCultureName))
-                    {
-                        var impl = settings.ListItemTextImplementations[languageCultureName];
-                        levelText = impl(levelNumber, numFmtForLevel);
-                    }
+                    var impl = settings.ListItemTextImplementations[languageCultureName];
+                    levelText = impl(levelNumber, numFmtForLevel);
                 }
                 if (levelText == null)
                 {

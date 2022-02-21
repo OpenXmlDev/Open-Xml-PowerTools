@@ -38,7 +38,7 @@ namespace Codeuctivity.OpenXmlPowerTools
             mr.SetCell(new MemoryCell(column, value, styleIndex));
         }
 
-        public object GetCellValue(int row, int column)
+        public object? GetCellValue(int row, int column)
         {
             if (!rowList.ContainsKey(row))
             {
@@ -77,7 +77,7 @@ namespace Codeuctivity.OpenXmlPowerTools
             cellList = new SortedList<int, MemoryCell>();
         }
 
-        public MemoryCell GetCell(int column)
+        public MemoryCell? GetCell(int column)
         {
             if (!cellList.ContainsKey(column))
             {
@@ -146,7 +146,7 @@ namespace Codeuctivity.OpenXmlPowerTools
         public XElement GetElements(int row)
         {
             var cellReference = WorksheetAccessor.GetColumnId(column) + row.ToString();
-            XElement newCell = null;
+            XElement? newCell = null;
 
             if (cellValue is int || cellValue is double)
             {
@@ -243,7 +243,7 @@ namespace Codeuctivity.OpenXmlPowerTools
 
         // Gets the value of the specified cell
         // Returned object can be double/Double, int/Int32, bool/Boolean or string/String types
-        public static object GetCellValue(SpreadsheetDocument document, WorksheetPart worksheet, int column, int row)
+        public static object? GetCellValue(SpreadsheetDocument document, WorksheetPart worksheet, int column, int row)
         {
             var worksheetXDocument = worksheet.GetXDocument();
             var cellValue = GetCell(worksheetXDocument, column, row);
@@ -283,7 +283,7 @@ namespace Codeuctivity.OpenXmlPowerTools
         }
 
         // Gets the cell element (c) for the specified cell
-        private static XElement GetCell(XDocument worksheet, int column, int row)
+        private static XElement? GetCell(XDocument worksheet, int column, int row)
         {
             var cellReference = GetColumnId(column) + row.ToString();
             var rowElement = worksheet.Root
@@ -304,7 +304,7 @@ namespace Codeuctivity.OpenXmlPowerTools
         {
             var worksheetXDocument = worksheet.GetXDocument();
             var cellReference = GetColumnId(column) + row.ToString();
-            XElement newCell = null;
+            XElement? newCell = null;
 
             if (value is int || value is double)
             {

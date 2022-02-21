@@ -9,13 +9,16 @@ namespace Codeuctivity.OpenXmlPowerTools
 {
     #region Input File Support
 
-    public enum EncodingClass { unicode, utf8, binary, ascii };
+    public enum EncodingClass
+    { unicode, utf8, binary, ascii };
 
-    public enum UnicodeDetection { notApplicable, BOM, FirstCharIsAscii };
+    public enum UnicodeDetection
+    { notApplicable, BOM, FirstCharIsAscii };
 
     public class FileLoader
     {
-        public enum FileEncoding { none, ascii, binary, utf8, unicode, utf16be, utf16le, utf32le, utf32be, uniCodeBOM };
+        public enum FileEncoding
+        { none, ascii, binary, utf8, unicode, utf16be, utf16le, utf32le, utf32be, uniCodeBOM };
 
         public FileLoader(EncodingClass encodingClass, UnicodeDetection detection, string path)
         {
@@ -28,7 +31,7 @@ namespace Codeuctivity.OpenXmlPowerTools
             return encoding_ == FileEncoding.binary;
         }
 
-        public bool LoadFile(out byte[] src)
+        public bool LoadFile(out byte[]? src)
         {
             src = null;
             if (!IsBinaryFile())
@@ -80,7 +83,7 @@ namespace Codeuctivity.OpenXmlPowerTools
             }
         }
 
-        private Encoding FileEncodingToTextEncoding()
+        private Encoding? FileEncodingToTextEncoding()
         {
             switch (encoding_)
             {
@@ -236,9 +239,11 @@ namespace Codeuctivity.OpenXmlPowerTools
 
     #region Syntax/Parse-Tree related classes
 
-    public enum ESpecialNodes { eFatal = -10001, eAnonymNTNode = -1000, eAnonymASTNode = -1001, eAnonymousNode = -100 }
+    public enum ESpecialNodes
+    { eFatal = -10001, eAnonymNTNode = -1000, eAnonymASTNode = -1001, eAnonymousNode = -100 }
 
-    public enum ECreatorPhase { eCreate, eCreationComplete, eCreateAndComplete }
+    public enum ECreatorPhase
+    { eCreate, eCreationComplete, eCreateAndComplete }
 
     public struct PegBegEnd//indices into the source string
     {
@@ -300,7 +305,7 @@ namespace Codeuctivity.OpenXmlPowerTools
 
         protected void CloneSubTrees(PegNode clone)
         {
-            PegNode child = null, next = null;
+            PegNode? child = null, next = null;
             if (child_ != null)
             {
                 child = child_.Clone();
@@ -320,7 +325,7 @@ namespace Codeuctivity.OpenXmlPowerTools
         #region Data Members
 
         public int id_;
-        public PegNode parent_, child_, next_;
+        public PegNode? parent_, child_, next_;
         public PegBegEnd match_;
 
         #endregion Data Members
@@ -337,10 +342,11 @@ namespace Codeuctivity.OpenXmlPowerTools
 
     internal struct PegTree
     {
-        internal enum AddPolicy { eAddAsChild, eAddAsSibling };
+        internal enum AddPolicy
+        { eAddAsChild, eAddAsSibling };
 
         internal PegNode root_;
-        internal PegNode cur_;
+        internal PegNode? cur_;
         internal AddPolicy addPolicy;
     }
 
@@ -445,7 +451,7 @@ namespace Codeuctivity.OpenXmlPowerTools
         private int DetermineLineLength(PegNode parent, int nOffsetLineBeg)
         {
             var nLen = LenNodeBeg(parent);
-            PegNode p;
+            PegNode? p;
             for (p = parent.child_; p != null; p = p.next_)
             {
                 if (IsSkip(p))
@@ -637,7 +643,7 @@ namespace Codeuctivity.OpenXmlPowerTools
             return maxpos_;
         }
 
-        protected PegNode DefaultNodeCreator(ECreatorPhase phase, PegNode parentOrCreated, int id)
+        protected PegNode? DefaultNodeCreator(ECreatorPhase phase, PegNode parentOrCreated, int id)
         {
             if (phase == ECreatorPhase.eCreate || phase == ECreatorPhase.eCreateAndComplete)
             {
@@ -724,7 +730,7 @@ namespace Codeuctivity.OpenXmlPowerTools
             tree.addPolicy = newAddPolicy;
         }
 
-        private void RestoreTree(PegNode prevCur, PegTree.AddPolicy prevPolicy)
+        private void RestoreTree(PegNode? prevCur, PegTree.AddPolicy prevPolicy)
         {
             if (bMute_)
             {
@@ -790,7 +796,7 @@ namespace Codeuctivity.OpenXmlPowerTools
                 return toMatch();
             }
 
-            PegNode prevCur = tree.cur_, ruleNode;
+            PegNode? prevCur = tree.cur_, ruleNode;
             var prevPolicy = tree.addPolicy;
             var posBeg = pos_;
             AddTreeNode(nRuleId, PegTree.AddPolicy.eAddAsChild, nodeCreator, ECreatorPhase.eCreate);
@@ -836,7 +842,7 @@ namespace Codeuctivity.OpenXmlPowerTools
                     }
                     else
                     {
-                        PegNode prev;
+                        PegNode? prev;
                         for (prev = tree.cur_.parent_.child_; prev != null && prev.next_ != tree.cur_; prev = prev.next_)
                         {
                         }

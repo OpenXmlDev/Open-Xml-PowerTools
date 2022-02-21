@@ -1,7 +1,6 @@
 #define TestForUnsupportedDocuments
 #define MergeStylesWithSameNames
 
-
 namespace Codeuctivity.OpenXmlPowerTools.DocumentBuilder
 {
     public class Source
@@ -11,7 +10,7 @@ namespace Codeuctivity.OpenXmlPowerTools.DocumentBuilder
         public int Count { get; set; }
         public bool KeepSections { get; set; }
         public bool DiscardHeadersAndFootersInKeptSections { get; set; }
-        public string InsertId { get; set; }
+        public string? InsertId { get; set; }
 
         public Source(string fileName)
         {

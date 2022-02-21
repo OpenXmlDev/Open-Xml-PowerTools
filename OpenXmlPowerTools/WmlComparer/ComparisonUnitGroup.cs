@@ -1,4 +1,3 @@
-using Codeuctivity.OpenXmlPowerTools;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -43,7 +42,7 @@ namespace Codeuctivity.OpenXmlPowerTools.WmlComparer
             ComparisonUnitGroupType = groupType;
             var first = comparisonUnitList.First();
             var comparisonUnitAtom = GetFirstComparisonUnitAtomOfGroup(first);
-            XName ancestorName = null;
+            XName? ancestorName = null;
             if (groupType == ComparisonUnitGroupType.Table)
             {
                 ancestorName = W.tbl;
@@ -83,14 +82,12 @@ namespace Codeuctivity.OpenXmlPowerTools.WmlComparer
             var thisGroup = group;
             while (true)
             {
-                var tg = thisGroup as ComparisonUnitGroup;
-                if (tg != null)
+                if (thisGroup is ComparisonUnitGroup tg)
                 {
                     thisGroup = tg.Contents.First();
                     continue;
                 }
-                var tw = thisGroup as ComparisonUnitWord;
-                if (tw == null)
+                if (!(thisGroup is ComparisonUnitWord tw))
                 {
                     throw new OpenXmlPowerToolsException("Internal error: GetFirstComparisonUnitAtomOfGroup");
                 }

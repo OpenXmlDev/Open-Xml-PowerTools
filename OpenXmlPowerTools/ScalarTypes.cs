@@ -32,7 +32,7 @@ namespace Codeuctivity.OpenXmlPowerTools
             return !string.IsNullOrEmpty(text) && (PSObjectIsEnum(typeNames) || defaultScalarTypesHash.ContainsKey(text));
         }
 
-        internal static string PSObjectIsOfExactType(Collection<string> typeNames)
+        internal static string? PSObjectIsOfExactType(Collection<string> typeNames)
         {
             if (typeNames.Count != 0)
             {

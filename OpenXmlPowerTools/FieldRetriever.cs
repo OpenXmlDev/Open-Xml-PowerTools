@@ -429,7 +429,7 @@ namespace Codeuctivity.OpenXmlPowerTools
         public class FieldElementTypeStack
         {
             public int Id;
-            public Stack<FieldElementTypeInfo> FiStack;
+            public Stack<FieldElementTypeInfo>? FiStack;
         }
     }
 }

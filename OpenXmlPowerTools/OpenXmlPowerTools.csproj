@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
-		<TargetFrameworks>netstandard2.0</TargetFrameworks>
+		<TargetFrameworks>netstandard2.0;net472</TargetFrameworks>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<RepositoryUrl>https://github.com/Codeuctivity/OpenXmlPowerTools</RepositoryUrl>
@@ -48,13 +48,16 @@
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
-		<PackageReference Include="SixLabors.ImageSharp" Version="1.0.4" />
-		<PackageReference Include="SixLabors.ImageSharp.Drawing" Version="1.0.0-beta13" />
-		<PackageReference Include="SonarAnalyzer.CSharp" Version="8.34.0.42011">
+		<PackageReference Include="SixLabors.ImageSharp" Version="2.0.0" />
+		<PackageReference Include="SixLabors.ImageSharp.Drawing" Version="1.0.0-beta14" />
+		<PackageReference Include="SonarAnalyzer.CSharp" Version="8.35.0.42613">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
 	</ItemGroup>
+	<ItemGroup Condition="$(TargetFramework.StartsWith('net4'))">
+		<PackageReference Include="System.IO.Packaging" Version="6.0.0" />
+	  </ItemGroup>
 	<ItemGroup>
 		<None Include="NugetIcon.png" Pack="true" PackagePath="\" />
 	</ItemGroup>

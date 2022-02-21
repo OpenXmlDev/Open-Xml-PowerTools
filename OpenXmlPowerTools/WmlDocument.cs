@@ -11,7 +11,7 @@ namespace Codeuctivity.OpenXmlPowerTools
     {
         private readonly WmlDocument ParentWmlDocument;
 
-        public PtWordprocessingCommentsPart WordprocessingCommentsPart
+        public PtWordprocessingCommentsPart? WordprocessingCommentsPart
         {
             get
             {

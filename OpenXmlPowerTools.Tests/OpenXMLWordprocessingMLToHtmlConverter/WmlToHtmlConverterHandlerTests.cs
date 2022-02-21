@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Xml.Linq;
+using Codeuctivity.ImageSharpCompare;
 using Xunit;
 
 namespace Codeuctivity.Tests.OpenXMLWordprocessingMLToHtmlConverter
@@ -31,7 +32,7 @@ namespace Codeuctivity.Tests.OpenXMLWordprocessingMLToHtmlConverter
         [InlineData("png", minimalPng)]
         [InlineData("bmp", minimalBmp)]
         [InlineData("jpeg", minimalJpg)]
-        public async void ShouldTranslateWithDefaultImageHandler(string imageType, string minimalImage)
+        public void ShouldTranslateWithDefaultImageHandler(string imageType, string minimalImage)
         {
             var expectedStart = $"<img src=\"data:image/{imageType};base64,";
             var expectedEnd = "\" xmlns=\"http://www.w3.org/1999/xhtml\" />";
@@ -58,7 +59,7 @@ namespace Codeuctivity.Tests.OpenXMLWordprocessingMLToHtmlConverter
             expectedImage.Position = 0;
             actualImage.Position = 0;
 
-            Assert.True(ImageSharpCompare.ImagesAreEqual(expectedImage, actualImage));
+            Assert.True(Codeuctivity.ImageSharpCompare.ImageSharpCompare.ImagesAreEqual(expectedImage, actualImage));
         }
 
         [Fact]

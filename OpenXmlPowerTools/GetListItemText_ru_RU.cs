@@ -1,6 +1,6 @@
 ﻿namespace Codeuctivity.OpenXmlPowerTools
 {
-    public class ListItemTextGetter_ru_RU
+    public class ListItemTextGetterRuRU
     {
         private static readonly string[] OneThroughNineteen = {
             "один", "два", "три", "четыре", "пять", "шесть", "семь", "восемь",
@@ -27,7 +27,7 @@
 
         // TODO this is not correct for values above 99
 
-        public static string GetListItemText(int levelNumber, string numFmt)
+        public static string? GetListItemText(int levelNumber, string numFmt)
         {
             if (numFmt == "cardinalText")
             {
