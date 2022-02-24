@@ -13,7 +13,6 @@ namespace OpenXmlPowerTools
 {
     public class TestUtil
     {
-        public static DirectoryInfo SourceDir = new DirectoryInfo("../../../../TestFiles/");
         private static bool? s_DeleteTempFiles = null;
 
         public static bool DeleteTempFiles

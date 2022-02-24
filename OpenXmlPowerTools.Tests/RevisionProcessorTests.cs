@@ -81,9 +81,10 @@ namespace OxPt
         [InlineData("RP/RP052-Deleted-Para-Mark.docx")]
         public void RP001(string name)
         {
-            var sourceFi = new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, name));
-            var baselineAcceptedFi = new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, name.Replace(".docx", "-Accepted.docx")));
-            var baselineRejectedFi = new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, name.Replace(".docx", "-Rejected.docx")));
+            DirectoryInfo sourceDir = new DirectoryInfo("../../../../TestFiles/");
+            var sourceFi = new FileInfo(Path.Combine(sourceDir.FullName, name));
+            var baselineAcceptedFi = new FileInfo(Path.Combine(sourceDir.FullName, name.Replace(".docx", "-Accepted.docx")));
+            var baselineRejectedFi = new FileInfo(Path.Combine(sourceDir.FullName, name.Replace(".docx", "-Rejected.docx")));
 
             WmlDocument sourceWml = new WmlDocument(sourceFi.FullName);
             WmlDocument afterRejectingWml = RevisionProcessor.RejectRevisions(sourceWml);

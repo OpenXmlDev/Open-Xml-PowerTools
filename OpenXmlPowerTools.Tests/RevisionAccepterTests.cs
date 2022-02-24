@@ -26,7 +26,8 @@ namespace OxPt
 
         public void RA001(string name)
         {
-            FileInfo sourceDocx = new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, name));
+            DirectoryInfo sourceDir = new DirectoryInfo("../../../../TestFiles/");
+            FileInfo sourceDocx = new FileInfo(Path.Combine(sourceDir.FullName, name));
 
             WmlDocument notAccepted = new WmlDocument(sourceDocx.FullName);
             WmlDocument afterAccepting = RevisionAccepter.AcceptRevisions(notAccepted);

@@ -60,7 +60,7 @@ namespace OpenXmlPowerTools
             return Parent
                 .Rows()
                 .Skip(headerRowsCount)
-                .SkipLast(totalRowsCount)
+                .PtSkipLast(totalRowsCount)
                 .Where(r =>
                 {
                     int rowId = Int32.Parse(r.RowId);

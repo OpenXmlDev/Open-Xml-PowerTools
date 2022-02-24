@@ -28,7 +28,8 @@ namespace OxPt
         [InlineData("DA006-SelectTestValue-NoData.docx")]
         public void MG001(string name)
         {
-            FileInfo fi = new FileInfo(Path.Combine(TestUtil.SourceDir.FullName, name));
+            DirectoryInfo sourceDir = new DirectoryInfo("../../../../TestFiles/");
+            FileInfo fi = new FileInfo(Path.Combine(sourceDir.FullName, name));
 
             MetricsGetterSettings settings = new MetricsGetterSettings()
             {
