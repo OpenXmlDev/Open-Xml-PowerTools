@@ -43,12 +43,12 @@
 		<None Remove="Properties\**" />
 	</ItemGroup>
 	<ItemGroup>
-		<PackageReference Include="DocumentFormat.OpenXml" Version="2.15.0" />
+		<PackageReference Include="DocumentFormat.OpenXml" Version="2.16.0" />
 		<PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
-		<PackageReference Include="SixLabors.ImageSharp" Version="2.0.0" />
+		<PackageReference Include="SixLabors.ImageSharp" Version="2.1.0" />
 		<PackageReference Include="SixLabors.ImageSharp.Drawing" Version="1.0.0-beta14" />
 		<PackageReference Include="SonarAnalyzer.CSharp" Version="8.35.0.42613">
 			<PrivateAssets>all</PrivateAssets>
