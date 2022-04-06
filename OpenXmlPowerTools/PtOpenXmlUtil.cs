@@ -886,6 +886,11 @@ namespace Codeuctivity.OpenXmlPowerTools
                 var decimalValue = decimal.Parse(twipsOrPoints.Substring(0, twipsOrPoints.Length - 2));
                 return (int)(decimalValue * 20);
             }
+            if (twipsOrPoints.Contains('.'))
+            {
+                decimal decimalValue = decimal.Parse(twipsOrPoints);
+                return (int)decimalValue;
+            }
             return int.Parse(twipsOrPoints);
         }
 
