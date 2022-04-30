@@ -4786,12 +4786,12 @@ namespace OpenXmlPowerTools
                         string uriString = null;
                         if (last.Length == 2)
                         {
-                            uriString = uriSplit.SkipLast(1).Select(p => p + "/").StringConcatenate() +
+                            uriString = uriSplit.PtSkipLast(1).Select(p => p + "/").StringConcatenate() +
                                 "P" + Guid.NewGuid().ToString().Replace("-", "") + "." + last[1];
                         }
                         else
                         {
-                            uriString = uriSplit.SkipLast(1).Select(p => p + "/").StringConcatenate() +
+                            uriString = uriSplit.PtSkipLast(1).Select(p => p + "/").StringConcatenate() +
                                 "P" + Guid.NewGuid().ToString().Replace("-", "");
                         }
                         Uri uri = null;

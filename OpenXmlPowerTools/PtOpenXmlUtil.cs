@@ -742,6 +742,40 @@ namespace OpenXmlPowerTools
             return false;
         }
 
+        public static int StringToTwips(string twipsOrPoints)
+        {
+            // if the pos value is in points, not twips
+            if (twipsOrPoints.EndsWith("pt"))
+            {
+                decimal decimalValue = decimal.Parse(twipsOrPoints.Substring(0, twipsOrPoints.Length - 2));
+                return (int)(decimalValue * 20);
+            }
+            return int.Parse(twipsOrPoints);
+        }
+
+        public static int? AttributeToTwips(XAttribute attribute)
+        {
+            if (attribute == null)
+            {
+                return null;
+            }
+
+            string twipsOrPoints = (string)attribute;
+
+            // if the pos value is in points, not twips
+            if (twipsOrPoints.EndsWith("pt"))
+            {
+                decimal decimalValue = decimal.Parse(twipsOrPoints.Substring(0, twipsOrPoints.Length - 2));
+                return (int)(decimalValue * 20);
+            }
+            if (twipsOrPoints.Contains('.'))
+            {
+                decimal decimalValue = decimal.Parse(twipsOrPoints);
+                return (int)decimalValue;
+            }
+            return int.Parse(twipsOrPoints);
+        }
+
         private static readonly List<XName> AdditionalRunContainerNames = new List<XName>
         {
             W.w + "bdo",
@@ -766,6 +800,9 @@ namespace OpenXmlPowerTools
                         if (ce.Name == W.r)
                         {
                             if (ce.Elements().Count(e => e.Name != W.rPr) != 1)
+                                return dontConsolidate;
+
+                            if (ce.Attribute(PtOpenXml.AbstractNumId) != null)
                                 return dontConsolidate;
 
                             XElement rPr = ce.Element(W.rPr);
@@ -887,42 +924,39 @@ namespace OpenXmlPowerTools
                             IEnumerable<IEnumerable<XAttribute>> statusAtt =
                                 g.Select(r => r.Descendants(W.t).Take(1).Attributes(PtOpenXml.Status));
                             return new XElement(W.r,
+                                g.First().Attributes(),
                                 g.First().Elements(W.rPr),
                                 new XElement(W.t, statusAtt, xs, textValue));
                         }
 
                         if (g.First().Element(W.instrText) != null)
                             return new XElement(W.r,
+                                g.First().Attributes(),
                                 g.First().Elements(W.rPr),
                                 new XElement(W.instrText, xs, textValue));
                     }
 
                     if (g.First().Name == W.ins)
                     {
-#if false
-                        if (g.First().Elements(W.del).Any())
-                            return new XElement(W.ins,
-                                g.First().Attributes(),
-                                new XElement(W.del,
-                                    g.First().Elements(W.del).Attributes(),
-                                    new XElement(W.r,
-                                        g.First().Elements(W.del).Elements(W.r).Elements(W.rPr),
-                                        new XElement(W.delText, xs, textValue))));
-#endif
+                        XElement firstR = g.First().Element(W.r);
                         return new XElement(W.ins,
                             g.First().Attributes(),
                             new XElement(W.r,
+                                firstR?.Attributes(),
                                 g.First().Elements(W.r).Elements(W.rPr),
                                 new XElement(W.t, xs, textValue)));
                     }
 
                     if (g.First().Name == W.del)
+                    {
+                        XElement firstR = g.First().Element(W.r);
                         return new XElement(W.del,
                             g.First().Attributes(),
                             new XElement(W.r,
+                                firstR?.Attributes(),
                                 g.First().Elements(W.r).Elements(W.rPr),
                                 new XElement(W.delText, xs, textValue)));
-
+                    }
                     return g;
                 }));
 
@@ -5831,6 +5865,8 @@ listSeparator
         public static XName FontName = pt + "FontName";
         public static XName LanguageType = pt + "LanguageType";
         public static XName AbstractNumId = pt + "AbstractNumId";
+        public static XName HtmlStructure = pt + "HtmlStructure";
+        public static XName HtmlStyle = pt + "HtmlStyle";
         public static XName StyleName = pt + "StyleName";
         public static XName TabWidth = pt + "TabWidth";
         public static XName Leader = pt + "Leader";
@@ -5850,6 +5886,13 @@ listSeparator
         public static readonly XName div = xhtml + "div";
         public static readonly XName h1 = xhtml + "h1";
         public static readonly XName h2 = xhtml + "h2";
+        public static readonly XName h3 = xhtml + "h3";
+        public static readonly XName h4 = xhtml + "h4";
+        public static readonly XName h5 = xhtml + "h5";
+        public static readonly XName h6 = xhtml + "h6";
+        public static readonly XName h7 = xhtml + "h7";
+        public static readonly XName h8 = xhtml + "h8";
+        public static readonly XName h9 = xhtml + "h9";
         public static readonly XName head = xhtml + "head";
         public static readonly XName html = xhtml + "html";
         public static readonly XName i = xhtml + "i";
