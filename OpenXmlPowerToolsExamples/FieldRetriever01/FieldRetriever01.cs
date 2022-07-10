@@ -85,8 +85,7 @@ internal class FieldRetriever01
                 paragraph.Elements(W.r)
                     .Where(r => !runsToKeep.Contains(r))
                     .Elements()
-                    .Where(rc => rc.Name != W.rPr &&
-                        rc.Name != W.tab)
+                    .Where(rc => rc.Name != W.rPr && rc.Name != W.tab)
                     .Remove();
             }
             else

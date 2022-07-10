@@ -980,12 +980,8 @@ namespace Codeuctivity.OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
             var rtl = isBidi ? new XAttribute("dir", "rtl") : new XAttribute("dir", "ltr");
             var firstMark = isBidi ? new XEntity("#x200f") : null;
 
-            // Analyze initial runs to see whether we have a tab, in which case we will render
-            // a span with a defined width and ignore the tab rather than rendering the text
-            // preceding the tab and the tab as a span with a computed width.
-            var firstTabRun = paragraph
-                .Elements(W.r)
-                .FirstOrDefault(run => run.Elements(W.tab).Any());
+            // Analyze initial runs to see whether we have a tab, in which case we will render a span with a defined width and ignore the tab rather than rendering the text preceding the tab and the tab as a span with a computed width.
+            var firstTabRun = paragraph.Elements(W.r).FirstOrDefault(run => run.Elements(W.tab).Any());
             var elementsPrecedingTab = firstTabRun != null
                 ? paragraph.Elements(W.r).TakeWhile(e => e != firstTabRun)
                     .Where(e => e.Elements().Any(c => c.Attributes(PtOpenXml.TabWidth).Any())).ToList()
@@ -1901,8 +1897,7 @@ namespace Codeuctivity.OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
                 return node;
             }
 
-            // if it is not a paragraph or if there are no tabs in the paragraph,
-            // then no need to continue processing.
+            // if it is not a paragraph or if there are no tabs in the paragraph, then no need to continue processing.
             if (element.Name != W.p || !element.DescendantsTrimmed(W.txbxContent).Where(d => d.Name == W.r).Elements(W.tab).Any())
             {
                 // TODO: Revisit. Can we just return the node if it is a paragraph that does not have any tab?
