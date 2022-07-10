@@ -108,6 +108,10 @@ namespace Codeuctivity.Tests.OpenXMLWordprocessingMLToHtmlConverter
 
             var htmlString = html.ToString(SaveOptions.DisableFormatting);
             File.WriteAllText(destFileName.FullName, htmlString, Encoding.UTF8);
+
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                return;
+
             await AssertRenderedHtmlIsEqual(destFileName.FullName, expectedRenderdResult, expectedPixeNoise);
         }
 
@@ -172,9 +176,6 @@ namespace Codeuctivity.Tests.OpenXMLWordprocessingMLToHtmlConverter
                 Assert.True(resultWithAllowedDiff.PixelErrorCount <= allowedPixelErrorCount, $"Expected PixelErrorCount beyond {allowedPixelErrorCount} but was {resultWithAllowedDiff.PixelErrorCount}\nExpected {expectFullPath}\ndiffers to actual {actualFullPath}\n Diff is {newDiffImage}\n");
                 return;
             }
-
-            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                allowedPixelErrorCount += 400000;
 
             var result = ImageSharpCompare.ImageSharpCompare.CalcDiff(actualFullPath, expectFullPath);
 
