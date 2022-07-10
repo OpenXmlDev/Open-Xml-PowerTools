@@ -169,12 +169,12 @@ namespace Codeuctivity.Tests.OpenXMLWordprocessingMLToHtmlConverter
 
                 var resultWithAllowedDiff = ImageSharpCompare.ImageSharpCompare.CalcDiff(actualFullPath, expectFullPath, allowedDiffImage);
 
-                if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                    allowedPixelErrorCount += 5000;
-
                 Assert.True(resultWithAllowedDiff.PixelErrorCount <= allowedPixelErrorCount, $"Expected PixelErrorCount beyond {allowedPixelErrorCount} but was {resultWithAllowedDiff.PixelErrorCount}\nExpected {expectFullPath}\ndiffers to actual {actualFullPath}\n Diff is {newDiffImage}\n");
                 return;
             }
+
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                allowedPixelErrorCount += 400000;
 
             var result = ImageSharpCompare.ImageSharpCompare.CalcDiff(actualFullPath, expectFullPath);
 
