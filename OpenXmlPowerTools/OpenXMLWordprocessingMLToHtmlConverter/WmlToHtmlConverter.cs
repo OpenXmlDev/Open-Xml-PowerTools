@@ -521,7 +521,7 @@ namespace Codeuctivity.OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
                         " " + "".PadRight(numberOfLeaderChars, leaderChar[0]) + " ");
                     style.Add("margin", "0 0 0 0");
                     style.Add("padding", "0 0 0 0");
-                    style.Add("width", string.Format(NumberFormatInfo.InvariantInfo, "{0:0.00}in", tabWidth));
+                    style.Add("margin-right", string.Format(NumberFormatInfo.InvariantInfo, "{0:0.00}in", tabWidth));
                     style.Add("text-align", "center");
                     if (forceArial)
                     {
@@ -533,7 +533,7 @@ namespace Codeuctivity.OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
                     span = new XElement(Xhtml.span, new XAttribute(XNamespace.Xml + "space", "preserve"), " ");
                     style.Add("margin", "0 0 0 0");
                     style.Add("padding", "0 0 0 0");
-                    style.Add("width", string.Format(NumberFormatInfo.InvariantInfo, "{0:0.00}in", tabWidth));
+                    style.Add("margin-right", string.Format(NumberFormatInfo.InvariantInfo, "{0:0.00}in", tabWidth));
                     style.Add("text-align", "center");
                     if (leader == "underscore")
                     {
@@ -982,76 +982,70 @@ namespace Codeuctivity.OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
 
             // Analyze initial runs to see whether we have a tab, in which case we will render a span with a defined width and ignore the tab rather than rendering the text preceding the tab and the tab as a span with a computed width.
             var firstTabRun = paragraph.Elements(W.r).FirstOrDefault(run => run.Elements(W.tab).Any());
-            var elementsPrecedingTab = firstTabRun != null
-                ? paragraph.Elements(W.r).TakeWhile(e => e != firstTabRun)
-                    .Where(e => e.Elements().Any(c => c.Attributes(PtOpenXml.TabWidth).Any())).ToList()
-                : Enumerable.Empty<XElement>().ToList();
+            var elementsPrecedingTab = firstTabRun != null ? paragraph.Elements(W.r).TakeWhile(e => e != firstTabRun).Where(e => e.Elements().Any(c => c.Attributes(PtOpenXml.TabWidth).Any())).ToList() : Enumerable.Empty<XElement>().ToList();
 
             // TODO: Revisit
             // For the time being, if a hyperlink field precedes the tab, we'll render it as before.
-            var hyperlinkPrecedesTab = elementsPrecedingTab
-                .Elements(W.r)
-                .Elements(W.instrText)
-                .Select(e => e.Value)
-                .Any(value => value != null && value.TrimStart().ToUpper().StartsWith("HYPERLINK"));
+            var hyperlinkPrecedesTab = elementsPrecedingTab.Elements(W.r).Elements(W.instrText).Select(e => e.Value).Any(value => value != null && value.TrimStart().ToUpper().StartsWith("HYPERLINK"));
+
             if (hyperlinkPrecedesTab)
             {
-                var paraElement1 = new XElement(elementName,
-                    rtl,
-                    firstMark,
-                    ConvertContentThatCanContainFields(wordDoc, settings, paragraph.Elements()));
+                var paraElement1 = new XElement(elementName, rtl, firstMark, ConvertContentThatCanContainFields(wordDoc, settings, paragraph.Elements()));
                 paraElement1.AddAnnotation(style);
                 return paraElement1;
             }
 
             var txElementsPrecedingTab = TransformElementsPrecedingTab(wordDoc, settings, elementsPrecedingTab, firstTabRun);
-            var elementsSucceedingTab = firstTabRun != null
-                ? paragraph.Elements().SkipWhile(e => e != firstTabRun).Skip(1)
-                : paragraph.Elements();
-            var paraElement = new XElement(elementName,
-                rtl,
-                firstMark,
-                txElementsPrecedingTab,
-                ConvertContentThatCanContainFields(wordDoc, settings, elementsSucceedingTab));
+            var elementsSucceedingTab = TransformElementsSuceedingTab(paragraph, firstTabRun);
+            var paraElement = new XElement(elementName, rtl, firstMark, txElementsPrecedingTab, ConvertContentThatCanContainFields(wordDoc, settings, elementsSucceedingTab));
             paraElement.AddAnnotation(style);
 
             return paraElement;
         }
 
-        private static List<object>? TransformElementsPrecedingTab(WordprocessingDocument wordDoc, WmlToHtmlConverterSettings settings,
-            List<XElement> elementsPrecedingTab, XElement firstTabRun)
+        private static IEnumerable<XElement> TransformElementsSuceedingTab(XElement paragraph, XElement? firstTabRun)
+        {
+            var elementsSuceedingTab = firstTabRun != null ? paragraph.Elements().SkipWhile(e => e != firstTabRun).Skip(1) : paragraph.Elements();
+            return elementsSuceedingTab;
+        }
+
+        private static List<object?> TransformElementsPrecedingTab(WordprocessingDocument wordDoc, WmlToHtmlConverterSettings settings, List<XElement> elementsPrecedingTab, XElement firstTabRun)
         {
             var tabWidth = firstTabRun != null ? (decimal?)firstTabRun.Elements(W.tab).Attributes(PtOpenXml.TabWidth).FirstOrDefault() ?? 0m : 0m;
-
-            var precedingElementsWidth = elementsPrecedingTab
-                .Elements()
-                .Where(c => c.Attributes(PtOpenXml.TabWidth).Any())
-                .Select(e => (decimal)e.Attribute(PtOpenXml.TabWidth))
-                .Sum();
-
+            var precedingElementsWidth = elementsPrecedingTab.Elements().Where(c => c.Attributes(PtOpenXml.TabWidth).Any()).Select(e => (decimal)e.Attribute(PtOpenXml.TabWidth)).Sum();
             var totalWidth = precedingElementsWidth + tabWidth;
 
-            var txElementsPrecedingTab = elementsPrecedingTab
-                .Select(e => ConvertToHtmlTransform(wordDoc, settings, e, false, 0m))
-                .ToList();
+            var txElementsPrecedingTab = elementsPrecedingTab.Select(e => ConvertToHtmlTransform(wordDoc, settings, e, false, 0m)).ToList();
             if (txElementsPrecedingTab.Count > 1)
             {
                 var span = new XElement(Xhtml.span, txElementsPrecedingTab);
                 var spanStyle = new Dictionary<string, string>
                 {
-                    { "display", "inline-block" },
                     { "text-indent", "0" },
-                    { "width", string.Format(NumberFormatInfo.InvariantInfo, "{0:0.000}in", totalWidth) }
+                    { "margin-right", string.Format(NumberFormatInfo.InvariantInfo, "{0:0.000}in", totalWidth) }
                 };
                 span.AddAnnotation(spanStyle);
             }
             else if (txElementsPrecedingTab.Count == 1 && txElementsPrecedingTab.First() is XElement element)
             {
                 var spanStyle = element.Annotation<Dictionary<string, string>>();
-                spanStyle.AddIfMissing("display", "inline-block");
                 spanStyle.AddIfMissing("text-indent", "0");
-                spanStyle.AddIfMissing("width", string.Format(NumberFormatInfo.InvariantInfo, "{0:0.000}in", totalWidth));
+                spanStyle.AddIfMissing("margin-right", string.Format(NumberFormatInfo.InvariantInfo, "{0:0.000}in", totalWidth));
             }
+            else
+            {
+                var div = new XElement(Xhtml.span);
+                var spanStyle = new Dictionary<string, string>
+                {
+                    { "display", "inline-block" },
+                    { "text-indent", "0" },
+                    { "margin", string.Format(NumberFormatInfo.InvariantInfo, "0 0 0 {0:0.000}in", totalWidth) }
+                };
+                div.AddAnnotation(spanStyle);
+                div.SetValue("\u00A0");
+                return new List<object?> { div };
+            }
+
             return txElementsPrecedingTab;
         }
 
@@ -1937,10 +1931,7 @@ namespace Codeuctivity.OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
             }
 
             // calculate the tab stops, in twips
-            var tabs = clonedPara
-                .Elements(W.pPr)
-                .Elements(W.tabs)
-                .FirstOrDefault();
+            var tabs = clonedPara.Elements(W.pPr).Elements(W.tabs).FirstOrDefault();
 
             if (tabs == null)
             {
@@ -2003,17 +1994,14 @@ namespace Codeuctivity.OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
 
                     var testAmount = twipCounter;
 
-                    var tabAfterText = tabs
-                        .Elements(W.tab)
-                        .FirstOrDefault(t => WordprocessingMLUtil.StringToTwips((string)t.Attribute(W.pos)) > testAmount);
+                    var tabAfterText = tabs.Elements(W.tab).FirstOrDefault(t => WordprocessingMLUtil.StringToTwips((string)t.Attribute(W.pos)) > testAmount);
 
                     if (tabAfterText == null)
                     {
                         // something has gone wrong, so put 1/2 inch in
                         if (currentElement.Attribute(PtOpenXml.TabWidth) == null)
                         {
-                            currentElement.Add(
-                                new XAttribute(PtOpenXml.TabWidth, 720m));
+                            currentElement.Add(new XAttribute(PtOpenXml.TabWidth, 720m));
                         }
 
                         break;
@@ -2026,12 +2014,7 @@ namespace Codeuctivity.OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
                             .Skip(currentElementIdx + 1);
 
                         // take all the content until another tab, br, or cr
-                        var textElementsToMeasure = textAfterElements
-                            .TakeWhile(z =>
-                                z.Name != W.tab &&
-                                z.Name != W.br &&
-                                z.Name != W.cr)
-                            .ToList();
+                        var textElementsToMeasure = textAfterElements.TakeWhile(z => z.Name != W.tab && z.Name != W.br && z.Name != W.cr).ToList();
 
                         var textAfterTab = textElementsToMeasure
                             .Where(z => z.Name == W.t)
@@ -3151,11 +3134,9 @@ namespace Codeuctivity.OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
             return false;
         }
 
-        private static object ConvertContentThatCanContainFields(WordprocessingDocument wordDoc, WmlToHtmlConverterSettings settings,
-            IEnumerable<XElement> elements)
+        private static object ConvertContentThatCanContainFields(WordprocessingDocument wordDoc, WmlToHtmlConverterSettings settings, IEnumerable<XElement> elements)
         {
-            var grouped = elements
-                .GroupAdjacent(e =>
+            var grouped = elements.GroupAdjacent(e =>
                 {
                     var stack = e.Annotation<Stack<FieldRetriever.FieldElementTypeInfo>>();
                     return stack == null || !stack.Any() ? (int?)null : stack.Select(st => st.Id).Min();

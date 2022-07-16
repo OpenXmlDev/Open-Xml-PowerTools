@@ -118,7 +118,6 @@ namespace Codeuctivity.Tests.OpenXMLWordprocessingMLToHtmlConverter
         internal static async Task AssertRenderedHtmlIsEqual(string actualFilePath, string expectReferenceFilePath, int allowedPixelErrorCount)
         {
             var actualFullPath = Path.GetFullPath(actualFilePath);
-            var expectFullPath = Path.GetFullPath(expectReferenceFilePath);
 
             Assert.True(File.Exists(actualFullPath), $"actualFilePath not found {actualFullPath}");
             await using var chromiumRenderer = await Renderer.CreateAsync();
@@ -135,7 +134,7 @@ namespace Codeuctivity.Tests.OpenXMLWordprocessingMLToHtmlConverter
 
             Assert.True(File.Exists(actualFullPath), $"actualImagePath not found {actualFullPath}");
 
-            //Uncomment following line to create expectation for new test cases
+            //Uncomment following line to create or update expectation for new test cases
             //File.Copy(actualFullPath, expectFullPath, true);
 
             Assert.True(File.Exists(expectFullPath), $"ExpectReferenceImagePath not found \n{expectFullPath}\n copy over \n{actualFullPath}\n if this is a new test case.");
@@ -161,11 +160,11 @@ namespace Codeuctivity.Tests.OpenXMLWordprocessingMLToHtmlConverter
                 await maskImage.SaveAsync(fs, new SixLabors.ImageSharp.Formats.Png.PngEncoder());
             }
 
+            // Uncomment following line to create or update a allowed diff file
+            //File.Copy(actualFullPath, allowedDiffImage, true);
+
             if (File.Exists(allowedDiffImage))
             {
-                // Uncomment following line to update a allowed diff file
-                //File.Copy(actualFullPath, allowedDiffImage, true);
-
                 if (!ImageSharpCompare.ImageSharpCompare.ImagesHaveEqualSize(actualFullPath, allowedDiffImage))
                 {
                     Assert.True(false, $"AllowedDiffImage Dimension differs from allowed \nReplace {allowedDiffImage} with {actualFullPath}.");
@@ -178,9 +177,6 @@ namespace Codeuctivity.Tests.OpenXMLWordprocessingMLToHtmlConverter
             }
 
             var result = ImageSharpCompare.ImageSharpCompare.CalcDiff(actualFullPath, expectFullPath);
-
-            // Uncomment following line to create a allowed diff file
-            //File.Copy(actualFullPath, allowedDiffImage, true);
 
             Assert.True(result.PixelErrorCount <= allowedPixelErrorCount, $"Expected PixelErrorCount beyond {allowedPixelErrorCount} but was {result.PixelErrorCount}\nExpected {expectFullPath}\ndiffers to actual {actualFullPath}\n Diff is {newDiffImage} \nReplace {actualFullPath} with the new value or store the diff as {allowedDiffImage}.");
         }
