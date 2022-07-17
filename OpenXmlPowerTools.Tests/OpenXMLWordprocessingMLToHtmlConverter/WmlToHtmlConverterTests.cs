@@ -110,7 +110,9 @@ namespace Codeuctivity.Tests.OpenXMLWordprocessingMLToHtmlConverter
             File.WriteAllText(destFileName.FullName, htmlString, Encoding.UTF8);
 
             if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
                 return;
+            }
 
             await AssertRenderedHtmlIsEqual(destFileName.FullName, expectedRenderdResult, expectedPixeNoise);
         }
