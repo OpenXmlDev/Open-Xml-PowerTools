@@ -29,7 +29,7 @@ namespace Codeuctivity.Tests.OpenXMLWordprocessingMLToHtmlConverter
         [InlineData("HC011-Test-06.docx", 0)]
         [InlineData("HC012-Test-07.docx", 0)]
         [InlineData("HC013-Test-08.docx", 0)]
-        [InlineData("HC014-RTL-Table-01.docx", 0)]
+        [InlineData("HC014-RTL-Table-01.docx", 50)]
         [InlineData("HC015-Vertical-Spacing-atLeast.docx", 0)]
         [InlineData("HC016-Horizontal-Spacing-firstLine.docx", 0)]
         [InlineData("HC017-Vertical-Alignment-Cell-01.docx", 0)]

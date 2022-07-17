@@ -1034,6 +1034,7 @@ namespace Codeuctivity.OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
             }
             else
             {
+                // Leading tabs in paragraphs
                 var div = new XElement(Xhtml.span);
                 var spanStyle = new Dictionary<string, string>
                 {
