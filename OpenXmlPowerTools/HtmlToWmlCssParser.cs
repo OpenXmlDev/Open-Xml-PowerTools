@@ -1,4 +1,5 @@
 ﻿using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -428,17 +429,14 @@ namespace Codeuctivity.OpenXmlPowerTools
             if (length.Terms.Count == 1)
             {
                 var term = length.Terms.First();
-                if (term.Unit == CssUnit.PT)
+                if (term.Unit == CssUnit.PT && double.TryParse(term?.Value?.ToString(), NumberStyles.Float, CultureInfo.InvariantCulture, out var ptValue))
                 {
-                    if (double.TryParse(term.Value.ToString(), NumberStyles.Float, CultureInfo.InvariantCulture, out var ptValue))
+                    if (term.Sign == '-')
                     {
-                        if (term.Sign == '-')
-                        {
-                            ptValue = -ptValue;
-                        }
-
-                        return new Twip((long)(ptValue * 20));
+                        ptValue = -ptValue;
                     }
+
+                    return new Twip((long)(ptValue * 20));
                 }
             }
             return 0;
@@ -628,36 +626,16 @@ namespace Codeuctivity.OpenXmlPowerTools
             for (var i = 0; i < input.Length; i++)
             {
                 var chunk = input.Substring(i, 1).ToUpper();
-                switch (chunk)
+                val = chunk switch
                 {
-                    case "A":
-                        val = 10;
-                        break;
-
-                    case "B":
-                        val = 11;
-                        break;
-
-                    case "C":
-                        val = 12;
-                        break;
-
-                    case "D":
-                        val = 13;
-                        break;
-
-                    case "E":
-                        val = 14;
-                        break;
-
-                    case "F":
-                        val = 15;
-                        break;
-
-                    default:
-                        val = int.Parse(chunk);
-                        break;
-                }
+                    "A" => 10,
+                    "B" => 11,
+                    "C" => 12,
+                    "D" => 13,
+                    "E" => 14,
+                    "F" => 15,
+                    _ => int.Parse(chunk),
+                };
                 if (i == 0)
                 {
                     result += val * 16;
@@ -744,48 +722,30 @@ namespace Codeuctivity.OpenXmlPowerTools
 
     public class CssSimpleSelector
     {
-        private CssCombinator? m_combinator = null;
-        private string m_elementname;
-        private string m_id;
         private string m_cls;
-        private CssAttribute m_attribute;
-        private string m_pseudo;
-        private CssFunction m_function;
         private CssSimpleSelector m_child;
 
-        public CssCombinator? Combinator
-        {
-            get => m_combinator;
-            set => m_combinator = value;
-        }
+        public CssCombinator? Combinator { get; set; } = null;
 
         public string? CombinatorString
         {
             get
             {
-                if (m_combinator.HasValue)
+                if (Combinator.HasValue)
                 {
-                    return m_combinator.ToString();
+                    return Combinator.ToString();
                 }
                 else
                 {
                     return null;
                 }
             }
-            set => m_combinator = (CssCombinator)Enum.Parse(typeof(CssCombinator), value);
+            set => Combinator = (CssCombinator)Enum.Parse(typeof(CssCombinator), value);
         }
 
-        public string ElementName
-        {
-            get => m_elementname;
-            set => m_elementname = value;
-        }
+        public string ElementName { get; set; }
 
-        public string ID
-        {
-            get => m_id;
-            set => m_id = value;
-        }
+        public string ID { get; set; }
 
         public string Class
         {
@@ -793,23 +753,11 @@ namespace Codeuctivity.OpenXmlPowerTools
             set => m_cls = value;
         }
 
-        public string Pseudo
-        {
-            get => m_pseudo;
-            set => m_pseudo = value;
-        }
+        public string Pseudo { get; set; }
 
-        public CssAttribute Attribute
-        {
-            get => m_attribute;
-            set => m_attribute = value;
-        }
+        public CssAttribute Attribute { get; set; }
 
-        public CssFunction Function
-        {
-            get => m_function;
-            set => m_function = value;
-        }
+        public CssFunction Function { get; set; }
 
         public CssSimpleSelector Child
         {
@@ -820,9 +768,9 @@ namespace Codeuctivity.OpenXmlPowerTools
         public override string ToString()
         {
             var sb = new StringBuilder();
-            if (m_combinator.HasValue)
+            if (Combinator.HasValue)
             {
-                switch (m_combinator.Value)
+                switch (Combinator.Value)
                 {
                     case CssCombinator.PrecededImmediatelyBy:
                         sb.Append(" + ");
@@ -837,29 +785,29 @@ namespace Codeuctivity.OpenXmlPowerTools
                         break;
                 }
             }
-            if (m_elementname != null)
+            if (ElementName != null)
             {
-                sb.Append(m_elementname);
+                sb.Append(ElementName);
             }
-            if (m_id != null)
+            if (ID != null)
             {
-                sb.AppendFormat("#{0}", m_id);
+                sb.AppendFormat("#{0}", ID);
             }
             if (m_cls != null)
             {
                 sb.AppendFormat(".{0}", m_cls);
             }
-            if (m_pseudo != null)
+            if (Pseudo != null)
             {
-                sb.AppendFormat(":{0}", m_pseudo);
+                sb.AppendFormat(":{0}", Pseudo);
             }
-            if (m_attribute != null)
+            if (Attribute != null)
             {
-                sb.Append(m_attribute.ToString());
+                sb.Append(Attribute.ToString());
             }
-            if (m_function != null)
+            if (Function != null)
             {
-                sb.Append(m_function.ToString());
+                sb.Append(Function.ToString());
             }
             if (m_child != null)
             {
@@ -959,10 +907,10 @@ namespace Codeuctivity.OpenXmlPowerTools
     {
         public char? Separator { get; set; }
 
-        public string SeparatorChar
+        public string? SeparatorChar
         {
             get => Separator.HasValue ? Separator.Value.ToString() : null;
-            set => Separator = !string.IsNullOrEmpty(value) ? value[0] : '\0';
+            set => Separator = !string.IsNullOrEmpty(value) ? value?[0] : '\0';
         }
 
         public char? Sign { get; set; }
@@ -1044,8 +992,7 @@ namespace Codeuctivity.OpenXmlPowerTools
         {
             get
             {
-                if ((Type == CssTermType.Hex
-                    || Type == CssTermType.String && Value.StartsWith("#"))
+                if ((Type == CssTermType.Hex || Type == CssTermType.String && Value.StartsWith("#"))
                     && (Value.Length == 6 || Value.Length == 3 || (Value.Length == 7 || Value.Length == 4)
                     && Value.StartsWith("#")))
                 {
@@ -1094,20 +1041,17 @@ namespace Codeuctivity.OpenXmlPowerTools
                         return true;
                     }
                 }
-                else if (Type == CssTermType.Function)
+                else if (Type == CssTermType.Function && ((Function.Name.ToLower().Equals("hsl") || Function.Name.ToLower().Equals("rgb")) && Function.Expression.Terms.Count == 3 ||
+                        (Function.Name.ToLower().Equals("hsla") || Function.Name.ToLower().Equals("rgba")) && Function.Expression.Terms.Count == 4))
                 {
-                    if ((Function.Name.ToLower().Equals("hsl") || Function.Name.ToLower().Equals("rgb")) && Function.Expression.Terms.Count == 3 ||
-                        (Function.Name.ToLower().Equals("hsla") || Function.Name.ToLower().Equals("rgba")) && Function.Expression.Terms.Count == 4)
+                    for (var i = 0; i < Function.Expression.Terms.Count; i++)
                     {
-                        for (var i = 0; i < Function.Expression.Terms.Count; i++)
+                        if (Function.Expression.Terms[i].Type != CssTermType.Number)
                         {
-                            if (Function.Expression.Terms[i].Type != CssTermType.Number)
-                            {
-                                return false;
-                            }
+                            return false;
                         }
-                        return true;
                     }
+                    return true;
                 }
                 return false;
             }
@@ -1237,36 +1181,16 @@ namespace Codeuctivity.OpenXmlPowerTools
             for (var i = 0; i < input.Length; i++)
             {
                 var chunk = input.Substring(i, 1).ToUpper();
-                switch (chunk)
+                val = chunk switch
                 {
-                    case "A":
-                        val = 10;
-                        break;
-
-                    case "B":
-                        val = 11;
-                        break;
-
-                    case "C":
-                        val = 12;
-                        break;
-
-                    case "D":
-                        val = 13;
-                        break;
-
-                    case "E":
-                        val = 14;
-                        break;
-
-                    case "F":
-                        val = 15;
-                        break;
-
-                    default:
-                        val = int.Parse(chunk);
-                        break;
-                }
+                    "A" => 10,
+                    "B" => 11,
+                    "C" => 12,
+                    "D" => 13,
+                    "E" => 14,
+                    "F" => 15,
+                    _ => int.Parse(chunk),
+                };
                 if (i == 0)
                 {
                     result += val * 16;
@@ -1350,7 +1274,6 @@ namespace Codeuctivity.OpenXmlPowerTools
 
     public class CssParser
     {
-        private readonly List<string> m_errors = new List<string>();
         private CssDocument m_doc;
 
         public CssDocument ParseText(string content)
@@ -1381,7 +1304,7 @@ namespace Codeuctivity.OpenXmlPowerTools
 
         public CssDocument CSSDocument => m_doc;
 
-        public List<string> Errors => m_errors;
+        public List<string> Errors { get; } = new List<string>();
     }
 
     // Hue Sat and Val values from 0 - 255.
@@ -1459,26 +1382,17 @@ namespace Codeuctivity.OpenXmlPowerTools
 
         private double CalcRedConponent(Color color)
         {
-            var hex = color.ToHex();
-            var hexRed = Convert.ToInt32(hex.Substring(0, 2));
-
-            return hexRed / 255.0d;
+            return color.ToPixel<Rgb24>().R;
         }
 
         private double CalcGreenConponent(Color color)
         {
-            var hex = color.ToHex();
-            var hexRed = Convert.ToInt32(hex.Substring(0, 2));
-
-            return hexRed / 255.0d;
+            return color.ToPixel<Rgb24>().G;
         }
 
         private double CalcBlueConponent(Color color)
         {
-            var hex = color.ToHex();
-            var hexRed = Convert.ToInt32(hex.Substring(0, 2));
-
-            return hexRed / 255.0d;
+            return color.ToPixel<Rgb24>().B;
         }
 
         private Color ConvertToRGB()
@@ -1833,37 +1747,16 @@ namespace Codeuctivity.OpenXmlPowerTools
             }
             Identity(out var ident);
             dir.Name += ident;
-            switch (dir.Name.ToLower())
+            dir.Type = dir.Name.ToLower() switch
             {
-                case "@media":
-                    dir.Type = CssDirectiveType.Media;
-                    break;
-
-                case "@import":
-                    dir.Type = CssDirectiveType.Import;
-                    break;
-
-                case "@charset":
-                    dir.Type = CssDirectiveType.Charset;
-                    break;
-
-                case "@page":
-                    dir.Type = CssDirectiveType.Page;
-                    break;
-
-                case "@font-face":
-                    dir.Type = CssDirectiveType.FontFace;
-                    break;
-
-                case "@namespace":
-                    dir.Type = CssDirectiveType.Namespace;
-                    break;
-
-                default:
-                    dir.Type = CssDirectiveType.Other;
-                    break;
-            }
-
+                "@media" => CssDirectiveType.Media,
+                "@import" => CssDirectiveType.Import,
+                "@charset" => CssDirectiveType.Charset,
+                "@page" => CssDirectiveType.Page,
+                "@font-face" => CssDirectiveType.FontFace,
+                "@namespace" => CssDirectiveType.Namespace,
+                _ => CssDirectiveType.Other,
+            };
             while (LookaheadToken.TokenKind == 4)
             {
                 Get();
@@ -2918,261 +2811,72 @@ namespace Codeuctivity.OpenXmlPowerTools
 
         public virtual void SyntaxError(int line, int col, int n)
         {
-            string s;
-            switch (n)
+            var s = n switch
             {
-                case 0:
-                    s = "EOF expected";
-                    break;
-
-                case 1:
-                    s = "identifier expected";
-                    break;
-
-                case 2:
-                    s = "newline expected";
-                    break;
-
-                case 3:
-                    s = "digit expected";
-                    break;
-
-                case 4:
-                    s = "whitespace expected";
-                    break;
-
-                case 5:
-                    s = "\"<!--\" expected";
-                    break;
-
-                case 6:
-                    s = "\"-->\" expected";
-                    break;
-
-                case 7:
-                    s = "\"\'\" expected";
-                    break;
-
-                case 8:
-                    s = "\"\"\" expected";
-                    break;
-
-                case 9:
-                    s = "\"url\" expected";
-                    break;
-
-                case 10:
-                    s = "\"(\" expected";
-                    break;
-
-                case 11:
-                    s = "\")\" expected";
-                    break;
-
-                case 12:
-                    s = "\"all\" expected";
-                    break;
-
-                case 13:
-                    s = "\"aural\" expected";
-                    break;
-
-                case 14:
-                    s = "\"braille\" expected";
-                    break;
-
-                case 15:
-                    s = "\"embossed\" expected";
-                    break;
-
-                case 16:
-                    s = "\"handheld\" expected";
-                    break;
-
-                case 17:
-                    s = "\"print\" expected";
-                    break;
-
-                case 18:
-                    s = "\"projection\" expected";
-                    break;
-
-                case 19:
-                    s = "\"screen\" expected";
-                    break;
-
-                case 20:
-                    s = "\"tty\" expected";
-                    break;
-
-                case 21:
-                    s = "\"tv\" expected";
-                    break;
-
-                case 22:
-                    s = "\"n\" expected";
-                    break;
-
-                case 23:
-                    s = "\"@\" expected";
-                    break;
-
-                case 24:
-                    s = "\"-\" expected";
-                    break;
-
-                case 25:
-                    s = "\",\" expected";
-                    break;
-
-                case 26:
-                    s = "\"{\" expected";
-                    break;
-
-                case 27:
-                    s = "\";\" expected";
-                    break;
-
-                case 28:
-                    s = "\"}\" expected";
-                    break;
-
-                case 29:
-                    s = "\"+\" expected";
-                    break;
-
-                case 30:
-                    s = "\">\" expected";
-                    break;
-
-                case 31:
-                    s = "\"~\" expected";
-                    break;
-
-                case 32:
-                    s = "\"*\" expected";
-                    break;
-
-                case 33:
-                    s = "\"#\" expected";
-                    break;
-
-                case 34:
-                    s = "\".\" expected";
-                    break;
-
-                case 35:
-                    s = "\"[\" expected";
-                    break;
-
-                case 36:
-                    s = "\"=\" expected";
-                    break;
-
-                case 37:
-                    s = "\"~=\" expected";
-                    break;
-
-                case 38:
-                    s = "\"|=\" expected";
-                    break;
-
-                case 39:
-                    s = "\"$=\" expected";
-                    break;
-
-                case 40:
-                    s = "\"^=\" expected";
-                    break;
-
-                case 41:
-                    s = "\"*=\" expected";
-                    break;
-
-                case 42:
-                    s = "\"]\" expected";
-                    break;
-
-                case 43:
-                    s = "\":\" expected";
-                    break;
-
-                case 44:
-                    s = "\"!\" expected";
-                    break;
-
-                case 45:
-                    s = "\"important\" expected";
-                    break;
-
-                case 46:
-                    s = "\"/\" expected";
-                    break;
-
-                case 47:
-                    s = "\"U\\\\\" expected";
-                    break;
-
-                case 48:
-                    s = "\"%\" expected";
-                    break;
-
-                case 49:
-                    s = "??? expected";
-                    break;
-
-                case 50:
-                    s = "invalid directive";
-                    break;
-
-                case 51:
-                    s = "invalid QuotedString";
-                    break;
-
-                case 52:
-                    s = "invalid URI";
-                    break;
-
-                case 53:
-                    s = "invalid medium";
-                    break;
-
-                case 54:
-                    s = "invalid identity";
-                    break;
-
-                case 55:
-                    s = "invalid simpleselector";
-                    break;
-
-                case 56:
-                    s = "invalid attrib";
-                    break;
-
-                case 57:
-                    s = "invalid term";
-                    break;
-
-                case 58:
-                    s = "invalid term";
-                    break;
-
-                case 59:
-                    s = "invalid term";
-                    break;
-
-                case 60:
-                    s = "invalid term";
-                    break;
-
-                case 61:
-                    s = "invalid HexValue";
-                    break;
-
-                default:
-                    s = "error " + n;
-                    break;
-            }
+                0 => "EOF expected",
+                1 => "identifier expected",
+                2 => "newline expected",
+                3 => "digit expected",
+                4 => "whitespace expected",
+                5 => "\"<!--\" expected",
+                6 => "\"-->\" expected",
+                7 => "\"\'\" expected",
+                8 => "\"\"\" expected",
+                9 => "\"url\" expected",
+                10 => "\"(\" expected",
+                11 => "\")\" expected",
+                12 => "\"all\" expected",
+                13 => "\"aural\" expected",
+                14 => "\"braille\" expected",
+                15 => "\"embossed\" expected",
+                16 => "\"handheld\" expected",
+                17 => "\"print\" expected",
+                18 => "\"projection\" expected",
+                19 => "\"screen\" expected",
+                20 => "\"tty\" expected",
+                21 => "\"tv\" expected",
+                22 => "\"n\" expected",
+                23 => "\"@\" expected",
+                24 => "\"-\" expected",
+                25 => "\",\" expected",
+                26 => "\"{\" expected",
+                27 => "\";\" expected",
+                28 => "\"}\" expected",
+                29 => "\"+\" expected",
+                30 => "\">\" expected",
+                31 => "\"~\" expected",
+                32 => "\"*\" expected",
+                33 => "\"#\" expected",
+                34 => "\".\" expected",
+                35 => "\"[\" expected",
+                36 => "\"=\" expected",
+                37 => "\"~=\" expected",
+                38 => "\"|=\" expected",
+                39 => "\"$=\" expected",
+                40 => "\"^=\" expected",
+                41 => "\"*=\" expected",
+                42 => "\"]\" expected",
+                43 => "\":\" expected",
+                44 => "\"!\" expected",
+                45 => "\"important\" expected",
+                46 => "\"/\" expected",
+                47 => "\"U\\\\\" expected",
+                48 => "\"%\" expected",
+                49 => "??? expected",
+                50 => "invalid directive",
+                51 => "invalid QuotedString",
+                52 => "invalid URI",
+                53 => "invalid medium",
+                54 => "invalid identity",
+                55 => "invalid simpleselector",
+                56 => "invalid attrib",
+                57 => "invalid term",
+                58 => "invalid term",
+                59 => "invalid term",
+                60 => "invalid term",
+                61 => "invalid HexValue",
+                _ => "error " + n,
+            };
             var errorString = string.Format(ErrMsgFormat, line, col, s);
             throw new OpenXmlPowerToolsException(errorString);
         }
@@ -3377,9 +3081,9 @@ namespace Codeuctivity.OpenXmlPowerTools
         }
     }
 
-    public class UTF8Buffer : CssBuffer
+    public class HtmlToWmlCssParser : CssBuffer
     {
-        public UTF8Buffer(CssBuffer b) : base(b)
+        public HtmlToWmlCssParser(CssBuffer b) : base(b)
         {
         }
 
@@ -3565,7 +3269,7 @@ namespace Codeuctivity.OpenXmlPowerTools
                 {
                     throw new NotSupportedException(string.Format("illegal byte order mark: EF {0,2:X} {1,2:X}", ch1, ch2));
                 }
-                ScannerBuffer = new UTF8Buffer(ScannerBuffer);
+                ScannerBuffer = new HtmlToWmlCssParser(ScannerBuffer);
                 m_columnNumberOfCurrentCharacter = 0;
                 m_unicodeCharacterPosition = -1;
                 NextCh();
@@ -3752,6 +3456,7 @@ namespace Codeuctivity.OpenXmlPowerTools
             m_lengthOfCurrentToken = 0;
             AddCh();
 
+#pragma warning disable S907 // "goto" statement should not be used, but switch case is a boarder case and not worth refactoring it
             switch (state)
             {
                 case -1:
@@ -3770,12 +3475,10 @@ namespace Codeuctivity.OpenXmlPowerTools
                         break;
                     }
                 case 1:
-                    if (m_currentInputCharacter == '-' || m_currentInputCharacter >= '0' && m_currentInputCharacter <= '9' || m_currentInputCharacter >= 'A' && m_currentInputCharacter <= 'Z' || m_currentInputCharacter == '_' || m_currentInputCharacter >= 'a' && m_currentInputCharacter <= 'z')
+                    while (m_currentInputCharacter == '-' || m_currentInputCharacter >= '0' && m_currentInputCharacter <= '9' || m_currentInputCharacter >= 'A' && m_currentInputCharacter <= 'Z' || m_currentInputCharacter == '_' || m_currentInputCharacter >= 'a' && m_currentInputCharacter <= 'z')
                     {
                         AddCh();
-                        goto case 1;
                     }
-                    else
                     {
                         m_currentToken.TokenKind = 1; m_currentToken.TokenValue = new string(m_textOfCurrentToken, 0, m_lengthOfCurrentToken);
                         CheckLiteral();
@@ -3800,6 +3503,7 @@ namespace Codeuctivity.OpenXmlPowerTools
                     if (m_currentInputCharacter == '!')
                     {
                         AddCh();
+
                         goto case 6;
                     }
                     else
@@ -4060,6 +3764,8 @@ namespace Codeuctivity.OpenXmlPowerTools
                         return m_currentToken;
                     }
             }
+#pragma warning restore S907 // "goto" statement should not be used, but switch case is a boarder case and not worth refactoring it
+
             m_currentToken.TokenValue = new string(m_textOfCurrentToken, 0, m_lengthOfCurrentToken);
             return m_currentToken;
         }

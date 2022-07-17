@@ -117,12 +117,9 @@ namespace Codeuctivity.OpenXmlPowerTools
         public static CssExpression? GetProp(this XElement element, string propertyName)
         {
             var d = element.Annotation<Dictionary<string, CssExpression>>();
-            if (d != null)
+            if (d != null && d.ContainsKey(propertyName))
             {
-                if (d.ContainsKey(propertyName))
-                {
-                    return d[propertyName];
-                }
+                return d[propertyName];
             }
             return null;
         }
@@ -1536,19 +1533,16 @@ namespace Codeuctivity.OpenXmlPowerTools
                     {
                         return FontType.EastAsia;
                     }
-                    if (csa.EastAsiaLang == "zh-hant" ||
-                        csa.EastAsiaLang == "zh-hans")
-                    {
-                        if (ch == 0xE0 ||
+                    if ((csa.EastAsiaLang == "zh-hant" ||
+                        csa.EastAsiaLang == "zh-hans") && (ch == 0xE0 ||
                             ch == 0xE1 ||
                             ch >= 0xE8 && ch <= 0xEA ||
                             ch >= 0xEC && ch <= 0xED ||
                             ch >= 0xF2 && ch <= 0xF3 ||
                             ch >= 0xF9 && ch <= 0xFA ||
-                            ch == 0xFC)
-                        {
-                            return FontType.EastAsia;
-                        }
+                            ch == 0xFC))
+                    {
+                        return FontType.EastAsia;
                     }
                 }
                 return FontType.HAnsi;
@@ -1557,14 +1551,10 @@ namespace Codeuctivity.OpenXmlPowerTools
             // Unicode Block: Latin Extended-A
             if (ch >= 0x0100 && ch <= 0x017F)
             {
-                if (csa.Hint == "eastAsia")
+                if (csa.Hint == "eastAsia" && (csa.EastAsiaLang == "zh-hant" || csa.EastAsiaLang == "zh-hans")
+)
                 {
-                    if (csa.EastAsiaLang == "zh-hant" ||
-                        csa.EastAsiaLang == "zh-hans"
-                        /* || the character set of the east Asia (or east Asia theme) font is Chinese5 || GB2312 todo */)
-                    {
-                        return FontType.EastAsia;
-                    }
+                    return FontType.EastAsia;
                 }
                 return FontType.HAnsi;
             }
@@ -1589,8 +1579,7 @@ namespace Codeuctivity.OpenXmlPowerTools
             {
                 if (csa.Hint == "eastAsia")
                 {
-                    if (csa.EastAsiaLang == "zh-hant" ||
-                        csa.EastAsiaLang == "zh-hans"
+                    if (csa.EastAsiaLang == "zh-hant" || csa.EastAsiaLang == "zh-hans"
                         /* || the character set of the east Asia (or east Asia theme) font is Chinese5 || GB2312 todo */)
                     {
                         return FontType.EastAsia;
@@ -2451,7 +2440,7 @@ namespace Codeuctivity.OpenXmlPowerTools
             {
                 try
                 {
-                    bmp = Image.Load(settings.BaseUriForImages + "/" + srcAttribute, out format);
+                    bmp = Image.Load(Path.Combine(settings.BaseUriForImages, srcAttribute), out format);
                 }
                 catch (ArgumentException)
                 {

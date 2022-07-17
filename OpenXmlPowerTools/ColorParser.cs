@@ -9,20 +9,9 @@ namespace Codeuctivity.OpenXmlPowerTools
             return Color.Parse(name);
         }
 
-        public static bool TryFromName(string name, out Color color)
+        public static bool TryFromName(string? name, out Color color)
         {
-            try
-            {
-                color = Color.Parse(name);
-
-                return true;
-            }
-            catch
-            {
-                color = default;
-
-                return false;
-            }
+            return Color.TryParse(name, out color);
         }
 
         public static bool IsValidName(string name)

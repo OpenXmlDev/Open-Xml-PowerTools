@@ -94,7 +94,7 @@ csharp_prefer_static_local_function = true:suggestion
 csharp_preferred_modifier_order = public,private,protected,internal,static,extern,new,virtual,abstract,sealed,override,readonly,unsafe,volatile,async:silent
 
 # Code-block preferences
-csharp_prefer_braces = true:silent
+csharp_prefer_braces = true:warning
 csharp_prefer_simple_using_statement = true:suggestion
 
 # Expression-level preferences
@@ -202,3 +202,8 @@ dotnet_naming_style.begins_with_i.capitalization = pascal_case
 
 # CS1591: Missing XML comment for publicly visible type or member
 dotnet_diagnostic.CS1591.severity = suggestion
+
+
+# IDE0011: Add braces
+dotnet_diagnostic.IDE0011.severity = warning
+csharp_style_prefer_method_group_conversion = true:silent
