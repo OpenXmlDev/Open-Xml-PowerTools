@@ -1283,7 +1283,10 @@ namespace Codeuctivity.OpenXmlPowerTools
         {
             var now = DateTime.Now;
             if (LastBucket != null)
+            {
                 AddToBuckets(now);
+            }
+
             LastBucket = bucket;
             LastTime = now;
         }
@@ -1292,7 +1295,10 @@ namespace Codeuctivity.OpenXmlPowerTools
         {
             var now = DateTime.Now;
             if (LastBucket != null)
+            {
                 AddToBuckets(now);
+            }
+
             LastBucket = null;
         }
 
@@ -1333,7 +1339,10 @@ namespace Codeuctivity.OpenXmlPowerTools
             {
                 var ts = bucket.Value.Time.ToString();
                 if (ts.Contains('.'))
+                {
                     ts = ts.Substring(0, ts.Length - 5);
+                }
+
                 var s = bucket.Key.PadRight(60, '-') + "  " + string.Format("{0:00000000}", bucket.Value.Count) + "  " + ts;
                 sb.Append(s + Environment.NewLine);
             }
@@ -1351,7 +1360,10 @@ namespace Codeuctivity.OpenXmlPowerTools
             {
                 var ts = bucket.Value.Time.ToString();
                 if (ts.Contains('.'))
+                {
                     ts = ts.Substring(0, ts.Length - 5);
+                }
+
                 var s = bucket.Key + "," + bucket.Value.Count.ToString() + "," + ts;
                 sb.Append(s + Environment.NewLine);
             }
@@ -1365,7 +1377,10 @@ namespace Codeuctivity.OpenXmlPowerTools
             {
                 var ts = bucket.Value.Time.ToString();
                 if (ts.Contains('.'))
+                {
                     ts = ts.Substring(0, ts.Length - 5);
+                }
+
                 var s = bucket.Key.PadRight(60, '-') + "  " + string.Format("{0:00000000}", bucket.Value.Count) + "  " + ts;
                 sb.Append(s + Environment.NewLine);
             }
