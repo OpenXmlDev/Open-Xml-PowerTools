@@ -82,12 +82,11 @@ namespace Codeuctivity.OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
             CalculateSpanWidthForTabs(wordDoc);
             ReverseTableBordersForRtlTables(wordDoc);
             AdjustTableBorders(wordDoc);
-            var rootElement = wordDoc.MainDocumentPart.GetXDocument().Root;
-            FieldRetriever.AnnotateWithFieldInfo(wordDoc.MainDocumentPart);
+            var rootElement = wordDoc?.MainDocumentPart?.GetXDocument().Root;
+            FieldRetriever.AnnotateWithFieldInfo(wordDoc?.MainDocumentPart);
             AnnotateForSections(wordDoc);
 
-            var xhtml = ConvertToHtmlTransform(wordDoc, htmlConverterSettings,
-                rootElement, false, 0m) as XElement;
+            var xhtml = ConvertToHtmlTransform(wordDoc, htmlConverterSettings, rootElement, false, 0m) as XElement;
 
             ReifyStylesAndClasses(htmlConverterSettings, xhtml);
 
@@ -280,7 +279,7 @@ namespace Codeuctivity.OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
             }
         }
 
-        private static object? ConvertToHtmlTransform(WordprocessingDocument wordDoc, WmlToHtmlConverterSettings settings, XNode node, bool suppressTrailingWhiteSpace, decimal currentMarginLeft, Dictionary<string, string> styleContext = default!)
+        private static object? ConvertToHtmlTransform(WordprocessingDocument wordDoc, WmlToHtmlConverterSettings settings, XNode? node, bool suppressTrailingWhiteSpace, decimal currentMarginLeft, Dictionary<string, string> styleContext = default!)
         {
             if (!(node is XElement element))
             {
@@ -323,7 +322,7 @@ namespace Codeuctivity.OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
             {
                 try
                 {
-                    var a = new XElement(Xhtml.a, new XAttribute("href", wordDoc.MainDocumentPart.HyperlinkRelationships.First(x => x.Id == (string)element.Attribute(R.id)).Uri), element.Elements(W.r).Select(run => ConvertRun(wordDoc, settings, run)));
+                    var a = new XElement(Xhtml.a, new XAttribute("href", wordDoc.MainDocumentPart?.HyperlinkRelationships.First(x => x.Id == (string)element.Attribute(R.id)).Uri), element.Elements(W.r).Select(run => ConvertRun(wordDoc, settings, run)));
 
                     if (!a.Nodes().Any())
                     {
@@ -866,7 +865,7 @@ namespace Codeuctivity.OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
 
         private static XElement? GetStyle(string styleId, WordprocessingDocument wordDoc)
         {
-            var stylesPart = wordDoc.MainDocumentPart.StyleDefinitionsPart;
+            var stylesPart = wordDoc.MainDocumentPart?.StyleDefinitionsPart;
             if (stylesPart == null)
             {
                 return null;
@@ -886,7 +885,7 @@ namespace Codeuctivity.OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
                 .GroupAdjacent(e =>
                 {
                     var sectAnnotation = e.Annotation<SectionAnnotation>();
-                    return sectAnnotation != null ? sectAnnotation.SectionElement.ToString() : "";
+                    return sectAnnotation != null ? sectAnnotation?.SectionElement?.ToString() : string.Empty;
                 });
 
             // note: when creating a paging html converter, need to pay attention to w:rtlGutter element.
@@ -897,8 +896,8 @@ namespace Codeuctivity.OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
                     XElement? bidi = null;
                     if (sectPr != null)
                     {
-                        bidi = sectPr
-                            .SectionElement
+                        bidi = sectPr?
+                            .SectionElement?
                             .Elements(W.bidi)
                             .FirstOrDefault(b => b.Attribute(W.val) == null || b.Attribute(W.val).ToBoolean() == true);
                     }
@@ -1009,7 +1008,7 @@ namespace Codeuctivity.OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
             return elementsSuceedingTab;
         }
 
-        private static List<object?> TransformElementsPrecedingTab(WordprocessingDocument wordDoc, WmlToHtmlConverterSettings settings, List<XElement> elementsPrecedingTab, XElement firstTabRun)
+        private static List<object?> TransformElementsPrecedingTab(WordprocessingDocument wordDoc, WmlToHtmlConverterSettings settings, List<XElement> elementsPrecedingTab, XElement? firstTabRun)
         {
             var tabWidth = firstTabRun != null ? (decimal?)firstTabRun.Elements(W.tab).Attributes(PtOpenXml.TabWidth).FirstOrDefault() ?? 0m : 0m;
             var precedingElementsWidth = elementsPrecedingTab.Elements().Where(c => c.Attributes(PtOpenXml.TabWidth).Any()).Select(e => (decimal)e.Attribute(PtOpenXml.TabWidth)).Sum();
@@ -1869,12 +1868,12 @@ namespace Codeuctivity.OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
             // Note: when implementing a paging version of the HTML transform, this needs to be done for all content parts, not just the main document part.
 
             // w:defaultTabStop in settings
-            var sxd = wordDoc.MainDocumentPart.DocumentSettingsPart.GetXDocument();
-            var defaultTabStopValue = (string)sxd.Descendants(W.defaultTabStop).Attributes(W.val).FirstOrDefault();
+            var sxd = wordDoc.MainDocumentPart?.DocumentSettingsPart?.GetXDocument();
+            var defaultTabStopValue = (string)sxd?.Descendants(W.defaultTabStop).Attributes(W.val).FirstOrDefault();
             var defaultTabStop = defaultTabStopValue != null ? WordprocessingMLUtil.StringToTwips(defaultTabStopValue) : 720;
 
-            var pxd = wordDoc.MainDocumentPart.GetXDocument();
-            var root = pxd.Root;
+            var pxd = wordDoc.MainDocumentPart?.GetXDocument();
+            var root = pxd?.Root;
             if (root == null)
             {
                 return;
@@ -1882,7 +1881,7 @@ namespace Codeuctivity.OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
 
             var newRoot = (XElement)CalculateSpanWidthTransform(root, defaultTabStop);
             root.ReplaceWith(newRoot);
-            wordDoc.MainDocumentPart.PutXDocument();
+            wordDoc.MainDocumentPart?.PutXDocument();
         }
 
         private static object CalculateSpanWidthTransform(XNode node, int defaultTabStop)
@@ -2295,7 +2294,7 @@ namespace Codeuctivity.OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
         }
 
         private static readonly HashSet<string> UnknownFonts = new HashSet<string>();
-        private static HashSet<string> _knownFamilies;
+        private static HashSet<string>? _knownFamilies;
 
         private static HashSet<string> KnownFamilies
         {
@@ -2503,16 +2502,16 @@ namespace Codeuctivity.OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
             return node;
         }
 
-        private class SectionAnnotation
+        private sealed class SectionAnnotation
         {
-            public XElement SectionElement;
+            public XElement? SectionElement;
         }
 
         private static void AnnotateForSections(WordprocessingDocument wordDoc)
         {
-            var xd = wordDoc.MainDocumentPart.GetXDocument();
+            var xd = wordDoc?.MainDocumentPart?.GetXDocument();
 
-            var document = xd.Root;
+            var document = xd?.Root;
             if (document == null)
             {
                 return;
@@ -2549,7 +2548,7 @@ namespace Codeuctivity.OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
                 }
             }
 
-            var reverseDescendants = xd.Descendants().Reverse().ToList();
+            var reverseDescendants = xd?.Descendants().Reverse().ToList();
             var currentSection = InitializeSectionAnnotation(reverseDescendants);
 
             foreach (var d in reverseDescendants)
@@ -3223,7 +3222,7 @@ namespace Codeuctivity.OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
                 var rId = (string)hyperlinkElement.Attribute(R.id);
                 if (rId != null)
                 {
-                    var hyperlinkRel = wordDoc.MainDocumentPart.HyperlinkRelationships.FirstOrDefault(hlr => hlr.Id == rId);
+                    var hyperlinkRel = wordDoc.MainDocumentPart?.HyperlinkRelationships.FirstOrDefault(hlr => hlr.Id == rId);
                     if (hyperlinkRel != null)
                     {
                         hyperlinkUri = hyperlinkRel.Uri.ToString();
@@ -3248,7 +3247,7 @@ namespace Codeuctivity.OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
                 return null;
             }
 
-            var pp3 = wordDoc.MainDocumentPart.Parts.FirstOrDefault(pp => pp.RelationshipId == imageRid);
+            var pp3 = wordDoc.MainDocumentPart?.Parts.FirstOrDefault(pp => pp.RelationshipId == imageRid);
 
             if (pp3 == null)
             {
@@ -3265,20 +3264,21 @@ namespace Codeuctivity.OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
             // If the image markup points to a NULL image, then following will throw an ArgumentOutOfRangeException
             try
             {
-                imagePart = (ImagePart)wordDoc.MainDocumentPart.GetPartById(imageRid);
+                var mainDocumentPart = wordDoc.MainDocumentPart;
+                imagePart = mainDocumentPart?.GetPartById(imageRid) as ImagePart;
             }
             catch (ArgumentOutOfRangeException)
             {
                 return null;
             }
 
-            var contentType = imagePart.ContentType;
-            if (!ImageContentTypes.Contains(contentType))
+            var contentType = imagePart?.ContentType;
+            if (contentType == null || !ImageContentTypes.Contains(contentType))
             {
                 return null;
             }
 
-            using var partStream = imagePart.GetStream();
+            using var partStream = imagePart?.GetStream();
             if (extentCx != null && extentCy != null)
             {
                 var imageInfo = new ImageInfo
@@ -3311,6 +3311,7 @@ namespace Codeuctivity.OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
                 AltText = altText,
             };
             var imgElement = imageHandler.TransformImage(imageInfo2);
+
             if (hyperlinkUri != null)
             {
                 return new XElement(XhtmlNoNamespace.a, new XAttribute(XhtmlNoNamespace.href, hyperlinkUri), imgElement);
@@ -3328,7 +3329,7 @@ namespace Codeuctivity.OpenXmlPowerTools.OpenXMLWordprocessingMLToHtmlConverter
 
             try
             {
-                var pp = wordDoc.MainDocumentPart.Parts.FirstOrDefault(pp2 => pp2.RelationshipId == imageRid);
+                var pp = wordDoc.MainDocumentPart?.Parts.FirstOrDefault(pp2 => pp2.RelationshipId == imageRid);
                 if (pp == null)
                 {
                     return null;

@@ -82,12 +82,12 @@ namespace Codeuctivity.OpenXmlPowerTools
             return "{" + instrText + "}";
         }
 
-        public static void AnnotateWithFieldInfo(OpenXmlPart part)
+        public static void AnnotateWithFieldInfo(OpenXmlPart? part)
         {
             XNamespace w = "http://schemas.openxmlformats.org/wordprocessingml/2006/main";
 
-            var root = part.GetXDocument().Root;
-            var r = root.DescendantsAndSelf()
+            var root = part?.GetXDocument().Root;
+            var r = root?.DescendantsAndSelf()
                 .Rollup(
                     new FieldElementTypeStack
                     {
@@ -121,7 +121,8 @@ namespace Codeuctivity.OpenXmlPowerTools
                                     Id = s.Id + 1,
                                     FiStack = fis,
                                 };
-                            };
+                            }
+
                             if (e.Attribute(w + "fldCharType").Value == "separate")
                             {
                                 var fis = new Stack<FieldElementTypeInfo>(s.FiStack.Reverse());
@@ -141,7 +142,7 @@ namespace Codeuctivity.OpenXmlPowerTools
                             if (e.Attribute(w + "fldCharType").Value == "end")
                             {
                                 var fis = new Stack<FieldElementTypeInfo>(s.FiStack.Reverse());
-                                var wfi = fis.Pop();
+                                _ = fis.Pop();
                                 return new FieldElementTypeStack
                                 {
                                     Id = s.Id,
@@ -149,7 +150,7 @@ namespace Codeuctivity.OpenXmlPowerTools
                                 };
                             }
                         }
-                        if (s.FiStack == null || s.FiStack.Count() == 0)
+                        if (s.FiStack == null || !s.FiStack.Any())
                         {
                             return s;
                         }
@@ -204,6 +205,12 @@ namespace Codeuctivity.OpenXmlPowerTools
                         }
                         return s;
                     });
+
+            if (root is null)
+            {
+                return;
+            }
+
             var elementPlusInfo = root.DescendantsAndSelf().PtZip(r, (t1, t2) =>
             {
                 return new
@@ -285,13 +292,10 @@ namespace Codeuctivity.OpenXmlPowerTools
 
                     continue;
                 }
-                if (field[c] == '\\')
+                if (field[c] == '\\' && state == State.InQuotedToken)
                 {
-                    if (state == State.InQuotedToken)
-                    {
-                        state = State.OnBackslash;
-                        continue;
-                    }
+                    state = State.OnBackslash;
+                    continue;
                 }
                 if (state == State.OnBackslash)
                 {

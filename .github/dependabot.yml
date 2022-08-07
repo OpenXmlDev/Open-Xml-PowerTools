@@ -41,3 +41,4 @@ updates:
       - dependency-name: "Microsoft.SourceLink.GitHub"
       - dependency-name: "Codeuctivity.ImageSharpCompare"
       - dependency-name: "NUnit3TestAdapter"
+      - dependency-name: "xunit.runner.console"
