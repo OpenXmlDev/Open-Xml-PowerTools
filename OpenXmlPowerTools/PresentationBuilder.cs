@@ -1312,6 +1312,7 @@ namespace Codeuctivity.OpenXmlPowerTools
         private static void UpdateContent(IEnumerable<XElement> newContent, XName elementToModify, string oldRid, string newRid)
         {
             if (RelationshipMarkup != null)
+            {
                 foreach (var attributeName in RelationshipMarkup[elementToModify])
                 {
                     var elementsToUpdate = newContent
@@ -1322,6 +1323,7 @@ namespace Codeuctivity.OpenXmlPowerTools
                         element.Attribute(attributeName).Value = newRid;
                     }
                 }
+            }
         }
 
         private static void RemoveContent(IEnumerable<XElement> newContent, XName elementToModify, string oldRid)

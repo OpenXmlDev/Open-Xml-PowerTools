@@ -166,11 +166,16 @@ namespace Codeuctivity.OpenXmlPowerTools
                     {
                         lvl2 = Main.Lvl(i);
                         if (lvl2 != null)
+                        {
                             break;
+                        }
                     }
                 }
                 if (lvl2 != null)
+                {
                     return lvl2;
+                }
+
                 if (NumStyleLink != null)
                 {
                     var lvl = NumStyleLink.Lvl(ilvl);
