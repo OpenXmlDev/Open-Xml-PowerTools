@@ -1232,6 +1232,12 @@ namespace OpenXmlPowerTools
 
         private static void RollInDirectFormatting(XElement tbl)
         {
+            var tblBorders = tbl.Elements(PtOpenXml.pt + "tblPr").Elements(W.tblBorders).FirstOrDefault();
+            if (tblBorders != null && tblBorders.Attribute(PtOpenXml.pt + "fromDirect") != null)
+            {
+                ApplyTblBordersToTable(tbl, tblBorders);
+                ProcessInnerBordersPerTblBorders(tbl, tblBorders);
+            }
             foreach (var row in tbl.Elements(W.tr))
             {
                 foreach (var cell in row.Elements(W.tc))
@@ -1252,12 +1258,6 @@ namespace OpenXmlPowerTools
                     else
                         cell.Add(newTcPr);
                 }
-            }
-            var tblBorders = tbl.Elements(PtOpenXml.pt + "tblPr").Elements(W.tblBorders).FirstOrDefault();
-            if (tblBorders != null && tblBorders.Attribute(PtOpenXml.pt + "fromDirect") != null)
-            {
-                ApplyTblBordersToTable(tbl, tblBorders);
-                ProcessInnerBordersPerTblBorders(tbl, tblBorders);
             }
         }
 
