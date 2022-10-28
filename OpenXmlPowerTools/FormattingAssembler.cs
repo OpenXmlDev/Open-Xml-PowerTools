@@ -1240,9 +1240,14 @@ namespace OpenXmlPowerTools
             }
             foreach (var row in tbl.Elements(W.tr))
             {
+                XElement tblPrEx = row.Element(W.tblPrEx);
                 foreach (var cell in row.Elements(W.tc))
                 {
                     var ptTcPr = cell.Element(PtOpenXml.pt + "tcPr");
+                    if (tblPrEx != null && tblPrEx.Element(W.tblBorders) != null)
+                    {
+                        ptTcPr.Elements(W.tcBorders).Remove();
+                    }
                     var tcPr = cell.Element(W.tcPr);
                     var mTcPr = MergeStyleElement(tcPr, ptTcPr);
                     if (mTcPr == null)
