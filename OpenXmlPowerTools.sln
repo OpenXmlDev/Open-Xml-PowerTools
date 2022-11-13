@@ -76,10 +76,12 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{9AFB8C96-1E6E-483E-9882-75D2483E7076}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
+		.github\workflows\cla.yml = .github\workflows\cla.yml
 		.github\dependabot.yml = .github\dependabot.yml
 		.github\workflows\dotnet.yml = .github\workflows\dotnet.yml
 		LICENSE.md = LICENSE.md
 		README.md = README.md
+		.github\workflows\stale.yml = .github\workflows\stale.yml
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MarkupSimplifierApp", "OpenXmlPowerToolsExamples\MarkupSimplifierApp\MarkupSimplifierApp.csproj", "{6731E031-9C81-48FB-97A7-0E945993BCE2}"
