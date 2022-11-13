@@ -4,12 +4,17 @@
 
 This is a fork of https://www.nuget.org/packages/OpenXmlPowerTools/
 
-## Features
+## Focus of this fork
 
-### Focus of this fork
-
-- Linux and Windows support
 - Conversion of DOCX to HTML/CSS
+- Linux and Windows support
+
+## Known missing features - Conversion of DOCX to HTML/CSS
+
+- [floating settings of images are ignored](https://stackoverflow.com/questions/70277539/how-to-handle-floating-images-in-openxml-and-convert-to-html-equivalent/73639409#73639409)
+- [W.oMath](https://github.com/Codeuctivity/OpenXmlToHtml/issues/74)
+- many more
+
 
 ## Example - Convert DOCX to HTML
 
@@ -24,7 +29,7 @@ var htmlString = html.ToString(SaveOptions.DisableFormatting);
 File.WriteAllText("./target.html", htmlString, Encoding.UTF8);
 ```
 
-### Other features (contribution wanted)
+### Other features
 
 - Splitting DOCX/PPTX files into multiple files.
 - Combining multiple DOCX/PPTX files into a single file.
