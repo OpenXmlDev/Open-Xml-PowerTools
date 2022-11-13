@@ -1364,11 +1364,22 @@ namespace Codeuctivity.OpenXmlPowerTools
 
         private static void RollInDirectFormatting(XElement tbl)
         {
+            var tblBorders = tbl.Elements(PtOpenXml.pt + "tblPr").Elements(W.tblBorders).FirstOrDefault();
+            if (tblBorders != null && tblBorders.Attribute(PtOpenXml.pt + "fromDirect") != null)
+            {
+                ApplyTblBordersToTable(tbl, tblBorders);
+                ProcessInnerBordersPerTblBorders(tbl, tblBorders);
+            }
             foreach (var row in tbl.Elements(W.tr))
             {
+                XElement tblPrEx = row.Element(W.tblPrEx);
                 foreach (var cell in row.Elements(W.tc))
                 {
                     var ptTcPr = cell.Element(PtOpenXml.pt + "tcPr");
+                    if (tblPrEx != null && tblPrEx.Element(W.tblBorders) != null)
+                    {
+                        ptTcPr.Elements(W.tcBorders).Remove();
+                    }
                     var tcPr = cell.Element(W.tcPr);
                     var mTcPr = MergeStyleElement(tcPr, ptTcPr);
                     if (mTcPr == null)
@@ -1390,12 +1401,6 @@ namespace Codeuctivity.OpenXmlPowerTools
                         cell.Add(newTcPr);
                     }
                 }
-            }
-            var tblBorders = tbl.Elements(PtOpenXml.pt + "tblPr").Elements(W.tblBorders).FirstOrDefault();
-            if (tblBorders != null && tblBorders.Attribute(PtOpenXml.pt + "fromDirect") != null)
-            {
-                ApplyTblBordersToTable(tbl, tblBorders);
-                ProcessInnerBordersPerTblBorders(tbl, tblBorders);
             }
         }
 
