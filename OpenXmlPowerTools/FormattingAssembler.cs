@@ -1262,6 +1262,44 @@ namespace OpenXmlPowerTools
                         existing.ReplaceWith(newTcPr);
                     else
                         cell.Add(newTcPr);
+
+                    XElement rightCell = cell.ElementsAfterSelf().FirstOrDefault();
+                    if (rightCell != null)
+                    {
+                        RationalizeLeftAndRightCellBorders(cell, rightCell);
+                    }
+                }
+            }
+        }
+
+        private static void RationalizeLeftAndRightCellBorders(XElement leftCell, XElement rightCell)
+        {
+            XElement leftTcBorders = leftCell.Elements(W.tcPr).Elements(W.tcBorders).FirstOrDefault();
+            XElement rightTcBorders = rightCell.Elements(W.tcPr).Elements(W.tcBorders).FirstOrDefault();
+            if (leftTcBorders != null && rightTcBorders != null)
+            {
+                XElement rightBorderOfLeft = leftTcBorders.Element(W.right);
+                XElement leftBorderOfRight = rightTcBorders.Element(W.left);
+                if (rightBorderOfLeft == null && leftBorderOfRight != null)
+                {
+                    leftTcBorders.Add(new XElement(W.right, leftBorderOfRight.Attributes()));
+                }
+                else if (rightBorderOfLeft != null && leftBorderOfRight == null)
+                {
+                    leftTcBorders.Add(new XElement(W.left, rightBorderOfLeft.Attributes()));
+                }
+                else
+                {
+                    string rightBorderOfLeftVal = (string)rightBorderOfLeft.Attribute(W.val);
+                    string leftBorderOfRightVal = (string)leftBorderOfRight.Attribute(W.val);
+                    if (rightBorderOfLeftVal == "nil")
+                    {
+                        rightBorderOfLeft.ReplaceWith(new XElement(W.right, leftBorderOfRight.Attributes()));
+                    }
+                    else if (leftBorderOfRightVal == "nil")
+                    {
+                        leftBorderOfRight.ReplaceWith(new XElement(W.left, rightBorderOfLeft.Attributes()));
+                    }
                 }
             }
         }
