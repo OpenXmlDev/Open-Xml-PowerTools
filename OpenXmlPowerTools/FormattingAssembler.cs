@@ -1274,6 +1274,10 @@ namespace OpenXmlPowerTools
 
         private static void RationalizeLeftAndRightCellBorders(XElement leftCell, XElement rightCell)
         {
+            if (leftCell == null || rightCell == null)
+            {
+                return;
+            }
             XElement leftTcBorders = leftCell.Elements(W.tcPr).Elements(W.tcBorders).FirstOrDefault();
             XElement rightTcBorders = rightCell.Elements(W.tcPr).Elements(W.tcBorders).FirstOrDefault();
             if (leftTcBorders != null && rightTcBorders != null)
@@ -1288,7 +1292,7 @@ namespace OpenXmlPowerTools
                 {
                     leftTcBorders.Add(new XElement(W.left, rightBorderOfLeft.Attributes()));
                 }
-                else
+                else if (rightBorderOfLeft != null && leftBorderOfRight != null)
                 {
                     string rightBorderOfLeftVal = (string)rightBorderOfLeft.Attribute(W.val);
                     string leftBorderOfRightVal = (string)leftBorderOfRight.Attribute(W.val);
