@@ -1233,11 +1233,8 @@ namespace OpenXmlPowerTools
         private static void RollInDirectFormatting(XElement tbl)
         {
             var tblBorders = tbl.Elements(PtOpenXml.pt + "tblPr").Elements(W.tblBorders).FirstOrDefault();
-            if (tblBorders != null && tblBorders.Attribute(PtOpenXml.pt + "fromDirect") != null)
-            {
-                ApplyTblBordersToTable(tbl, tblBorders);
-                ProcessInnerBordersPerTblBorders(tbl, tblBorders);
-            }
+            ApplyTblBordersToTable(tbl, tblBorders);
+            ProcessInnerBordersPerTblBorders(tbl, tblBorders);
             foreach (var row in tbl.Elements(W.tr))
             {
                 XElement tblPrEx = row.Element(W.tblPrEx);
@@ -1861,7 +1858,11 @@ namespace OpenXmlPowerTools
             }
             var lpe = lowerPriorityElement
                 .Elements()
-                .Where(e => !SpecialCaseChildProperties.Contains(e.Name) && !hpe.Select(z => z.Name).Contains(e.Name))
+                .Where(e => !SpecialCaseChildProperties.Contains(e.Name) && (!hpe.Select(z => z.Name).Contains(e.Name) || e.Attribute(PtOpenXml.pt + "fromDirect") != null))
+                .ToArray();
+            // now filter out any hpe where lpe contains the value, since it was from direct formatting
+            hpe = hpe
+                .Where(e => !lpe.Any(z => z.Name == e.Name))
                 .ToArray();
             var ma = SpacingMerge(higherPriorityElement.Element(W.spacing), lowerPriorityElement.Element(W.spacing));
             var rFonts = FontMerge(higherPriorityElement.Element(W.rFonts), lowerPriorityElement.Element(W.rFonts));
