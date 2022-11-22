@@ -1233,8 +1233,11 @@ namespace OpenXmlPowerTools
         private static void RollInDirectFormatting(XElement tbl)
         {
             var tblBorders = tbl.Elements(PtOpenXml.pt + "tblPr").Elements(W.tblBorders).FirstOrDefault();
-            ApplyTblBordersToTable(tbl, tblBorders);
-            ProcessInnerBordersPerTblBorders(tbl, tblBorders);
+            if (tblBorders != null)
+            {
+                ApplyTblBordersToTable(tbl, tblBorders);
+                ProcessInnerBordersPerTblBorders(tbl, tblBorders);
+            }
             foreach (var row in tbl.Elements(W.tr))
             {
                 XElement tblPrEx = row.Element(W.tblPrEx);
