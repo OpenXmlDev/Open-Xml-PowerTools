@@ -28,6 +28,8 @@ updates:
     schedule:
       interval: "daily"
     ignore:
+      - dependency-name: "coverlet.collector"
+      - dependency-name: "Codeuctivity.HtmlRenderer"
       - dependency-name: "nunit"
       - dependency-name: "SonarAnalyzer.CSharp"
       - dependency-name: "AngleSharp"
