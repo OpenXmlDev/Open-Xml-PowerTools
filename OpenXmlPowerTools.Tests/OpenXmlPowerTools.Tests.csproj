@@ -7,7 +7,7 @@
     <EnableNETAnalyzers>true</EnableNETAnalyzers>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Codeuctivity.HtmlRenderer" Version="2.1.86" />
+    <PackageReference Include="Codeuctivity.HtmlRenderer" Version="2.1.129" />
     <PackageReference Include="Codeuctivity.ImageSharpCompare" Version="2.0.76" />
     <PackageReference Include="coverlet.collector" Version="3.2.0">
       <PrivateAssets>all</PrivateAssets>
