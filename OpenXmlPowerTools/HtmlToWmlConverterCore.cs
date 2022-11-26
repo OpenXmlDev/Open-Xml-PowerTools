@@ -109,6 +109,7 @@ using OpenXmlPowerTools;
 using OpenXmlPowerTools.HtmlToWml;
 using OpenXmlPowerTools.HtmlToWml.CSS;
 using System.Text.RegularExpressions;
+using System.Globalization;
 
 namespace OpenXmlPowerTools.HtmlToWml
 {
@@ -4130,7 +4131,8 @@ namespace OpenXmlPowerTools.HtmlToWml
                 double size = 0;
                 if (term.Unit == CssUnit.PT)
                 {
-                    if (double.TryParse(term.Value, out size))
+                    // According to: https://www.w3.org/TR/css-values-4/#number
+                    if (double.TryParse(term.Value, NumberStyles.AllowDecimalPoint | NumberStyles.AllowExponent | NumberStyles.AllowLeadingSign | NumberStyles.AllowLeadingWhite, CultureInfo.CurrentCulture, out size))
                         return new TPoint(size);
                     return null;
                 }
