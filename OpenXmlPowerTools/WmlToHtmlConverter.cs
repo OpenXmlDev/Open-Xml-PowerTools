@@ -3061,6 +3061,10 @@ namespace OpenXmlPowerTools
             var pp3 = wordDoc.MainDocumentPart.Parts.FirstOrDefault(pp => pp.RelationshipId == imageRid);
             if (pp3 == null) return null;
 
+            if (!(pp3.OpenXmlPart is ImagePart))
+            {
+                return null;
+            }
             var imagePart = (ImagePart)pp3.OpenXmlPart;
             if (imagePart == null) return null;
 
