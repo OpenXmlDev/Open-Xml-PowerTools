@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Xml.Linq;
@@ -118,9 +119,18 @@ namespace OpenXmlPowerTools
 
     [SuppressMessage("ReSharper", "NotAccessedField.Global")]
     [SuppressMessage("ReSharper", "UnusedMember.Global")]
-    public class ImageInfo
+    public class ImageInfo : IDisposable
     {
-        public Bitmap Bitmap;
+        public ImageInfo()
+        {
+            m_bitmap = new Lazy<Bitmap>(() => new Bitmap(new MemoryStream(ImageBytes)));
+        }
+        
+        private readonly Lazy<Bitmap> m_bitmap;
+        public Bitmap Bitmap => m_bitmap.Value;
+
+        public byte[] ImageBytes;
+        
         public XAttribute ImgStyleAttribute;
         public string ContentType;
         public XElement DrawingElement;
@@ -128,6 +138,14 @@ namespace OpenXmlPowerTools
 
         public const int EmusPerInch = 914400;
         public const int EmusPerCm = 360000;
+
+        public void Dispose()
+        {
+            if (m_bitmap.IsValueCreated)
+            {
+                m_bitmap.Value.Dispose();
+            }
+        }
     }
 
     public static class WmlToHtmlConverter
@@ -3078,48 +3096,54 @@ namespace OpenXmlPowerTools
             if (!ImageContentTypes.Contains(contentType))
                 return null;
 
+            
+            var memoryStream = new MemoryStream();
             using (var partStream = imagePart.GetStream())
-            using (var bitmap = new Bitmap(partStream))
             {
+                partStream.CopyTo(memoryStream);
+                var imageBytes = memoryStream.ToArray();
+                
                 if (extentCx != null && extentCy != null)
                 {
-                    var imageInfo = new ImageInfo()
-                    {
-                        Bitmap = bitmap,
-                        ImgStyleAttribute = new XAttribute("style",
-                            string.Format(NumberFormatInfo.InvariantInfo,
-                                "width: {0}in; height: {1}in",
-                                (float)extentCx / (float)ImageInfo.EmusPerInch,
-                                (float)extentCy / (float)ImageInfo.EmusPerInch)),
-                        ContentType = contentType,
-                        DrawingElement = element,
-                        AltText = altText,
-                    };
-                    var imgElement2 = imageHandler(imageInfo);
+                    using (var imageInfo = new ImageInfo
+                           {
+                               ImageBytes = imageBytes,
+                               ImgStyleAttribute = new XAttribute("style",
+                                   string.Format(NumberFormatInfo.InvariantInfo,
+                                       "width: {0}in; height: {1}in",
+                                       (float)extentCx / (float)ImageInfo.EmusPerInch,
+                                       (float)extentCy / (float)ImageInfo.EmusPerInch)),
+                               ContentType = contentType,
+                               DrawingElement = element,
+                               AltText = altText,
+                           })
+                    { 
+                        var imgElement2 = imageHandler(imageInfo);
+                        if (hyperlinkUri != null)
+                        {
+                            return new XElement(XhtmlNoNamespace.a, new XAttribute(XhtmlNoNamespace.href, hyperlinkUri), imgElement2);
+                        } 
+                        return imgElement2;   
+                    }
+                }
+
+                using (var imageInfo2 = new ImageInfo()
+                {
+                    ImageBytes = imageBytes,
+                    ContentType = contentType,
+                    DrawingElement = element,
+                    AltText = altText,
+                })
+                {
+                    var imgElement = imageHandler(imageInfo2);
                     if (hyperlinkUri != null)
                     {
                         return new XElement(XhtmlNoNamespace.a,
                             new XAttribute(XhtmlNoNamespace.href, hyperlinkUri),
-                            imgElement2);
+                            imgElement);
                     }
-                    return imgElement2;
+                    return imgElement;
                 }
-
-                var imageInfo2 = new ImageInfo()
-                {
-                    Bitmap = bitmap,
-                    ContentType = contentType,
-                    DrawingElement = element,
-                    AltText = altText,
-                };
-                var imgElement = imageHandler(imageInfo2);
-                if (hyperlinkUri != null)
-                {
-                    return new XElement(XhtmlNoNamespace.a,
-                        new XAttribute(XhtmlNoNamespace.href, hyperlinkUri),
-                        imgElement);
-                }
-                return imgElement;
             }
         }
 
@@ -3145,18 +3169,18 @@ namespace OpenXmlPowerTools
                 {
                     try
                     {
-                        using (var bitmap = new Bitmap(partStream))
+                        var memoryStream = new MemoryStream();
+                        partStream.CopyTo(memoryStream);
+                        using (var imageInfo = new ImageInfo()
                         {
-                            var imageInfo = new ImageInfo()
-                            {
-                                Bitmap = bitmap,
-                                ContentType = contentType,
-                                DrawingElement = element
-                            };
-
+                            ImageBytes = memoryStream.ToArray(),
+                            ContentType = contentType,
+                            DrawingElement = element
+                        })
+                        {
                             var style = (string)element.Elements(VML.shape).Attributes("style").FirstOrDefault();
                             if (style == null) return imageHandler(imageInfo);
-
+    
                             var tokens = style.Split(';');
                             var widthInPoints = WidthInPoints(tokens);
                             var heightInPoints = HeightInPoints(tokens);
