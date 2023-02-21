@@ -46,7 +46,7 @@ namespace Codeuctivity.Tests.OpenXMLWordprocessingMLToHtmlConverter
         [InlineData("HC028-No-Break-Hyphen.docx", 0, false)]
         [InlineData("HC029-Table-Merged-Cells.docx", 30000, false)]
         [InlineData("HC030-Content-Controls.docx", 0, false)]
-        [InlineData("HC031-Complicated-Document.docx", 0, false)]
+        [InlineData("HC031-Complicated-Document.docx", 5000, false)]
         [InlineData("HC032-Named-Color.docx", 0, false)]
         [InlineData("HC033-Run-With-Border.docx", 5000, false)]
         [InlineData("HC034-Run-With-Position.docx", 0, false)]
