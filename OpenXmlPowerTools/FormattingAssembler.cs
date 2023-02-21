@@ -1365,7 +1365,7 @@ namespace Codeuctivity.OpenXmlPowerTools
         private static void RollInDirectFormatting(XElement tbl)
         {
             var tblBorders = tbl.Elements(PtOpenXml.pt + "tblPr").Elements(W.tblBorders).FirstOrDefault();
-            if (tblBorders != null && tblBorders.Attribute(PtOpenXml.pt + "fromDirect") != null)
+            if (tblBorders != null)
             {
                 ApplyTblBordersToTable(tbl, tblBorders);
                 ProcessInnerBordersPerTblBorders(tbl, tblBorders);
@@ -1399,6 +1399,48 @@ namespace Codeuctivity.OpenXmlPowerTools
                     else
                     {
                         cell.Add(newTcPr);
+                    }
+
+                    XElement rightCell = cell.ElementsAfterSelf().FirstOrDefault();
+                    if (rightCell != null)
+                    {
+                        RationalizeLeftAndRightCellBorders(cell, rightCell);
+                    }
+                }
+            }
+        }
+
+        private static void RationalizeLeftAndRightCellBorders(XElement leftCell, XElement rightCell)
+        {
+            if (leftCell == null || rightCell == null)
+            {
+                return;
+            }
+            XElement leftTcBorders = leftCell.Elements(W.tcPr).Elements(W.tcBorders).FirstOrDefault();
+            XElement rightTcBorders = rightCell.Elements(W.tcPr).Elements(W.tcBorders).FirstOrDefault();
+            if (leftTcBorders != null && rightTcBorders != null)
+            {
+                XElement rightBorderOfLeft = leftTcBorders.Element(W.right);
+                XElement leftBorderOfRight = rightTcBorders.Element(W.left);
+                if (rightBorderOfLeft == null && leftBorderOfRight != null)
+                {
+                    leftTcBorders.Add(new XElement(W.right, leftBorderOfRight.Attributes()));
+                }
+                else if (rightBorderOfLeft != null && leftBorderOfRight == null)
+                {
+                    leftTcBorders.Add(new XElement(W.left, rightBorderOfLeft.Attributes()));
+                }
+                else if (rightBorderOfLeft != null && leftBorderOfRight != null)
+                {
+                    string rightBorderOfLeftVal = (string)rightBorderOfLeft.Attribute(W.val);
+                    string leftBorderOfRightVal = (string)leftBorderOfRight.Attribute(W.val);
+                    if (rightBorderOfLeftVal == "nil")
+                    {
+                        rightBorderOfLeft.ReplaceWith(new XElement(W.right, leftBorderOfRight.Attributes()));
+                    }
+                    else if (leftBorderOfRightVal == "nil")
+                    {
+                        leftBorderOfRight.ReplaceWith(new XElement(W.left, rightBorderOfLeft.Attributes()));
                     }
                 }
             }
@@ -2033,7 +2075,11 @@ namespace Codeuctivity.OpenXmlPowerTools
             }
             var lpe = lowerPriorityElement
                 .Elements()
-                .Where(e => !SpecialCaseChildProperties.Contains(e.Name) && !hpe.Select(z => z.Name).Contains(e.Name))
+                .Where(e => !SpecialCaseChildProperties.Contains(e.Name) && (!hpe.Select(z => z.Name).Contains(e.Name) || e.Attribute(PtOpenXml.pt + "fromDirect") != null))
+                .ToArray();
+            // now filter out any hpe where lpe contains the value, since it was from direct formatting
+            hpe = hpe
+                .Where(e => !lpe.Any(z => z.Name == e.Name))
                 .ToArray();
             var ma = SpacingMerge(higherPriorityElement.Element(W.spacing), lowerPriorityElement.Element(W.spacing));
             var rFonts = FontMerge(higherPriorityElement.Element(W.rFonts), lowerPriorityElement.Element(W.rFonts));
