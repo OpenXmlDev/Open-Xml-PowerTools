@@ -153,7 +153,8 @@ namespace Codeuctivity.Tests.OpenXMLWordprocessingMLToHtmlConverter
 
             if (!ImageSharpCompare.ImageSharpCompare.ImagesHaveEqualSize(actualFullPath, expectFullPath))
             {
-                Assert.True(false, $"Actual Dimension differs from expected \nExpected {expectFullPath}\ndiffers to actual {actualFullPath} \nReplace {expectFullPath} with the new value.");
+                SaveToGithubActionsPickupTestresultsDirectory(actualFullPath, expectFullPath);
+                Assert.Fail($"Actual Dimension differs from expected \nExpected {expectFullPath}\ndiffers to actual {actualFullPath} \nReplace {expectFullPath} with the new value.");
             }
 
             using (var maskImage = ImageSharpCompare.ImageSharpCompare.CalcDiffMaskImage(actualFullPath, expectFullPath))
@@ -174,13 +175,48 @@ namespace Codeuctivity.Tests.OpenXMLWordprocessingMLToHtmlConverter
 
                 var resultWithAllowedDiff = ImageSharpCompare.ImageSharpCompare.CalcDiff(actualFullPath, expectFullPath, allowedDiffImage);
 
-                Assert.True(resultWithAllowedDiff.PixelErrorCount <= allowedPixelErrorCount, $"Expected PixelErrorCount beyond {allowedPixelErrorCount} but was {resultWithAllowedDiff.PixelErrorCount}\nExpected {expectFullPath}\ndiffers to actual {actualFullPath}\n Diff is {newDiffImage}\n");
+                var condition = resultWithAllowedDiff.PixelErrorCount <= allowedPixelErrorCount;
+                if (condition)
+                {
+                    SaveToGithubActionsPickupTestresultsDirectory(actualFullPath, expectFullPath);
+                    Assert.Fail($"Expected PixelErrorCount beyond {allowedPixelErrorCount} but was {resultWithAllowedDiff.PixelErrorCount}\nExpected {expectFullPath}\ndiffers to actual {actualFullPath}\n Diff is {newDiffImage}\n");
+                }
                 return;
             }
 
             var result = ImageSharpCompare.ImageSharpCompare.CalcDiff(actualFullPath, expectFullPath);
 
-            Assert.True(result.PixelErrorCount <= allowedPixelErrorCount, $"Expected PixelErrorCount beyond {allowedPixelErrorCount} but was {result.PixelErrorCount}\nExpected {expectFullPath}\ndiffers to actual {actualFullPath}\n Diff is {newDiffImage} \nReplace {actualFullPath} with the new value or store the diff as {allowedDiffImage}.");
+            var diffIsBeyondThreshold = result.PixelErrorCount <= allowedPixelErrorCount;
+            if (diffIsBeyondThreshold)
+            {
+                SaveToGithubActionsPickupTestresultsDirectory(actualFullPath, expectFullPath);
+
+                Assert.Fail($"Expected PixelErrorCount beyond {allowedPixelErrorCount} but was {result.PixelErrorCount}\nExpected {expectFullPath}\ndiffers to actual {actualFullPath}\n Diff is {newDiffImage} \nReplace {actualFullPath} with the new value or store the diff as {allowedDiffImage}.");
+            }
+        }
+
+        private static void SaveToGithubActionsPickupTestresultsDirectory(string actualFullPath, string expectFullPath)
+        {
+            var fileName = Path.GetFileName(actualFullPath);
+            var expectFullDirectory = Path.GetDirectoryName(expectFullPath);
+            var expectFullDirectoryFullPath = Path.GetFullPath(expectFullDirectory);
+
+            var testResultDirectoryActual = Path.Combine(expectFullDirectoryFullPath, "../TestResult/Actual");
+            var testResultDirectoryExpected = Path.Combine(expectFullDirectoryFullPath, "../TestResult/Expected");
+            CreateDirectory(Path.Combine(expectFullDirectoryFullPath, "../TestResult"));
+            CreateDirectory(testResultDirectoryActual);
+            CreateDirectory(testResultDirectoryExpected);
+
+            File.Copy(actualFullPath, Path.Combine(testResultDirectoryActual, fileName));
+            File.Copy(expectFullPath, Path.Combine(testResultDirectoryExpected, fileName));
+
+            static void CreateDirectory(string testResultDirectory)
+            {
+                if (!Directory.Exists(testResultDirectory))
+                {
+                    Directory.CreateDirectory(testResultDirectory);
+                }
+            }
         }
     }
 }

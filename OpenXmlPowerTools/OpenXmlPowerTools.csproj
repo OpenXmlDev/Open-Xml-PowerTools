@@ -49,7 +49,7 @@
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
 		<PackageReference Include="SixLabors.ImageSharp.Drawing" Version="1.0.0-beta15" />
-		<PackageReference Include="SonarAnalyzer.CSharp" Version="8.48.0.56517">
+		<PackageReference Include="SonarAnalyzer.CSharp" Version="8.53.0.62665">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
