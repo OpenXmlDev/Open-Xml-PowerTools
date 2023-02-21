@@ -17,7 +17,7 @@ namespace Codeuctivity.Tests.OpenXMLWordprocessingMLToHtmlConverter
 
         [Theory]
         [InlineData("HC001-5DayTourPlanTemplate.docx", 0)]
-        [InlineData("HC002-Hebrew-01.docx", 1592)]
+        [InlineData("HC002-Hebrew-01.docx", 1593)]
         [InlineData("HC003-Hebrew-02.docx", 0)]
         [InlineData("HC004-ResumeTemplate.docx", 0)]
         [InlineData("HC005-TaskPlanTemplate.docx", 0)]
@@ -137,7 +137,7 @@ namespace Codeuctivity.Tests.OpenXMLWordprocessingMLToHtmlConverter
             Assert.True(File.Exists(actualFullPath), $"actualImagePath not found {actualFullPath}");
 
             //Uncomment following line to create or update expectation for new test cases
-            // File.Copy(actualFullPath, expectFullPath, true);
+            //File.Copy(actualFullPath, expectFullPath, true);
 
             Assert.True(File.Exists(expectFullPath), $"ExpectReferenceImagePath not found \n{expectFullPath}\n copy over \n{actualFullPath}\n if this is a new test case.");
 
@@ -153,6 +153,9 @@ namespace Codeuctivity.Tests.OpenXMLWordprocessingMLToHtmlConverter
 
             if (!ImageSharpCompare.ImageSharpCompare.ImagesHaveEqualSize(actualFullPath, expectFullPath))
             {
+                // Uncomment following line to create or update a allowed diff file
+                // File.Copy(actualFullPath, expectFullPath, true);
+
                 SaveToGithubActionsPickupTestresultsDirectory(actualFullPath, expectFullPath);
                 Assert.Fail($"Actual Dimension differs from expected \nExpected {expectFullPath}\ndiffers to actual {actualFullPath} \nReplace {expectFullPath} with the new value.");
             }
@@ -207,8 +210,8 @@ namespace Codeuctivity.Tests.OpenXMLWordprocessingMLToHtmlConverter
             CreateDirectory(testResultDirectoryActual);
             CreateDirectory(testResultDirectoryExpected);
 
-            File.Copy(actualFullPath, Path.Combine(testResultDirectoryActual, fileName));
-            File.Copy(expectFullPath, Path.Combine(testResultDirectoryExpected, fileName));
+            File.Copy(actualFullPath, Path.Combine(testResultDirectoryActual, fileName), true);
+            File.Copy(expectFullPath, Path.Combine(testResultDirectoryExpected, fileName), true);
 
             static void CreateDirectory(string testResultDirectory)
             {

@@ -40,3 +40,5 @@ TestResults/
 # JetBrains
 .idea/
 _ReSharper.Caches/
+
+TestResult/
