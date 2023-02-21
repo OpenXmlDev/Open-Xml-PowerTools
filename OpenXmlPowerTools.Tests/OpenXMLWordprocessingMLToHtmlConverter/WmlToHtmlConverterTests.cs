@@ -178,19 +178,19 @@ namespace Codeuctivity.Tests.OpenXMLWordprocessingMLToHtmlConverter
 
                 var resultWithAllowedDiff = ImageSharpCompare.ImageSharpCompare.CalcDiff(actualFullPath, expectFullPath, allowedDiffImage);
 
-                var condition = resultWithAllowedDiff.PixelErrorCount <= allowedPixelErrorCount;
-                if (condition)
+                var pixelErrorCountAboveExpectedWithDiff = resultWithAllowedDiff.PixelErrorCount > allowedPixelErrorCount;
+                if (pixelErrorCountAboveExpectedWithDiff)
                 {
                     SaveToGithubActionsPickupTestresultsDirectory(actualFullPath, expectFullPath);
-                    Assert.Fail($"Expected PixelErrorCount beyond {allowedPixelErrorCount} but was {resultWithAllowedDiff.PixelErrorCount}\nExpected {expectFullPath}\ndiffers to actual {actualFullPath}\n Diff is {newDiffImage}\n");
+                    Assert.Fail($"Expected PixelErrorCount beyond {allowedPixelErrorCount} but was {resultWithAllowedDiff.PixelErrorCount}\nExpected {expectFullPath}\ndiffers to actual {actualFullPath}\n diff is {newDiffImage}\n");
                 }
                 return;
             }
 
             var result = ImageSharpCompare.ImageSharpCompare.CalcDiff(actualFullPath, expectFullPath);
 
-            var diffIsBeyondThreshold = result.PixelErrorCount <= allowedPixelErrorCount;
-            if (diffIsBeyondThreshold)
+            var pixelErrorCountAboveExpected = result.PixelErrorCount > allowedPixelErrorCount;
+            if (pixelErrorCountAboveExpected)
             {
                 SaveToGithubActionsPickupTestresultsDirectory(actualFullPath, expectFullPath);
 
