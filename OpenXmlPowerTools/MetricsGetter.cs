@@ -821,7 +821,7 @@ namespace OpenXmlPowerTools
             {
                 var styleChain = item.Split('/');
                 XElement elementToAddTo = styleHierarchy;
-                foreach (var inChain in styleChain.SkipLast(1))
+                foreach (var inChain in styleChain.PtSkipLast(1))
                     elementToAddTo = elementToAddTo.Elements(H.Style).FirstOrDefault(z => z.Attribute(H.Id).Value == inChain);
                 var styleToAdd = styleChain.Last();
                 elementToAddTo.Add(
