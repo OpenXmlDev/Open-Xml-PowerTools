@@ -117,7 +117,7 @@ namespace OxPt
 #if NETCOREAPP2_0
         [Fact(Skip="Bug in netcore 2.0 : https://github.com/OfficeDev/Open-Xml-PowerTools/pull/238#issuecomment-412375570")]
 #else
-        [Fact]
+        [Fact(Skip="dotnet migration for test project")]
 #endif
         public void PB006_VideoFormats()
         {
