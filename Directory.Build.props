@@ -32,8 +32,8 @@
     <When Condition=" '$(ProjectLoadStyle)' == 'netstandard2_0' ">
       <PropertyGroup>
         <ProductTargetFrameworks>netstandard2.0</ProductTargetFrameworks>
-        <TestTargetFrameworks>net5.0</TestTargetFrameworks>
-        <SamplesFrameworks>net5.0</SamplesFrameworks>
+        <TestTargetFrameworks>net6.0</TestTargetFrameworks>
+        <SamplesFrameworks>net6.0</SamplesFrameworks>
       </PropertyGroup>
       <ItemGroup>
         <PackageReference Include="DocumentFormat.OpenXml" Version="$(DocumentFormatOpenXmlVersion)" />
@@ -61,8 +61,8 @@
           (tracked at https://github.com/dotnet/project-system/issues/1519)
         -->
         <ProductTargetFrameworks>netstandard2.0;net461</ProductTargetFrameworks>
-        <TestTargetFrameworks>net461;net5.0</TestTargetFrameworks>
-        <SamplesFrameworks>net461;net5.0</SamplesFrameworks>
+        <TestTargetFrameworks>net461;net6.0</TestTargetFrameworks>
+        <SamplesFrameworks>net461;net6.0</SamplesFrameworks>
       </PropertyGroup>
       <ItemGroup>
         <PackageReference Include="DocumentFormat.OpenXml" Version="$(DocumentFormatOpenXmlVersion)" />
@@ -76,8 +76,8 @@
     <Otherwise>
       <PropertyGroup>
         <ProductTargetFrameworks>netstandard2.0</ProductTargetFrameworks>
-        <TestTargetFrameworks>net5.0</TestTargetFrameworks>
-        <SamplesFrameworks>net5.0</SamplesFrameworks>
+        <TestTargetFrameworks>net6.0</TestTargetFrameworks>
+        <SamplesFrameworks>net6.0</SamplesFrameworks>
         <__InvalidProjectLoadStyle>true</__InvalidProjectLoadStyle>
       </PropertyGroup>
       <ItemGroup>
