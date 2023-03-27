@@ -7,7 +7,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\OpenXmlPowerTools\OpenXmlPowerTools.csproj" />
-    <PackageReference Include="DocumentFormat.OpenXml" Version="2.14.0" />
   </ItemGroup>
 
   <ItemGroup>
