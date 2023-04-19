@@ -1,0 +1,4 @@
+﻿[*.cs]
+
+# SA1626: Single-line comments should not use documentation style slashes
+dotnet_diagnostic.SA1626.severity = suggestion

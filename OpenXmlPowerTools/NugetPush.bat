@@ -1,2 +1,2 @@
-nuget push C:\Work\github\Open-Xml-PowerTools\OpenXmlPowerTools\bin\Release\*.nupkg -ApiKey 123.123a -Source http://nuget.cefcfco.com 
-pause 
+dotnet nuget push .\bin\Release\*.nupkg -k 123.123a -s http://nuget.cefcfco.com
+pause
