@@ -1,11 +1,12 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0</TargetFrameworks>
-    <Version>4.5.7</Version>
+    <Version>4.5.8</Version>
     <Authors>yitian.chen</Authors>
     <Company>yitian.chen</Company>
     <PackageId>OpenXmlPowerTools-HrRd</PackageId>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <IsPublishable>True</IsPublishable>
   </PropertyGroup>
 
   <ItemGroup>
