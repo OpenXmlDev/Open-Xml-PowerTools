@@ -63,7 +63,7 @@ namespace OpenXmlPowerTools
         /// 组合图表中，第二个图表的序列索引.
         /// 这些序列数据会被复制到第二个图表的序列中.
         /// </summary>
-        public int[] SecondChartSeriesIndex;
+        public Dictionary<string, string> SecondChartSeriesNames { get; set; } = new Dictionary<string, string>();
 
         public XName SecondChartType;
     }
@@ -102,61 +102,14 @@ namespace OpenXmlPowerTools
                     throw new ArgumentException("Invalid chart data");
             }
 
+            UpdateEmbeddedWorkbook(chartPart, chartData);
+
             UpdateSeries(chartPart, chartData);
-            MoveSecondChartSeries(chartPart, chartData);
-        }
-
-        /// <summary>
-        /// 移动第二图表的序列数据.
-        /// </summary>
-        /// <param name="chartPart">图表部件.</param>
-        /// <param name="chartData">图表数据.</param>
-        private static void MoveSecondChartSeries(ChartPart chartPart, ChartData chartData)
-        {
-            if (chartData.SecondChartType == null)
+            //如果设置了次轴，更新次轴
+            if (chartData.SecondChartSeriesNames.Count > 0)
             {
-                return;
+                UpdateSeries(chartPart, chartData, true);
             }
-
-            if (chartData.SecondChartSeriesIndex != null && chartData.SecondChartSeriesIndex.Length == 0)
-            {
-                return;
-            }
-
-            XDocument cpXDoc = chartPart.GetXDocument();
-            XElement root = cpXDoc.Root;
-
-            // 根据配置得到序列            
-            var series = chartData.SecondChartSeriesIndex.Select(x =>
-                    root.Descendants(C.ser).ElementAt(x)
-                ).ToList();
-
-            var firstParent = series.First().Parent;
-
-            var chart = root.Descendants(chartData.SecondChartType).FirstOrDefault();
-
-            var firstSeries = chart.Descendants(C.ser).FirstOrDefault();
-            firstSeries.Parent.Elements(C.ser).Skip(1).Remove();
-
-            // 如果第二坐标轴为折线图，那么让它正确显示
-            if (chartData.SecondChartType == C.lineChart)
-            {
-                series.ForEach(x =>
-                {
-                    var spPrs = x.Descendants(C.spPr);
-                    spPrs.Remove();
-
-                    var smooth = new XElement(C.smooth);
-                    smooth.SetAttributeValue(C.val, "0");                     
-                    x.Add(smooth);
-                });
-            }
-
-            firstSeries.ReplaceWith(series);
-
-            // 删除旧series
-            series.Remove();
-            chartPart.PutXDocument();
         }
 
         private static Dictionary<int, string> FormatCodes = new Dictionary<int, string>()
@@ -191,13 +144,38 @@ namespace OpenXmlPowerTools
             { 49, "@" },
         };
 
-        private static void UpdateSeries(ChartPart chartPart, ChartData chartData)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="chartPart"></param>
+        /// <param name="chartData"></param>
+        /// <param name="setSecond">设置次级坐标，默认为false</param>
+        /// <exception cref="OpenXmlPowerToolsException"></exception>
+        private static void UpdateSeries(ChartPart chartPart, ChartData chartData, bool setSecond = false)
         {
-            UpdateEmbeddedWorkbook(chartPart, chartData);
-
+            // update series
             XDocument cpXDoc = chartPart.GetXDocument();
             XElement root = cpXDoc.Root;
-            var firstSeries = root.Descendants(C.ser).FirstOrDefault();
+
+            // 序列名            
+            var seriesNames = chartData.SeriesNames.Except(chartData.SecondChartSeriesNames.Keys);
+            if (setSecond)
+            {
+                seriesNames = chartData.SecondChartSeriesNames.Keys;
+            }
+
+            var series = root.Descendants(C.ser).ToList();
+            // 如果不处理次轴
+            if (!setSecond)
+            {
+                series = series.Where(x => x.Descendants(C.tx).SelectMany(tx => tx.Descendants(C.v)).Any(v => !chartData.SecondChartSeriesNames.Values.Contains(v.Value))).ToList();
+            }
+            else // 处理次轴
+            {
+                series = series.Where(x => x.Descendants(C.tx).SelectMany(tx => tx.Descendants(C.v)).Any(v => chartData.SecondChartSeriesNames.Values.Contains(v.Value))).ToList();
+            }
+
+            var firstSeries = series.FirstOrDefault();
             var numRef = firstSeries.Elements(C.val).Elements(C.numRef).FirstOrDefault();
             string sheetName = null;
             var f = (string)firstSeries.Descendants(C.f).FirstOrDefault();
@@ -212,6 +190,9 @@ namespace OpenXmlPowerTools
                 .Select((string sn, int si) =>
                 {
                     XElement cat = null;
+
+                    if (!seriesNames.Contains(sn))
+                        return null;
 
                     var oldCat = firstSeries.Elements(C.cat).FirstOrDefault();
                     if (oldCat == null)
@@ -441,6 +422,10 @@ namespace OpenXmlPowerTools
                     newSer = (XElement)UpdateAccentTransform(newSer, accentNumber);
                     return newSer;
                 });
+
+            // 删除newSetOfSeries中null的项目
+            newSetOfSeries = newSetOfSeries.Where(x => x != null).ToList();
+
             firstSeries.ReplaceWith(newSetOfSeries);
             chartPart.PutXDocument();
         }
