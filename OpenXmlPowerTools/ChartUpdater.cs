@@ -60,12 +60,10 @@ namespace OpenXmlPowerTools
         public double[][] Values;
 
         /// <summary>
-        /// 组合图表中，第二个图表的序列索引.
-        /// 这些序列数据会被复制到第二个图表的序列中.
+        /// 组合图表中，次轴图表的序列名称映射
+        /// 映射规则为：chatData中的序列名对应模板中的序列名。
         /// </summary>
         public Dictionary<string, string> SecondChartSeriesNames { get; set; } = new Dictionary<string, string>();
-
-        public XName SecondChartType;
     }
 
     public class ChartUpdater
@@ -169,10 +167,16 @@ namespace OpenXmlPowerTools
             if (!setSecond)
             {
                 series = series.Where(x => x.Descendants(C.tx).SelectMany(tx => tx.Descendants(C.v)).Any(v => !chartData.SecondChartSeriesNames.Values.Contains(v.Value))).ToList();
+
+                if (series == null || series.Count == 0)
+                    throw new OpenXmlPowerToolsException("未找到图表主序列");
             }
             else // 处理次轴
             {
                 series = series.Where(x => x.Descendants(C.tx).SelectMany(tx => tx.Descendants(C.v)).Any(v => chartData.SecondChartSeriesNames.Values.Contains(v.Value))).ToList();
+
+                if (series == null || series.Count == 0)
+                    throw new OpenXmlPowerToolsException("未找到次轴序列，请检查次轴映射字典");
             }
 
             var firstSeries = series.FirstOrDefault();
