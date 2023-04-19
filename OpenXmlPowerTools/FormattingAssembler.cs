@@ -232,6 +232,7 @@ namespace OpenXmlPowerTools
                         );
 
                         XElement listItemRunProps = null;
+                        List<XAttribute> listItemHtmlAttributes = new List<XAttribute>();
                         int? abstractNumId = null;
                         if (listItemInfo != null)
                         {
@@ -283,9 +284,33 @@ namespace OpenXmlPowerTools
                             var listItemLvlRunProps = listItemLvl.Elements(W.rPr).FirstOrDefault();
                             listItemRunProps = MergeStyleElement(listItemLvlRunProps, mergedRunProps);
 
-                            if ((string)listItemLvl.Elements(W.numFmt).Attributes(W.val).FirstOrDefault() == "bullet")
+                            string numFmt = null;
+                            string format = null;
+                            numFmt = (string)listItemLvl.Elements(W.numFmt).Attributes(W.val).FirstOrDefault();
+
+                            if (numFmt == null)
+                            {
+                                var mcAlternativeContent = listItemLvl.Descendants(MC.AlternateContent).FirstOrDefault();
+                                if (mcAlternativeContent != null)
+                                {
+                                    var choice = mcAlternativeContent.Element(MC.Choice);
+                                    if (choice != null)
+                                    {
+                                        numFmt = (string)choice.Elements(W.numFmt).Attributes(W.val).FirstOrDefault();
+                                        format = (string)choice.Elements(W.numFmt).Attributes(W.format).FirstOrDefault();
+                                    }
+                                }
+                            }
+
+                            if (numFmt == "bullet")
                             {
                                 listItemRunProps.Elements(W.rtl).Remove();
+                                listItemHtmlAttributes.Add(
+                                    new XAttribute(PtOpenXml.HtmlStructure, "ul")
+                                );
+                                listItemHtmlAttributes.Add(
+                                    new XAttribute(PtOpenXml.HtmlStyle, "list-style-type: circle;")
+                                );
                             }
                             else
                             {
@@ -300,6 +325,46 @@ namespace OpenXmlPowerTools
                                             new XElement(W.rtl)), listItemRunProps);
                                     }
                                 }
+                                listItemHtmlAttributes.Add(
+                                    new XAttribute(PtOpenXml.HtmlStructure, "ol")
+                                );
+
+                                if (numFmt == "decimal")
+                                {
+                                    listItemHtmlAttributes.Add(
+                                        new XAttribute(PtOpenXml.HtmlStyle, "list-style-type: decimal;")
+                                    );
+                                }
+                                else if (numFmt == "lowerLetter")
+                                {
+                                    listItemHtmlAttributes.Add(
+                                        new XAttribute(PtOpenXml.HtmlStyle, "list-style-type: lower-alpha;")
+                                    );
+                                }
+                                else if (numFmt == "lowerRoman")
+                                {
+                                    listItemHtmlAttributes.Add(
+                                        new XAttribute(PtOpenXml.HtmlStyle, "list-style-type: lower-roman;")
+                                    );
+                                }
+                                else if (numFmt == "upperLetter")
+                                {
+                                    listItemHtmlAttributes.Add(
+                                        new XAttribute(PtOpenXml.HtmlStyle, "list-style-type: upper-alpha;")
+                                    );
+                                }
+                                else if (numFmt == "upperRoman")
+                                {
+                                    listItemHtmlAttributes.Add(
+                                        new XAttribute(PtOpenXml.HtmlStyle, "list-style-type: upper-roman;")
+                                    );
+                                }
+                                else if (numFmt == "custom" && format.StartsWith("0"))
+                                {
+                                    listItemHtmlAttributes.Add(
+                                        new XAttribute(PtOpenXml.HtmlStyle, "list-style-type: decimal-leading-zero;")
+                                    );
+                                }
                             }
                         }
 
@@ -312,8 +377,11 @@ namespace OpenXmlPowerTools
                             .StringConcatenate()
                             .TrimEnd('.');
 
+                        ListItemRetriever.ListItemInfo listItemInfo2 = element.Annotation<ListItemRetriever.ListItemInfo>();
+
                         var listItemRun = new XElement(W.r,
                             new XAttribute(PtOpenXml.ListItemRun, levelNumsString),
+                            listItemInfo2 != null ? new XAttribute(PtOpenXml.AbstractNumId, listItemInfo2.AbstractNumId) : null,
                             element.Attribute(PtOpenXml.FontName),
                             element.Attribute(PtOpenXml.LanguageType),
                             listItemRunProps,
@@ -552,6 +620,7 @@ namespace OpenXmlPowerTools
                             element.Attribute(PtOpenXml.LanguageType),
                             element.Attribute(PtOpenXml.Unid),
                             new XAttribute(PtOpenXml.AbstractNumId, abstractNumId),
+                            listItemHtmlAttributes,
                             newParaProps,
                             listItemRun,
                             tabRun,
@@ -597,7 +666,7 @@ namespace OpenXmlPowerTools
                 tabs = new XElement(W.tabs);
                 pPr.Add(tabs);
             }
-            var tabAtLeft = tabs.Elements(W.tab).FirstOrDefault(t => (int)t.Attribute(W.pos) == left);
+            var tabAtLeft = tabs.Elements(W.tab).FirstOrDefault(t => WordprocessingMLUtil.StringToTwips((string)t.Attribute(W.pos)) == left);
             if (tabAtLeft == null)
             {
                 tabs.Add(
@@ -610,6 +679,8 @@ namespace OpenXmlPowerTools
         public static XName[] PtNamesToKeep = new[] {
             PtOpenXml.FontName,
             PtOpenXml.AbstractNumId,
+            PtOpenXml.HtmlStructure,
+            PtOpenXml.HtmlStyle,
             PtOpenXml.StyleName,
             PtOpenXml.LanguageType,
             PtOpenXml.ListItemRun,
@@ -1889,7 +1960,7 @@ namespace OpenXmlPowerTools
             var hps = higherPriorityElement.Elements().Select(e =>
                 new
                 {
-                    Pos = (int)e.Attribute(W.pos),
+                    Pos = WordprocessingMLUtil.StringToTwips((string)e.Attribute(W.pos)),
                     Pri = 1,
                     Element = e,
                 }
@@ -1897,7 +1968,7 @@ namespace OpenXmlPowerTools
             var lps = lowerPriorityElement.Elements().Select(e =>
                 new
                 {
-                    Pos = (int)e.Attribute(W.pos),
+                    Pos = WordprocessingMLUtil.StringToTwips((string)e.Attribute(W.pos)),
                     Pri = 2,
                     Element = e,
                 }
@@ -1906,7 +1977,7 @@ namespace OpenXmlPowerTools
                 .GroupBy(s => s.Pos)
                 .Select(g => g.OrderBy(s => s.Pri).First().Element)
                 .Where(e => (string)e.Attribute(W.val) != "clear")
-                .OrderBy(e => (int)e.Attribute(W.pos));
+                .OrderBy(e => WordprocessingMLUtil.StringToTwips((string)e.Attribute(W.pos)));
             var newTabs = new XElement(W.tabs, newTabElements);
             return newTabs;
         }

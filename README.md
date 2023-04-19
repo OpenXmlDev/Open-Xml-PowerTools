@@ -1,26 +1,9 @@
 ﻿NuGet Feed for CI build: https://ci.appveyor.com/nuget/open-xml-powertools
 
-No NuGet.org feed at this time. We are working on it.
-
 News
 ====
 Welcome, Open-Xml-PowerTools users.  As you may have learned from the repo at OfficeDev/Open-Xml-PowerTools,
-Microsoft is going to archive that repo, and will not be maintaining that repo in the future.  The good folks at
-Microsoft asked if I would maintain this repo going forward, and I said "yes, absolutely".
-
-There are two relevant branches in this repo:
-- I have merged vNext into master.  If you were using the OfficeDev/Open-Xml-PowerTools vNext branch, and if you want to
-keep using the same code, use the master branch.
-- As of right now, the vNext branch is even with master.  However, that is going to change in the next day or two - I am
-going to commit the updated, refactored DocumentAssembler.
-
-Unfortunately, this development came right as I am starting a 10-day vacation, so will need to balance making the necessary
-enhancements with my other vacation activities!  But stay tuned, I expect to make progress in the next couple of days.
-
-I will post major announcements here in the README.md, but if you want to stay more abreast of developments, follow my blog
-at [www.ericwhite.com/blog](http://www.ericwhite.com/blog).  Also, follow me on twitter: @EricWhiteDev.
-
-Warm Regards,
+Microsoft is going to archive that repo, and will not be maintaining that repo in the future.
 
 Eric White
 
@@ -53,7 +36,7 @@ See License in the project root for license information.
 
 News
 ====
-New Release!  Version 4.4.
+New Release!  Version 4.6.0
 
 This version has a completely re-written WmlComparer.cs, which now supports nested tables and text boxes.  WmlComparer.cs is a module that compares two DOCX files and
 produces a DOCX with revision tracking markup.  It enables retrieving a list of revisions.
@@ -91,6 +74,9 @@ With .NET CLI toolchain:
 
 Change Log
 ==========
+
+Version 4.6 : November 16, 2020
+- Various small bug fixes
 
 Version 4.5 : January 21, 2020
 - Various changes and fixes to DocumentBuilder
