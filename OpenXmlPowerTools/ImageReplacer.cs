@@ -12,7 +12,7 @@ namespace OpenXmlPowerTools
     /// <summary>
     /// 图片替换器
     /// </summary>
-    public class ImageReplacer
+    public class ImageUpdater
     {
         public byte[] ImageBytes { get; private set; }
 
@@ -20,7 +20,7 @@ namespace OpenXmlPowerTools
         /// 图片替换器构造函数
         /// </summary>
         /// <param name="imageBytes">新图片的字节数组</param>
-        public ImageReplacer(byte[] imageBytes)
+        public ImageUpdater(byte[] imageBytes)
         {
             ImageBytes = imageBytes;
         }
@@ -29,7 +29,7 @@ namespace OpenXmlPowerTools
         /// 新图片路径
         /// </summary>
         /// <param name="newImagePath"></param>
-        public ImageReplacer(string newImagePath)
+        public ImageUpdater(string newImagePath)
         {
             ImageBytes = File.ReadAllBytes(newImagePath);
         }
@@ -43,7 +43,7 @@ namespace OpenXmlPowerTools
         /// <returns></returns>
         public static bool ReplaceImage(WordprocessingDocument wDoc, string contentControlTag, string newImagePath)
         {
-            var replacer = new ImageReplacer(newImagePath);
+            var replacer = new ImageUpdater(newImagePath);
             return replacer.Replace(wDoc, contentControlTag);
         }
 
@@ -56,7 +56,7 @@ namespace OpenXmlPowerTools
         /// <returns></returns>
         public static bool ReplaceImage(WordprocessingDocument wDoc, string contentControlTag, byte[] imageBytes)
         {
-            var replacer = new ImageReplacer(imageBytes);
+            var replacer = new ImageUpdater(imageBytes);
             return replacer.Replace(wDoc, contentControlTag);
         }
 
@@ -81,6 +81,7 @@ namespace OpenXmlPowerTools
                 {
                     ImagePart imagePart = (ImagePart)mainDocumentPart.GetPartById(imageId);
                     ReplaceNewImage(imagePart, this.ImageBytes);
+                    mainDocumentPart.PutXDocument();
                     return true;
                 }
             }
@@ -90,7 +91,15 @@ namespace OpenXmlPowerTools
 
         private void ReplaceNewImage(ImagePart imagePart, byte[] imageBytes)
         {
-            BinaryWriter writer = new BinaryWriter(imagePart.GetStream());
+            var stream = imagePart.GetStream();
+
+            // stream保存为图片文件
+            //using (var fileStream = new FileStream("f:\\test1.jpg", FileMode.Create))
+            //{
+            //    stream.CopyTo(fileStream);
+            //}
+
+            BinaryWriter writer = new BinaryWriter(stream);
             writer.Write(imageBytes);
             writer.Close();
         }
