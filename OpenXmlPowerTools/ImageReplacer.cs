@@ -75,15 +75,24 @@ namespace OpenXmlPowerTools
 
             if (cc != null)
             {
+                // 替换imagePart
                 var imageId = (string)cc.Descendants(A.blip).Attributes(R.embed).FirstOrDefault();
 
                 if (imageId != null)
                 {
                     ImagePart imagePart = (ImagePart)mainDocumentPart.GetPartById(imageId);
                     ReplaceNewImage(imagePart, this.ImageBytes);
-                    mainDocumentPart.PutXDocument();
-                    return true;
                 }
+
+                // 替换cc                
+                var paragraph = cc.Descendants(W.sdtContent).Descendants(W.p).FirstOrDefault();
+                if (paragraph != null)
+                {
+                    cc.ReplaceWith(paragraph);
+                }
+
+                mainDocumentPart.PutXDocument();
+                return true;
             }
 
             return false;
@@ -92,12 +101,6 @@ namespace OpenXmlPowerTools
         private void ReplaceNewImage(ImagePart imagePart, byte[] imageBytes)
         {
             var stream = imagePart.GetStream();
-
-            // stream保存为图片文件
-            //using (var fileStream = new FileStream("f:\\test1.jpg", FileMode.Create))
-            //{
-            //    stream.CopyTo(fileStream);
-            //}
 
             BinaryWriter writer = new BinaryWriter(stream);
             writer.Write(imageBytes);
