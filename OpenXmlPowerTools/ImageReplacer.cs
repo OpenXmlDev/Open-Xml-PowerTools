@@ -17,8 +17,16 @@ namespace OpenXmlPowerTools
     public class ImageUpdater
     {
         private readonly ImageFormat _imageFormat;
-        private readonly int? _maxWidth;
-        private readonly int? _maxHeight;
+
+        /// <summary>
+        /// 设置的宽度，可以为百分比，如果不填则默认使用页面宽度
+        /// </summary>
+        private readonly string _width;
+
+        /// <summary>
+        /// 设置高度，可以为百分比，如果不填则根据宽度缩放后自适应
+        /// </summary>
+        private readonly string _height;
 
         public byte[] ImageBytes { get; private set; }
 
@@ -26,24 +34,24 @@ namespace OpenXmlPowerTools
         /// 图片替换器构造函数
         /// </summary>
         /// <param name="imageBytes">新图片的字节数组</param>
-        public ImageUpdater(byte[] imageBytes, ImageFormat imageFormat, int? maxWidth, int? maxHeight)
+        public ImageUpdater(byte[] imageBytes, ImageFormat imageFormat, string width = null, string height = null)
         {
             ImageBytes = imageBytes;
             _imageFormat = imageFormat;
-            _maxWidth = maxWidth;
-            _maxHeight = maxHeight;
+            _width = width;
+            _height = height;
         }
 
         /// <summary>
         /// 新图片路径
         /// </summary>
         /// <param name="newImagePath"></param>
-        public ImageUpdater(string newImagePath, ImageFormat imageFormat, int? maxWidth, int? maxHeight)
+        public ImageUpdater(string newImagePath, ImageFormat imageFormat, string width = null, string height = null)
         {
             ImageBytes = File.ReadAllBytes(newImagePath);
             _imageFormat = imageFormat;
-            _maxWidth = maxWidth;
-            _maxHeight = maxHeight;
+            _width = width;
+            _height = height;
         }
 
         /// <summary>
@@ -57,10 +65,10 @@ namespace OpenXmlPowerTools
                                         string contentControlTag,
                                         string newImagePath,
                                         ImageFormat imageFormat,
-                                        int? maxWidth = null,
-                                        int? maxHeight = null)
+                                        string width = null,
+                                        string height = null)
         {
-            var replacer = new ImageUpdater(newImagePath, imageFormat, maxWidth, maxHeight);
+            var replacer = new ImageUpdater(newImagePath, imageFormat, width, height);
             return replacer.Replace(wDoc, contentControlTag);
         }
 
@@ -75,10 +83,10 @@ namespace OpenXmlPowerTools
                                         string contentControlTag,
                                         byte[] imageBytes,
                                         ImageFormat imageFormat,
-                                        int? maxWidth = null,
-                                        int? maxHeight = null)
+                                        string width = null,
+                                        string height = null)
         {
-            var replacer = new ImageUpdater(imageBytes, imageFormat, maxWidth, maxHeight);
+            var replacer = new ImageUpdater(imageBytes, imageFormat, width, height);
             return replacer.Replace(wDoc, contentControlTag);
         }
 
@@ -106,9 +114,8 @@ namespace OpenXmlPowerTools
                     ReplaceNewImage(imagePart, this.ImageBytes);
                 }
 
-
                 // 修改宽度和高度                
-                UpdateImageMetrics(cc);
+                UpdateImageMetrics(mdXDoc, cc);
 
                 // 替换cc                
                 var paragraph = cc.Descendants(W.sdtContent).Descendants(W.p).FirstOrDefault();
@@ -128,44 +135,72 @@ namespace OpenXmlPowerTools
         /// 更新图片宽高
         /// </summary>
         /// <param name="cc"></param>
-        private void UpdateImageMetrics(XElement cc)
+        private void UpdateImageMetrics(XDocument mdXDoc, XElement cc)
         {
             float dpi = 96;
 
+            // 得到图片宽高
             var imgStream = new MemoryStream(this.ImageBytes);
-            var (w, h) = ImageHelper.GetImageMetrics(imgStream, this._imageFormat);
+            var (imgWidth, imgHeight) = ImageHelper.GetImageMetrics(imgStream, this._imageFormat);
 
-            // 如果设置了最大宽度或最大高度，则按比例缩放
-            if (this._maxWidth.HasValue || this._maxHeight.HasValue)
+            // 得到页面宽高
+            double pageWidth = 0;
+            double pageHeight = 0;
+
+            var pageSize = mdXDoc.Descendants(W.sectPr).FirstOrDefault()?.Descendants(W.pgSz).FirstOrDefault();
+            if (pageSize != null)
             {
-                var ratio = (float)w / h;
-                if (this._maxWidth.HasValue && this._maxHeight.HasValue)
-                {
-                    if (ratio > (float)this._maxWidth.Value / this._maxHeight.Value)
-                    {
-                        w = this._maxWidth.Value;
-                        h = (int)(w / ratio);
-                    }
-                    else
-                    {
-                        h = this._maxHeight.Value;
-                        w = (int)(h * ratio);
-                    }
-                }
-                else if (this._maxWidth.HasValue)
-                {
-                    w = this._maxWidth.Value;
-                    h = (int)(w / ratio);
-                }
-                else
-                {
-                    h = this._maxHeight.Value;
-                    w = (int)(h * ratio);
-                }
+                pageWidth = Convert.ToDouble(pageSize.Attribute(W.w.GetName("w")).Value) / 20;
+                pageHeight = Convert.ToDouble(pageSize.Attribute(W.w.GetName("h")).Value) / 20;
             }
 
-            var cx = (long)(w / dpi * 914400);
-            var cy = (long)(h / dpi * 914400);
+            // 得到设置宽高，传进来的参数
+            int.TryParse(this._width, out var settingWidth);
+            int.TryParse(this._height, out var settingHeight);
+
+            // 如果设置的宽度是百分比，那么按百分比计算宽度
+            if (this._width != null && this._width.EndsWith("%"))
+            {
+                // 先计算比例，避免宽度变更后比例也跟着变化。                
+                var radio = imgWidth / (float)imgHeight;
+                double percent = Convert.ToDouble(this._width.TrimEnd('%')) / 100;
+                imgWidth = (int)(pageWidth * percent);
+
+                // 如果没有设置高度，那么按比例计算高度
+                if (this._height == null)
+                {
+                    // 那么按比例计算高度
+                    imgHeight = (int)(imgWidth / radio);
+                }
+            }
+            else if (settingWidth > 0) // 如果设置了宽度，那么按设置的宽度来
+            {
+                imgWidth = settingWidth;
+            }
+
+            // 如果度是百分比，那么按百分比计算高度
+            if (this._height != null && this._height.EndsWith("%"))
+            {
+                // 先计算比例，避免宽度变更后比例也跟着变化。
+                var radio = imgWidth / (float)imgHeight;
+                double percent = Convert.ToDouble(this._height.TrimEnd('%')) / 100;
+                imgHeight = (int)(pageHeight * percent);
+
+                // 如果没有设置宽度，那么按比例计算宽度
+                if (this._width == null)
+                {
+                    // 那么按比例计算宽度
+                    imgWidth = (int)(imgHeight * radio);
+                }
+            }
+            else if (settingHeight > 0) // 如果设置了高度，那么按设置的高度来
+            {
+                imgHeight = settingHeight;
+            }
+
+            // 换算成EMUS
+            var cx = (long)(imgWidth / dpi * 914400);
+            var cy = (long)(imgHeight / dpi * 914400);
 
             var drawing = cc.Descendants(W.drawing).FirstOrDefault();
             if (drawing != null)
@@ -183,6 +218,14 @@ namespace OpenXmlPowerTools
                     aExtent.SetAttributeValue("cy", cy);
                 }
             }
+        }
+
+        // 按比例缩放图片的方法，传入图片原始宽度和高度，传入缩放后的宽度
+        private static (int width, int height) ScaleImage(int originalWidth, int originalHeight, int scaledWidth)
+        {
+            var ratio = (float)originalWidth / originalHeight;
+            var scaledHeight = (int)(scaledWidth / ratio);
+            return (scaledWidth, scaledHeight);
         }
 
         /// <summary>
