@@ -15,6 +15,46 @@ namespace OpenXmlPowerTools
     {
         static void Main(string[] args)
         {
+            // Example1();
+            TowTypeChartExample();
+        }
+
+        private static void TowTypeChartExample()
+        {
+            var fi = new FileInfo("TowTypeChart.docx");
+
+            using (var wDoc = WordprocessingDocument.Open(fi.FullName, true))
+            {
+                var chart1Data = new ChartData
+                {
+                    SecondChartType = C.lineChart,
+                    SecondChartSeriesIndex = new[] { 1 },
+                    SeriesNames = new[] {
+                            "平仓手数",
+                            "平仓盈亏-逐笔对冲",
+                        },
+                    CategoryDataType = ChartDataType.String,
+                    CategoryNames = new[] {
+                            "1:0天",
+                            "1:1天",
+                            "1:2天",
+                            "1:3天",
+                        },
+                    Values = new double[][] {
+                        new double[] {
+                            100, 310, 220, 450,
+                        },
+                        new double[] {
+                            -11323.65, 3101, -12220, 15421,
+                        },
+                    },
+                };
+                ChartUpdater.UpdateChart(wDoc, "towTypeChart", chart1Data);
+            }
+        }
+
+        private static void Example1()
+        {
             var n = DateTime.Now;
             var tempDi = new DirectoryInfo(string.Format("ExampleOutput-{0:00}-{1:00}-{2:00}-{3:00}{4:00}{5:00}", n.Year - 2000, n.Month, n.Day, n.Hour, n.Minute, n.Second));
             tempDi.Create();
