@@ -33,7 +33,7 @@ namespace OpenXmlPowerTools
             "семнадцатый", "восемнадцатый", "девятнадцатый"
         };
 
-        private static string[] OrdinalTenths = {
+        private static string[] OrdinalTens = {
             "десятый", "двадцатый", "тридцатый", "сороковой", "пятидесятый",
             "шестидесятый", "семидесятый", "восьмидесятый", "девяностый"
         };
@@ -43,8 +43,6 @@ namespace OpenXmlPowerTools
             "десяти", "одиннадцати", "двеннадцати", "четырнадцати", "пятнадцати", "шестнадцати", 
             "семнадцати", "восемьнадцати", "девятнадцати"
         };
-
-        // TODO this is not correct for values above 99
 
         public static string GetListItemText(string languageCultureName, int levelNumber, string numFmt)
         {
@@ -168,7 +166,7 @@ namespace OpenXmlPowerTools
                 int x = z / 10;
                 int r = z % 10;
                 if (r == 0)
-                    result += OrdinalTenths[x - 1];
+                    result += OrdinalTens[x - 1];
                 else
                     result += Tens[x - 1];
                 if (r >= 1)
