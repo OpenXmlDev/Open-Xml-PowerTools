@@ -8,7 +8,7 @@ using System.Text;
 
 namespace OpenXmlPowerTools
 {
-    public class GetListItemText_de_DE
+    public class ListItemTextGetter_de_DE
     {
         private static string[] OneThroughNineteen = {
             "eins", "zwei", "drei", "vier", "fünf", "sechs", "sieben", "acht",

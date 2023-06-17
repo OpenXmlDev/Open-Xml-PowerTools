@@ -18,6 +18,7 @@ namespace OpenXmlPowerTools
                 {"fr-FR", ListItemTextGetter_fr_FR.GetListItemText},
                 {"tr-TR", ListItemTextGetter_tr_TR.GetListItemText},
                 {"ru-RU", ListItemTextGetter_ru_RU.GetListItemText}, 
+                {"de-DE", ListItemTextGetter_de_DE.GetListItemText}, 
                 {"sv-SE", ListItemTextGetter_sv_SE.GetListItemText},
                 {"zh-CN", ListItemTextGetter_zh_CN.GetListItemText},
             };
