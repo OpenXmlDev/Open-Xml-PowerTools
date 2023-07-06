@@ -1169,8 +1169,11 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml
             var referenceElement = FindReference(sect, referenceXName, type);
             if (referenceElement == null)
             {
-                var cachedPartRid = cachedHeaderFooter.FirstOrDefault(z => z.Ref == referenceXName && z.Type == type).CachedPartRid;
-                AddReferenceToExistingHeaderOrFooter(sect, cachedPartRid, referenceXName, type);
+                var cachedPartRid = cachedHeaderFooter.FirstOrDefault(z => z.Ref == referenceXName && z.Type == type)?.CachedPartRid;
+                if (cachedPartRid != null)
+                {
+                    AddReferenceToExistingHeaderOrFooter(sect, cachedPartRid, referenceXName, type);
+                }
             }
             else
             {

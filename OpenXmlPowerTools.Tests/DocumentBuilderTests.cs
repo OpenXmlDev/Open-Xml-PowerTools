@@ -595,6 +595,23 @@ namespace Codeuctivity.Tests
             Assert.Single(styles);
         }
 
+        [Fact]
+        public void DB017_ApplyHeaderAndFooterToAllDocs()
+        {
+            var sourceDir = new DirectoryInfo("../../../../TestFiles/");
+            var source1 = new FileInfo(Path.Combine(sourceDir.FullName, "DB017-ApplyHeaderAndFooterToAllDocs-Portrait-TwoColumns.docx"));
+            var source2 = new FileInfo(Path.Combine(sourceDir.FullName, "DB017-ApplyHeaderAndFooterToAllDocs-Landscape-SingleColumn.docx"));
+
+            var sources = new List<Source>()
+            {
+                new Source(new WmlDocument(source1.FullName)){KeepSections = true},
+                new Source(new WmlDocument(source2.FullName)){KeepSections = true, DiscardHeadersAndFootersInKeptSections = true},
+            };
+
+            var processedDestDocx = new FileInfo(Path.Combine(Path.Combine(TestUtil.TempDir.FullName), "DB017-ApplyHeaderAndFooterToAllDocs.docx"));
+            DocumentBuilder.BuildDocument(sources, processedDestDocx.FullName);
+        }
+
         [Theory]
         [InlineData("DB100-00010", "DB/GlossaryDocuments/CellLevelContentControl-built.docx", "DB/GlossaryDocuments/BaseDocument.docx,0,4", "DB/GlossaryDocuments/CellLevelContentControl.docx", "DB/GlossaryDocuments/BaseDocument.docx,4", null, null, null)]
         [InlineData("DB100-00020", "DB/GlossaryDocuments/InlineContentControl-built.docx", "DB/GlossaryDocuments/BaseDocument.docx,0,4", "DB/GlossaryDocuments/InlineContentControl.docx", "DB/GlossaryDocuments/BaseDocument.docx,4", null, null, null)]
