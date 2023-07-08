@@ -91,6 +91,9 @@ namespace OpenXmlPowerTools
                 return SoftHyphen.ToString();
             if (element.Name == W.tab)
                 return HorizontalTabulation.ToString();
+            // Ignore temporary layout markers that are not actual document content
+            if (element.Name == W.lastRenderedPageBreak)
+                return string.Empty;
 
             if (element.Name == W.fldChar)
             {
