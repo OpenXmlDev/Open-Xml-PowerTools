@@ -171,18 +171,22 @@ namespace OxPt
             Assert.Equal(4, brCount);
         }
 
-        [Theory]
-        [InlineData("DA240-ListPunctuation.docx", "DA-DataList.xml", false)]
-        public void DA240(string name, string data, bool err)
+        [Fact]
+        public void DA240()
         {
-            DA101(name, data, err);
+            string name = "DA240-Whitespace.docx";
+            DA101(name, "DA240-Whitespace.xml", false);
             var assembledDocx = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, name.Replace(".docx", "-processed-by-DocumentAssembler.docx")));
             WmlDocument afterAssembling = new WmlDocument(assembledDocx.FullName);
 
-            // when elements are inserted that begin or end with white space (such as the list punctuation
-            // in this example), make sure white space is preserved
-            string firstParaText = afterAssembling.MainDocumentPart.Element(W.body).Elements(W.p).First().Value;
-            Assert.Equal("The children’s names are Greg, Marcia, Peter, Jan, Bobby and Cindy.", firstParaText);
+            // when elements are inserted that begin or end with white space, make sure white space is preserved
+            string firstParaTextIncorrect = afterAssembling.MainDocumentPart.Element(W.body).Elements(W.p).First().Value;
+            Assert.Equal("Content may or may not have spaces: he/she; he, she; he and she.", firstParaTextIncorrect);
+            // warning: XElement.Value returns the string resulting from direct concatenation of all W.t elements. This is fast but ignores
+            // proper handling of xml:space="preserve" attributes, which Word honors when rendering content. Below we also check
+            // the result of UnicodeMapper.RunToString, which has been enhanced to take xml:space="preserve" into account.
+            string firstParaTextCorrect = InnerText(afterAssembling.MainDocumentPart.Element(W.body).Elements(W.p).First());
+            Assert.Equal("Content may or may not have spaces: he/she; he, she; he and she.", firstParaTextCorrect);
         }
 
         [Theory]
@@ -233,6 +237,14 @@ namespace OxPt
             }
 
             Assert.Equal(err, returnedTemplateError);
+        }
+
+        private static string InnerText(XContainer e)
+        {
+            return e.Descendants(W.r)
+                .Where(r => r.Parent.Name != W.del)
+                .Select(UnicodeMapper.RunToString)
+                .StringConcatenate();
         }
 
         private static List<string> s_ExpectedErrors = new List<string>()
