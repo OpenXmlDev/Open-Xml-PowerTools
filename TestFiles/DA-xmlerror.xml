@@ -1,0 +1,296 @@
+<MinutaSDT>
+	<Compradores>
+		<Comprador>
+			<Tipo>F</Tipo>
+			<Principal>SIM</Principal>
+			<Nome>PAULO IVANIR CITRON</Nome>
+			<CPFCNPJ>236.713.860-53</CPFCNPJ>
+			<Documento>6003511992</Documento>
+			<OrgaoExpedidor>SJS/RS</OrgaoExpedidor>
+			<Nacionalidade>BRASILEIRO</Nacionalidade>
+			<Data>17/02/1956</Data>
+			<EstadoCivil>DIVORCIADO</EstadoCivil>
+			<RegimeCasamento />
+			<Telefone />
+			<Email>PPICITRON@HOTMAIL.COM</Email>
+			<Profissao>ADMINISTRADOR</Profissao>
+			<EnderecoResidencial>
+				<Logradouro>R Dr Dário De Bittencourt</Logradouro>
+				<Numero>295</Numero>
+				<Bairro>Vila Ipiranga</Bairro>
+				<Complemento>103 Bl 5</Complemento>
+				<Cep>91360-390</Cep>
+				<Cidade>Porto Alegre</Cidade>
+				<UF>RS</UF>
+				<EnderecoCompleto>R Dr Dário De Bittencourt, 295, 103 Bl 5, Vila Ipiranga, Porto Alegre/RS, CEP: 91360-390</EnderecoCompleto>
+			</EnderecoResidencial>
+			<EnderecoComercial>
+				<Logradouro />
+				<Numero />
+				<Bairro />
+				<Complemento />
+				<Cep />
+				<Cidade />
+				<UF />
+				<EnderecoCompleto />
+			</EnderecoComercial>
+			<NomePai>Angelo Perin Citron</NomePai>
+			<NomeMae>Constancia Ana Soares</NomeMae>
+			<TemConjuge>SIM</TemConjuge>
+			<Conjuge>
+				<Tipo />
+				<Principal />
+				<Nome />
+				<CPFCNPJ />
+				<Documento />
+				<OrgaoExpedidor />
+				<Nacionalidade />
+				<Data />
+				<EstadoCivil />
+				<RegimeCasamento />
+				<Telefone />
+				<Email />
+				<Profissao />
+				<EnderecoResidencial>
+					<Logradouro />
+					<Numero />
+					<Bairro />
+					<Complemento />
+					<Cep />
+					<Cidade />
+					<UF />
+					<EnderecoCompleto />
+				</EnderecoResidencial>
+				<EnderecoComercial>
+					<Logradouro />
+					<Numero />
+					<Bairro />
+					<Complemento />
+					<Cep />
+					<Cidade />
+					<UF />
+					<EnderecoCompleto />
+				</EnderecoComercial>
+				<NomePai />
+				<NomeMae />
+				<TemRepresentante />
+			</Conjuge>
+			<TemRepresentante>NAO</TemRepresentante>
+			<Representantes />
+		</Comprador>
+	</Compradores>
+	<Pagamentos>
+		<Pagamento>
+			<Sequencia>001</Sequencia>
+			<CodigoSerie>05</CodigoSerie>
+			<Descricao>ATO</Descricao>
+			<Quantidade>001</Quantidade>
+			<QuantidadeExtenso>Um </QuantidadeExtenso>
+			<Data>03/09/2022</Data>
+			<ValorUnitarioSemJuros>116.160,00</ValorUnitarioSemJuros>
+			<ValorTotalSemJuros>116.160,00</ValorTotalSemJuros>
+			<UnitarioSemJurosExtenso>Cento e dezesseis mil e cento e sessenta reais</UnitarioSemJurosExtenso>
+			<TotalSemJurosExtenso>Cento e dezesseis mil e cento e sessenta reais</TotalSemJurosExtenso>
+			<ValorUnitarioComJuros>116.160,00</ValorUnitarioComJuros>
+			<ValorTotalComJuros>116.160,00</ValorTotalComJuros>
+			<UnitarioComJurosExtenso>Cento e dezesseis mil e cento e sessenta reais</UnitarioComJurosExtenso>
+			<TotalComJurosExtenso>Cento e dezesseis mil e cento e sessenta reais</TotalComJurosExtenso>
+			<PercentualSerie>20,60</PercentualSerie>
+			<PercentualSerieExtenso>Vinte inteiros e Sessenta  centésimos por cento</PercentualSerieExtenso>
+			<PercentualSerieCalculado>20.60</PercentualSerieCalculado>
+			<TaxaJuros>12,00</TaxaJuros>
+			<TaxaJurosExtenso>Doze por cento</TaxaJurosExtenso>
+			<SistemaAmortizacao>TP</SistemaAmortizacao>
+			<PeriodicidadeFlag>N</PeriodicidadeFlag>
+			<CorrecaoFlag>N</CorrecaoFlag>
+			<JurosFlag>N</JurosFlag>
+			<Identificador>IDENTIFICADOR DA SÉRIE ATO NÃO CONFIGURADA</Identificador>
+		</Pagamento>
+		<Pagamento>
+			<Sequencia>002</Sequencia>
+			<CodigoSerie>09</CodigoSerie>
+			<Descricao>UNICA</Descricao>
+			<Quantidade>001</Quantidade>
+			<QuantidadeExtenso>Um </QuantidadeExtenso>
+			<Data>20/12/2022</Data>
+			<ValorUnitarioSemJuros>250.000,00</ValorUnitarioSemJuros>
+			<ValorTotalSemJuros>250.000,00</ValorTotalSemJuros>
+			<UnitarioSemJurosExtenso>Duzentos e cinquenta mil reais</UnitarioSemJurosExtenso>
+			<TotalSemJurosExtenso>Duzentos e cinquenta mil reais</TotalSemJurosExtenso>
+			<ValorUnitarioComJuros>250.000,00</ValorUnitarioComJuros>
+			<ValorTotalComJuros>250.000,00</ValorTotalComJuros>
+			<UnitarioComJurosExtenso>Duzentos e cinquenta mil reais</UnitarioComJurosExtenso>
+			<TotalComJurosExtenso>Duzentos e cinquenta mil reais</TotalComJurosExtenso>
+			<PercentualSerie>50,32</PercentualSerie>
+			<PercentualSerieExtenso>Cinquenta inteiros e Trinta e dois  centésimos por cento</PercentualSerieExtenso>
+			<PercentualSerieCalculado>50.32</PercentualSerieCalculado>
+			<TaxaJuros>12,00</TaxaJuros>
+			<TaxaJurosExtenso>Doze por cento</TaxaJurosExtenso>
+			<SistemaAmortizacao>TP</SistemaAmortizacao>
+			<PeriodicidadeFlag>N</PeriodicidadeFlag>
+			<CorrecaoFlag>S</CorrecaoFlag>
+			<JurosFlag>S</JurosFlag>
+			<Identificador>IDENTIFICADOR DA SÉRIE UNICA NÃO CONFIGURADA</Identificador>
+		</Pagamento>
+		<Pagamento>
+			<Sequencia>003</Sequencia>
+			<CodigoSerie>08</CodigoSerie>
+			<Descricao>FINANCIAMENTO</Descricao>
+			<Quantidade>001</Quantidade>
+			<QuantidadeExtenso>Um </QuantidadeExtenso>
+			<Data>30/03/2023</Data>
+			<ValorUnitarioSemJuros>164.000,00</ValorUnitarioSemJuros>
+			<ValorTotalSemJuros>164.000,00</ValorTotalSemJuros>
+			<UnitarioSemJurosExtenso>Cento e sessenta e quatro mil reais</UnitarioSemJurosExtenso>
+			<TotalSemJurosExtenso>Cento e sessenta e quatro mil reais</TotalSemJurosExtenso>
+			<ValorUnitarioComJuros>168.712,92</ValorUnitarioComJuros>
+			<ValorTotalComJuros>168.712,92</ValorTotalComJuros>
+			<UnitarioComJurosExtenso>Cento e sessenta e quatro mil reais</UnitarioComJurosExtenso>
+			<TotalComJurosExtenso>Cento e sessenta e oito mil e setecentos e doze reais e noventa e dois centavos</TotalComJurosExtenso>
+			<PercentualSerie>29,08</PercentualSerie>
+			<PercentualSerieExtenso>Vinte e nove inteiros e Oito  décimos por cento</PercentualSerieExtenso>
+			<PercentualSerieCalculado>29.08</PercentualSerieCalculado>
+			<TaxaJuros>12,00</TaxaJuros>
+			<TaxaJurosExtenso>Doze por cento</TaxaJurosExtenso>
+			<SistemaAmortizacao>TP</SistemaAmortizacao>
+			<PeriodicidadeFlag>N</PeriodicidadeFlag>
+			<CorrecaoFlag>S</CorrecaoFlag>
+			<JurosFlag>S</JurosFlag>
+			<Identificador>IDENTIFICADOR DA SÉRIE FINANCIAMENTO NÃO CONFIGURADA</Identificador>
+		</Pagamento>
+	</Pagamentos>
+	<Fluxo>
+		<ContratoFluxo>
+			<SerieCompleta>ATO  
+R$ 116.160,00 (Cento e dezesseis mil e cento e sessenta reais), correspondente à 20,60% do preço. 
+Número de parcelas: 1 (uma) parcela com valor nominal nesta data de R$ 116.160,00 (Cento e dezesseis mil e cento e sessenta reais), cujo valor será pago à vista, ou seja, em parcela única por meio de TED ou boleto bancário, ficando a quitação vinculada respectivamente a efetivação da transferência ou comprovação do pagamento do boleto bancário.  
+Data de vencimento: 03/09/2022 </SerieCompleta>
+		</ContratoFluxo>
+		<ContratoFluxo>
+			<SerieCompleta>PARCELA DE REFORÇO 
+R$ 250.000,00 (Duzentos e cinquenta mil reais). 
+Número de parcela(s): 1 (uma) parcela com valor nominal nesta data de R$ 250.000,00 (Duzentos e cinquenta mil reais). 
+Data do vencimento da parcela: 20/12/2022.   </SerieCompleta>
+		</ContratoFluxo>
+		<ContratoFluxo>
+			<SerieCompleta>PARCELA CHAVES 
+R$ 164.000,00 (Cento e sessenta e quatro mil reais). 
+Número de parcela(s): 1 (uma) parcela com valor nominal nesta data de R$ 164.000,00 (Cento e sessenta e quatro mil reais) 
+Data do vencimento da parcela: 30/03/2023 </SerieCompleta>
+		</ContratoFluxo>
+	</Fluxo>
+	<Comissoes>
+		<Comissao>
+			<TipoDocumento>CPF</TipoDocumento>
+			<CPFCNPJ>608.037.380-72</CPFCNPJ>
+			<Nome>MARCO ANTONIO CIUFFO                              </Nome>
+			<CRECI>38.805    </CRECI>
+			<Valor>15.228,00</Valor>
+			<ValorExtenso>Quinze mil e duzentos e vinte e oito reais</ValorExtenso>
+			<Imobiliaria>Não</Imobiliaria>
+			<CEP>-</CEP>
+			<Pais />
+			<UF />
+			<Cidade />
+			<Endereco />
+			<Numero />
+			<Bairro />
+		</Comissao>
+		<Comissao>
+			<TipoDocumento>CNPJ</TipoDocumento>
+			<CPFCNPJ>15.361.838/0001-88</CPFCNPJ>
+			<Nome>CONFIARE CIA IMOBILIARIA                          </Nome>
+			<CRECI>23363J    </CRECI>
+			<Valor>18.612,00</Valor>
+			<ValorExtenso>Dezoito mil e seiscentos e doze reais</ValorExtenso>
+			<Imobiliaria>Sim</Imobiliaria>
+			<CEP>90470---470</CEP>
+			<Pais>BRASIL                        </Pais>
+			<UF>RIO GRANDE DO SUL                  </UF>
+			<Cidade>Porto Alegre</Cidade>
+			<Endereco>R Sinimbú</Endereco>
+			<Numero>14</Numero>
+			<Bairro>Petrópolis</Bairro>
+		</Comissao>
+	</Comissoes>
+	<BoxesVinculados>
+		<BoxVinculado>
+			<BoxTorreCod>007</BoxTorreCod>
+			<BoxTorreNom>VAGAS RES</BoxTorreNom>
+			<BoxNumero> 510</BoxNumero>
+			<BoxTipo>G</BoxTipo>
+			<BoxValor>71.170,00</BoxValor>
+			<ValorExtenso>Setenta e um mil e cento e setenta reais</ValorExtenso>
+			<BoxDescricao />
+		</BoxVinculado>
+	</BoxesVinculados>
+	<FinanciamentoPreAprovado />
+	<Imobiliaria>
+		<CNPJ>10.274.663/0001-58</CNPJ>
+		<RazaoSocial />
+		<Endereco>
+			<Logradouro />
+			<Numero>0</Numero>
+			<Bairro />
+			<Complemento />
+			<Cep />
+			<Cidade />
+			<UF>  </UF>
+			<EnderecoCompleto />
+		</Endereco>
+	</Imobiliaria>
+	<Localidade>PORTO ALEGRE</Localidade>
+	<Vendedor>
+		<CNPJ>22.389.891/0001-52</CNPJ>
+		<RazaoSocial>MELNICK EVEN CEDRO EMPREENDIMENTO IMOBILIÁRIO LTDA.</RazaoSocial>
+		<Codigo />
+		<NIRE />
+		<Endereco>
+			<Logradouro>RUA CARLOS TREIN FILHO</Logradouro>
+			<Numero />
+			<Bairro>AUXILIADORA</Bairro>
+			<Complemento>551</Complemento>
+			<Cep />
+			<Cidade>PORTO ALEGRE</Cidade>
+			<UF>RS</UF>
+			<EnderecoCompleto>RUA CARLOS TREIN FILHO, 551, AUXILIADORA, PORTO ALEGRE/RS</EnderecoCompleto>
+		</Endereco>
+	</Vendedor>
+	<TemPessoaJuridica>NAO</TemPessoaJuridica>
+	<DataHabitiSe />
+	<DataLocMinutaExtenso>PORTO ALEGRE, 13 DE SETEMBRO DE 2022</DataLocMinutaExtenso>
+	<DataMinutaExtenso>13 DE SETEMBRO DE 2022</DataMinutaExtenso>
+	<DataMinuta>13/09/2022</DataMinuta>
+	<DataLocPropostaExtenso>PORTO ALEGRE, 02 DE SETEMBRO DE 2022</DataLocPropostaExtenso>
+	<DataPropostaExtenso>02 DE SETEMBRO DE 2022</DataPropostaExtenso>
+	<DataProposta>02/09/2022</DataProposta>
+	<NumeroProposta>351.173</NumeroProposta>
+	<ValorComissaoTotalExtenso>Trinta e três mil e oitocentos e quarenta reais</ValorComissaoTotalExtenso>
+	<ValorComissaoTotal>33.840,00</ValorComissaoTotal>
+	<ValorComissaoEVENExtenso>Dezoito mil e seiscentos e doze reais</ValorComissaoEVENExtenso>
+	<ValorComissaoEVEN>18.612,00</ValorComissaoEVEN>
+	<ValorComissaoAutonomoExtenso>Quinze mil e duzentos e vinte e oito reais</ValorComissaoAutonomoExtenso>
+	<ValorComissaoAutonomo>15.228,00</ValorComissaoAutonomo>
+	<ValorContratoExtenso>Quinhentos e trinta mil e cento e sessenta reais</ValorContratoExtenso>
+	<ValorContrato>530.160,00</ValorContrato>
+	<ValorPropostaExtenso>Quinhentos e sessenta e quatro mil reais</ValorPropostaExtenso>
+	<ValorProposta>564.000,00</ValorProposta>
+	<DescricaoUnidade>Localizado na Torre D, no quarto pavimento, na circulação à direita de quem chega pelos elevadores, sendo o segundo a direita de quem ingressa na dita circulação, com área real privativa de 67,43m², área real de uso comum de divisão não proporcional de 43,51m², e área real total de 110,94m², correspondendo-lhe a fração ideal de 0,001116 no terreno e nas coisas de uso comum e fim proveitoso do condomínio.</DescricaoUnidade>
+	<Torre>RESIDENCIAL D</Torre>
+	<Unidade>402</Unidade>
+	<CodigoBarras>040200000000035117315.361.838/000</CodigoBarras>
+	<Empreendimento>
+		<CNPJ />
+		<RazaoSocial>ZONA NORTE- TINTAS RENNER</RazaoSocial>
+		<Endereco>
+			<Logradouro>AV ASSIS BRASIL</Logradouro>
+			<Numero>3966</Numero>
+			<Bairro>LINDÓIA</Bairro>
+			<Complemento />
+			<Cep>91010000</Cep>
+			<Cidade>PORTO ALEGRE</Cidade>
+			<UF>RS</UF>
+			<EnderecoCompleto>AV ASSIS BRASIL, 3966, LINDÓIA, PORTO ALEGRE/RS, CEP: 91010000</EnderecoCompleto>
+		</Endereco>
+	</Empreendimento>
+</MinutaSDT>

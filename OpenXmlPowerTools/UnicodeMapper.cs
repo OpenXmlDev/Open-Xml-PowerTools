@@ -69,7 +69,12 @@ namespace OpenXmlPowerTools
 
             // For w:t elements, we obviously want the element's value.
             if (element.Name == W.t)
-                return (string) element;
+            {
+                // Emulate Word's handling of the xml:space attribute on text elements
+                XAttribute spaceAttribute = element.Attribute(XNamespace.Xml + "space");
+                string space = spaceAttribute != null ? spaceAttribute.Value : null;
+                return space == "preserve" ? (string)element : IgnoreTextSpacing((string)element);
+            }
 
             // Turn elements representing special characters into their corresponding
             // unicode characters.
@@ -91,6 +96,9 @@ namespace OpenXmlPowerTools
                 return SoftHyphen.ToString();
             if (element.Name == W.tab)
                 return HorizontalTabulation.ToString();
+            // Ignore temporary layout markers that are not actual document content
+            if (element.Name == W.lastRenderedPageBreak)
+                return string.Empty;
 
             if (element.Name == W.fldChar)
             {
@@ -120,6 +128,22 @@ namespace OpenXmlPowerTools
             // Elements we don't recognize will be turned into a character that
             // doesn't typically appear in documents.
             return StartOfHeading.ToString();
+        }
+
+        /// <summary>
+        /// Emulate the way Word treats text elements when attribute xml:space="preserve"
+        /// is NOT present.
+        /// </summary>
+        /// <param name="text">The entire content of the w:t element.</param>
+        /// <returns>The corresponding text string Word would display, print, and
+        /// allow to be edited.</returns>
+        private static string IgnoreTextSpacing(string text)
+        {
+            // all whitespace at beginning and end of entire string is ignored
+            // if text contains line breaks, they are ignored/replaced with a single space
+            return string.Join(" ",
+                text.Split(new char[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries)
+            ).Trim();
         }
 
         /// <summary>
