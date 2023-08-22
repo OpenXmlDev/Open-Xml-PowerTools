@@ -1,6 +1,9 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+#pragma warning disable IDE0009
+#pragma warning disable IDE0049
+
 #define TestForUnsupportedDocuments
 #define MergeStylesWithSameNames
 
@@ -172,7 +175,6 @@ namespace OpenXmlPowerTools
                 using (WordprocessingDocument output = streamDoc.GetWordprocessingDocument())
                 {
                     BuildDocument(sources, output, new DocumentBuilderSettings());
-                    output.Close();
                 }
                 streamDoc.GetModifiedDocument().SaveAs(fileName);
             }
@@ -185,7 +187,6 @@ namespace OpenXmlPowerTools
                 using (WordprocessingDocument output = streamDoc.GetWordprocessingDocument())
                 {
                     BuildDocument(sources, output, settings);
-                    output.Close();
                 }
                 streamDoc.GetModifiedDocument().SaveAs(fileName);
             }
@@ -198,7 +199,6 @@ namespace OpenXmlPowerTools
                 using (WordprocessingDocument output = streamDoc.GetWordprocessingDocument())
                 {
                     BuildDocument(sources, output, new DocumentBuilderSettings());
-                    output.Close();
                 }
                 return streamDoc.GetModifiedWmlDocument();
             }
@@ -211,7 +211,6 @@ namespace OpenXmlPowerTools
                 using (WordprocessingDocument output = streamDoc.GetWordprocessingDocument())
                 {
                     BuildDocument(sources, output, settings);
-                    output.Close();
                 }
                 return streamDoc.GetModifiedWmlDocument();
             }
@@ -2201,8 +2200,8 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml
             }
         }
 
-        /// ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-        /// New method to support new functionality
+        ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        // New method to support new functionality
         private static void AppendDocument(WordprocessingDocument sourceDocument, WordprocessingDocument newDocument, OpenXmlPart part,
             List<XElement> newContent, bool keepSection, string insertId, List<ImageData> images)
         {
@@ -2236,7 +2235,7 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml
                 insertElementToReplace.AddAnnotation(new ReplaceSemaphore());
             partXDoc.Elements().First().ReplaceWith((XElement)InsertTransform(partXDoc.Root, newContent));
         }
-        /// ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
         public static WmlDocument ExtractGlossaryDocument(WmlDocument wmlGlossaryDocument)
         {

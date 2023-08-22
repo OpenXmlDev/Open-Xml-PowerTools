@@ -742,6 +742,40 @@ namespace OpenXmlPowerTools
             return false;
         }
 
+        public static int StringToTwips(string twipsOrPoints)
+        {
+            // if the pos value is in points, not twips
+            if (twipsOrPoints.EndsWith("pt"))
+            {
+                decimal decimalValue = decimal.Parse(twipsOrPoints.Substring(0, twipsOrPoints.Length - 2));
+                return (int)(decimalValue * 20);
+            }
+            return int.Parse(twipsOrPoints);
+        }
+
+        public static int? AttributeToTwips(XAttribute attribute)
+        {
+            if (attribute == null)
+            {
+                return null;
+            }
+
+            string twipsOrPoints = (string)attribute;
+
+            // if the pos value is in points, not twips
+            if (twipsOrPoints.EndsWith("pt"))
+            {
+                decimal decimalValue = decimal.Parse(twipsOrPoints.Substring(0, twipsOrPoints.Length - 2));
+                return (int)(decimalValue * 20);
+            }
+            if (twipsOrPoints.Contains('.'))
+            {
+                decimal decimalValue = decimal.Parse(twipsOrPoints);
+                return (int)decimalValue;
+            }
+            return int.Parse(twipsOrPoints);
+        }
+
         private static readonly List<XName> AdditionalRunContainerNames = new List<XName>
         {
             W.w + "bdo",
@@ -890,42 +924,39 @@ namespace OpenXmlPowerTools
                             IEnumerable<IEnumerable<XAttribute>> statusAtt =
                                 g.Select(r => r.Descendants(W.t).Take(1).Attributes(PtOpenXml.Status));
                             return new XElement(W.r,
+                                g.First().Attributes(),
                                 g.First().Elements(W.rPr),
                                 new XElement(W.t, statusAtt, xs, textValue));
                         }
 
                         if (g.First().Element(W.instrText) != null)
                             return new XElement(W.r,
+                                g.First().Attributes(),
                                 g.First().Elements(W.rPr),
                                 new XElement(W.instrText, xs, textValue));
                     }
 
                     if (g.First().Name == W.ins)
                     {
-#if false
-                        if (g.First().Elements(W.del).Any())
-                            return new XElement(W.ins,
-                                g.First().Attributes(),
-                                new XElement(W.del,
-                                    g.First().Elements(W.del).Attributes(),
-                                    new XElement(W.r,
-                                        g.First().Elements(W.del).Elements(W.r).Elements(W.rPr),
-                                        new XElement(W.delText, xs, textValue))));
-#endif
+                        XElement firstR = g.First().Element(W.r);
                         return new XElement(W.ins,
                             g.First().Attributes(),
                             new XElement(W.r,
+                                firstR?.Attributes(),
                                 g.First().Elements(W.r).Elements(W.rPr),
                                 new XElement(W.t, xs, textValue)));
                     }
 
                     if (g.First().Name == W.del)
+                    {
+                        XElement firstR = g.First().Element(W.r);
                         return new XElement(W.del,
                             g.First().Attributes(),
                             new XElement(W.r,
+                                firstR?.Attributes(),
                                 g.First().Elements(W.r).Elements(W.rPr),
                                 new XElement(W.delText, xs, textValue)));
-
+                    }
                     return g;
                 }));
 
