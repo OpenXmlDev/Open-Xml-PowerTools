@@ -2829,9 +2829,9 @@ namespace OpenXmlPowerTools.HtmlToWml
             // todo should check based on display property
             bool numItem = paragraph.Name == XhtmlNoNamespace.li;
 
-            if (numItem && marginTopProperty.IsAuto)
+            if (numItem && marginTopProperty?.IsAuto == true)
                 beforeAutospacing = "1";
-            if (numItem && marginBottomProperty.IsAuto)
+            if (numItem && marginBottomProperty?.IsAuto == true)
                 afterAutospacing = "1";
             if (marginTopProperty != null && marginTopProperty.IsNotAuto)
             {
