@@ -716,11 +716,20 @@ namespace OpenXmlPowerTools
                                     {
                                         XElement paragraph = tc.Elements(W.p).FirstOrDefault();
                                         XElement cellRun = paragraph.Elements(W.r).FirstOrDefault();
-                                        string xPath = paragraph.Value;
                                         string newValue = null;
+                                        var xPath = paragraph.Value;
+                                        var optionalString = "";
                                         try
                                         {
-                                            newValue = EvaluateXPathToString(d, xPath, false);
+                                            var xElement = XElement.Parse(xPath);
+                                            xPath = (string)xElement.Attribute(PA.Select);
+                                            optionalString = (string)xElement.Attribute(PA.Optional);
+                                        }
+                                        catch { }
+
+                                        try
+                                        {
+                                            newValue = EvaluateXPathToString(d, xPath, optionalString?.ToLower() == "true");
                                         }
                                         catch (XPathException e)
                                         {
