@@ -483,6 +483,7 @@ namespace OpenXmlPowerTools
                                   <xs:element name='Table'>
                                     <xs:complexType>
                                       <xs:attribute name='Select' type='xs:string' use='required' />
+                                      <xs:attribute name='Optional' type='xs:boolean' use='optional' />
                                     </xs:complexType>
                                   </xs:element>
                                 </xs:schema>",
@@ -521,6 +522,7 @@ namespace OpenXmlPowerTools
                                       <xs:attribute name='Select' type='xs:string' use='required' />
                                       <xs:attribute name='Match' type='xs:string' use='optional' />
                                       <xs:attribute name='NotMatch' type='xs:string' use='optional' />
+                                      <xs:attribute name='Optional' type='xs:boolean' use='optional' />
                                     </xs:complexType>
                                   </xs:element>
                                 </xs:schema>",
@@ -759,17 +761,19 @@ namespace OpenXmlPowerTools
                     string xPath = (string)element.Attribute(PA.Select);
                     var match = (string)element.Attribute(PA.Match);
                     var notMatch = (string)element.Attribute(PA.NotMatch);
+                    var optionalString = (string)element.Attribute(PA.Optional);
 
                     if (match == null && notMatch == null)
                         return CreateContextErrorMessage(element, "Conditional: Must specify either Match or NotMatch", templateError);
                     if (match != null && notMatch != null)
                         return CreateContextErrorMessage(element, "Conditional: Cannot specify both Match and NotMatch", templateError);
 
-                    string testValue = null; 
+                    string testValue = null;
+                    
                    
                     try
                     {
-                        testValue = EvaluateXPathToString(data, xPath, false);
+                        testValue = EvaluateXPathToString(data, xPath, optionalString?.ToLower() == "true");
                     }
 	                catch (XPathException e)
                     {
