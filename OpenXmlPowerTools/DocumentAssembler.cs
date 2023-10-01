@@ -1447,6 +1447,7 @@ namespace OpenXmlPowerTools
                     var match = (string)element.Attribute(PA.Match);
                     var notMatch = (string)element.Attribute(PA.NotMatch);
                     var optionalString = (string)element.Attribute(PA.Optional);
+                    bool optional = optionalString?.ToLower() == "true";
 
                     if (match == null && notMatch == null)
                         return CreateContextErrorMessage(element, "Conditional: Must specify either Match or NotMatch", templateError);
@@ -1458,7 +1459,7 @@ namespace OpenXmlPowerTools
                    
                     try
                     {
-                        testValue = EvaluateXPathToString(data, xPath, optionalString?.ToLower() == "true");
+                        testValue = EvaluateXPathToString(data, xPath, optional);
                     }
 	                catch (XPathException e)
                     {
@@ -1513,7 +1514,7 @@ namespace OpenXmlPowerTools
             return errorPara;
         }
 
-        private static string EvaluateXPathToString(XElement element, string xPath, bool optional )
+        private static string EvaluateXPathToString(XElement element, string xPath, bool optional)
         {
             object xPathSelectResult;
             try
