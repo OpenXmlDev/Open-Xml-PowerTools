@@ -51,6 +51,7 @@ namespace OpenXmlPowerTools
         public bool RestrictToSupportedNumberingFormats;
         public Dictionary<string, Func<string, int, string, string>> ListItemImplementations;
         public Func<ImageInfo, XElement> ImageHandler;
+        public bool OpenLinksInNewTab;
 
         public WmlToHtmlConverterSettings()
         {
@@ -63,6 +64,7 @@ namespace OpenXmlPowerTools
             RestrictToSupportedLanguages = false;
             RestrictToSupportedNumberingFormats = false;
             ListItemImplementations = ListItemRetrieverSettings.DefaultListItemTextImplementations;
+            OpenLinksInNewTab = false;
         }
 
         public WmlToHtmlConverterSettings(HtmlConverterSettings htmlConverterSettings)
@@ -76,6 +78,7 @@ namespace OpenXmlPowerTools
             RestrictToSupportedNumberingFormats = htmlConverterSettings.RestrictToSupportedNumberingFormats;
             ListItemImplementations = htmlConverterSettings.ListItemImplementations;
             ImageHandler = htmlConverterSettings.ImageHandler;
+            OpenLinksInNewTab = htmlConverterSettings.OpenLinksInNewTab;
         }
     }
 
@@ -91,6 +94,7 @@ namespace OpenXmlPowerTools
         public bool RestrictToSupportedNumberingFormats;
         public Dictionary<string, Func<string, int, string, string>> ListItemImplementations;
         public Func<ImageInfo, XElement> ImageHandler;
+        public bool OpenLinksInNewTab;
 
         public HtmlConverterSettings()
         {
@@ -102,6 +106,7 @@ namespace OpenXmlPowerTools
             RestrictToSupportedLanguages = false;
             RestrictToSupportedNumberingFormats = false;
             ListItemImplementations = ListItemRetrieverSettings.DefaultListItemTextImplementations;
+            OpenLinksInNewTab = false;
         }
     }
 
@@ -444,18 +449,36 @@ namespace OpenXmlPowerTools
             {
                 try
                 {
-                    var a = new XElement(Xhtml.a,
-                        new XAttribute("href",
-                            wordDoc.MainDocumentPart
-                                .HyperlinkRelationships
-                                .First(x => x.Id == (string)element.Attribute(R.id))
-                                .Uri
+                    if (settings.OpenLinksInNewTab)
+                    {
+                        var a = new XElement(Xhtml.a,
+                            new XAttribute("href",
+                                wordDoc.MainDocumentPart
+                                    .HyperlinkRelationships
+                                    .First(x => x.Id == (string)element.Attribute(R.id))
+                                    .Uri
                             ),
-                        element.Elements(W.r).Select(run => ConvertRun(wordDoc, settings, run))
+                            new XAttribute("target", "_blank"),
+                            element.Elements(W.r).Select(run => ConvertRun(wordDoc, settings, run)));
+                        if (!a.Nodes().Any())
+                            a.Add(new XText(""));
+                        return a;
+                    }
+                    else
+                    {
+                        var a = new XElement(Xhtml.a,
+                            new XAttribute("href",
+                                wordDoc.MainDocumentPart
+                                    .HyperlinkRelationships
+                                    .First(x => x.Id == (string)element.Attribute(R.id))
+                                    .Uri
+                            ),
+                            element.Elements(W.r).Select(run => ConvertRun(wordDoc, settings, run))
                         );
-                    if (!a.Nodes().Any())
-                        a.Add(new XText(""));
-                    return a;
+                        if (!a.Nodes().Any())
+                            a.Add(new XText(""));
+                        return a;
+                    }
                 }
                 catch (UriFormatException)
                 {
@@ -1047,7 +1070,8 @@ namespace OpenXmlPowerTools
             // for the non-paging transform.
             var groupedIntoDivs = element
                 .Elements()
-                .GroupAdjacent(e => {
+                .GroupAdjacent(e => 
+                {
                     var sectAnnotation = e.Annotation<SectionAnnotation>();
                     return sectAnnotation != null ? sectAnnotation.SectionElement.ToString() : "";
                 });
@@ -2617,18 +2641,18 @@ namespace OpenXmlPowerTools
         private static object CreateBorderDivs(WordprocessingDocument wordDoc, WmlToHtmlConverterSettings settings, IEnumerable<XElement> elements)
         {
             return elements.GroupAdjacent(e =>
-                {
-                    var pBdr = e.Elements(W.pPr).Elements(W.pBdr).FirstOrDefault();
-                    if (pBdr != null)
-                    {
-                        var indStr = string.Empty;
-                        var ind = e.Elements(W.pPr).Elements(W.ind).FirstOrDefault();
-                        if (ind != null)
-                            indStr = ind.ToString(SaveOptions.DisableFormatting);
-                        return pBdr.ToString(SaveOptions.DisableFormatting) + indStr;
-                    }
-                    return e.Name == W.tbl ? "table" : string.Empty;
-                })
+            {
+            var pBdr = e.Elements(W.pPr).Elements(W.pBdr).FirstOrDefault();
+            if (pBdr != null)
+            {
+                    var indStr = string.Empty;
+                    var ind = e.Elements(W.pPr).Elements(W.ind).FirstOrDefault();
+                    if (ind != null)
+                        indStr = ind.ToString(SaveOptions.DisableFormatting);
+                    return pBdr.ToString(SaveOptions.DisableFormatting) + indStr;
+                }
+                return e.Name == W.tbl ? "table" : string.Empty;
+            })
                 .Select(g =>
                 {
                     if (g.Key == string.Empty)
