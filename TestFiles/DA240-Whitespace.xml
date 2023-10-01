@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<Test240>
+  <MayOrMayNot>may or may not</MayOrMayNot>
+  <Join1>/</Join1>
+  <Join2>, </Join2>
+  <Join3> and </Join3>
+</Test240>

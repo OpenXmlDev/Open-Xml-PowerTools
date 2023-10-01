@@ -209,6 +209,24 @@ namespace OxPt
             Assert.Equal(4, brCount);
         }
 
+        [Fact]
+        public void DA240()
+        {
+            string name = "DA240-Whitespace.docx";
+            DA101(name, "DA240-Whitespace.xml", false);
+            var assembledDocx = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, name.Replace(".docx", "-processed-by-DocumentAssembler.docx")));
+            WmlDocument afterAssembling = new WmlDocument(assembledDocx.FullName);
+
+            // when elements are inserted that begin or end with white space, make sure white space is preserved
+            string firstParaTextIncorrect = afterAssembling.MainDocumentPart.Element(W.body).Elements(W.p).First().Value;
+            Assert.Equal("Content may or may not have spaces: he/she; he, she; he and she.", firstParaTextIncorrect);
+            // warning: XElement.Value returns the string resulting from direct concatenation of all W.t elements. This is fast but ignores
+            // proper handling of xml:space="preserve" attributes, which Word honors when rendering content. Below we also check
+            // the result of UnicodeMapper.RunToString, which has been enhanced to take xml:space="preserve" into account.
+            string firstParaTextCorrect = InnerText(afterAssembling.MainDocumentPart.Element(W.body).Elements(W.p).First());
+            Assert.Equal("Content may or may not have spaces: he/she; he, she; he and she.", firstParaTextCorrect);
+        }
+
         [Theory]
         [InlineData("DA024-TrackedRevisions.docx", "DA-Data.xml")]
         public void DA102_Throws(string name, string data)
@@ -226,6 +244,42 @@ namespace OxPt
                 {
                     afterAssembling = DocumentAssembler.AssembleDocument(wmlTemplate, xmldata, out returnedTemplateError);
                 });
+        }
+
+        [Fact]
+        public void DATemplateMaior()
+        {
+            // this test case was causing incorrect behavior of OpenXmlRegex when replacing fields in paragraphs that contained
+            // lastRenderedPageBreak XML elements. Recent fixes relating to UnicodeMapper and OpenXmlRegex addressed it.
+            string name = "DA-TemplateMaior.docx";
+            DA101(name, "DA-templateMaior.xml", false);
+            var assembledDocx = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, name.Replace(".docx", "-processed-by-DocumentAssembler.docx")));
+            var afterAssembling = new WmlDocument(assembledDocx.FullName);
+
+            var descendants = afterAssembling.MainDocumentPart.Value;
+
+            Assert.False(descendants.Contains(">"), "Found > on text");
+        }
+
+        [Fact]
+        public void DAXmlError()
+        {
+            /* The assembly below would originally (prior to bug fixes) cause an exception to be thrown during assembly: 
+                 System.ArgumentException : '', hexadecimal value 0x01, is an invalid character.
+             */
+            string name = "DA-xmlerror.docx";
+            string data = "DA-xmlerror.xml";
+
+            DirectoryInfo sourceDir = new DirectoryInfo("../../../../TestFiles/");
+            var templateDocx = new FileInfo(Path.Combine(sourceDir.FullName, name));
+            var dataFile = new FileInfo(Path.Combine(sourceDir.FullName, data));
+
+            var wmlTemplate = new WmlDocument(templateDocx.FullName);
+            var xmlData = XElement.Load(dataFile.FullName);
+
+            var afterAssembling = DocumentAssembler.AssembleDocument(wmlTemplate, xmlData, out var returnedTemplateError);
+            var assembledDocx = new FileInfo(Path.Combine(TestUtil.TempDir.FullName, templateDocx.Name.Replace(".docx", "-processed-by-DocumentAssembler.docx")));
+            afterAssembling.SaveAs(assembledDocx.FullName);
         }
 
         [Theory]
@@ -259,6 +313,14 @@ namespace OxPt
             Assert.Equal(err, returnedTemplateError);
         }
 
+        private static string InnerText(XContainer e)
+        {
+            return e.Descendants(W.r)
+                .Where(r => r.Parent.Name != W.del)
+                .Select(UnicodeMapper.RunToString)
+                .StringConcatenate();
+        }
+
         private static List<string> s_ExpectedErrors = new List<string>()
         {
             "The 'http://schemas.openxmlformats.org/wordprocessingml/2006/main:evenHBand' attribute is not declared.",
@@ -275,6 +337,7 @@ namespace OxPt
             "The 'http://schemas.openxmlformats.org/wordprocessingml/2006/main:noVBand' attribute is not declared.",
             "The 'http://schemas.openxmlformats.org/wordprocessingml/2006/main:oddHBand' attribute is not declared.",
             "The 'http://schemas.openxmlformats.org/wordprocessingml/2006/main:oddVBand' attribute is not declared.",
+            "The attribute 'http://schemas.openxmlformats.org/wordprocessingml/2006/main:name' has invalid value 'useWord2013TrackBottomHyphenation'. The Enumeration constraint failed.",
         };
     }
 }

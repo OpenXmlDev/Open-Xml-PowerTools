@@ -1,0 +1,407 @@
+
+<MinutaSDT>
+	<Compradores>
+		<Comprador>
+			<Tipo>F</Tipo>
+			<Principal>SIM</Principal>
+			<Nome>ANDRÉ TENROLLER DE OLIVEIRA FOLADOR</Nome>
+			<CPFCNPJ>847.518.000-00</CPFCNPJ>
+			<Documento>1114427329</Documento>
+			<OrgaoExpedidor>SSP/RS</OrgaoExpedidor>
+			<Nacionalidade>BRASILEIRO</Nacionalidade>
+			<Data>19/05/1995</Data>
+			<EstadoCivil>SOLTEIRO</EstadoCivil>
+			<RegimeCasamento />
+			<Telefone />
+			<Email>FOLADORANDRE@GMAIL.COM</Email>
+			<Profissao>TECNICO DE ELETRONICA</Profissao>
+			<EnderecoResidencial>
+				<Logradourox>AV BERNARDI</Logradourox>
+				<Numerox>164</Numerox>
+				<Bairrox>CRISTO REDENTOR</Bairrox>
+				<Complementox>APTO 105</Complementox>
+				<Cepx>91040-030</Cepx>
+				<Cidadex>PORTO ALEGRE</Cidadex>
+				<UFx>RS</UFx>
+				<EnderecoCompletox>AV BERNARDI, 164, APTO 105, CRISTO REDENTOR, PORTO ALEGRE/RS, CEP: 91040-030</EnderecoCompletox>
+			</EnderecoResidencial>
+			<EnderecoComercial>
+				<Logradouro />
+				<Numero />
+				<Bairro />
+				<Complemento />
+				<Cep />
+				<Cidade />
+				<UF />
+				<EnderecoCompleto />
+			</EnderecoComercial>
+			<NomePai>MARCOS ROBERTO FOLADOR</NomePai>
+			<NomeMae>CLAUDIA LUIZA GRAÇA TENROLLER DE OLIVEIRA</NomeMae>
+			<TemConjuge>NAO</TemConjuge>
+			<Conjuge>
+				<Tipo />
+				<Principal />
+				<Nome />
+				<CPFCNPJ />
+				<Documento />
+				<OrgaoExpedidor />
+				<Nacionalidade />
+				<Data />
+				<EstadoCivil />
+				<RegimeCasamento />
+				<Telefone />
+				<Email />
+				<Profissao />
+				<EnderecoResidencial>
+					<Logradouro />
+					<Numero />
+					<Bairro />
+					<Complemento />
+					<Cep />
+					<Cidade />
+					<UF />
+					<EnderecoCompleto />
+				</EnderecoResidencial>
+				<EnderecoComercial>
+					<Logradouro />
+					<Numero />
+					<Bairro />
+					<Complemento />
+					<Cep />
+					<Cidade />
+					<UF />
+					<EnderecoCompleto />
+				</EnderecoComercial>
+				<NomePai />
+				<NomeMae />
+				<TemRepresentante />
+			</Conjuge>
+			<TemRepresentante>NAO</TemRepresentante>
+			<Representantes />
+		</Comprador>
+	</Compradores>
+	<Pagamentos>
+		<Pagamento>
+			<Sequencia>001</Sequencia>
+			<CodigoSerie>05</CodigoSerie>
+			<Descricao>ATO</Descricao>
+			<Quantidade>001</Quantidade>
+			<QuantidadeExtenso>Um </QuantidadeExtenso>
+			<Data>12/08/2020</Data>
+			<ValorUnitarioSemJuros>60.458,51</ValorUnitarioSemJuros>
+			<ValorTotalSemJuros>60.458,51</ValorTotalSemJuros>
+			<UnitarioSemJurosExtenso>Sessenta mil e quatrocentos e cinquenta e oito reais e cinquenta e um centavos</UnitarioSemJurosExtenso>
+			<TotalSemJurosExtenso>Sessenta mil e quatrocentos e cinquenta e oito reais e cinquenta e um centavos</TotalSemJurosExtenso>
+			<ValorUnitarioComJuros>60.458,51</ValorUnitarioComJuros>
+			<ValorTotalComJuros>60.458,51</ValorTotalComJuros>
+			<UnitarioComJurosExtenso>Sessenta mil e quatrocentos e cinquenta e oito reais e cinquenta e um centavos</UnitarioComJurosExtenso>
+			<TotalComJurosExtenso>Sessenta mil e quatrocentos e cinquenta e oito reais e cinquenta e um centavos</TotalComJurosExtenso>
+			<PercentualSerie>15,47</PercentualSerie>
+			<PercentualSerieExtenso>Quinze inteiros e Quarenta e sete  centésimos por cento</PercentualSerieExtenso>
+			<PercentualSerieCalculado>15.47</PercentualSerieCalculado>
+			<TaxaJuros>12,00</TaxaJuros>
+			<TaxaJurosExtenso>Doze por cento</TaxaJurosExtenso>
+			<SistemaAmortizacao>TP</SistemaAmortizacao>
+			<PeriodicidadeFlag>N</PeriodicidadeFlag>
+			<CorrecaoFlag>N</CorrecaoFlag>
+			<JurosFlag>N</JurosFlag>
+		</Pagamento>
+		<Pagamento>
+			<Sequencia>002</Sequencia>
+			<CodigoSerie>01</CodigoSerie>
+			<Descricao>MENSAL</Descricao>
+			<Quantidade>036</Quantidade>
+			<QuantidadeExtenso>Trinta e seis </QuantidadeExtenso>
+			<Data>20/09/2020</Data>
+			<ValorUnitarioSemJuros>1.200,00</ValorUnitarioSemJuros>
+			<ValorTotalSemJuros>43.200,00</ValorTotalSemJuros>
+			<UnitarioSemJurosExtenso>Um mil e duzentos reais</UnitarioSemJurosExtenso>
+			<TotalSemJurosExtenso>Quarenta e três mil e duzentos reais</TotalSemJurosExtenso>
+			<ValorUnitarioComJuros>1.200,00</ValorUnitarioComJuros>
+			<ValorTotalComJuros>43.200,00</ValorTotalComJuros>
+			<UnitarioComJurosExtenso>Um mil e duzentos reais</UnitarioComJurosExtenso>
+			<TotalComJurosExtenso>Quarenta e três mil e duzentos reais</TotalComJurosExtenso>
+			<PercentualSerie>11,05</PercentualSerie>
+			<PercentualSerieExtenso>Onze inteiros e Cinco  décimos por cento</PercentualSerieExtenso>
+			<PercentualSerieCalculado>11.05</PercentualSerieCalculado>
+			<TaxaJuros>12,00</TaxaJuros>
+			<TaxaJurosExtenso>Doze por cento</TaxaJurosExtenso>
+			<SistemaAmortizacao>TP</SistemaAmortizacao>
+			<PeriodicidadeFlag>N</PeriodicidadeFlag>
+			<CorrecaoFlag>S</CorrecaoFlag>
+			<JurosFlag>S</JurosFlag>
+		</Pagamento>
+		<Pagamento>
+			<Sequencia>003</Sequencia>
+			<CodigoSerie>09</CodigoSerie>
+			<Descricao>UNICA</Descricao>
+			<Quantidade>001</Quantidade>
+			<QuantidadeExtenso>Um </QuantidadeExtenso>
+			<Data>20/02/2021</Data>
+			<ValorUnitarioSemJuros>15.000,00</ValorUnitarioSemJuros>
+			<ValorTotalSemJuros>15.000,00</ValorTotalSemJuros>
+			<UnitarioSemJurosExtenso>Quinze mil reais</UnitarioSemJurosExtenso>
+			<TotalSemJurosExtenso>Quinze mil reais</TotalSemJurosExtenso>
+			<ValorUnitarioComJuros>15.000,00</ValorUnitarioComJuros>
+			<ValorTotalComJuros>15.000,00</ValorTotalComJuros>
+			<UnitarioComJurosExtenso>Quinze mil reais</UnitarioComJurosExtenso>
+			<TotalComJurosExtenso>Quinze mil reais</TotalComJurosExtenso>
+			<PercentualSerie>3,84</PercentualSerie>
+			<PercentualSerieExtenso>Três inteiros e Oitenta e quatro  centésimos por cento</PercentualSerieExtenso>
+			<PercentualSerieCalculado>3.84</PercentualSerieCalculado>
+			<TaxaJuros>12,00</TaxaJuros>
+			<TaxaJurosExtenso>Doze por cento</TaxaJurosExtenso>
+			<SistemaAmortizacao>TP</SistemaAmortizacao>
+			<PeriodicidadeFlag>N</PeriodicidadeFlag>
+			<CorrecaoFlag>S</CorrecaoFlag>
+			<JurosFlag>S</JurosFlag>
+		</Pagamento>
+		<Pagamento>
+			<Sequencia>004</Sequencia>
+			<CodigoSerie>09</CodigoSerie>
+			<Descricao>UNICA</Descricao>
+			<Quantidade>001</Quantidade>
+			<QuantidadeExtenso>Um </QuantidadeExtenso>
+			<Data>20/11/2021</Data>
+			<ValorUnitarioSemJuros>15.000,00</ValorUnitarioSemJuros>
+			<ValorTotalSemJuros>15.000,00</ValorTotalSemJuros>
+			<UnitarioSemJurosExtenso>Quinze mil reais</UnitarioSemJurosExtenso>
+			<TotalSemJurosExtenso>Quinze mil reais</TotalSemJurosExtenso>
+			<ValorUnitarioComJuros>15.000,00</ValorUnitarioComJuros>
+			<ValorTotalComJuros>15.000,00</ValorTotalComJuros>
+			<UnitarioComJurosExtenso>Quinze mil reais</UnitarioComJurosExtenso>
+			<TotalComJurosExtenso>Quinze mil reais</TotalComJurosExtenso>
+			<PercentualSerie>3,84</PercentualSerie>
+			<PercentualSerieExtenso>Três inteiros e Oitenta e quatro  centésimos por cento</PercentualSerieExtenso>
+			<PercentualSerieCalculado>3.84</PercentualSerieCalculado>
+			<TaxaJuros>12,00</TaxaJuros>
+			<TaxaJurosExtenso>Doze por cento</TaxaJurosExtenso>
+			<SistemaAmortizacao>TP</SistemaAmortizacao>
+			<PeriodicidadeFlag>N</PeriodicidadeFlag>
+			<CorrecaoFlag>S</CorrecaoFlag>
+			<JurosFlag>S</JurosFlag>
+		</Pagamento>
+		<Pagamento>
+			<Sequencia>005</Sequencia>
+			<CodigoSerie>09</CodigoSerie>
+			<Descricao>UNICA</Descricao>
+			<Quantidade>001</Quantidade>
+			<QuantidadeExtenso>Um </QuantidadeExtenso>
+			<Data>20/05/2022</Data>
+			<ValorUnitarioSemJuros>15.000,00</ValorUnitarioSemJuros>
+			<ValorTotalSemJuros>15.000,00</ValorTotalSemJuros>
+			<UnitarioSemJurosExtenso>Quinze mil reais</UnitarioSemJurosExtenso>
+			<TotalSemJurosExtenso>Quinze mil reais</TotalSemJurosExtenso>
+			<ValorUnitarioComJuros>15.000,00</ValorUnitarioComJuros>
+			<ValorTotalComJuros>15.000,00</ValorTotalComJuros>
+			<UnitarioComJurosExtenso>Quinze mil reais</UnitarioComJurosExtenso>
+			<TotalComJurosExtenso>Quinze mil reais</TotalComJurosExtenso>
+			<PercentualSerie>3,84</PercentualSerie>
+			<PercentualSerieExtenso>Três inteiros e Oitenta e quatro  centésimos por cento</PercentualSerieExtenso>
+			<PercentualSerieCalculado>3.84</PercentualSerieCalculado>
+			<TaxaJuros>12,00</TaxaJuros>
+			<TaxaJurosExtenso>Doze por cento</TaxaJurosExtenso>
+			<SistemaAmortizacao>TP</SistemaAmortizacao>
+			<PeriodicidadeFlag>N</PeriodicidadeFlag>
+			<CorrecaoFlag>S</CorrecaoFlag>
+			<JurosFlag>S</JurosFlag>
+		</Pagamento>
+		<Pagamento>
+			<Sequencia>006</Sequencia>
+			<CodigoSerie>01</CodigoSerie>
+			<Descricao>MENSAL</Descricao>
+			<Quantidade>007</Quantidade>
+			<QuantidadeExtenso>Sete </QuantidadeExtenso>
+			<Data>20/09/2023</Data>
+			<ValorUnitarioSemJuros>1.200,00</ValorUnitarioSemJuros>
+			<ValorTotalSemJuros>8.400,00</ValorTotalSemJuros>
+			<UnitarioSemJurosExtenso>Um mil e duzentos reais</UnitarioSemJurosExtenso>
+			<TotalSemJurosExtenso>Oito mil e quatrocentos reais</TotalSemJurosExtenso>
+			<ValorUnitarioComJuros>1.245,98</ValorUnitarioComJuros>
+			<ValorTotalComJuros>8.721,83</ValorTotalComJuros>
+			<UnitarioComJurosExtenso>Um mil e duzentos reais</UnitarioComJurosExtenso>
+			<TotalComJurosExtenso>Oito mil e setecentos e vinte e um reais e oitenta e três centavos</TotalComJurosExtenso>
+			<PercentualSerie>2,15</PercentualSerie>
+			<PercentualSerieExtenso>Dois inteiros e Quinze  centésimos por cento</PercentualSerieExtenso>
+			<PercentualSerieCalculado>2.15</PercentualSerieCalculado>
+			<TaxaJuros>12,00</TaxaJuros>
+			<TaxaJurosExtenso>Doze por cento</TaxaJurosExtenso>
+			<SistemaAmortizacao>TP</SistemaAmortizacao>
+			<PeriodicidadeFlag>N</PeriodicidadeFlag>
+			<CorrecaoFlag>S</CorrecaoFlag>
+			<JurosFlag>S</JurosFlag>
+		</Pagamento>
+		<Pagamento>
+			<Sequencia>007</Sequencia>
+			<CodigoSerie>08</CodigoSerie>
+			<Descricao>FINANCIAMENTO</Descricao>
+			<Quantidade>001</Quantidade>
+			<QuantidadeExtenso>Um </QuantidadeExtenso>
+			<Data>30/06/2024</Data>
+			<ValorUnitarioSemJuros>214.229,73</ValorUnitarioSemJuros>
+			<ValorTotalSemJuros>214.229,73</ValorTotalSemJuros>
+			<UnitarioSemJurosExtenso>Duzentos e quatorze mil e duzentos e vinte e nove reais e setenta e três centavos</UnitarioSemJurosExtenso>
+			<TotalSemJurosExtenso>Duzentos e quatorze mil e duzentos e vinte e nove reais e setenta e três centavos</TotalSemJurosExtenso>
+			<ValorUnitarioComJuros>235.447,87</ValorUnitarioComJuros>
+			<ValorTotalComJuros>235.447,87</ValorTotalComJuros>
+			<UnitarioComJurosExtenso>Duzentos e quatorze mil e duzentos e vinte e nove reais e setenta e três centavos</UnitarioComJurosExtenso>
+			<TotalComJurosExtenso>Duzentos e trinta e cinco mil e quatrocentos e quarenta e sete reais e oitenta e sete centavos</TotalComJurosExtenso>
+			<PercentualSerie>59,81</PercentualSerie>
+			<PercentualSerieExtenso>Cinquenta e nove inteiros e Oitenta e um  centésimos por cento</PercentualSerieExtenso>
+			<PercentualSerieCalculado>59.81</PercentualSerieCalculado>
+			<TaxaJuros>12,00</TaxaJuros>
+			<TaxaJurosExtenso>Doze por cento</TaxaJurosExtenso>
+			<SistemaAmortizacao>TP</SistemaAmortizacao>
+			<PeriodicidadeFlag>N</PeriodicidadeFlag>
+			<CorrecaoFlag>S</CorrecaoFlag>
+			<JurosFlag>S</JurosFlag>
+		</Pagamento>
+	</Pagamentos>
+	<Fluxo>
+		<ContratoFluxo>
+			<SerieCompleta>ATO  
+R$ 60.458,51 (Sessenta mil e quatrocentos e cinquenta e oito reais e cinquenta e um centavos), correspondente à 15,47% do preço. 
+Número de parcelas: 1 (uma) parcela com valor nominal nesta data de R$ 60.458,51 (Sessenta mil e quatrocentos e cinquenta e oito reais e cinquenta e um centavos), cujo valor será pago à vista, ou seja, em parcela única por meio de TED ou boleto bancário, ficando a quitação vinculada respectivamente a efetivação da transferência ou comprovação do pagamento do boleto bancário.  
+Data de vencimento: 12/08/2020 </SerieCompleta>
+		</ContratoFluxo>
+		<ContratoFluxo>
+			<SerieCompleta>PARCELAS MENSAIS 
+R$ 43.200,00 (Quarenta e três mil e duzentos reais). 
+Número de parcela(s): 036 (Trinta e seis) parcelas, mensais e sucessivas, com valor nominal nesta data de R$ 1.200,00 (Um mil e duzentos reais), cada uma. 
+Data do vencimento da primeira parcela: 20/09/2020. As demais parcelas terão vencimento nos mesmos dias do calendário civil dos meses imediatamente subsequentes.</SerieCompleta>
+		</ContratoFluxo>
+		<ContratoFluxo>
+			<SerieCompleta>PARCELA DE REFORÇO 
+R$ 15.000,00 (Quinze mil reais). 
+Número de parcela(s): 1 (uma) parcela com valor nominal nesta data de R$ 15.000,00 (Quinze mil reais). 
+Data do vencimento da parcela: 20/02/2021.   </SerieCompleta>
+		</ContratoFluxo>
+		<ContratoFluxo>
+			<SerieCompleta>PARCELA DE REFORÇO 
+R$ 15.000,00 (Quinze mil reais). 
+Número de parcela(s): 1 (uma) parcela com valor nominal nesta data de R$ 15.000,00 (Quinze mil reais). 
+Data do vencimento da parcela: 20/11/2021.   </SerieCompleta>
+		</ContratoFluxo>
+		<ContratoFluxo>
+			<SerieCompleta>PARCELA DE REFORÇO 
+R$ 15.000,00 (Quinze mil reais). 
+Número de parcela(s): 1 (uma) parcela com valor nominal nesta data de R$ 15.000,00 (Quinze mil reais). 
+Data do vencimento da parcela: 20/05/2022.   </SerieCompleta>
+		</ContratoFluxo>
+		<ContratoFluxo>
+			<SerieCompleta>PARCELAS MENSAIS 
+R$ 8.400,00 (Oito mil e quatrocentos reais). 
+Número de parcela(s): 007 (Sete) parcelas, mensais e sucessivas, com valor nominal nesta data de R$ 1.200,00 (Um mil e duzentos reais), cada uma. 
+Data do vencimento da primeira parcela: 20/09/2023. As demais parcelas terão vencimento nos mesmos dias do calendário civil dos meses imediatamente subsequentes.</SerieCompleta>
+		</ContratoFluxo>
+		<ContratoFluxo>
+			<SerieCompleta>PARCELA CHAVES 
+R$ 214.229,73 (Duzentos e quatorze mil e duzentos e vinte e nove reais e setenta e três centavos). 
+Número de parcela(s): 1 (uma) parcela com valor nominal nesta data de R$ 214.229,73 (Duzentos e quatorze mil e duzentos e vinte e nove reais e setenta e três centavos) 
+Data do vencimento da parcela: 30/06/2024 </SerieCompleta>
+		</ContratoFluxo>
+	</Fluxo>
+	<Comissoes>
+		<Comissao>
+			<TipoDocumento>CPF</TipoDocumento>
+			<CPFCNPJ>436.268.820-04</CPFCNPJ>
+			<Nome>ROSANGELA DENISE RIFFEL GROEHS                    </Nome>
+			<CRECI>61093     </CRECI>
+			<Valor>6.253,28</Valor>
+			<ValorExtenso>Seis mil e duzentos e cinquenta e três reais e vinte e oito centavos</ValorExtenso>
+		</Comissao>
+		<Comissao>
+			<TipoDocumento>CPF</TipoDocumento>
+			<CPFCNPJ>644.541.420-68</CPFCNPJ>
+			<Nome>GERSON DONISETTE DOS SANTOS SOUZA                 </Nome>
+			<CRECI>45312     </CRECI>
+			<Valor>2.344,98</Valor>
+			<ValorExtenso>Dois mil e trezentos e quarenta e quatro reais e noventa e oito centavos</ValorExtenso>
+		</Comissao>
+		<Comissao>
+			<TipoDocumento>CPF</TipoDocumento>
+			<CPFCNPJ>011.998.550-06</CPFCNPJ>
+			<Nome>MAURICIO MOREIRA RAMOS                            </Nome>
+			<CRECI>48811     </CRECI>
+			<Valor>1.172,48</Valor>
+			<ValorExtenso>Um mil e cento e setenta e dois reais e quarenta e oito centavos</ValorExtenso>
+		</Comissao>
+		<Comissao>
+			<TipoDocumento>CNPJ</TipoDocumento>
+			<CPFCNPJ>28.007.960/0001-00</CPFCNPJ>
+			<Nome>PRION PARTICIPACOES S.A.                          </Nome>
+			<CRECI>25278J    </CRECI>
+			<Valor>9.770,75</Valor>
+			<ValorExtenso>Nove mil e setecentos e setenta reais e setenta e cinco centavos</ValorExtenso>
+		</Comissao>
+	</Comissoes>
+	<BoxesVinculados />
+	<Imobiliaria>
+		<CNPJ>10.274.663/0001-58</CNPJ>
+		<RazaoSocial />
+		<Endereco>
+			<Logradouro />
+			<Numero>0</Numero>
+			<Bairro />
+			<Complemento />
+			<Cep />
+			<Cidade />
+			<UF>  </UF>
+			<EnderecoCompleto />
+		</Endereco>
+	</Imobiliaria>
+	<Localidade>PORTO ALEGRE</Localidade>
+	<Vendedor>
+		<CNPJ>22.922.412/0001-11</CNPJ>
+		<RazaoSocial>MELNICK EVEN ANDIROBA EMPREENDIMENTO IMOBILIÁRIO LTDA.</RazaoSocial>
+		<Codigo />
+		<NIRE />
+		<Endereco>
+			<Logradouro>RUA CARLOS TREIN FILHO</Logradouro>
+			<Numero />
+			<Bairro>AUXILIADORA</Bairro>
+			<Complemento>551</Complemento>
+			<Cep />
+			<Cidade>PORTO ALEGRE</Cidade>
+			<UF>RS</UF>
+			<EnderecoCompleto>RUA CARLOS TREIN FILHO, 551, AUXILIADORA, PORTO ALEGRE/RS</EnderecoCompleto>
+		</Endereco>
+	</Vendedor>
+	<TemPessoaJuridica>NAO</TemPessoaJuridica>
+	<DataHabitiSe />
+	<DataLocMinutaExtenso>PORTO ALEGRE, 21 DE MAIO DE 2021</DataLocMinutaExtenso>
+	<DataMinutaExtenso>21 DE MAIO DE 2021</DataMinutaExtenso>
+	<DataMinuta>21/05/2021</DataMinuta>
+	<DataLocPropostaExtenso>PORTO ALEGRE, 12 DE AGOSTO DE 2020</DataLocPropostaExtenso>
+	<DataPropostaExtenso>12 DE AGOSTO DE 2020</DataPropostaExtenso>
+	<DataProposta>12/08/2020</DataProposta>
+	<NumeroProposta>286.021</NumeroProposta>
+	<ValorComissaoTotalExtenso>Dezenove mil e quinhentos e quarenta e um reais e quarenta e nove centavos</ValorComissaoTotalExtenso>
+	<ValorComissaoTotal>19.541,49</ValorComissaoTotal>
+	<ValorComissaoEVENExtenso>Nove mil e setecentos e setenta reais e setenta e cinco centavos</ValorComissaoEVENExtenso>
+	<ValorComissaoEVEN>9.770,75</ValorComissaoEVEN>
+	<ValorComissaoAutonomoExtenso>Nove mil e setecentos e setenta reais e setenta e quatro centavos</ValorComissaoAutonomoExtenso>
+	<ValorComissaoAutonomo>9.770,74</ValorComissaoAutonomo>
+	<ValorContratoExtenso>Trezentos e setenta e um mil e duzentos e oitenta e oito reais e vinte e quatro centavos</ValorContratoExtenso>
+	<ValorContrato>371.288,24</ValorContrato>
+	<ValorPropostaExtenso>Trezentos e noventa mil e oitocentos e vinte e nove reais e setenta e três centavos</ValorPropostaExtenso>
+	<ValorProposta>390.829,73</ValorProposta>
+	<DescricaoUnidade>Localizado no oitavo pavimento, sendo o nono à esquerda de quem chega na circulação pela escada e segue à direita, com área real privativa de 28,73m², área real de uso comum de divisão não proporcional de 14,08m², área real de uso comum de divisão proporcional de 3,44m², e área real total de 46,25m², correspondendo-lhe a fração ideal de 0,000800 no terreno e nas coisas de uso comum e fim proveitoso do condomínio.</DescricaoUnidade>
+	<Torre>RESIDENCIAL</Torre>
+	<Unidade>802</Unidade>
+	<CodigoBarras>080200000000028602128.007.960/000</CodigoBarras>
+	<Empreendimento>
+		<CNPJ />
+		<RazaoSocial>CARLOS GOMES SQUARE</RazaoSocial>
+		<Endereco>
+			<Logradouro>AVENIDA CARLOS GOMES</Logradouro>
+			<Numero>1130</Numero>
+			<Bairro>TRÊS FIGUEIRAS</Bairro>
+			<Complemento />
+			<Cep>90480001</Cep>
+			<Cidade>PORTO ALEGRE</Cidade>
+			<UF>RS</UF>
+			<EnderecoCompleto>AVENIDA CARLOS GOMES, 1130, TRÊS FIGUEIRAS, PORTO ALEGRE/RS, CEP: 90480001</EnderecoCompleto>
+		</Endereco>
+	</Empreendimento>
+</MinutaSDT>
