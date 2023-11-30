@@ -3085,7 +3085,17 @@ namespace OpenXmlPowerTools
             var pp3 = wordDoc.MainDocumentPart.Parts.FirstOrDefault(pp => pp.RelationshipId == imageRid);
             if (pp3 == null) return null;
 
-            var imagePart = (ImagePart)pp3.OpenXmlPart;
+            ImagePart imagePart = null;
+
+            try
+            {
+                imagePart = (ImagePart)pp3.OpenXmlPart;
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+
             if (imagePart == null) return null;
 
             // If the image markup points to a NULL image, then following will throw an ArgumentOutOfRangeException
