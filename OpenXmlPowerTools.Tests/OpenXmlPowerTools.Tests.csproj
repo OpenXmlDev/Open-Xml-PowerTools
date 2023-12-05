@@ -1,30 +1,36 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net452;net461;netcoreapp2.0</TargetFrameworks>
+    <TargetFrameworks>netcoreapp3.1</TargetFrameworks>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
     <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="DocumentFormat.OpenXml" Version="2.8.1" />
+    <PackageReference Include="DocumentFormat.OpenXml" Version="2.20.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.7.2" />
     <PackageReference Include="xunit" Version="2.4.0" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.0" />
     <PackageReference Include="xunit.runner.console" Version="2.4.0" />
+    <PackageReference Include="PreMailer.Net" Version="2.2.0" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\OpenXmlPowerTools\OpenXmlPowerTools.csproj" />
   </ItemGroup>
-  
-  <ItemGroup Condition=" '$(TargetFramework)' == 'net45' ">
-    <Reference Include="WindowsBase" />
-  </ItemGroup>
 
   <ItemGroup>
     <Service Include="{82a7f48d-3b50-4b1e-b82e-3ada8210c358}" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="TestData\Document1.docx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="TestData\Document2.docx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>
