@@ -563,7 +563,16 @@ namespace OpenXmlPowerTools
 
         private static object ProcessBookmarkStart(XElement element)
         {
-            var name = (string) element.Attribute(W.name);
+            string name = null;
+
+            try
+            {
+                name = (string)element.Attribute(W.name);
+            }
+            catch (InvalidCastException ex)
+            {
+                return null;
+            }
             if (name == null) return null;
 
             var style = new Dictionary<string, string>();
@@ -2223,7 +2232,17 @@ namespace OpenXmlPowerTools
 
         private static XAttribute GetLeader(XElement tabAfterText)
         {
-            var leader = (string)tabAfterText.Attribute(W.leader);
+            string leader = null;
+
+            try
+            {
+                leader = (string)tabAfterText.Attribute(W.leader);
+            }
+            catch (InvalidCastException ex)
+            {
+                return null;
+            }
+
             if (leader == null)
                 return null;
             return new XAttribute(PtOpenXml.Leader, leader);
@@ -3079,7 +3098,17 @@ namespace OpenXmlPowerTools
                 .Elements(Pic._pic).Elements(Pic.blipFill).FirstOrDefault();
             if (blipFill == null) return null;
 
-            var imageRid = (string)blipFill.Elements(A.blip).Attributes(R.embed).FirstOrDefault();
+            string imageRid = null;
+
+            try
+            {
+                imageRid = (string)blipFill.Elements(A.blip).Attributes(R.embed).FirstOrDefault();
+            }
+            catch (InvalidCastException ex)
+            {
+                return null;
+            }
+
             if (imageRid == null) return null;
 
             var pp3 = wordDoc.MainDocumentPart.Parts.FirstOrDefault(pp => pp.RelationshipId == imageRid);
@@ -3091,7 +3120,7 @@ namespace OpenXmlPowerTools
             {
                 imagePart = (ImagePart)pp3.OpenXmlPart;
             }
-            catch (Exception ex)
+            catch (InvalidCastException ex)
             {
                 return null;
             }
@@ -3160,7 +3189,17 @@ namespace OpenXmlPowerTools
         private static XElement ProcessPictureOrObject(WordprocessingDocument wordDoc,
             XElement element, Func<ImageInfo, XElement> imageHandler)
         {
-            var imageRid = (string)element.Elements(VML.shape).Elements(VML.imagedata).Attributes(R.id).FirstOrDefault();
+            string imageRid = null;
+
+            try
+            {
+                imageRid = (string)element.Elements(VML.shape).Elements(VML.imagedata).Attributes(R.id).FirstOrDefault();
+            }
+            catch (InvalidCastException ex)
+            {
+                return null;
+            }
+
             if (imageRid == null) return null;
 
             try
@@ -3168,7 +3207,7 @@ namespace OpenXmlPowerTools
                 var pp = wordDoc.MainDocumentPart.Parts.FirstOrDefault(pp2 => pp2.RelationshipId == imageRid);
                 if (pp == null) return null;
 
-                var imagePart = (ImagePart)pp.OpenXmlPart;
+                var imagePart = pp.OpenXmlPart as ImagePart;
                 if (imagePart == null) return null;
 
                 var contentType = imagePart.ContentType;
