@@ -44,6 +44,7 @@ namespace OpenXmlPowerTools
         public bool FabricateCssClasses;
         public string GeneralCss;
         public string AdditionalCss;
+        public bool AcceptRevisions;
         public bool RestrictToSupportedLanguages;
         public bool RestrictToSupportedNumberingFormats;
         public Dictionary<string, Func<string, int, string, string>> ListItemImplementations;
@@ -56,6 +57,7 @@ namespace OpenXmlPowerTools
             FabricateCssClasses = true;
             GeneralCss = "span { white-space: pre-wrap; }";
             AdditionalCss = "";
+            AcceptRevisions = true;
             RestrictToSupportedLanguages = false;
             RestrictToSupportedNumberingFormats = false;
             ListItemImplementations = ListItemRetrieverSettings.DefaultListItemTextImplementations;
@@ -145,7 +147,10 @@ namespace OpenXmlPowerTools
 
         public static XElement ConvertToHtml(WordprocessingDocument wordDoc, WmlToHtmlConverterSettings htmlConverterSettings)
         {
-            RevisionAccepter.AcceptRevisions(wordDoc);
+            if (htmlConverterSettings.AcceptRevisions)
+            {
+                RevisionAccepter.AcceptRevisions(wordDoc);
+            }
             SimplifyMarkupSettings simplifyMarkupSettings = new SimplifyMarkupSettings
             {
                 RemoveComments = true,
@@ -436,6 +441,25 @@ namespace OpenXmlPowerTools
                 return ProcessHyperlinkToBookmark(wordDoc, settings, element);
             }
 
+            // Transform http://www.datypic.com/sc/ooxml/t-w_CT_TrackChange.html
+            if (element.Name == W.ins || element.Name == W.del)
+            {
+                XName newName = element.Name == W.ins ? Xhtml.ins : Xhtml.del;
+                
+                return new XElement(newName, element.Elements()
+                    .Select(e => ConvertToHtmlTransform(wordDoc, settings, e, suppressTrailingWhiteSpace, currentMarginLeft))
+                    .ToList());
+            }
+
+            if (element.Name == W.delText)
+            {
+                // delText can stay if revisions were NOT accepted
+                if (!settings.AcceptRevisions)
+                {
+                    return new XText(element.Value);
+                }
+            }
+
             // Transform contents of runs.
             if (element.Name == W.r)
             {
@@ -539,7 +563,16 @@ namespace OpenXmlPowerTools
 
         private static object ProcessBookmarkStart(XElement element)
         {
-            var name = (string) element.Attribute(W.name);
+            string name = null;
+
+            try
+            {
+                name = (string)element.Attribute(W.name);
+            }
+            catch (InvalidCastException ex)
+            {
+                return null;
+            }
             if (name == null) return null;
 
             var style = new Dictionary<string, string>();
@@ -2199,7 +2232,17 @@ namespace OpenXmlPowerTools
 
         private static XAttribute GetLeader(XElement tabAfterText)
         {
-            var leader = (string)tabAfterText.Attribute(W.leader);
+            string leader = null;
+
+            try
+            {
+                leader = (string)tabAfterText.Attribute(W.leader);
+            }
+            catch (InvalidCastException ex)
+            {
+                return null;
+            }
+
             if (leader == null)
                 return null;
             return new XAttribute(PtOpenXml.Leader, leader);
@@ -3055,13 +3098,33 @@ namespace OpenXmlPowerTools
                 .Elements(Pic._pic).Elements(Pic.blipFill).FirstOrDefault();
             if (blipFill == null) return null;
 
-            var imageRid = (string)blipFill.Elements(A.blip).Attributes(R.embed).FirstOrDefault();
+            string imageRid = null;
+
+            try
+            {
+                imageRid = (string)blipFill.Elements(A.blip).Attributes(R.embed).FirstOrDefault();
+            }
+            catch (InvalidCastException ex)
+            {
+                return null;
+            }
+
             if (imageRid == null) return null;
 
             var pp3 = wordDoc.MainDocumentPart.Parts.FirstOrDefault(pp => pp.RelationshipId == imageRid);
             if (pp3 == null) return null;
 
-            var imagePart = (ImagePart)pp3.OpenXmlPart;
+            ImagePart imagePart = null;
+
+            try
+            {
+                imagePart = (ImagePart)pp3.OpenXmlPart;
+            }
+            catch (InvalidCastException ex)
+            {
+                return null;
+            }
+
             if (imagePart == null) return null;
 
             // If the image markup points to a NULL image, then following will throw an ArgumentOutOfRangeException
@@ -3126,7 +3189,17 @@ namespace OpenXmlPowerTools
         private static XElement ProcessPictureOrObject(WordprocessingDocument wordDoc,
             XElement element, Func<ImageInfo, XElement> imageHandler)
         {
-            var imageRid = (string)element.Elements(VML.shape).Elements(VML.imagedata).Attributes(R.id).FirstOrDefault();
+            string imageRid = null;
+
+            try
+            {
+                imageRid = (string)element.Elements(VML.shape).Elements(VML.imagedata).Attributes(R.id).FirstOrDefault();
+            }
+            catch (InvalidCastException ex)
+            {
+                return null;
+            }
+
             if (imageRid == null) return null;
 
             try
@@ -3134,7 +3207,7 @@ namespace OpenXmlPowerTools
                 var pp = wordDoc.MainDocumentPart.Parts.FirstOrDefault(pp2 => pp2.RelationshipId == imageRid);
                 if (pp == null) return null;
 
-                var imagePart = (ImagePart)pp.OpenXmlPart;
+                var imagePart = pp.OpenXmlPart as ImagePart;
                 if (imagePart == null) return null;
 
                 var contentType = imagePart.ContentType;

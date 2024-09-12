@@ -17,6 +17,7 @@ using DocumentFormat.OpenXml.Packaging;
 using System.Drawing;
 using System.Security.Cryptography;
 using OpenXmlPowerTools;
+using System.Text.RegularExpressions;
 
 // It is possible to optimize DescendantContentAtoms
 
@@ -4626,8 +4627,22 @@ namespace OpenXmlPowerTools
                                         {
                                             Package packageOfSourceContent = openXmlPartOfInsertedContent.OpenXmlPackage.Package;
                                             Package packageOfNewContent = openXmlPartInNewDocument.OpenXmlPackage.Package;
-                                            PackagePart partInDeletedDocument = packageOfSourceContent.GetPart(part.Uri);
-                                            PackagePart partInNewDocument = packageOfNewContent.GetPart(part.Uri);
+                                            PackagePart partInDeletedDocument = null;
+                                            PackagePart partInNewDocument = null;
+
+                                            if (packageOfSourceContent.PartExists(part.Uri))
+                                            {
+                                                partInDeletedDocument = packageOfSourceContent.GetPart(part.Uri);
+                                                partInNewDocument = packageOfNewContent.GetPart(part.Uri);
+                                            }
+                                            else
+                                            {
+                                                string uriFormatted = Regex.Replace(part.Uri.OriginalString, @"[\d-]", string.Empty);
+                                                Uri uri = new Uri(uriFormatted, UriKind.Relative);
+                                                partInDeletedDocument = packageOfSourceContent.GetPart(uri);
+                                                partInNewDocument = packageOfNewContent.GetPart(part.Uri);
+                                            }
+
                                             return MoveRelatedPartsToDestination(partInDeletedDocument, partInNewDocument, newDrawing);
                                         });
                                     });

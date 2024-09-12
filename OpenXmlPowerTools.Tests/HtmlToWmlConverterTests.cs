@@ -51,7 +51,7 @@ namespace OxPt
         // PowerShell oneliner that generates InlineData for all files in a directory
         // dir | % { '[InlineData("' + $_.Name + '")]' } | clip
 
-        [Theory]
+        [Theory(Skip="dotnet migration for test project")]
         [InlineData("T0010.html")]
         [InlineData("T0011.html")]
         [InlineData("T0012.html")]
