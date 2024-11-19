@@ -48,6 +48,7 @@ namespace OpenXmlPowerTools
         public bool RestrictToSupportedNumberingFormats;
         public Dictionary<string, Func<string, int, string, string>> ListItemImplementations;
         public Func<ImageInfo, XElement> ImageHandler;
+        public bool OpenLinksInNewTab;
 
         public WmlToHtmlConverterSettings()
         {
@@ -59,6 +60,7 @@ namespace OpenXmlPowerTools
             RestrictToSupportedLanguages = false;
             RestrictToSupportedNumberingFormats = false;
             ListItemImplementations = ListItemRetrieverSettings.DefaultListItemTextImplementations;
+            OpenLinksInNewTab = false;
         }
 
         public WmlToHtmlConverterSettings(HtmlConverterSettings htmlConverterSettings)
@@ -72,6 +74,7 @@ namespace OpenXmlPowerTools
             RestrictToSupportedNumberingFormats = htmlConverterSettings.RestrictToSupportedNumberingFormats;
             ListItemImplementations = htmlConverterSettings.ListItemImplementations;
             ImageHandler = htmlConverterSettings.ImageHandler;
+            OpenLinksInNewTab = htmlConverterSettings.OpenLinksInNewTab;
         }
     }
 
@@ -87,7 +90,7 @@ namespace OpenXmlPowerTools
         public bool RestrictToSupportedNumberingFormats;
         public Dictionary<string, Func<string, int, string, string>> ListItemImplementations;
         public Func<ImageInfo, XElement> ImageHandler;
-
+        public bool OpenLinksInNewTab;
         public HtmlConverterSettings()
         {
             PageTitle = "";
@@ -98,6 +101,7 @@ namespace OpenXmlPowerTools
             RestrictToSupportedLanguages = false;
             RestrictToSupportedNumberingFormats = false;
             ListItemImplementations = ListItemRetrieverSettings.DefaultListItemTextImplementations;
+            OpenLinksInNewTab = false;
         }
     }
 
@@ -411,18 +415,38 @@ namespace OpenXmlPowerTools
             {
                 try
                 {
-                    var a = new XElement(Xhtml.a,
-                        new XAttribute("href",
-                            wordDoc.MainDocumentPart
-                                .HyperlinkRelationships
-                                .First(x => x.Id == (string)element.Attribute(R.id))
-                                .Uri
+                    if (settings.OpenLinksInNewTab)
+                    {
+                        var a = new XElement(Xhtml.a,
+                            new XAttribute("href",
+                                wordDoc.MainDocumentPart
+                                    .HyperlinkRelationships
+                                    .First(x => x.Id == (string)element.Attribute(R.id))
+                                    .Uri
                             ),
-                        element.Elements(W.r).Select(run => ConvertRun(wordDoc, settings, run))
+                            new XAttribute("target", "_blank"),
+                            element.Elements(W.r).Select(run => ConvertRun(wordDoc, settings, run))
                         );
-                    if (!a.Nodes().Any())
-                        a.Add(new XText(""));
-                    return a;
+                        if (!a.Nodes().Any())
+                            a.Add(new XText(""));
+                        return a;
+                    }
+                    else
+                    {
+                        var a = new XElement(Xhtml.a,
+                            new XAttribute("href",
+                                wordDoc.MainDocumentPart
+                                    .HyperlinkRelationships
+                                    .First(x => x.Id == (string)element.Attribute(R.id))
+                                    .Uri
+                            ),
+                            element.Elements(W.r).Select(run => ConvertRun(wordDoc, settings, run))
+                        );
+                        if (!a.Nodes().Any())
+                            a.Add(new XText(""));
+                        return a;
+                    }
+
                 }
                 catch (UriFormatException)
                 {
@@ -528,7 +552,7 @@ namespace OpenXmlPowerTools
         {
             var style = new Dictionary<string, string>();
             var a = new XElement(Xhtml.a,
-                new XAttribute("href", "#" + (string) element.Attribute(W.anchor)),
+                new XAttribute("href", "#" + (string)element.Attribute(W.anchor)),
                 element.Elements(W.r).Select(run => ConvertRun(wordDoc, settings, run)));
             if (!a.Nodes().Any())
                 a.Add(new XText(""));
@@ -539,7 +563,7 @@ namespace OpenXmlPowerTools
 
         private static object ProcessBookmarkStart(XElement element)
         {
-            var name = (string) element.Attribute(W.name);
+            var name = (string)element.Attribute(W.name);
             if (name == null) return null;
 
             var style = new Dictionary<string, string>();
@@ -558,8 +582,8 @@ namespace OpenXmlPowerTools
             var tabWidthAtt = element.Attribute(PtOpenXml.TabWidth);
             if (tabWidthAtt == null) return null;
 
-            var leader = (string) element.Attribute(PtOpenXml.Leader);
-            var tabWidth = (decimal) tabWidthAtt;
+            var leader = (string)element.Attribute(PtOpenXml.Leader);
+            var tabWidth = (decimal)tabWidthAtt;
             var style = new Dictionary<string, string>();
             XElement span;
             if (leader != null)
@@ -596,7 +620,7 @@ namespace OpenXmlPowerTools
 
                 if (widthOfLeaderChar != 0)
                 {
-                    var numberOfLeaderChars = (int) (Math.Floor((tabWidth*1440)/widthOfLeaderChar));
+                    var numberOfLeaderChars = (int)(Math.Floor((tabWidth * 1440) / widthOfLeaderChar));
                     if (numberOfLeaderChars < 0)
                         numberOfLeaderChars = 0;
                     span = new XElement(Xhtml.span,
@@ -650,7 +674,7 @@ namespace OpenXmlPowerTools
         private static object ProcessBreak(XElement element)
         {
             XElement span = null;
-            var tabWidth = (decimal?) element.Attribute(PtOpenXml.TabWidth);
+            var tabWidth = (decimal?)element.Attribute(PtOpenXml.TabWidth);
             if (tabWidth != null)
             {
                 span = new XElement(Xhtml.span);
@@ -704,7 +728,7 @@ namespace OpenXmlPowerTools
 
             var elementName = GetParagraphElementName(element, wordDoc);
             var isBidi = IsBidi(element);
-            var paragraph = (XElement) ConvertParagraph(wordDoc, settings, element, elementName,
+            var paragraph = (XElement)ConvertParagraph(wordDoc, settings, element, elementName,
                 suppressTrailingWhiteSpace, currentMarginLeft, isBidi);
 
             // The paragraph conversion might have created empty spans.
@@ -816,7 +840,7 @@ namespace OpenXmlPowerTools
             var tcPr = element.Element(W.tcPr);
             if (tcPr != null)
             {
-                if ((string) tcPr.Elements(W.vMerge).Attributes(W.val).FirstOrDefault() == "restart")
+                if ((string)tcPr.Elements(W.vMerge).Attributes(W.val).FirstOrDefault() == "restart")
                 {
                     var currentRow = element.Parent.ElementsBeforeSelf(W.tr).Count();
                     var currentCell = element.ElementsBeforeSelf(W.tc).Count();
@@ -833,7 +857,7 @@ namespace OpenXmlPowerTools
                             break;
                         if (cell2.Elements(W.tcPr).Elements(W.vMerge).FirstOrDefault() == null)
                             break;
-                        if ((string) cell2.Elements(W.tcPr).Elements(W.vMerge).Attributes(W.val).FirstOrDefault() == "restart")
+                        if ((string)cell2.Elements(W.tcPr).Elements(W.vMerge).Attributes(W.val).FirstOrDefault() == "restart")
                             break;
                         currentRow += 1;
                         rowSpanCount += 1;
@@ -842,12 +866,12 @@ namespace OpenXmlPowerTools
                 }
 
                 if (tcPr.Element(W.vMerge) != null &&
-                    (string) tcPr.Elements(W.vMerge).Attributes(W.val).FirstOrDefault() != "restart")
+                    (string)tcPr.Elements(W.vMerge).Attributes(W.val).FirstOrDefault() != "restart")
                     return null;
 
                 if (tcPr.Element(W.vAlign) != null)
                 {
-                    var vAlignVal = (string) tcPr.Elements(W.vAlign).Attributes(W.val).FirstOrDefault();
+                    var vAlignVal = (string)tcPr.Elements(W.vAlign).Attributes(W.val).FirstOrDefault();
                     if (vAlignVal == "top")
                         style.AddIfMissing("vertical-align", "top");
                     else if (vAlignVal == "center")
@@ -859,15 +883,15 @@ namespace OpenXmlPowerTools
                 }
                 style.AddIfMissing("vertical-align", "top");
 
-                if ((string) tcPr.Elements(W.tcW).Attributes(W.type).FirstOrDefault() == "dxa")
+                if ((string)tcPr.Elements(W.tcW).Attributes(W.type).FirstOrDefault() == "dxa")
                 {
-                    decimal width = (int) tcPr.Elements(W.tcW).Attributes(W._w).FirstOrDefault();
-                    style.AddIfMissing("width", string.Format(NumberFormatInfo.InvariantInfo, "{0}pt", width/20m));
+                    decimal width = (int)tcPr.Elements(W.tcW).Attributes(W._w).FirstOrDefault();
+                    style.AddIfMissing("width", string.Format(NumberFormatInfo.InvariantInfo, "{0}pt", width / 20m));
                 }
-                if ((string) tcPr.Elements(W.tcW).Attributes(W.type).FirstOrDefault() == "pct")
+                if ((string)tcPr.Elements(W.tcW).Attributes(W.type).FirstOrDefault() == "pct")
                 {
-                    decimal width = (int) tcPr.Elements(W.tcW).Attributes(W._w).FirstOrDefault();
-                    style.AddIfMissing("width", string.Format(NumberFormatInfo.InvariantInfo, "{0:0.0}%", width/50m));
+                    decimal width = (int)tcPr.Elements(W.tcW).Attributes(W._w).FirstOrDefault();
+                    style.AddIfMissing("width", string.Format(NumberFormatInfo.InvariantInfo, "{0:0.0}%", width / 50m));
                 }
 
                 var tcBorders = tcPr.Element(W.tcBorders);
@@ -878,9 +902,9 @@ namespace OpenXmlPowerTools
 
                 CreateStyleFromShd(style, tcPr.Element(W.shd));
 
-                var gridSpan = tcPr.Elements(W.gridSpan).Attributes(W.val).Select(a => (int?) a).FirstOrDefault();
+                var gridSpan = tcPr.Elements(W.gridSpan).Attributes(W.val).Select(a => (int?)a).FirstOrDefault();
                 if (gridSpan != null)
-                    colSpan = new XAttribute("colspan", (int) gridSpan);
+                    colSpan = new XAttribute("colspan", (int)gridSpan);
             }
             style.AddIfMissing("padding-top", "0");
             style.AddIfMissing("padding-bottom", "0");
@@ -897,10 +921,10 @@ namespace OpenXmlPowerTools
             decimal currentMarginLeft)
         {
             var style = new Dictionary<string, string>();
-            int? trHeight = (int?) element.Elements(W.trPr).Elements(W.trHeight).Attributes(W.val).FirstOrDefault();
+            int? trHeight = (int?)element.Elements(W.trPr).Elements(W.trHeight).Attributes(W.val).FirstOrDefault();
             if (trHeight != null)
                 style.AddIfMissing("height",
-                    string.Format(NumberFormatInfo.InvariantInfo, "{0:0.00}in", (decimal) trHeight/1440m));
+                    string.Format(NumberFormatInfo.InvariantInfo, "{0:0.00}in", (decimal)trHeight / 1440m));
             var htmlRow = new XElement(Xhtml.tr,
                 element.Elements().Select(e => ConvertToHtmlTransform(wordDoc, settings, e, false, currentMarginLeft)));
             if (style.Any())
@@ -925,14 +949,14 @@ namespace OpenXmlPowerTools
         {
             var elementName = Xhtml.p;
 
-            var styleId = (string) element.Elements(W.pPr).Elements(W.pStyle).Attributes(W.val).FirstOrDefault();
+            var styleId = (string)element.Elements(W.pPr).Elements(W.pStyle).Attributes(W.val).FirstOrDefault();
             if (styleId == null) return elementName;
 
             var style = GetStyle(styleId, wordDoc);
             if (style == null) return elementName;
 
             var outlineLevel =
-                (int?) style.Elements(W.pPr).Elements(W.outlineLvl).Attributes(W.val).FirstOrDefault();
+                (int?)style.Elements(W.pPr).Elements(W.outlineLvl).Attributes(W.val).FirstOrDefault();
             if (outlineLevel != null && outlineLevel <= 5)
             {
                 elementName = Xhtml.xhtml + string.Format("h{0}", outlineLevel + 1);
@@ -948,7 +972,7 @@ namespace OpenXmlPowerTools
 
             var styles = stylesPart.GetXDocument().Root;
             return styles != null
-                ? styles.Elements(W.style).FirstOrDefault(s => (string) s.Attribute(W.styleId) == styleId)
+                ? styles.Elements(W.style).FirstOrDefault(s => (string)s.Attribute(W.styleId) == styleId)
                 : null;
         }
 
@@ -959,7 +983,8 @@ namespace OpenXmlPowerTools
             // for the non-paging transform.
             var groupedIntoDivs = element
                 .Elements()
-                .GroupAdjacent(e => {
+                .GroupAdjacent(e =>
+                {
                     var sectAnnotation = e.Annotation<SectionAnnotation>();
                     return sectAnnotation != null ? sectAnnotation.SectionElement.ToString() : "";
                 });
@@ -1102,12 +1127,12 @@ namespace OpenXmlPowerTools
             List<XElement> elementsPrecedingTab, XElement firstTabRun)
         {
             var tabWidth = firstTabRun != null
-                ? (decimal?) firstTabRun.Elements(W.tab).Attributes(PtOpenXml.TabWidth).FirstOrDefault() ?? 0m
+                ? (decimal?)firstTabRun.Elements(W.tab).Attributes(PtOpenXml.TabWidth).FirstOrDefault() ?? 0m
                 : 0m;
             var precedingElementsWidth = elementsPrecedingTab
                 .Elements()
                 .Where(c => c.Attributes(PtOpenXml.TabWidth).Any())
-                .Select(e => (decimal) e.Attribute(PtOpenXml.TabWidth))
+                .Select(e => (decimal)e.Attribute(PtOpenXml.TabWidth))
                 .Sum();
             var totalWidth = precedingElementsWidth + tabWidth;
 
@@ -1144,7 +1169,7 @@ namespace OpenXmlPowerTools
         {
             var style = new Dictionary<string, string>();
 
-            var styleName = (string) paragraph.Attribute(PtOpenXml.StyleName);
+            var styleName = (string)paragraph.Attribute(PtOpenXml.StyleName);
             if (styleName != null)
                 style.Add("PtStyleName", styleName);
 
@@ -1167,7 +1192,7 @@ namespace OpenXmlPowerTools
             CreateStyleFromShd(style, pPr.Element(W.shd));
 
             // Pt.FontName
-            var font = (string) paragraph.Attributes(PtOpenXml.FontName).FirstOrDefault();
+            var font = (string)paragraph.Attributes(PtOpenXml.FontName).FirstOrDefault();
             if (font != null)
                 CreateFontCssProperty(font, style);
 
@@ -1190,20 +1215,20 @@ namespace OpenXmlPowerTools
         {
             if (ind == null) return;
 
-            var left = (decimal?) ind.Attribute(W.left);
+            var left = (decimal?)ind.Attribute(W.left);
             if (left != null && elementName != Xhtml.span)
             {
-                var leftInInches = (decimal) left/1440 - currentMarginLeft;
+                var leftInInches = (decimal)left / 1440 - currentMarginLeft;
                 style.AddIfMissing(isBidi ? "margin-right" : "margin-left",
                     leftInInches > 0m
                         ? string.Format(NumberFormatInfo.InvariantInfo, "{0:0.00}in", leftInInches)
                         : "0");
             }
 
-            var right = (decimal?) ind.Attribute(W.right);
+            var right = (decimal?)ind.Attribute(W.right);
             if (right != null)
             {
-                var rightInInches = (decimal) right/1440;
+                var rightInInches = (decimal)right / 1440;
                 style.AddIfMissing(isBidi ? "margin-left" : "margin-right",
                     rightInInches > 0m
                         ? string.Format(NumberFormatInfo.InvariantInfo, "{0:0.00}in", rightInInches)
@@ -1213,7 +1238,7 @@ namespace OpenXmlPowerTools
             var firstLine = WordprocessingMLUtil.AttributeToTwips(ind.Attribute(W.firstLine));
             if (firstLine != null && elementName != Xhtml.span)
             {
-                var firstLineInInches = (decimal) firstLine/1440m;
+                var firstLineInInches = (decimal)firstLine / 1440m;
                 style.AddIfMissing("text-indent",
                     string.Format(NumberFormatInfo.InvariantInfo, "{0:0.00}in", firstLineInInches));
             }
@@ -1221,7 +1246,7 @@ namespace OpenXmlPowerTools
             var hanging = WordprocessingMLUtil.AttributeToTwips(ind.Attribute(W.hanging));
             if (hanging != null && elementName != Xhtml.span)
             {
-                var hangingInInches = (decimal) -hanging/1440m;
+                var hangingInInches = (decimal)-hanging / 1440m;
                 style.AddIfMissing("text-indent",
                     string.Format(NumberFormatInfo.InvariantInfo, "{0:0.00}in", hangingInInches));
             }
@@ -1248,33 +1273,33 @@ namespace OpenXmlPowerTools
         {
             if (spacing == null) return;
 
-            var spacingBefore = (decimal?) spacing.Attribute(W.before);
+            var spacingBefore = (decimal?)spacing.Attribute(W.before);
             if (spacingBefore != null && elementName != Xhtml.span)
                 style.AddIfMissing("margin-top",
                     spacingBefore > 0m
-                        ? string.Format(NumberFormatInfo.InvariantInfo, "{0}pt", spacingBefore/20.0m)
+                        ? string.Format(NumberFormatInfo.InvariantInfo, "{0}pt", spacingBefore / 20.0m)
                         : "0");
 
-            var lineRule = (string) spacing.Attribute(W.lineRule);
+            var lineRule = (string)spacing.Attribute(W.lineRule);
             if (lineRule == "auto")
             {
-                var line = (decimal) spacing.Attribute(W.line);
+                var line = (decimal)spacing.Attribute(W.line);
                 if (line != 240m)
                 {
-                    var pct = (line/240m)*100m;
+                    var pct = (line / 240m) * 100m;
                     style.Add("line-height", string.Format(NumberFormatInfo.InvariantInfo, "{0:0.0}%", pct));
                 }
             }
             if (lineRule == "exact")
             {
-                var line = (decimal) spacing.Attribute(W.line);
-                var points = line/20m;
+                var line = (decimal)spacing.Attribute(W.line);
+                var points = line / 20m;
                 style.Add("line-height", string.Format(NumberFormatInfo.InvariantInfo, "{0:0.0}pt", points));
             }
             if (lineRule == "atLeast")
             {
-                var line = (decimal) spacing.Attribute(W.line);
-                var points = line/20m;
+                var line = (decimal)spacing.Attribute(W.line);
+                var points = line / 20m;
                 if (points >= 14m)
                     style.Add("line-height", string.Format(NumberFormatInfo.InvariantInfo, "{0:0.0}pt", points));
             }
@@ -1283,7 +1308,7 @@ namespace OpenXmlPowerTools
             if (spacingAfter != null)
                 style.AddIfMissing("margin-bottom",
                     spacingAfter > 0m
-                        ? string.Format(NumberFormatInfo.InvariantInfo, "{0}pt", spacingAfter/20.0m)
+                        ? string.Format(NumberFormatInfo.InvariantInfo, "{0}pt", spacingAfter / 20.0m)
                         : "0");
         }
 
@@ -1418,37 +1443,37 @@ namespace OpenXmlPowerTools
 
             var rPr = run.Elements(W.rPr).First();
 
-            var styleName = (string) run.Attribute(PtOpenXml.StyleName);
+            var styleName = (string)run.Attribute(PtOpenXml.StyleName);
             if (styleName != null)
                 style.Add("PtStyleName", styleName);
 
             // W.bdr
-            if (rPr.Element(W.bdr) != null && (string) rPr.Elements(W.bdr).Attributes(W.val).FirstOrDefault() != "none")
+            if (rPr.Element(W.bdr) != null && (string)rPr.Elements(W.bdr).Attributes(W.val).FirstOrDefault() != "none")
             {
                 style.AddIfMissing("border", "solid windowtext 1.0pt");
                 style.AddIfMissing("padding", "0");
             }
 
             // W.color
-            var color = (string) rPr.Elements(W.color).Attributes(W.val).FirstOrDefault();
+            var color = (string)rPr.Elements(W.color).Attributes(W.val).FirstOrDefault();
             if (color != null)
                 CreateColorProperty("color", color, style);
 
             // W.highlight
-            var highlight = (string) rPr.Elements(W.highlight).Attributes(W.val).FirstOrDefault();
+            var highlight = (string)rPr.Elements(W.highlight).Attributes(W.val).FirstOrDefault();
             if (highlight != null)
                 CreateColorProperty("background", highlight, style);
 
             // W.shd
-            var shade = (string) rPr.Elements(W.shd).Attributes(W.fill).FirstOrDefault();
+            var shade = (string)rPr.Elements(W.shd).Attributes(W.fill).FirstOrDefault();
             if (shade != null)
                 CreateColorProperty("background", shade, style);
 
             // Pt.FontName
             var sym = run.Element(W.sym);
             var font = sym != null
-                ? (string) sym.Attributes(W.font).FirstOrDefault()
-                : (string) run.Attributes(PtOpenXml.FontName).FirstOrDefault();
+                ? (string)sym.Attributes(W.font).FirstOrDefault()
+                : (string)run.Attributes(PtOpenXml.FontName).FirstOrDefault();
             if (font != null)
                 CreateFontCssProperty(font, style);
 
@@ -1456,7 +1481,7 @@ namespace OpenXmlPowerTools
             var languageType = (string)run.Attribute(PtOpenXml.LanguageType);
             var sz = GetFontSize(languageType, rPr);
             if (sz != null)
-                style.AddIfMissing("font-size", string.Format(NumberFormatInfo.InvariantInfo, "{0}pt", sz/2.0m));
+                style.AddIfMissing("font-size", string.Format(NumberFormatInfo.InvariantInfo, "{0}pt", sz / 2.0m));
 
             // W.caps
             if (GetBoolProp(rPr, W.caps))
@@ -1467,19 +1492,19 @@ namespace OpenXmlPowerTools
                 style.AddIfMissing("font-variant", "small-caps");
 
             // W.spacing
-            var spacingInTwips = (decimal?) rPr.Elements(W.spacing).Attributes(W.val).FirstOrDefault();
+            var spacingInTwips = (decimal?)rPr.Elements(W.spacing).Attributes(W.val).FirstOrDefault();
             if (spacingInTwips != null)
                 style.AddIfMissing("letter-spacing",
                     spacingInTwips > 0m
-                        ? string.Format(NumberFormatInfo.InvariantInfo, "{0}pt", spacingInTwips/20)
+                        ? string.Format(NumberFormatInfo.InvariantInfo, "{0}pt", spacingInTwips / 20)
                         : "0");
 
             // W.position
-            var position = (decimal?) rPr.Elements(W.position).Attributes(W.val).FirstOrDefault();
+            var position = (decimal?)rPr.Elements(W.position).Attributes(W.val).FirstOrDefault();
             if (position != null)
             {
                 style.AddIfMissing("position", "relative");
-                style.AddIfMissing("top", string.Format(NumberFormatInfo.InvariantInfo, "{0}pt", -(position/2)));
+                style.AddIfMissing("top", string.Format(NumberFormatInfo.InvariantInfo, "{0}pt", -(position / 2)));
             }
 
             // W.vanish
@@ -1487,7 +1512,7 @@ namespace OpenXmlPowerTools
                 style.AddIfMissing("display", "none");
 
             // W.u
-            if (rPr.Element(W.u) != null && (string) rPr.Elements(W.u).Attributes(W.val).FirstOrDefault() != "none")
+            if (rPr.Element(W.u) != null && (string)rPr.Elements(W.u).Attributes(W.val).FirstOrDefault() != "none")
                 style.AddIfMissing("text-decoration", "underline");
 
             // W.i
@@ -1521,8 +1546,8 @@ namespace OpenXmlPowerTools
         {
             if (rPr == null) return null;
             return languageType == "bidi"
-                ? (decimal?) rPr.Elements(W.szCs).Attributes(W.val).FirstOrDefault()
-                : (decimal?) rPr.Elements(W.sz).Attributes(W.val).FirstOrDefault();
+                ? (decimal?)rPr.Elements(W.szCs).Attributes(W.val).FirstOrDefault()
+                : (decimal?)rPr.Elements(W.sz).Attributes(W.val).FirstOrDefault();
         }
 
         private static void DetermineRunMarks(XElement run, XElement rPr, Dictionary<string, string> style, out XEntity runStartMark, out XEntity runEndMark)
@@ -1573,11 +1598,11 @@ namespace OpenXmlPowerTools
 
             string lang = null;
             if (languageType == "western")
-                lang = (string) rPr.Elements(W.lang).Attributes(W.val).FirstOrDefault();
+                lang = (string)rPr.Elements(W.lang).Attributes(W.val).FirstOrDefault();
             else if (languageType == "bidi")
-                lang = (string) rPr.Elements(W.lang).Attributes(W.bidi).FirstOrDefault();
+                lang = (string)rPr.Elements(W.lang).Attributes(W.bidi).FirstOrDefault();
             else if (languageType == "eastAsia")
-                lang = (string) rPr.Elements(W.lang).Attributes(W.eastAsia).FirstOrDefault();
+                lang = (string)rPr.Elements(W.lang).Attributes(W.eastAsia).FirstOrDefault();
             if (lang == null)
                 lang = defaultLanguage;
 
@@ -1603,7 +1628,7 @@ namespace OpenXmlPowerTools
                     .Elements(W.tc)
                     .SelectMany(c =>
                         Enumerable.Repeat(c,
-                            (int?) c.Elements(W.tcPr).Elements(W.gridSpan).Attributes(W.val).FirstOrDefault() ?? 1))
+                            (int?)c.Elements(W.tcPr).Elements(W.gridSpan).Attributes(W.val).FirstOrDefault() ?? 1))
                     .ToArray())
                 .ToArray();
 
@@ -2177,7 +2202,7 @@ namespace OpenXmlPowerTools
                     //var widthOfText = CalcWidthOfRunInTwips(dummyRun3);
                     const int widthOfText = 0;
                     currentElement.Add(new XAttribute(PtOpenXml.TabWidth,
-                        string.Format(NumberFormatInfo.InvariantInfo, "{0:0.000}", (decimal) widthOfText/1440m)));
+                        string.Format(NumberFormatInfo.InvariantInfo, "{0:0.000}", (decimal)widthOfText / 1440m)));
                     twipCounter += widthOfText;
 
                     currentElementIdx++;
@@ -2301,7 +2326,7 @@ namespace OpenXmlPowerTools
             // TODO: Revisit.
             var runText = r.DescendantsTrimmed(W.txbxContent)
                 .Where(e => e.Name == W.t)
-                .Select(t => (string) t)
+                .Select(t => (string)t)
                 .StringConcatenate() + " ";
 
             var tabLength = r.DescendantsTrimmed(W.txbxContent)
@@ -2518,23 +2543,23 @@ namespace OpenXmlPowerTools
         private static object CreateBorderDivs(WordprocessingDocument wordDoc, WmlToHtmlConverterSettings settings, IEnumerable<XElement> elements)
         {
             return elements.GroupAdjacent(e =>
+            {
+                var pBdr = e.Elements(W.pPr).Elements(W.pBdr).FirstOrDefault();
+                if (pBdr != null)
                 {
-                    var pBdr = e.Elements(W.pPr).Elements(W.pBdr).FirstOrDefault();
-                    if (pBdr != null)
-                    {
-                        var indStr = string.Empty;
-                        var ind = e.Elements(W.pPr).Elements(W.ind).FirstOrDefault();
-                        if (ind != null)
-                            indStr = ind.ToString(SaveOptions.DisableFormatting);
-                        return pBdr.ToString(SaveOptions.DisableFormatting) + indStr;
-                    }
-                    return e.Name == W.tbl ? "table" : string.Empty;
-                })
+                    var indStr = string.Empty;
+                    var ind = e.Elements(W.pPr).Elements(W.ind).FirstOrDefault();
+                    if (ind != null)
+                        indStr = ind.ToString(SaveOptions.DisableFormatting);
+                    return pBdr.ToString(SaveOptions.DisableFormatting) + indStr;
+                }
+                return e.Name == W.tbl ? "table" : string.Empty;
+            })
                 .Select(g =>
                 {
                     if (g.Key == string.Empty)
                     {
-                        return (object) GroupAndVerticallySpaceNumberedParagraphs(wordDoc, settings, g, 0m);
+                        return (object)GroupAndVerticallySpaceNumberedParagraphs(wordDoc, settings, g, 0m);
                     }
                     if (g.Key == "table")
                     {
@@ -2552,8 +2577,8 @@ namespace OpenXmlPowerTools
                     var ind = pPr.Element(W.ind);
                     if (ind != null)
                     {
-                        var leftInInches = (decimal?) ind.Attribute(W.left)/1440m ?? 0;
-                        var hangingInInches = -(decimal?) ind.Attribute(W.hanging)/1440m ?? 0;
+                        var leftInInches = (decimal?)ind.Attribute(W.left) / 1440m ?? 0;
+                        var hangingInInches = -(decimal?)ind.Attribute(W.hanging) / 1440m ?? 0;
                         currentMarginLeft = leftInInches + hangingInInches;
 
                         style.AddIfMissing("margin-left",
@@ -2740,7 +2765,7 @@ namespace OpenXmlPowerTools
             }
         }
 
-        private static readonly Dictionary<string, Func<string, string, string>> ShadeMapper = new Dictionary<string,Func<string, string, string>>()
+        private static readonly Dictionary<string, Func<string, string, string>> ShadeMapper = new Dictionary<string, Func<string, string, string>>()
         {
             { "auto", (c, f) => c },
             { "clear", (c, f) => f },
