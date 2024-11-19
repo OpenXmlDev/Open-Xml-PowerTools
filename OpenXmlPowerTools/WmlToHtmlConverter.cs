@@ -820,7 +820,14 @@ namespace OpenXmlPowerTools
                 {
                     var currentRow = element.Parent.ElementsBeforeSelf(W.tr).Count();
                     var currentCell = element.ElementsBeforeSelf(W.tc).Count();
+
                     var tbl = element.Parent.Parent;
+                    var beforeColsCount = element
+                        .ElementsBeforeSelf(W.tc)
+                        .Select(c => c.Element(W.tcPr).Elements(W.gridSpan).Attributes(W.val).FirstOrDefault())
+                        .Select(a => a == null || (int)a == 0 ? 1 : (int)a)
+                        .Sum();
+
                     int rowSpanCount = 1;
                     currentRow += 1;
                     while (true)
@@ -828,7 +835,14 @@ namespace OpenXmlPowerTools
                         var row = tbl.Elements(W.tr).Skip(currentRow).FirstOrDefault();
                         if (row == null)
                             break;
-                        var cell2 = row.Elements(W.tc).Skip(currentCell).FirstOrDefault();
+                        var rowCurrentColCount = 0;
+                        var cell2 = row.Elements(W.tc).SkipWhile(e =>
+                        {
+                            var val = e.Element(W.tcPr).Elements(W.gridSpan).Attributes(W.val).FirstOrDefault();
+                            var col = val == null || (int)val == 0 ? 1 : (int) val;
+                            rowCurrentColCount += col;
+                            return rowCurrentColCount <= beforeColsCount;
+                        }).FirstOrDefault();
                         if (cell2 == null)
                             break;
                         if (cell2.Elements(W.tcPr).Elements(W.vMerge).FirstOrDefault() == null)
