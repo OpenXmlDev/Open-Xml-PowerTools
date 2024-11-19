@@ -3,6 +3,9 @@
     <OutputType>Exe</OutputType>
     <TargetFrameworks>net45;net46;netcoreapp2.0</TargetFrameworks>
   </PropertyGroup>
+  <ItemGroup>
+    <None Include="..\..\.editorconfig" Link=".editorconfig" />
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\OpenXmlPowerTools\OpenXmlPowerTools.csproj" />

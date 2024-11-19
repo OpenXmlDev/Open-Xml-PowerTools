@@ -483,6 +483,7 @@ namespace OpenXmlPowerTools
                                   <xs:element name='Table'>
                                     <xs:complexType>
                                       <xs:attribute name='Select' type='xs:string' use='required' />
+                                      <xs:attribute name='HeaderRowCount' type='xs:int' use='optional' />
                                     </xs:complexType>
                                   </xs:element>
                                 </xs:schema>",
@@ -575,6 +576,8 @@ namespace OpenXmlPowerTools
             public static XName Match = "Match";
             public static XName NotMatch = "NotMatch";
             public static XName Depth = "Depth";
+
+            public static XName HeaderRowCount = "HeaderRowCount";
         }
 
         private class PASchemaSet
@@ -600,8 +603,8 @@ namespace OpenXmlPowerTools
                     XElement para = element.Descendants(W.p).FirstOrDefault();
                     XElement run = element.Descendants(W.r).FirstOrDefault();
 
-                    var xPath = (string) element.Attribute(PA.Select);
-                    var optionalString = (string) element.Attribute(PA.Optional);
+                    var xPath = (string)element.Attribute(PA.Select);
+                    var optionalString = (string)element.Attribute(PA.Optional);
                     bool optional = (optionalString != null && optionalString.ToLower() == "true");
 
                     string newValue;
@@ -618,7 +621,7 @@ namespace OpenXmlPowerTools
                     {
 
                         XElement p = new XElement(W.p, para.Elements(W.pPr));
-                        foreach(string line in newValue.Split('\n'))
+                        foreach (string line in newValue.Split('\n'))
                         {
                             p.Add(new XElement(W.r,
                                     para.Elements(W.r).Elements(W.rPr).FirstOrDefault(),
@@ -630,7 +633,7 @@ namespace OpenXmlPowerTools
                     else
                     {
                         List<XElement> list = new List<XElement>();
-                        foreach(string line in newValue.Split('\n'))
+                        foreach (string line in newValue.Split('\n'))
                         {
                             list.Add(new XElement(W.r,
                                 run.Elements().Where(e => e.Name != W.t),
@@ -692,11 +695,21 @@ namespace OpenXmlPowerTools
                     }
                     if (tableData.Count() == 0)
                         return CreateContextErrorMessage(element, "Table Select returned no data", templateError);
+
+
+
+                    int? headerRowCountAttr = (int?)element.Attribute(PA.HeaderRowCount) ?? 1;
+                    if (headerRowCountAttr.Value < 1)
+                    {
+                        headerRowCountAttr = 1;
+                    }
+                    var headerRowCount = headerRowCountAttr.Value;
+
                     XElement table = element.Element(W.tbl);
-                    XElement protoRow = table.Elements(W.tr).Skip(1).FirstOrDefault();
+                    XElement protoRow = table.Elements(W.tr).Skip(headerRowCount).FirstOrDefault();
                     var footerRowsBeforeTransform = table
                         .Elements(W.tr)
-                        .Skip(2)
+                        .Skip(headerRowCount + 1)
                         .ToList();
                     var footerRows = footerRowsBeforeTransform
                         .Select(x => ContentReplacementTransform(x, data, templateError))
@@ -707,7 +720,7 @@ namespace OpenXmlPowerTools
                     protoRow.Descendants(W.bookmarkEnd).Remove();
                     XElement newTable = new XElement(W.tbl,
                         table.Elements().Where(e => e.Name != W.tr),
-                        table.Elements(W.tr).FirstOrDefault(),
+                        table.Elements(W.tr).Take(headerRowCount),
                         tableData.Select(d =>
                             new XElement(W.tr,
                                 protoRow.Elements().Where(r => r.Name != W.tc),
@@ -756,17 +769,17 @@ namespace OpenXmlPowerTools
                     if (match != null && notMatch != null)
                         return CreateContextErrorMessage(element, "Conditional: Cannot specify both Match and NotMatch", templateError);
 
-                    string testValue = null; 
-                   
+                    string testValue = null;
+
                     try
                     {
                         testValue = EvaluateXPathToString(data, xPath, false);
                     }
-	                catch (XPathException e)
+                    catch (XPathException e)
                     {
                         return CreateContextErrorMessage(element, e.Message, templateError);
                     }
-                  
+
                     if ((match != null && testValue == match) || (notMatch != null && testValue != notMatch))
                     {
                         var content = element.Elements().Select(e => ContentReplacementTransform(e, data, templateError));
@@ -815,14 +828,14 @@ namespace OpenXmlPowerTools
             return errorPara;
         }
 
-        private static string EvaluateXPathToString(XElement element, string xPath, bool optional )
+        private static string EvaluateXPathToString(XElement element, string xPath, bool optional)
         {
             object xPathSelectResult;
             try
             {
                 //support some cells in the table may not have an xpath expression.
                 if (String.IsNullOrWhiteSpace(xPath)) return String.Empty;
-                
+
                 xPathSelectResult = element.XPathEvaluate(xPath);
             }
             catch (XPathException e)
@@ -832,7 +845,7 @@ namespace OpenXmlPowerTools
 
             if ((xPathSelectResult is IEnumerable) && !(xPathSelectResult is string))
             {
-                var selectedData = ((IEnumerable) xPathSelectResult).Cast<XObject>();
+                var selectedData = ((IEnumerable)xPathSelectResult).Cast<XObject>();
                 if (!selectedData.Any())
                 {
                     if (optional) return string.Empty;
@@ -843,11 +856,11 @@ namespace OpenXmlPowerTools
                     throw new XPathException(string.Format("XPath expression ({0}) returned more than one node", xPath));
                 }
 
-                XObject selectedDatum = selectedData.First(); 
-                
-                if (selectedDatum is XElement) return ((XElement) selectedDatum).Value;
+                XObject selectedDatum = selectedData.First();
 
-                if (selectedDatum is XAttribute) return ((XAttribute) selectedDatum).Value;
+                if (selectedDatum is XElement) return ((XElement)selectedDatum).Value;
+
+                if (selectedDatum is XAttribute) return ((XAttribute)selectedDatum).Value;
             }
 
             return xPathSelectResult.ToString();

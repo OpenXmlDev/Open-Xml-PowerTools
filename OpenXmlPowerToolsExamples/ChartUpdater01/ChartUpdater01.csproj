@@ -12,4 +12,10 @@
   <ItemGroup>
     <Reference Include="WindowsBase" />
   </ItemGroup>
+
+  <ItemGroup>
+    <None Update="TowTypeChart.docx">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 </Project>

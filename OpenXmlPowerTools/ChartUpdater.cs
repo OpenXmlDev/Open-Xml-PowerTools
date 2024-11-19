@@ -58,6 +58,12 @@ namespace OpenXmlPowerTools
         public string[] CategoryNames;
 
         public double[][] Values;
+
+        /// <summary>
+        /// 组合图表中，次轴图表的序列名称映射
+        /// 映射规则为：chatData中的序列名对应模板中的序列名。
+        /// </summary>
+        public Dictionary<string, string> SecondChartSeriesNames { get; set; } = new Dictionary<string, string>();
     }
 
     public class ChartUpdater
@@ -94,7 +100,14 @@ namespace OpenXmlPowerTools
                     throw new ArgumentException("Invalid chart data");
             }
 
+            UpdateEmbeddedWorkbook(chartPart, chartData);
+
             UpdateSeries(chartPart, chartData);
+            //如果设置了次轴，更新次轴
+            if (chartData.SecondChartSeriesNames.Count > 0)
+            {
+                UpdateSeries(chartPart, chartData, true);
+            }
         }
 
         private static Dictionary<int, string> FormatCodes = new Dictionary<int, string>()
@@ -129,13 +142,44 @@ namespace OpenXmlPowerTools
             { 49, "@" },
         };
 
-        private static void UpdateSeries(ChartPart chartPart, ChartData chartData)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="chartPart"></param>
+        /// <param name="chartData"></param>
+        /// <param name="setSecond">设置次级坐标，默认为false</param>
+        /// <exception cref="OpenXmlPowerToolsException"></exception>
+        private static void UpdateSeries(ChartPart chartPart, ChartData chartData, bool setSecond = false)
         {
-            UpdateEmbeddedWorkbook(chartPart, chartData);
-
+            // update series
             XDocument cpXDoc = chartPart.GetXDocument();
             XElement root = cpXDoc.Root;
-            var firstSeries = root.Descendants(C.ser).FirstOrDefault();
+
+            // 序列名            
+            var seriesNames = chartData.SeriesNames.Except(chartData.SecondChartSeriesNames.Keys);
+            if (setSecond)
+            {
+                seriesNames = chartData.SecondChartSeriesNames.Keys;
+            }
+
+            var series = root.Descendants(C.ser).ToList();
+            // 如果不处理次轴
+            if (!setSecond)
+            {
+                series = series.Where(x => x.Descendants(C.tx).SelectMany(tx => tx.Descendants(C.v)).Any(v => !chartData.SecondChartSeriesNames.Values.Contains(v.Value))).ToList();
+
+                if (series == null || series.Count == 0)
+                    throw new OpenXmlPowerToolsException("未找到图表主序列");
+            }
+            else // 处理次轴
+            {
+                series = series.Where(x => x.Descendants(C.tx).SelectMany(tx => tx.Descendants(C.v)).Any(v => chartData.SecondChartSeriesNames.Values.Contains(v.Value))).ToList();
+
+                if (series == null || series.Count == 0)
+                    throw new OpenXmlPowerToolsException("未找到次轴序列，请检查次轴映射字典");
+            }
+
+            var firstSeries = series.FirstOrDefault();
             var numRef = firstSeries.Elements(C.val).Elements(C.numRef).FirstOrDefault();
             string sheetName = null;
             var f = (string)firstSeries.Descendants(C.f).FirstOrDefault();
@@ -150,6 +194,9 @@ namespace OpenXmlPowerTools
                 .Select((string sn, int si) =>
                 {
                     XElement cat = null;
+
+                    if (!seriesNames.Contains(sn))
+                        return null;
 
                     var oldCat = firstSeries.Elements(C.cat).FirstOrDefault();
                     if (oldCat == null)
@@ -379,6 +426,10 @@ namespace OpenXmlPowerTools
                     newSer = (XElement)UpdateAccentTransform(newSer, accentNumber);
                     return newSer;
                 });
+
+            // 删除newSetOfSeries中null的项目
+            newSetOfSeries = newSetOfSeries.Where(x => x != null).ToList();
+
             firstSeries.ReplaceWith(newSetOfSeries);
             chartPart.PutXDocument();
         }
@@ -427,7 +478,7 @@ namespace OpenXmlPowerTools
                         var firstRow = new XElement(S.row,
                             new XAttribute("r", "1"),
                             new XAttribute("spans", string.Format("1:{0}", chartData.SeriesNames.Length + 1)),
-                            new [] { new XElement(S.c,
+                            new[] { new XElement(S.c,
                                 new XAttribute("r", "A1"),
                                 new XAttribute("t", "str"),
                                 new XElement(S.v,

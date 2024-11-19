@@ -15,4 +15,21 @@
       <OrderDate>September 26, 2001</OrderDate>
     </Order>
   </Orders>
+  <Items>
+    <Item>
+      <Name>Items1</Name>
+      <MinCount>1</MinCount>
+      <MaxCount>10</MaxCount>
+    </Item>
+    <Item>
+      <Name>Items2</Name>
+      <MinCount>2</MinCount>
+      <MaxCount>15</MaxCount>
+    </Item>
+    <Item>
+      <Name>Items3</Name>
+      <MinCount>3</MinCount>
+      <MaxCount>30</MaxCount>
+    </Item>
+  </Items>
 </Customer>
