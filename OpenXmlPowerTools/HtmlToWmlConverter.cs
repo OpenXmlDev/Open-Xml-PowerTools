@@ -34,6 +34,8 @@ namespace OpenXmlPowerTools
         public Emu PageWidthEmus { get { return Emu.TwipsToEmus(PageWidthTwips); } }
         public Emu PageMarginLeftEmus { get { return Emu.TwipsToEmus(PageMarginLeftTwips); } }
         public Emu PageMarginRightEmus { get { return Emu.TwipsToEmus(PageMarginRightTwips); } }
+
+        public Action<XNode, object> OnTransform { get; set; }
     }
 
     public class HtmlToWmlConverter
