@@ -339,11 +339,12 @@ namespace OpenXmlPowerTools
 
         public static void SavePartAs(OpenXmlPart part, string filePath)
         {
-            Stream partStream = part.GetStream(FileMode.Open, FileAccess.Read);
-            byte[] partContent = new byte[partStream.Length];
-            partStream.Read(partContent, 0, (int)partStream.Length);
-
-            File.WriteAllBytes(filePath, partContent);
+            using (Stream partStream = part.GetStream(FileMode.Open, FileAccess.Read))
+            {
+                byte[] partContent = new byte[partStream.Length];
+                partStream.Read(partContent, 0, (int)partStream.Length);
+                File.WriteAllBytes(filePath, partContent);
+            }
         }
     }
 

@@ -202,6 +202,21 @@ namespace OpenXmlPowerTools.Tests
   </w:body>
 </w:document>";
 
+        private const string LastRenderedPageBreakXmlString =
+@"<w:document xmlns:w=""http://schemas.openxmlformats.org/wordprocessingml/2006/main"">
+  <w:body>
+    <w:p>
+      <w:r>
+        <w:t>ThisIsAParagraphContainingNoNaturalLi</w:t>
+      </w:r>
+      <w:r>
+        <w:lastRenderedPageBreak/>
+        <w:t>neBreaksSoTheLineBreakIsForced.</w:t>
+      </w:r>
+    </w:p>
+  </w:body>
+</w:document>";
+
         private static string InnerText(XContainer e)
         {
             return e.Descendants(W.r)
@@ -380,6 +395,34 @@ namespace OpenXmlPowerTools.Tests
                 Assert.Equal("As stated in Article {__1} and this Section {__1.1}, this is described in Exhibit 4.", innerText);
             }
         }
+
+        [Fact]
+        public void CanMatchDespiteLastRenderedPageBreaks()
+        {
+            XDocument partDocument = XDocument.Parse(LastRenderedPageBreakXmlString);
+            XElement p = partDocument.Descendants(W.p).Last();
+            string innerText = InnerText(p);
+
+            Assert.Equal("ThisIsAParagraphContainingNoNaturalLineBreaksSoTheLineBreakIsForced.", innerText);
+
+            using (var stream = new MemoryStream())
+            using (WordprocessingDocument wordDocument = WordprocessingDocument.Create(stream, DocumentType))
+            {
+                MainDocumentPart part = wordDocument.AddMainDocumentPart();
+                part.PutXDocument(partDocument);
+
+                IEnumerable<XElement> content = partDocument.Descendants(W.p);
+                var regex = new Regex(@"LineBreak");
+                int count = OpenXmlRegex.Replace(content, regex, "LB", null);
+
+                p = partDocument.Descendants(W.p).Last();
+                innerText = InnerText(p);
+
+                Assert.Equal(2, count);
+                Assert.Equal("ThisIsAParagraphContainingNoNaturalLBsSoTheLBIsForced.", innerText);
+            }
+        }
+
     }
 }
 

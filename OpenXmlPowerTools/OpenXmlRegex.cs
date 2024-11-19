@@ -387,7 +387,7 @@ namespace OpenXmlPowerTools
             if (element.Name == W.r)
             {
                 return element.Elements()
-                    .Where(e => e.Name != W.rPr)
+                    .Where(e => e.Name != W.rPr && e.Name != W.lastRenderedPageBreak)
                     .Select(e => e.Name == W.t
                         ? ((string) e).Select(c =>
                             new XElement(W.r,

@@ -400,7 +400,8 @@ namespace OpenXmlPowerTools
             var embeddedSpreadsheet = chartPart.GetPartById(embeddedSpreadsheetRid);
             if (embeddedSpreadsheet != null)
             {
-                using (SpreadsheetDocument sDoc = SpreadsheetDocument.Open(embeddedSpreadsheet.GetStream(), true))
+                using (Stream spreadsheetStream = embeddedSpreadsheet.GetStream())
+                using (SpreadsheetDocument sDoc = SpreadsheetDocument.Open(spreadsheetStream, true))
                 {
                     var workbookPart = sDoc.WorkbookPart;
                     var wbRoot = workbookPart.GetXDocument().Root;
