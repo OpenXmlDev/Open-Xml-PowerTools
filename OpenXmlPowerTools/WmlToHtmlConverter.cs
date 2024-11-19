@@ -422,6 +422,16 @@ namespace OpenXmlPowerTools
                         );
                     if (!a.Nodes().Any())
                         a.Add(new XText(""));
+                    
+                    // Append anchor to the hyperlinks
+                    if (element.Attribute(W.anchor) != null)
+                    {
+                        if (a.Attribute("href") != null && ProcessHyperlinkToBookmark(wordDoc, settings, element) is XElement a2)
+                        {
+                            string anchor = a2.Attribute("href")?.Value.Split('#')[1];
+                            a.Attribute("href").Value += "#" + anchor;
+                        }
+                    }
                     return a;
                 }
                 catch (UriFormatException)
