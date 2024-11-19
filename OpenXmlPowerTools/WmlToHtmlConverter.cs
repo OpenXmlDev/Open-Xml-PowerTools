@@ -8,6 +8,7 @@ using System.Drawing;
 using System.Globalization;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using DocumentFormat.OpenXml.Packaging;
 
@@ -1520,9 +1521,20 @@ namespace OpenXmlPowerTools
         private static decimal? GetFontSize(string languageType, XElement rPr)
         {
             if (rPr == null) return null;
-            return languageType == "bidi"
-                ? (decimal?) rPr.Elements(W.szCs).Attributes(W.val).FirstOrDefault()
-                : (decimal?) rPr.Elements(W.sz).Attributes(W.val).FirstOrDefault();
+            var strVal = languageType == "bidi"
+                ? rPr.Elements(W.szCs).Attributes(W.val).FirstOrDefault()?.Value
+                : rPr.Elements(W.sz).Attributes(W.val).FirstOrDefault()?.Value;
+
+            if (string.IsNullOrEmpty(strVal))
+            {
+                return null;
+            }
+
+            //if size is set as pt we should multiply it to compensate future division by 2
+            var multiplicator = strVal.ToLower().Contains("pt") ? 2m : 1m;
+
+            strVal = Regex.Replace(strVal, @"[^\d\.,]", "").Replace(",", ".");
+            return decimal.TryParse(strVal, NumberStyles.Any, CultureInfo.InvariantCulture, out var parsed) ? (decimal?) multiplicator * parsed : null;
         }
 
         private static void DetermineRunMarks(XElement run, XElement rPr, Dictionary<string, string> style, out XEntity runStartMark, out XEntity runEndMark)
