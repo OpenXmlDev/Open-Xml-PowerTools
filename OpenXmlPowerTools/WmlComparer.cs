@@ -279,7 +279,7 @@ namespace OpenXmlPowerTools
                     var sourceUnidDict = sourceMainXDoc
                         .Root
                         .Descendants()
-                        .Where(d => d.Name == W.p || d.Name == W.tbl || d.Name == W.tr)
+                        .Where(d => (d.Name == W.p || d.Name == W.tbl || d.Name == W.tr) && d.Attribute(PtOpenXml.Unid) != null)
                         .ToDictionary(d => (string)d.Attribute(PtOpenXml.Unid));
 
                     var afterProcMainXDoc = wDocAfterProc
