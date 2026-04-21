@@ -1057,6 +1057,21 @@ namespace OpenXmlPowerTools
                         dataReference.Attribute(R.id).Value = newChart.GetIdOfPart(newPart);
                         continue;
                     }
+                    ExtendedPart extendedPart = oldPartIdPair.OpenXmlPart as ExtendedPart;
+                    if (extendedPart != null)
+                    {
+                        ExtendedPart newPart = newChart.AddExtendedPart(extendedPart.RelationshipType, extendedPart.ContentType, ".dat");
+                        using (Stream oldObject = extendedPart.GetStream(FileMode.Open, FileAccess.Read))
+                        using (Stream newObject = newPart.GetStream(FileMode.Create, FileAccess.ReadWrite))
+                        {
+                            int byteCount;
+                            byte[] buffer = new byte[65536];
+                            while ((byteCount = oldObject.Read(buffer, 0, 65536)) != 0)
+                                newObject.Write(buffer, 0, byteCount);
+                        }
+                        dataReference.Attribute(R.id).Value = newChart.GetIdOfPart(newPart);
+                        continue;
+                    }
                     EmbeddedObjectPart oldEmbeddedObjectPart = oldPartIdPair.OpenXmlPart as EmbeddedObjectPart;
                     if (oldEmbeddedObjectPart != null)
                     {
